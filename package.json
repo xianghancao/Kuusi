@@ -1,0 +1,56 @@
+{
+  "name": "lumen",
+  "version": "1.0.0",
+  "description": "MindMap instant-render rich text editor prototype",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tiptap/extension-code-block-lowlight": "^3.25.0",
+    "@tiptap/extension-color": "^3.25.0",
+    "@tiptap/extension-highlight": "^3.25.0",
+    "@tiptap/extension-image": "^3.25.0",
+    "@tiptap/extension-link": "^3.25.0",
+    "@tiptap/extension-mathematics": "^3.25.0",
+    "@tiptap/extension-table": "^3.25.0",
+    "@tiptap/extension-table-cell": "^3.25.0",
+    "@tiptap/extension-table-header": "^3.25.0",
+    "@tiptap/extension-table-row": "^3.25.0",
+    "@tiptap/extension-task-item": "^3.25.0",
+    "@tiptap/extension-task-list": "^3.25.0",
+    "@tiptap/extension-text-style": "^3.25.0",
+    "@tiptap/extension-underline": "^3.25.0",
+    "@tiptap/react": "^3.25.0",
+    "@tiptap/starter-kit": "^3.25.0",
+    "@xyflow/react": "^12.11.0",
+    "dagre": "^0.8.5",
+    "jszip": "^3.10.1",
+    "katex": "^0.16.47",
+    "lowlight": "^3.3.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@rolldown/plugin-babel": "^0.2.3",
+    "@types/dagre": "^0.7.54",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.16"
+  },
+  "optionalDependencies": {
+    "@esbuild/darwin-arm64": "^0.18.20",
+    "@esbuild/darwin-x64": "^0.18.20",
+    "@rolldown/binding-darwin-arm64": "^1.0.3",
+    "@rolldown/binding-darwin-x64": "^1.0.3"
+  }
+}
