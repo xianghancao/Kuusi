@@ -1,0 +1,116 @@
+@import "katex/dist/katex.min.css";
+
+.jp-LumenDocument,
+.jp-LumenEditorWidget,
+.jp-LumenEditor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-LumenEditor-header {
+  align-items: center;
+  border-bottom: 1px solid var(--jp-border-color2);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 8px 14px;
+}
+
+.jp-LumenEditor-header span {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-LumenEditor-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.jp-LumenEditor-canvas .react-flow {
+  background: var(--jp-layout-color1);
+}
+
+.react-flow__node-mindMapNode {
+  overflow: visible;
+}
+
+.react-flow__node-mindMapNode.is-auto-sized {
+  height: auto;
+  width: 280px;
+}
+
+.mind-node {
+  background: var(--jp-layout-color0);
+  border: 2px solid var(--jp-border-color2);
+  border-radius: 14px;
+  box-shadow: var(--jp-elevation-z2);
+  box-sizing: border-box;
+  height: auto;
+  min-height: 78px;
+  padding: 12px 14px;
+  position: relative;
+  width: 100%;
+}
+
+.mind-node.is-selected {
+  border-color: var(--jp-brand-color1);
+}
+
+.mind-node.is-editing {
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+}
+
+.node-editor {
+  min-height: 24px;
+  outline: none;
+}
+
+.node-editor p {
+  margin: 0 0 0.35rem;
+}
+
+.node-editor pre {
+  background: var(--jp-layout-color2);
+  border-radius: 8px;
+  overflow: auto;
+  padding: 8px 10px;
+}
+
+.node-editor .math-source-inline,
+.node-editor .math-source-block {
+  background: color-mix(in srgb, var(--jp-brand-color1) 10%, transparent);
+  border-radius: 4px;
+}
+
+.node-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.node-toolbar button {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.react-flow__handle {
+  opacity: 0;
+}
+
+.react-flow__edge .react-flow__edge-path {
+  stroke: var(--jp-border-color2);
+  stroke-width: 2;
+}
+
+.react-flow__edge:hover .react-flow__edge-path,
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--jp-brand-color1);
+  stroke-width: 3;
+}

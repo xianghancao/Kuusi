@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jupyterlab-lumen"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+classifiers = [
+    "Framework :: Jupyter",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter :: JupyterLab :: 4",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+dependencies = []
+dynamic = ["version", "description", "authors", "urls"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0", "pytest-asyncio>=0.21"]
+
+[tool.hatch.version]
+path = "jupyterlab_lumen/_version.py"
+
+[tool.hatch.build.targets.wheel.shared-data]
+"jupyterlab_lumen/labextension" = "share/jupyter/labextensions/jupyterlab-lumen"
+"install.json" = "share/jupyter/labextensions/jupyterlab-lumen/install.json"
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["jupyterlab_lumen/labextension"]
+
+[tool.hatch.build.hooks.jupyter-builder]
+dependencies = ["hatch-jupyter-builder>=0.8"]
+build-function = "hatch_jupyter_builder.npm_builder"
+ensured-targets = [
+    "jupyterlab_lumen/labextension/static/style.js",
+    "jupyterlab_lumen/labextension/package.json",
+]
+skip-if-exists = ["jupyterlab_lumen/labextension/static/style.js"]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+build_cmd = "build:labextension"
+npm = ["npm"]
+
+[tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
+build_cmd = "install:extension"
+npm = ["npm"]
+source_dir = "src"
+build_dir = "jupyterlab_lumen/labextension"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,67 @@
+{
+  "version": "1.1",
+  "active_sheet_id": "sheet-1",
+  "sheets": [
+    {
+      "id": "sheet-1",
+      "title": "Example",
+      "root_id": "node-1",
+      "nodes": {
+        "node-1": {
+          "id": "node-1",
+          "content": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [{ "type": "text", "text": "Lumen in JupyterLab" }]
+              }
+            ]
+          },
+          "children": ["node-2", "node-3"],
+          "parent": null
+        },
+        "node-2": {
+          "id": "node-2",
+          "content": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "Inline: " },
+                  {
+                    "type": "inlineMath",
+                    "attrs": { "latex": "E = mc^2" }
+                  }
+                ]
+              }
+            ]
+          },
+          "children": [],
+          "parent": "node-1"
+        },
+        "node-3": {
+          "id": "node-3",
+          "content": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [{ "type": "text", "text": "Press Tab for child nodes" }]
+              }
+            ]
+          },
+          "children": [],
+          "parent": "node-1"
+        }
+      }
+    }
+  ],
+  "viewState": {
+    "sheet-1": {
+      "layoutSpacing": "standard",
+      "nodes": {}
+    }
+  }
+}

@@ -5,10 +5,10 @@ node_modules/
 dist/
 lib/
 build/
+packages/*/lib/
+packages/*/dist/
+**/jupyterlab_lumen/labextension/
 *.tsbuildinfo
-
-# JupyterLab extension artifacts (future)
-jupyterlab_lumen/labextension/
 .lerna/
 
 # Environment & secrets

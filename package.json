@@ -1,12 +1,21 @@
 {
-  "name": "lumen",
+  "name": "lumen-monorepo",
+  "private": true,
   "version": "1.0.0",
-  "description": "MindMap instant-render rich text editor prototype",
+  "description": "Lumen mind map editor: standalone app + JupyterLab extension",
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:kernel": "npm run build --workspace=lumen-kernel",
+    "build:extension:lib": "npm run build:lib --workspace=jupyterlab-lumen",
+    "build:extension": "npm run build:kernel && npm run build:extension:lib && npm run build:labextension:dev --workspace=jupyterlab-lumen",
+    "watch:extension": "npm run watch --workspace=jupyterlab-lumen",
+    "jlab:install": "npm install && npm run build:extension && pip install -e packages/jupyterlab-lumen"
   },
   "keywords": [],
   "author": "",
@@ -33,15 +42,15 @@
     "jszip": "^3.10.1",
     "katex": "^0.16.47",
     "lowlight": "^3.3.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@rolldown/plugin-babel": "^0.2.3",
     "@types/dagre": "^0.7.54",
     "@types/node": "^24.10.1",
-    "@types/react": "^19.2.16",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^6.0.2",
     "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "^5.9.3",
