@@ -71,20 +71,12 @@ export const getInsertIndexAfterSubtree = (
   return Math.min(maxIndex + 1, cellCount);
 };
 
-/** Notebook insert index for the first child topic directly under `nodeId`. */
+/** Notebook insert index for a new child topic as the last child under `nodeId`. */
 export const getInsertIndexForChild = (
   root: OutlineNode,
   nodeId: string,
   cellCount: number,
-): number => {
-  const located = findOutlineNode(root, nodeId);
-
-  if (!located || located.node.cellIndex === null) {
-    return cellCount;
-  }
-
-  return Math.min(located.node.cellIndex + 1, cellCount);
-};
+): number => getInsertIndexAfterSubtree(root, nodeId, cellCount);
 
 export const navigateOutlineNode = (
   root: OutlineNode,

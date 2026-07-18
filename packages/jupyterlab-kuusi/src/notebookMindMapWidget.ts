@@ -14,7 +14,7 @@ import type { CellList } from "@jupyterlab/notebook/lib/celllist";
 import type { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 import type { IObservableList } from "@jupyterlab/observables";
 import { Message } from "@lumino/messaging";
-import { PanelLayout, Widget } from "@lumino/widgets";
+import { Widget } from "@lumino/widgets";
 import { CommandToolbarButton, collapseIcon, expandIcon } from "@jupyterlab/ui-components";
 import {
   buildNotebookOutline,
@@ -40,6 +40,7 @@ import { handleFormatShortcut } from "./formatKeyboard";
 import { isMindMapEditingText } from "./mindMapKeyboard";
 import {
   applyAppearanceToScene,
+  appendEdgeArrowDefs,
   createAppearanceToolbar,
   DEFAULT_APPEARANCE,
   type AppearanceSettings,
@@ -58,6 +59,7 @@ import {
   createBackgroundToolbar,
   DEFAULT_MIND_MAP_BACKGROUND,
   DEFAULT_MIND_MAP_BACKGROUND_COLOR,
+  DEFAULT_MIND_MAP_BACKGROUND_PATTERN,
   type MindMapBackground,
 } from "./backgroundToolbar";
 import {
@@ -89,7 +91,10 @@ const DRAG_THRESHOLD_PX = 6;
 const ZOOM_PRESETS = [0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1.1, 1.3, 1.5, 1.7, 2.0] as const;
 const MIN_ZOOM = ZOOM_PRESETS[0];
 const MAX_ZOOM = ZOOM_PRESETS[ZOOM_PRESETS.length - 1];
-const ZOOM_WHEEL_FACTOR = 1.08;
+/** Pinch / ctrl+wheel zoom intensity (lower = slower). Tuned for trackpad deltas. */
+const ZOOM_WHEEL_SENSITIVITY = 0.0024;
+/** Cap per-event zoom so a large delta cannot jump too far. */
+const ZOOM_WHEEL_MAX_STEP = 1.09;
 
 const getDropZoneFromPointer = (
   rect: DOMRect,
@@ -193,14 +198,14 @@ export class NotebookMindMapWidget extends Widget {
   private _zoomMenu: HTMLElement | null = null;
   private _zoomMenuItems = new Map<number, HTMLButtonElement>();
   private _fullscreenButton: HTMLButtonElement | null = null;
-  private _fullscreenShell: Widget | null = null;
-  private _fullscreenRestoreParent: Widget | null = null;
-  private _fullscreenRestoreIndex = -1;
+  private _edgeMarkerAttrs: { markerStart?: string; markerEnd?: string } | null =
+    null;
   private _formatToolbar: FormatToolbarHandle | null = null;
   private _addMindMapButton: CommandToolbarButton | null = null;
   private _appearanceSettings: AppearanceSettings = { ...DEFAULT_APPEARANCE };
   private _mindMapTheme: MindMapTheme = DEFAULT_MIND_MAP_THEME;
   private _mindMapBackground: MindMapBackground = DEFAULT_MIND_MAP_BACKGROUND;
+  private _mindMapBackgroundPattern = DEFAULT_MIND_MAP_BACKGROUND_PATTERN;
   private _mindMapBackgroundColor = DEFAULT_MIND_MAP_BACKGROUND_COLOR;
   private _mindMapFont: MindMapFont = DEFAULT_MIND_MAP_FONT;
   private _mindMapFontSize: MindMapFontSize = DEFAULT_MIND_MAP_FONT_SIZE;
@@ -314,11 +319,13 @@ export class NotebookMindMapWidget extends Widget {
         this.node,
         () => ({
           background: this._mindMapBackground,
+          backgroundPattern: this._mindMapBackgroundPattern,
           backgroundColor: this._mindMapBackgroundColor,
         }),
         (state) => {
           void this._settingsManager.update({
             background: state.background,
+            backgroundPattern: state.backgroundPattern,
             backgroundColor: state.backgroundColor,
           });
         },
@@ -385,6 +392,7 @@ export class NotebookMindMapWidget extends Widget {
     this._bindCellInteractionEvents();
     this._bindKeyboardEvents();
     document.addEventListener("fullscreenchange", this._onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", this._onFullscreenChange);
 
     this._context.model.cells.changed.connect(this._onCellsChanged, this);
     this._context.model.contentChanged.connect(this._onModelContentChanged, this);
@@ -404,6 +412,7 @@ export class NotebookMindMapWidget extends Widget {
     this._childGap = settings.childGap;
     this._treeDirection = settings.treeDirection;
     this._mindMapBackground = settings.background;
+    this._mindMapBackgroundPattern = settings.backgroundPattern;
     this._mindMapBackgroundColor = settings.backgroundColor;
     this._appearanceSettings = { ...settings.appearance };
     this._updateDirectionButtons();
@@ -523,12 +532,11 @@ export class NotebookMindMapWidget extends Widget {
     this._resizeObserver?.disconnect();
     this._resizeObserver = null;
     document.removeEventListener("fullscreenchange", this._onFullscreenChange);
-    void document.exitFullscreen().catch(() => undefined);
-    this._restoreDocumentFromFullscreen();
-    if (this._fullscreenShell && !this._fullscreenShell.isDisposed) {
-      this._fullscreenShell.dispose();
-      this._fullscreenShell = null;
-    }
+    document.removeEventListener(
+      "webkitfullscreenchange",
+      this._onFullscreenChange,
+    );
+    void this._exitElementFullscreen().catch(() => undefined);
     this._unbindViewportEvents();
     this._unbindCellInteractionEvents();
     this._unbindKeyboardEvents();
@@ -752,14 +760,15 @@ export class NotebookMindMapWidget extends Widget {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "jp-KuusiNotebookMindMap-status-fullscreen-btn";
-    button.title = "Enter fullscreen";
-    button.setAttribute("aria-label", "Enter fullscreen");
+    button.title = this._t.enterFullscreen();
+    button.setAttribute("aria-label", this._t.enterFullscreen());
     this._fullscreenButton = button;
     this._updateFullscreenButton();
 
     button.addEventListener("click", (event) => {
+      event.preventDefault();
       event.stopPropagation();
-      void this._toggleFullscreen();
+      this._onFullscreenButtonClick();
     });
 
     wrapper.addEventListener("pointerdown", (event) => {
@@ -770,65 +779,35 @@ export class NotebookMindMapWidget extends Widget {
     return wrapper;
   }
 
-  private _getDocumentWidget(): NotebookMindMapDocumentWidget | null {
+  /**
+   * Resolve the element to put in fullscreen. Prefer the document widget
+   * node (already styled for :fullscreen). Avoid `instanceof` — JupyterLab
+   * federated bundles can load duplicate class copies so instanceof fails
+   * and the old path silently no-oped.
+   */
+  private _getFullscreenTarget(): HTMLElement {
+    const fromDom = this.node.closest(
+      ".jp-KuusiNotebookMindMapDocument",
+    ) as HTMLElement | null;
+
+    if (fromDom) {
+      return fromDom;
+    }
+
     let widget: Widget | null = this.parent;
 
     while (widget) {
-      if (widget instanceof NotebookMindMapDocumentWidget) {
-        return widget;
+      if (widget.node.classList.contains("jp-KuusiNotebookMindMapDocument")) {
+        return widget.node;
       }
 
       widget = widget.parent;
     }
 
-    return null;
-  }
-
-  private _getFullscreenShell(): Widget {
-    if (!this._fullscreenShell || this._fullscreenShell.isDisposed) {
-      const shell = new Widget();
-      shell.addClass("jp-KuusiFullscreenShell");
-      shell.layout = new PanelLayout();
-      shell.hide();
-      Widget.attach(shell, document.body);
-      this._fullscreenShell = shell;
-    }
-
-    return this._fullscreenShell;
-  }
-
-  private _restoreDocumentFromFullscreen(): void {
-    const doc = this._getDocumentWidget();
-    const restoreParent = this._fullscreenRestoreParent;
-    const restoreIndex = this._fullscreenRestoreIndex;
-    const shell = this._fullscreenShell;
-
-    if (!doc || !restoreParent || !shell || doc.parent !== shell) {
-      return;
-    }
-
-    Widget.detach(doc);
-
-    const layout = restoreParent.layout as PanelLayout | null;
-
-    if (layout) {
-      if (restoreIndex >= 0 && restoreIndex <= layout.widgets.length) {
-        layout.insertWidget(restoreIndex, doc);
-      } else {
-        layout.addWidget(doc);
-      }
-    }
-
-    this._fullscreenRestoreParent = null;
-    this._fullscreenRestoreIndex = -1;
-    shell.hide();
+    return this.node;
   }
 
   private _onFullscreenChange = (): void => {
-    if (!document.fullscreenElement) {
-      this._restoreDocumentFromFullscreen();
-    }
-
     this._updateFullscreenButton();
     this._syncFullscreenLayout();
   };
@@ -847,12 +826,6 @@ export class NotebookMindMapWidget extends Widget {
           widget = widget.parent;
         }
 
-        const shell = this._fullscreenShell;
-
-        if (shell && document.fullscreenElement === shell.node) {
-          shell.update();
-        }
-
         this._applyLayout();
 
         const index = this._notebook.activeCellIndex;
@@ -862,12 +835,34 @@ export class NotebookMindMapWidget extends Widget {
         }
       });
     });
-  };
+  }
 
-  private _isFullscreen(): boolean {
-    const shell = this._fullscreenShell;
+  private _fullscreenElement(): Element | null {
+    const doc = document as Document & {
+      webkitFullscreenElement?: Element | null;
+      mozFullScreenElement?: Element | null;
+      msFullscreenElement?: Element | null;
+    };
 
-    return Boolean(shell && document.fullscreenElement === shell.node);
+    return (
+      document.fullscreenElement ??
+      doc.webkitFullscreenElement ??
+      doc.mozFullScreenElement ??
+      doc.msFullscreenElement ??
+      null
+    );
+  }
+
+  private _isKuusiFullscreen(): boolean {
+    const fullscreen = this._fullscreenElement();
+
+    if (!fullscreen) {
+      return false;
+    }
+
+    const target = this._getFullscreenTarget();
+
+    return fullscreen === target || fullscreen === this.node;
   }
 
   private _updateFullscreenButton(): void {
@@ -875,8 +870,10 @@ export class NotebookMindMapWidget extends Widget {
       return;
     }
 
-    const isFullscreen = this._isFullscreen();
-    const label = isFullscreen ? this._t.exitFullscreen() : this._t.enterFullscreen();
+    const isFullscreen = this._isKuusiFullscreen();
+    const label = isFullscreen
+      ? this._t.exitFullscreen()
+      : this._t.enterFullscreen();
 
     this._fullscreenButton.title = label;
     this._fullscreenButton.setAttribute("aria-label", label);
@@ -884,37 +881,109 @@ export class NotebookMindMapWidget extends Widget {
     (isFullscreen ? collapseIcon : expandIcon).render(this._fullscreenButton);
   }
 
-  private async _toggleFullscreen(): Promise<void> {
-    const doc = this._getDocumentWidget();
+  private _requestElementFullscreen(element: HTMLElement): Promise<void> {
+    const el = element as HTMLElement & {
+      webkitRequestFullscreen?: () => void;
+      webkitRequestFullScreen?: () => void;
+      mozRequestFullScreen?: () => void;
+      msRequestFullscreen?: () => void;
+    };
 
-    if (!doc) {
+    if (typeof el.requestFullscreen === "function") {
+      return el.requestFullscreen().then(() => undefined);
+    }
+
+    if (typeof el.webkitRequestFullscreen === "function") {
+      el.webkitRequestFullscreen();
+      return Promise.resolve();
+    }
+
+    if (typeof el.webkitRequestFullScreen === "function") {
+      el.webkitRequestFullScreen();
+      return Promise.resolve();
+    }
+
+    if (typeof el.mozRequestFullScreen === "function") {
+      el.mozRequestFullScreen();
+      return Promise.resolve();
+    }
+
+    if (typeof el.msRequestFullscreen === "function") {
+      el.msRequestFullscreen();
+      return Promise.resolve();
+    }
+
+    return Promise.reject(new Error("Fullscreen API unavailable"));
+  }
+
+  private _exitElementFullscreen(): Promise<void> {
+    const doc = document as Document & {
+      webkitExitFullscreen?: () => void;
+      webkitCancelFullScreen?: () => void;
+      mozCancelFullScreen?: () => void;
+      msExitFullscreen?: () => void;
+    };
+
+    if (!this._fullscreenElement()) {
+      return Promise.resolve();
+    }
+
+    if (typeof document.exitFullscreen === "function") {
+      return document.exitFullscreen().then(() => undefined);
+    }
+
+    if (typeof doc.webkitExitFullscreen === "function") {
+      doc.webkitExitFullscreen();
+      return Promise.resolve();
+    }
+
+    if (typeof doc.webkitCancelFullScreen === "function") {
+      doc.webkitCancelFullScreen();
+      return Promise.resolve();
+    }
+
+    if (typeof doc.mozCancelFullScreen === "function") {
+      doc.mozCancelFullScreen();
+      return Promise.resolve();
+    }
+
+    if (typeof doc.msExitFullscreen === "function") {
+      doc.msExitFullscreen();
+      return Promise.resolve();
+    }
+
+    return Promise.resolve();
+  }
+
+  private _onFullscreenButtonClick = (): void => {
+    if (this._isKuusiFullscreen()) {
+      void this._exitFullscreen();
       return;
     }
 
-    const shell = this._getFullscreenShell();
+    // Call requestFullscreen in the same turn as the click so the
+    // user-gesture requirement is satisfied (no prior await).
+    const target = this._getFullscreenTarget();
+    void this._requestElementFullscreen(target)
+      .then(() => {
+        this._updateFullscreenButton();
+        this._syncFullscreenLayout();
+      })
+      .catch((error) => {
+        console.warn("[kuusi] fullscreen request failed", error);
+        this._updateFullscreenButton();
+      });
+  };
 
+  private async _exitFullscreen(): Promise<void> {
     try {
-      if (this._isFullscreen()) {
-        await document.exitFullscreen();
-        return;
-      }
-
-      if (doc.parent && doc.parent !== shell) {
-        const parent = doc.parent;
-        const parentLayout = parent.layout as PanelLayout | null;
-        this._fullscreenRestoreParent = parent;
-        this._fullscreenRestoreIndex = parentLayout
-          ? parentLayout.widgets.indexOf(doc)
-          : -1;
-        Widget.detach(doc);
-        (shell.layout as PanelLayout).addWidget(doc);
-      }
-
-      shell.show();
-      await shell.node.requestFullscreen();
+      await this._exitElementFullscreen();
     } catch {
-      this._restoreDocumentFromFullscreen();
+      // ignore — button state still refreshes below
     }
+
+    this._updateFullscreenButton();
+    this._syncFullscreenLayout();
   }
 
   private _closeZoomMenu(): void {
@@ -952,6 +1021,7 @@ export class NotebookMindMapWidget extends Widget {
     applyBackgroundToViewport(
       this._viewport,
       this._mindMapBackground,
+      this._mindMapBackgroundPattern,
       this._mindMapBackgroundColor,
     );
   }
@@ -1461,7 +1531,7 @@ export class NotebookMindMapWidget extends Widget {
         !cell.rendered;
 
       if (cell instanceof MarkdownCell) {
-        if (!isEditingMarkdown) {
+        if (!isEditingMarkdown && !cell.rendered) {
           cell.rendered = true;
         }
       }
@@ -1469,8 +1539,6 @@ export class NotebookMindMapWidget extends Widget {
       if (cell instanceof CodeCell) {
         cell.outputHidden = false;
       }
-
-      cell.editorWidget?.update();
     });
   }
 
@@ -1500,13 +1568,31 @@ export class NotebookMindMapWidget extends Widget {
     return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
   }
 
-  private _zoomAtPointer(clientX: number, clientY: number, deltaY: number): void {
+  private _zoomAtPointer(
+    clientX: number,
+    clientY: number,
+    deltaY: number,
+    deltaMode: number = 0,
+  ): void {
     const rect = this._viewport.getBoundingClientRect();
     const pointerX = clientX - rect.left;
     const pointerY = clientY - rect.top;
     const worldX = (pointerX - this._panX) / this._zoom;
     const worldY = (pointerY - this._panY) / this._zoom;
-    const factor = deltaY < 0 ? ZOOM_WHEEL_FACTOR : 1 / ZOOM_WHEEL_FACTOR;
+
+    let normalizedDelta = deltaY;
+
+    if (deltaMode === WheelEvent.DOM_DELTA_LINE) {
+      normalizedDelta *= 16;
+    } else if (deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+      normalizedDelta *= 400;
+    }
+
+    const rawFactor = Math.exp(-normalizedDelta * ZOOM_WHEEL_SENSITIVITY);
+    const factor = Math.min(
+      ZOOM_WHEEL_MAX_STEP,
+      Math.max(1 / ZOOM_WHEEL_MAX_STEP, rawFactor),
+    );
     const nextZoom = this._clampZoom(this._zoom * factor);
 
     this._panX = pointerX - worldX * nextZoom;
@@ -1548,7 +1634,12 @@ export class NotebookMindMapWidget extends Widget {
     event.stopPropagation();
 
     if (event.ctrlKey || event.metaKey) {
-      this._zoomAtPointer(event.clientX, event.clientY, event.deltaY);
+      this._zoomAtPointer(
+        event.clientX,
+        event.clientY,
+        event.deltaY,
+        event.deltaMode,
+      );
       return;
     }
 
@@ -1851,7 +1942,29 @@ export class NotebookMindMapWidget extends Widget {
     }
 
     const svg = this._edgesSvg;
-    svg.replaceChildren();
+    let defs = svg.querySelector("defs");
+    const paths = Array.from(svg.querySelectorAll(":scope > path.jp-KuusiNotebookMindMap-edge"));
+
+    if (!defs) {
+      const markers = appendEdgeArrowDefs(svg, this._appearanceSettings);
+      this._edgeMarkerAttrs = markers;
+      svg.dataset.kuusiMarkerKey = `${this._appearanceSettings.edgeArrowDirection}:${this._appearanceSettings.edgeArrowStyle}`;
+    } else {
+      // Refresh marker defs when arrow settings change.
+      const direction = this._appearanceSettings.edgeArrowDirection;
+      const style = this._appearanceSettings.edgeArrowStyle;
+      const markerKey = `${direction}:${style}`;
+
+      if (svg.dataset.kuusiMarkerKey !== markerKey) {
+        defs.remove();
+        const markers = appendEdgeArrowDefs(svg, this._appearanceSettings);
+        this._edgeMarkerAttrs = markers;
+        svg.dataset.kuusiMarkerKey = markerKey;
+      }
+    }
+
+    const markers = this._edgeMarkerAttrs ?? {};
+    const pathData: string[] = [];
 
     edges.forEach(({ fromId, toId }) => {
       const fromLayout = positions.get(fromId);
@@ -1863,12 +1976,36 @@ export class NotebookMindMapWidget extends Widget {
 
       const from = this._resolveLayoutPosition(fromLayout, fromId);
       const to = this._resolveLayoutPosition(toLayout, toId);
-
-      const path = document.createElementNS(ns, "path");
-      path.setAttribute("d", buildMindMapEdgePath(from, to, this._treeDirection));
-      path.setAttribute("class", "jp-KuusiNotebookMindMap-edge");
-      svg.appendChild(path);
+      pathData.push(buildMindMapEdgePath(from, to, this._treeDirection));
     });
+
+    pathData.forEach((d, index) => {
+      let path = paths[index];
+
+      if (!path) {
+        path = document.createElementNS(ns, "path");
+        path.setAttribute("class", "jp-KuusiNotebookMindMap-edge");
+        svg.appendChild(path);
+      }
+
+      path.setAttribute("d", d);
+
+      if (markers.markerStart) {
+        path.setAttribute("marker-start", markers.markerStart);
+      } else {
+        path.removeAttribute("marker-start");
+      }
+
+      if (markers.markerEnd) {
+        path.setAttribute("marker-end", markers.markerEnd);
+      } else {
+        path.removeAttribute("marker-end");
+      }
+    });
+
+    for (let index = pathData.length; index < paths.length; index += 1) {
+      paths[index]?.remove();
+    }
   }
 
   private _applyLayout(): void {
@@ -2140,6 +2277,24 @@ export class NotebookMindMapWidget extends Widget {
   ): Promise<{ width: number; height: number } | null> {
     const node = cell.node;
     const nodeId = `cell-${index}`;
+
+    // Prefer measuring in place. Moving nodes into the off-screen measure host
+    // detaches them from the scene for a few frames and causes visible flash
+    // when syncing notebook edits in a split view.
+    if (
+      node.isConnected &&
+      node.parentElement !== this._measureHost &&
+      node.parentElement !== null
+    ) {
+      return this._measureConnectedCellDimensions(
+        cell,
+        index,
+        outline,
+        orderedCells,
+        defaultWidth,
+      );
+    }
+
     const host = this._getMeasureHost();
     const parent = node.parentElement;
     const snapshot = {
@@ -2194,6 +2349,69 @@ export class NotebookMindMapWidget extends Widget {
     node.style.margin = snapshot.margin;
 
     return dimensions;
+  }
+
+  private async _measureConnectedCellDimensions(
+    cell: Cell,
+    index: number,
+    outline: OutlineNode,
+    orderedCells: NotebookCell[],
+    defaultWidth: number,
+  ): Promise<{ width: number; height: number } | null> {
+    const node = cell.node;
+    const nodeId = `cell-${index}`;
+    const notebookCell = orderedCells[index];
+    const previousWidth = node.style.width;
+
+    node.dataset.nodeId = nodeId;
+    node.classList.add("jp-KuusiNotebookMindMap-cellNode");
+
+    if (notebookCell) {
+      const outlineNode = this._findOutlineNodeById(outline, nodeId);
+      applyNodeFrameToElement(
+        node,
+        notebookCell,
+        outlineNode?.headingLevel ?? null,
+      );
+    }
+
+    if (cell instanceof MarkdownCell && !this._isCellEditingMarkdown(cell, index)) {
+      if (!cell.rendered) {
+        await new Promise<void>((resolve) => {
+          const handler = (_sender: MarkdownCell, rendered: boolean) => {
+            if (rendered) {
+              cell.renderedChanged.disconnect(handler);
+              resolve();
+            }
+          };
+
+          cell.renderedChanged.connect(handler);
+          cell.rendered = true;
+        });
+      }
+    }
+
+    if (cell instanceof CodeCell) {
+      cell.outputHidden = false;
+    }
+
+    node.style.width = `${defaultWidth}px`;
+
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
+
+    const height = this._measureNodeHeight(node);
+
+    // Keep the measured width — layout will set the same default width next.
+    // Restoring a stale empty width can flash the node during split-view sync.
+    if (!previousWidth) {
+      node.style.width = `${defaultWidth}px`;
+    } else {
+      node.style.width = previousWidth;
+    }
+
+    return height > 0 ? { width: defaultWidth, height } : null;
   }
 
   private async _collectNodeDimensions(

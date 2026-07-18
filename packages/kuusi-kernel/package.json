@@ -1,6 +1,6 @@
 {
   "name": "kuusi-kernel",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Notebook outline tree and dagre layout for Kuusi",
   "type": "module",
   "main": "./dist/index.js",

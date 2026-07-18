@@ -40,11 +40,11 @@ describe("getInsertIndexAfterSubtree", () => {
 });
 
 describe("getInsertIndexForChild", () => {
-  it("returns index immediately after the parent cell", () => {
+  it("returns index after the parent subtree (last child)", () => {
     const root = sampleOutline();
 
-    assert.equal(getInsertIndexForChild(root, "cell-0", 10), 1);
-    assert.equal(getInsertIndexForChild(root, "cell-1", 10), 2);
+    assert.equal(getInsertIndexForChild(root, "cell-0", 10), 4);
+    assert.equal(getInsertIndexForChild(root, "cell-1", 10), 3);
     assert.equal(getInsertIndexForChild(root, "cell-3", 10), 4);
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-kuusi",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Jupyter-native notebook mind map view for JupyterLab",
   "keywords": [
     "jupyter",
@@ -27,7 +27,7 @@
     "build": "npm run build:kernel && npm run build:lib && npm run build:labextension:dev",
     "build:release": "npm run build:kernel && npm run build:lib && npm run build:labextension",
     "build:kernel": "npm run build --workspace=kuusi-kernel",
-    "build:lib": "tsc -p tsconfig.json",
+    "build:lib": "npm run clean:lib && tsc -p tsconfig.json",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
     "install:extension": "npm run build:kernel && npm run build:lib && npm run build:labextension:dev",
@@ -52,7 +52,7 @@
     "@jupyterlab/ui-components": "^4.3.5",
     "@lumino/disposable": "^2.1.2",
     "@lumino/widgets": "^2.5.0",
-    "kuusi-kernel": "0.2.1"
+    "kuusi-kernel": "0.2.2"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.5",

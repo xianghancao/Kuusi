@@ -19,10 +19,16 @@ kuusi_remove_stale_labextension_symlink "$KUUSI_PYTHON"
 npm install
 npm run build:extension
 
-if "$KUUSI_PYTHON" -m pip show jupyterlab-kuusi >/dev/null 2>&1; then
-  echo "==> Uninstalling previous jupyterlab-kuusi"
-  "$KUUSI_PYTHON" -m pip uninstall -y jupyterlab-kuusi
-fi
+for pkg in jupyterlab-kuusi jupyterlab-lumen; do
+  if "$KUUSI_PYTHON" -m pip show "$pkg" >/dev/null 2>&1; then
+    echo "==> Uninstalling previous $pkg"
+    "$KUUSI_PYTHON" -m pip uninstall -y "$pkg"
+  fi
+done
+
+# Also drop a leftover labextension folder if pip did not remove it.
+prefix="$("$KUUSI_PYTHON" -c 'import sys; print(sys.prefix)')"
+rm -rf "$prefix/share/jupyter/labextensions/jupyterlab-lumen"
 
 "$KUUSI_PYTHON" -m pip install -e packages/jupyterlab-kuusi
 "$KUUSI_JUPYTER" lab build

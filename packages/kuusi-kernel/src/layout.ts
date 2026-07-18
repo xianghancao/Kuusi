@@ -84,7 +84,7 @@ export const LAYOUT_SIBLING_GAP = {
 
 export const LAYOUT_CHILD_GAP = {
   min: 0,
-  max: 160,
+  max: 200,
   default: 52,
 } as const;
 

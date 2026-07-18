@@ -6,16 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-07-18
+
 ### Added
 
-- Version sync check (`npm run check:versions`) and production release build check (`npm run test:release-build`)
+- Independent **background pattern** (`plain` / `grid` / `dots` / `gradient`) separate from background color themes
+- Edge **arrow direction** and **arrow style** (replaces line cap)
+- Node **border corner** modes (`sharp` / `rounded` / `ellipse`) with adjustable radius
+- Extra line / border width presets (up to 10pt)
+- Soft **hover glow** on non-selected nodes
 
 ### Changed
 
 - Rebranded from **Lumen** to **Kuusi** (Finnish for spruce): packages `kuusi-kernel` / `jupyterlab-kuusi`, UI classes `jp-Kuusi*`, document factory **Kuusi Mind Map**
+- Parent–child layout gap maximum raised to **200**
+- Trackpad pinch / Ctrl+wheel zoom uses exponential scaling with a balanced sensitivity
+- Tab inserts a new child **after the current subtree** (at the bottom of siblings)
+- Title (heading) button writes markdown `#` markers so structure changes are visible in the notebook
+- Fullscreen button targets the document DOM node (avoids federated `instanceof` failures) and uses the Fullscreen API with vendor prefixes
+- Status bar z-index and fullscreen hit target improved
+- `build:lib` cleans `lib/` first to avoid stale incremental TypeScript output
+- Install script uninstalls leftover `jupyterlab-lumen`
+- Version sync check (`npm run check:versions`) and production release build check (`npm run test:release-build`)
 - Standardized on **npm** only (`package-lock.json`); removed Yarn lockfile and config
 - Local install keeps dev labextension build; release/PyPI path uses production `build:labextension`
 - Consolidated Playwright smoke test under `e2e/jupyterlab-smoke.mjs`
+
+### Fixed
+
+- Fullscreen control no longer silently no-ops under JupyterLab module federation
+- Typing in the classic notebook no longer flashes split-view (in-place cell measure instead of off-screen remount)
 
 ### Removed
 
@@ -64,6 +84,7 @@ First public release of the Jupyter-native mind map stack (`kuusi-kernel` + `jup
 
 Pre-0.2.0 prototypes are not part of this changelog.
 
-[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.2
 [0.2.1]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.1
 [0.2.0]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.0

@@ -4,16 +4,22 @@ import {
 } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
 import {
+  appendDropdownSection,
   closeKuusiDropdownMenus,
   createDropdownOptionRow,
 } from "./formatToolbar";
 
-export type MindMapBackground =
-  | "default"
+/** Texture / fill pattern — independent of canvas color. */
+export type MindMapBackgroundPattern =
+  | "none"
   | "plain"
   | "grid"
   | "dots"
-  | "gradient"
+  | "gradient";
+
+/** Canvas color theme — independent of pattern. */
+export type MindMapBackground =
+  | "default"
   | "eye-care"
   | "newspaper"
   | "business-blue"
@@ -27,14 +33,33 @@ export type MindMapBackground =
 
 export const DEFAULT_MIND_MAP_BACKGROUND: MindMapBackground = "default";
 
+export const DEFAULT_MIND_MAP_BACKGROUND_PATTERN: MindMapBackgroundPattern =
+  "none";
+
 export const DEFAULT_MIND_MAP_BACKGROUND_COLOR = "#d6ecff";
+
+export const LEGACY_BACKGROUND_PATTERNS = [
+  "plain",
+  "grid",
+  "dots",
+  "gradient",
+] as const;
 
 export type MindMapBackgroundState = {
   background: MindMapBackground;
+  backgroundPattern: MindMapBackgroundPattern;
   backgroundColor: string;
 };
 
-const createBackgroundPreview = (
+const createPatternPreview = (value: MindMapBackgroundPattern): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className = "jp-KuusiBackgroundDropdown-preview";
+  preview.dataset.kuusiBackgroundPatternPreview = value;
+  preview.setAttribute("aria-hidden", "true");
+  return preview;
+};
+
+const createColorPreview = (
   value: MindMapBackground,
   customColor: string,
 ): HTMLElement => {
@@ -50,17 +75,17 @@ const createBackgroundPreview = (
   return preview;
 };
 
-const getMindMapBackgrounds = (
+const getBackgroundPatterns = (
   t: KuusiTranslator,
 ): Array<{
-  value: MindMapBackground;
+  value: MindMapBackgroundPattern;
   label: string;
   title: string;
 }> => [
   {
-    value: "default",
-    label: t.backgroundDefault(),
-    title: t.backgroundDefaultTitle(),
+    value: "none",
+    label: t.backgroundPatternNone(),
+    title: t.backgroundPatternNoneTitle(),
   },
   {
     value: "plain",
@@ -81,6 +106,20 @@ const getMindMapBackgrounds = (
     value: "gradient",
     label: t.backgroundGradient(),
     title: t.backgroundGradientTitle(),
+  },
+];
+
+const getMindMapBackgrounds = (
+  t: KuusiTranslator,
+): Array<{
+  value: MindMapBackground;
+  label: string;
+  title: string;
+}> => [
+  {
+    value: "default",
+    label: t.backgroundDefault(),
+    title: t.backgroundDefaultTitle(),
   },
   {
     value: "business-blue",
@@ -132,9 +171,11 @@ const getMindMapBackgrounds = (
 export const applyBackgroundToViewport = (
   viewport: HTMLElement,
   background: MindMapBackground,
+  backgroundPattern: MindMapBackgroundPattern,
   customColor = "",
 ): void => {
   viewport.dataset.kuusiBackground = background;
+  viewport.dataset.kuusiBackgroundPattern = backgroundPattern;
 
   if (background === "custom" && customColor) {
     viewport.style.setProperty("--kuusi-background-custom-color", customColor);
@@ -172,8 +213,38 @@ export const createBackgroundToolbar = (
 
   const rebuildMenu = () => {
     menu.replaceChildren();
-    const { background, backgroundColor } = getBackgroundState();
-    const row = createDropdownOptionRow(menu);
+    const { background, backgroundPattern, backgroundColor } =
+      getBackgroundState();
+
+    appendDropdownSection(menu, t.backgroundPattern());
+    const patternRow = createDropdownOptionRow(menu);
+
+    getBackgroundPatterns(t).forEach(({ value, label, title }) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className =
+        "jp-KuusiFormatDropdown-item jp-KuusiBackgroundDropdown-item";
+      item.setAttribute("role", "menuitem");
+      item.setAttribute("aria-label", title);
+      item.title = title;
+      item.classList.toggle("is-active", backgroundPattern === value);
+
+      const labelEl = document.createElement("span");
+      labelEl.className = "jp-KuusiBackgroundDropdown-label";
+      labelEl.textContent = label;
+      item.appendChild(labelEl);
+      item.appendChild(createPatternPreview(value));
+
+      item.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onChange({ background, backgroundPattern: value, backgroundColor });
+        rebuildMenu();
+      });
+      patternRow.appendChild(item);
+    });
+
+    appendDropdownSection(menu, t.backgroundColor());
+    const colorRow = createDropdownOptionRow(menu);
 
     getMindMapBackgrounds(t).forEach(({ value, label, title }) => {
       const item = document.createElement("button");
@@ -189,14 +260,14 @@ export const createBackgroundToolbar = (
       labelEl.className = "jp-KuusiBackgroundDropdown-label";
       labelEl.textContent = label;
       item.appendChild(labelEl);
-      item.appendChild(createBackgroundPreview(value, backgroundColor));
+      item.appendChild(createColorPreview(value, backgroundColor));
 
       item.addEventListener("click", (event) => {
         event.stopPropagation();
-        onChange({ background: value, backgroundColor });
+        onChange({ background: value, backgroundPattern, backgroundColor });
         rebuildMenu();
       });
-      row.appendChild(item);
+      colorRow.appendChild(item);
     });
 
     appendColorPickerSection(
@@ -206,6 +277,7 @@ export const createBackgroundToolbar = (
       (color) => {
         onChange({
           background: "custom",
+          backgroundPattern,
           backgroundColor: color || DEFAULT_MIND_MAP_BACKGROUND_COLOR,
         });
         rebuildMenu();

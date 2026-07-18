@@ -87,7 +87,7 @@
       "description": "Boundary distance between parent and child nodes in the mind map layout.",
       "type": "number",
       "minimum": 0,
-      "maximum": 160,
+      "maximum": 200,
       "default": 52
     },
     "treeDirection": {
@@ -97,14 +97,10 @@
       "default": "LR"
     },
     "background": {
-      "title": "Canvas background",
+      "title": "Canvas background color",
       "type": "string",
       "enum": [
         "default",
-        "plain",
-        "grid",
-        "dots",
-        "gradient",
         "business-blue",
         "eye-care",
         "newspaper",
@@ -117,6 +113,12 @@
         "custom"
       ],
       "default": "default"
+    },
+    "backgroundPattern": {
+      "title": "Canvas background pattern",
+      "type": "string",
+      "enum": ["none", "plain", "grid", "dots", "gradient"],
+      "default": "none"
     },
     "backgroundColor": {
       "title": "Custom canvas background color",
@@ -142,10 +144,15 @@
           ],
           "default": "solid"
         },
-        "edgeLinecap": {
+        "edgeArrowDirection": {
           "type": "string",
-          "enum": ["round", "butt", "square"],
-          "default": "butt"
+          "enum": ["none", "end", "start", "both"],
+          "default": "none"
+        },
+        "edgeArrowStyle": {
+          "type": "string",
+          "enum": ["triangle", "stealth", "diamond", "circle", "open"],
+          "default": "triangle"
         },
         "edgeWidth": {
           "type": "string",
@@ -167,6 +174,15 @@
         "nodeBorderColor": {
           "type": "string",
           "default": ""
+        },
+        "nodeBorderCorner": {
+          "type": "string",
+          "enum": ["sharp", "rounded", "ellipse"],
+          "default": "rounded"
+        },
+        "nodeBorderRadius": {
+          "type": "string",
+          "default": "8px"
         }
       }
     }

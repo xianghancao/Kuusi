@@ -12,9 +12,9 @@
 
 | Component | Version |
 |-----------|---------|
-| **Kuusi** | `0.2.1` |
-| `kuusi-kernel` | `0.2.1` |
-| `jupyterlab-kuusi` | `0.2.1` |
+| **Kuusi** | `0.2.2` |
+| `kuusi-kernel` | `0.2.2` |
+| `jupyterlab-kuusi` | `0.2.2` |
 
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 

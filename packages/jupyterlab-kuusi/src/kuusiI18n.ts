@@ -8,6 +8,7 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   backgroundTechBlue: () => trans.__("Tech Blue"),
   backgroundTechBlueTitle: () =>
     trans.__("Futuristic cyan-blue tech canvas"),
+  backgroundColor: () => trans.__("Color"),
   backgroundCustomColor: () => trans.__("Custom color"),
   backgroundDefault: () => trans.__("Default"),
   backgroundDefaultTitle: () =>
@@ -41,8 +42,13 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   backgroundRedWall: () => trans.__("Red Wall"),
   backgroundRedWallTitle: () =>
     trans.__("Warm terracotta red wall tone"),
+  backgroundPattern: () => trans.__("Pattern"),
+  backgroundPatternNone: () => trans.__("None"),
+  backgroundPatternNoneTitle: () =>
+    trans.__("No pattern overlay — color theme only"),
   backgroundPlain: () => trans.__("Plain"),
-  backgroundPlainTitle: () => trans.__("Darker flat canvas background"),
+  backgroundPlainTitle: () =>
+    trans.__("Flat solid fill without texture overlays"),
   canvasBackground: () => trans.__("Canvas background"),
   childGap: () =>
     trans.__("Boundary distance between parent and child nodes"),

@@ -6,7 +6,14 @@ import {
   DEFAULT_APPEARANCE,
   type AppearanceSettings,
 } from "./appearanceToolbar";
-import { DEFAULT_MIND_MAP_BACKGROUND, DEFAULT_MIND_MAP_BACKGROUND_COLOR, type MindMapBackground } from "./backgroundToolbar";
+import {
+  DEFAULT_MIND_MAP_BACKGROUND,
+  DEFAULT_MIND_MAP_BACKGROUND_COLOR,
+  DEFAULT_MIND_MAP_BACKGROUND_PATTERN,
+  LEGACY_BACKGROUND_PATTERNS,
+  type MindMapBackground,
+  type MindMapBackgroundPattern,
+} from "./backgroundToolbar";
 import { DEFAULT_MIND_MAP_FONT, DEFAULT_MIND_MAP_FONT_SIZE, type MindMapFont, type MindMapFontSize } from "./fontToolbar";
 import { DEFAULT_MIND_MAP_THEME, type MindMapTheme } from "./styleToolbar";
 
@@ -21,6 +28,7 @@ export type MindMapUserSettings = {
   childGap: number;
   treeDirection: TreeDirection;
   background: MindMapBackground;
+  backgroundPattern: MindMapBackgroundPattern;
   backgroundColor: string;
   appearance: AppearanceSettings;
 };
@@ -34,6 +42,7 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   childGap: LAYOUT_CHILD_GAP.default,
   treeDirection: "LR",
   background: DEFAULT_MIND_MAP_BACKGROUND,
+  backgroundPattern: DEFAULT_MIND_MAP_BACKGROUND_PATTERN,
   backgroundColor: DEFAULT_MIND_MAP_BACKGROUND_COLOR,
   appearance: { ...DEFAULT_APPEARANCE },
 };
@@ -80,10 +89,6 @@ const isTreeDirection = (value: unknown): value is TreeDirection =>
 
 const isBackground = (value: unknown): value is MindMapBackground =>
   value === "default" ||
-  value === "plain" ||
-  value === "grid" ||
-  value === "dots" ||
-  value === "gradient" ||
   value === "eye-care" ||
   value === "newspaper" ||
   value === "business-blue" ||
@@ -95,8 +100,28 @@ const isBackground = (value: unknown): value is MindMapBackground =>
   value === "red-wall" ||
   value === "custom";
 
+const isBackgroundPattern = (
+  value: unknown,
+): value is MindMapBackgroundPattern =>
+  value === "none" ||
+  value === "plain" ||
+  value === "grid" ||
+  value === "dots" ||
+  value === "gradient";
+
+const isLegacyBackgroundPattern = (
+  value: unknown,
+): value is (typeof LEGACY_BACKGROUND_PATTERNS)[number] =>
+  typeof value === "string" &&
+  (LEGACY_BACKGROUND_PATTERNS as readonly string[]).includes(value);
+
 const normalizeBackground = (value: unknown): MindMapBackground =>
   isBackground(value) ? value : DEFAULT_MIND_MAP_BACKGROUND;
+
+const normalizeBackgroundPattern = (
+  value: unknown,
+): MindMapBackgroundPattern =>
+  isBackgroundPattern(value) ? value : DEFAULT_MIND_MAP_BACKGROUND_PATTERN;
 
 const isEdgeLineStyle = (
   value: unknown,
@@ -114,8 +139,27 @@ const isBorderLineStyle = (
 ): value is AppearanceSettings["nodeBorderStyle"] =>
   value === "solid" || value === "dashed" || value === "dotted";
 
-const isLineCap = (value: unknown): value is AppearanceSettings["edgeLinecap"] =>
-  value === "round" || value === "butt" || value === "square";
+const isNodeBorderCorner = (
+  value: unknown,
+): value is AppearanceSettings["nodeBorderCorner"] =>
+  value === "sharp" || value === "rounded" || value === "ellipse";
+
+const isEdgeArrowDirection = (
+  value: unknown,
+): value is AppearanceSettings["edgeArrowDirection"] =>
+  value === "none" ||
+  value === "end" ||
+  value === "start" ||
+  value === "both";
+
+const isEdgeArrowStyle = (
+  value: unknown,
+): value is AppearanceSettings["edgeArrowStyle"] =>
+  value === "triangle" ||
+  value === "stealth" ||
+  value === "diamond" ||
+  value === "circle" ||
+  value === "open";
 
 const normalizeAppearance = (value: unknown): AppearanceSettings => {
   const defaults = DEFAULT_MIND_MAP_USER_SETTINGS.appearance;
@@ -130,9 +174,12 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
     edgeStyle: isEdgeLineStyle(appearance.edgeStyle)
       ? appearance.edgeStyle
       : defaults.edgeStyle,
-    edgeLinecap: isLineCap(appearance.edgeLinecap)
-      ? appearance.edgeLinecap
-      : defaults.edgeLinecap,
+    edgeArrowDirection: isEdgeArrowDirection(appearance.edgeArrowDirection)
+      ? appearance.edgeArrowDirection
+      : defaults.edgeArrowDirection,
+    edgeArrowStyle: isEdgeArrowStyle(appearance.edgeArrowStyle)
+      ? appearance.edgeArrowStyle
+      : defaults.edgeArrowStyle,
     edgeWidth:
       typeof appearance.edgeWidth === "string"
         ? appearance.edgeWidth
@@ -152,6 +199,13 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
       typeof appearance.nodeBorderColor === "string"
         ? appearance.nodeBorderColor
         : defaults.nodeBorderColor,
+    nodeBorderCorner: isNodeBorderCorner(appearance.nodeBorderCorner)
+      ? appearance.nodeBorderCorner
+      : defaults.nodeBorderCorner,
+    nodeBorderRadius:
+      typeof appearance.nodeBorderRadius === "string"
+        ? appearance.nodeBorderRadius
+        : defaults.nodeBorderRadius,
   };
 };
 
@@ -162,6 +216,10 @@ export const normalizeMindMapUserSettings = (
   const raw = (value && typeof value === "object" ? value : {}) as Partial<
     MindMapUserSettings & { appearance?: unknown }
   >;
+
+  const legacyPattern = isLegacyBackgroundPattern(raw.background)
+    ? raw.background
+    : null;
 
   return {
     theme: isTheme(raw.theme) ? raw.theme : defaults.theme,
@@ -175,7 +233,12 @@ export const normalizeMindMapUserSettings = (
     treeDirection: isTreeDirection(raw.treeDirection)
       ? raw.treeDirection
       : defaults.treeDirection,
-    background: normalizeBackground(raw.background),
+    background: legacyPattern
+      ? defaults.background
+      : normalizeBackground(raw.background),
+    backgroundPattern: legacyPattern
+      ? legacyPattern
+      : normalizeBackgroundPattern(raw.backgroundPattern),
     backgroundColor:
       typeof raw.backgroundColor === "string"
         ? raw.backgroundColor
@@ -245,6 +308,7 @@ export class MindMapSettingsManager {
       this._plugin.set("childGap", next.childGap),
       this._plugin.set("treeDirection", next.treeDirection),
       this._plugin.set("background", next.background),
+      this._plugin.set("backgroundPattern", next.backgroundPattern),
       this._plugin.set("backgroundColor", next.backgroundColor),
       this._plugin.set("appearance", next.appearance as unknown as JSONValue),
     ]);

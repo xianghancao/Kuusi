@@ -639,14 +639,16 @@
   );
 }
 
-.jp-KuusiAppearancePreview-line-cap {
+.jp-KuusiAppearancePreview-arrow-direction,
+.jp-KuusiAppearancePreview-arrow-style {
   color: var(--jp-ui-font-color1);
   display: block;
   height: 12px;
   width: 56px;
 }
 
-.jp-KuusiAppearancePreview-line-cap svg {
+.jp-KuusiAppearancePreview-arrow-direction svg,
+.jp-KuusiAppearancePreview-arrow-style svg {
   display: block;
   height: 12px;
   width: 56px;
@@ -682,6 +684,35 @@
 .jp-KuusiAppearancePreview-border-width {
   border: var(--kuusi-preview-border-width, 1px) solid var(--jp-ui-font-color1);
   border-radius: 3px;
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
+.jp-KuusiAppearancePreview-border-corner {
+  border: 1.5px solid currentColor;
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
+.jp-KuusiAppearancePreview-border-corner.is-sharp {
+  border-radius: 0;
+}
+
+.jp-KuusiAppearancePreview-border-corner.is-rounded {
+  border-radius: 4px;
+}
+
+.jp-KuusiAppearancePreview-border-corner.is-ellipse {
+  border-radius: 50%;
+}
+
+.jp-KuusiAppearancePreview-border-radius {
+  border: 1.5px solid currentColor;
+  border-radius: var(--kuusi-preview-border-radius, 8px);
   box-sizing: border-box;
   display: block;
   height: 18px;
@@ -890,16 +921,20 @@
   background: var(--jp-layout-color1);
 }
 
-.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="plain"] {
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="none"] {
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="plain"] {
   background: var(--jp-layout-color0);
 }
 
 .jp-mod-dark
-  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="plain"] {
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="plain"] {
   background: #090b0f;
 }
 
-.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="grid"] {
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="grid"] {
   background-color: var(--jp-layout-color1);
   background-image:
     linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
@@ -907,7 +942,7 @@
   background-size: 7px 7px;
 }
 
-.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="dots"] {
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="dots"] {
   background-color: var(--jp-layout-color1);
   background-image: radial-gradient(
     circle,
@@ -917,7 +952,7 @@
   background-size: 5px 5px;
 }
 
-.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="gradient"] {
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="gradient"] {
   background:
     radial-gradient(
       ellipse at top left,
@@ -1244,6 +1279,7 @@
     var(--jp-ui-font-color1) 14%,
     transparent
   );
+  --kuusi-background-solid: var(--jp-layout-color1);
   background: var(--jp-layout-color1);
   cursor: grab;
   flex: 1 1 auto;
@@ -1261,51 +1297,12 @@
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="default"] {
+  --kuusi-background-solid: var(--jp-layout-color1);
   background: var(--jp-layout-color1);
 }
 
-.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="plain"] {
-  background: var(--jp-layout-color0);
-}
-
-.jp-mod-dark .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="plain"] {
-  background: #090b0f;
-}
-
-.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="grid"] {
-  background-color: var(--jp-layout-color1);
-  background-image:
-    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="dots"] {
-  background-color: var(--jp-layout-color1);
-  background-image: radial-gradient(
-    circle,
-    var(--kuusi-bg-pattern-color) 1.25px,
-    transparent 1.25px
-  );
-  background-size: 20px 20px;
-}
-
-.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="gradient"] {
-  background:
-    radial-gradient(
-      ellipse at top left,
-      var(--jp-layout-color2) 0%,
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse at bottom right,
-      var(--jp-layout-color2) 0%,
-      transparent 55%
-    ),
-    var(--jp-layout-color1);
-}
-
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="business-blue"] {
+  --kuusi-background-solid: #dce8f5;
   background:
     radial-gradient(
       ellipse at top right,
@@ -1317,6 +1314,7 @@
 
 .jp-mod-dark
   .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="business-blue"] {
+  --kuusi-background-solid: #152030;
   background:
     radial-gradient(
       ellipse at top right,
@@ -1327,6 +1325,7 @@
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="tech-blue"] {
+  --kuusi-background-solid: #c5e4ff;
   background:
     radial-gradient(
       ellipse at 20% 0%,
@@ -1343,6 +1342,7 @@
 
 .jp-mod-dark
   .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="tech-blue"] {
+  --kuusi-background-solid: #102a44;
   background:
     radial-gradient(
       ellipse at 20% 0%,
@@ -1358,18 +1358,22 @@
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="custom"] {
+  --kuusi-background-solid: var(--kuusi-background-custom-color, #d6ecff);
   background-color: var(--kuusi-background-custom-color, #d6ecff);
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="eye-care"] {
+  --kuusi-background-solid: #e6efe3;
   background-color: #e6efe3;
 }
 
 .jp-mod-dark .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="eye-care"] {
+  --kuusi-background-solid: #1c261f;
   background-color: #1c261f;
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="newspaper"] {
+  --kuusi-background-solid: #f3ecdf;
   background-color: #f3ecdf;
   background-image:
     linear-gradient(
@@ -1396,6 +1400,7 @@
 }
 
 .jp-mod-dark .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="newspaper"] {
+  --kuusi-background-solid: #2a241c;
   background-color: #2a241c;
   background-image:
     linear-gradient(
@@ -1418,6 +1423,7 @@
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="sea-blue"] {
+  --kuusi-background-solid: #a8cce6;
   background:
     radial-gradient(
       ellipse at bottom left,
@@ -1428,6 +1434,7 @@
 }
 
 .jp-mod-dark .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="sea-blue"] {
+  --kuusi-background-solid: #122840;
   background:
     radial-gradient(
       ellipse at bottom left,
@@ -1438,32 +1445,39 @@
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="grass-green"] {
+  --kuusi-background-solid: #c8e6b0;
   background-color: #c8e6b0;
 }
 
 .jp-mod-dark
   .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="grass-green"] {
+  --kuusi-background-solid: #1e3020;
   background-color: #1e3020;
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="avocado"] {
+  --kuusi-background-solid: #e2e8c4;
   background-color: #e2e8c4;
 }
 
 .jp-mod-dark .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="avocado"] {
+  --kuusi-background-solid: #2c3224;
   background-color: #2c3224;
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="stone-gray"] {
+  --kuusi-background-solid: #e0deda;
   background-color: #e0deda;
 }
 
 .jp-mod-dark
   .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="stone-gray"] {
+  --kuusi-background-solid: #2e2e30;
   background-color: #2e2e30;
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="red-wall"] {
+  --kuusi-background-solid: #e8c4bc;
   background:
     radial-gradient(
       ellipse at top right,
@@ -1474,6 +1488,7 @@
 }
 
 .jp-mod-dark .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="red-wall"] {
+  --kuusi-background-solid: #3a2020;
   background:
     radial-gradient(
       ellipse at top right,
@@ -1481,6 +1496,63 @@
       transparent 55%
     ),
     linear-gradient(180deg, #4a2828 0%, #3a2020 100%);
+}
+
+/* Pattern overlays — independent of color theme */
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="plain"] {
+  background: var(--kuusi-background-solid);
+  background-image: none;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="default"][data-kuusi-background-pattern="plain"] {
+  --kuusi-background-solid: var(--jp-layout-color0);
+  background: var(--jp-layout-color0);
+}
+
+.jp-mod-dark
+  .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="default"][data-kuusi-background-pattern="plain"] {
+  --kuusi-background-solid: #090b0f;
+  background: #090b0f;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="gradient"]::before {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid"]::before {
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots"]::before {
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 1.25px,
+    transparent 1.25px
+  );
+  background-size: 20px 20px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="gradient"]::before {
+  background:
+    radial-gradient(
+      ellipse at top left,
+      color-mix(in srgb, var(--jp-layout-color2) 80%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      color-mix(in srgb, var(--jp-layout-color2) 80%, transparent) 0%,
+      transparent 55%
+    );
 }
 
 .jp-KuusiBackgroundDropdown-menu .jp-KuusiFormatColorSwatches {
@@ -1656,7 +1728,7 @@
   pointer-events: none;
   position: absolute;
   right: 12px;
-  z-index: 2;
+  z-index: 20;
 }
 
 .jp-KuusiNotebookMindMap-status-node,
@@ -1696,10 +1768,10 @@
   color: var(--jp-ui-font-color1);
   cursor: pointer;
   display: inline-flex;
-  height: 16px;
+  height: 24px;
   justify-content: center;
   padding: 0;
-  width: 16px;
+  width: 24px;
 }
 
 .jp-KuusiNotebookMindMap-status-fullscreen-btn:hover {
@@ -1740,6 +1812,7 @@
   top: 0;
   transform-origin: 0 0;
   will-change: transform;
+  z-index: 1;
 }
 
 .jp-KuusiMindMapNotebook-scene.jp-Notebook {
@@ -1885,6 +1958,8 @@
 .jp-KuusiNotebookMindMap-edge {
   fill: none;
   stroke: var(--kuusi-edge-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-width: var(--kuusi-edge-width);
 }
 
@@ -1916,21 +1991,6 @@
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="sparse-dash"]
   .jp-KuusiNotebookMindMap-edge {
   stroke-dasharray: 16 8;
-}
-
-.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-linecap="round"]
-  .jp-KuusiNotebookMindMap-edge {
-  stroke-linecap: round;
-}
-
-.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-linecap="butt"]
-  .jp-KuusiNotebookMindMap-edge {
-  stroke-linecap: butt;
-}
-
-.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-linecap="square"]
-  .jp-KuusiNotebookMindMap-edge {
-  stroke-linecap: square;
 }
 
 .jp-KuusiNotebookMindMap-cellNode {
@@ -1971,6 +2031,16 @@
   box-shadow:
     0 0 0 2px var(--jp-brand-color1),
     0 0 10px 3px var(--jp-brand-color2),
+    var(--kuusi-node-shadow, var(--jp-elevation-z1));
+}
+
+.jp-KuusiNotebookMindMap-cellNode:hover:not(.is-selected):not(.is-drop-before):not(
+    .is-drop-inside
+  ):not(.is-drop-after) {
+  border-color: var(--jp-brand-color1);
+  box-shadow:
+    0 0 0 1px var(--jp-brand-color1),
+    0 0 8px 2px color-mix(in srgb, var(--jp-brand-color2) 60%, transparent),
     var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 

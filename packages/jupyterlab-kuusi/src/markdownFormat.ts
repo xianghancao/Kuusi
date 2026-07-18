@@ -294,35 +294,44 @@ export const getMetadataOutlineHeadingLevel = (
   return level;
 };
 
+const clearMetadataOutlineHeading = (cell: IMarkdownCellModel): void => {
+  const kuusi = readCellKuusiMetadata(cell);
+
+  if (!kuusi || typeof kuusi.headingLevel !== "number") {
+    return;
+  }
+
+  const next = { ...kuusi };
+  delete next.headingLevel;
+
+  if (Object.keys(next).length === 0) {
+    cell.deleteMetadata("kuusi");
+  } else {
+    cell.setMetadata("kuusi", next);
+  }
+};
+
 export const applyOutlineHeading = (
   editor: CodeEditor.IEditor,
   cell: IMarkdownCellModel,
   level: number,
 ): void => {
   const source = editor.model.sharedModel.getSource();
+  const markdownHeading = parseMarkdownHeading(source.trim());
+  const metadataLevel = getMetadataOutlineHeadingLevel(cell);
+  const effectiveLevel = markdownHeading?.level ?? metadataLevel;
 
-  if (parseMarkdownHeading(source.trim())) {
-    applyHeading(editor, level);
+  // Prefer markdown source as the single source of truth while editing.
+  clearMetadataOutlineHeading(cell);
+
+  // Metadata-only heading at this level → toggle off (leave empty / plain source).
+  if (effectiveLevel === level && !markdownHeading) {
+    editor.focus();
     return;
   }
 
-  const current = getMetadataOutlineHeadingLevel(cell);
-  const kuusi = readCellKuusiMetadata(cell) ?? {};
-
-  if (current === level) {
-    const next = { ...kuusi };
-    delete next.headingLevel;
-
-    if (Object.keys(next).length === 0) {
-      cell.deleteMetadata("kuusi");
-    } else {
-      cell.setMetadata("kuusi", next);
-    }
-
-    return;
-  }
-
-  cell.setMetadata("kuusi", { ...kuusi, headingLevel: level });
+  // Write / update / toggle `#` markers so the change is visible in the editor.
+  applyHeading(editor, level);
 };
 
 const clearFormatting = (editor: CodeEditor.IEditor): void => {

@@ -19,29 +19,44 @@ export type EdgeLineStyle =
 
 export type BorderLineStyle = "solid" | "dashed" | "dotted";
 
-export type LineCap = "round" | "butt" | "square";
+export type EdgeArrowDirection = "none" | "end" | "start" | "both";
+
+export type EdgeArrowStyle =
+  | "triangle"
+  | "stealth"
+  | "diamond"
+  | "circle"
+  | "open";
+
+export type NodeBorderCorner = "sharp" | "rounded" | "ellipse";
 
 /** @deprecated Use EdgeLineStyle or BorderLineStyle */
 export type LineStyle = EdgeLineStyle;
 
 export type AppearanceSettings = {
   edgeStyle: EdgeLineStyle;
-  edgeLinecap: LineCap;
+  edgeArrowDirection: EdgeArrowDirection;
+  edgeArrowStyle: EdgeArrowStyle;
   edgeWidth: string;
   edgeColor: string;
   nodeBorderStyle: BorderLineStyle;
   nodeBorderWidth: string;
   nodeBorderColor: string;
+  nodeBorderCorner: NodeBorderCorner;
+  nodeBorderRadius: string;
 };
 
 export const DEFAULT_APPEARANCE: AppearanceSettings = {
   edgeStyle: "solid",
-  edgeLinecap: "butt",
+  edgeArrowDirection: "none",
+  edgeArrowStyle: "triangle",
   edgeWidth: "3pt",
   edgeColor: "",
   nodeBorderStyle: "solid",
   nodeBorderWidth: "1px",
   nodeBorderColor: "",
+  nodeBorderCorner: "rounded",
+  nodeBorderRadius: "8px",
 };
 
 const EDGE_LINE_STYLES: Array<{ value: EdgeLineStyle; label: string }> = [
@@ -60,22 +75,151 @@ const BORDER_LINE_STYLES: Array<{ value: BorderLineStyle; label: string }> = [
   { value: "dotted", label: "Dotted" },
 ];
 
-const LINE_CAPS: Array<{ value: LineCap; label: string }> = [
-  { value: "round", label: "Round" },
-  { value: "butt", label: "Flat" },
-  { value: "square", label: "Square" },
+const EDGE_ARROW_DIRECTIONS: Array<{
+  value: EdgeArrowDirection;
+  label: string;
+}> = [
+  { value: "none", label: "None" },
+  { value: "end", label: "To child" },
+  { value: "start", label: "To parent" },
+  { value: "both", label: "Both" },
 ];
 
-const EDGE_WIDTHS = ["1pt", "2pt", "3pt", "4pt", "5pt", "6pt", "8pt"];
-const NODE_BORDER_WIDTHS = ["1px", "2px", "3px", "4px", "5px"];
+const EDGE_ARROW_STYLES: Array<{ value: EdgeArrowStyle; label: string }> = [
+  { value: "triangle", label: "Triangle" },
+  { value: "stealth", label: "Stealth" },
+  { value: "diamond", label: "Diamond" },
+  { value: "circle", label: "Circle" },
+  { value: "open", label: "Open" },
+];
+
+const EDGE_WIDTHS = ["1pt", "2pt", "3pt", "4pt", "5pt", "6pt", "8pt", "10pt"];
+const NODE_BORDER_WIDTHS = ["1px", "2px", "3px", "4px", "5px", "6pt", "8pt", "10pt"];
+
+const NODE_BORDER_CORNERS: Array<{ value: NodeBorderCorner; label: string }> = [
+  { value: "sharp", label: "Sharp" },
+  { value: "rounded", label: "Rounded" },
+  { value: "ellipse", label: "Ellipse" },
+];
+
+const NODE_BORDER_RADII = ["4px", "8px", "12px", "16px", "24px", "32px"];
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const appendArrowShape = (
+  marker: SVGMarkerElement,
+  style: EdgeArrowStyle,
+): void => {
+  if (style === "circle") {
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("cx", "5");
+    circle.setAttribute("cy", "5");
+    circle.setAttribute("r", "3.5");
+    circle.setAttribute("fill", "context-stroke");
+    marker.appendChild(circle);
+    return;
+  }
+
+  const path = document.createElementNS(SVG_NS, "path");
+
+  if (style === "stealth") {
+    path.setAttribute("d", "M 0 0 L 10 5 L 0 10 L 3 5 Z");
+  } else if (style === "diamond") {
+    path.setAttribute("d", "M 1 5 L 5 1 L 10 5 L 5 9 Z");
+  } else if (style === "open") {
+    path.setAttribute("d", "M 1 1 L 9 5 L 1 9");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "context-stroke");
+    path.setAttribute("stroke-width", "1.5");
+    path.setAttribute("stroke-linejoin", "round");
+    path.setAttribute("stroke-linecap", "round");
+    marker.appendChild(path);
+    return;
+  } else {
+    path.setAttribute("d", "M 0 0 L 10 5 L 0 10 Z");
+  }
+
+  path.setAttribute("fill", "context-stroke");
+  marker.appendChild(path);
+};
+
+const createEdgeMarker = (
+  id: string,
+  style: EdgeArrowStyle,
+  atStart: boolean,
+): SVGMarkerElement => {
+  const marker = document.createElementNS(SVG_NS, "marker");
+  marker.setAttribute("id", id);
+  marker.setAttribute("viewBox", "0 0 10 10");
+  marker.setAttribute("refX", atStart ? "0" : "10");
+  marker.setAttribute("refY", "5");
+  marker.setAttribute("markerWidth", "3.2");
+  marker.setAttribute("markerHeight", "3.2");
+  marker.setAttribute("markerUnits", "strokeWidth");
+  marker.setAttribute("orient", atStart ? "auto-start-reverse" : "auto");
+  appendArrowShape(marker, style);
+  return marker;
+};
+
+/** Append SVG marker defs for the current arrow settings; returns marker URLs. */
+export const appendEdgeArrowDefs = (
+  svg: SVGSVGElement,
+  settings: Pick<AppearanceSettings, "edgeArrowDirection" | "edgeArrowStyle">,
+): { markerStart?: string; markerEnd?: string } => {
+  const direction = settings.edgeArrowDirection;
+  const style = settings.edgeArrowStyle;
+
+  if (direction === "none") {
+    return {};
+  }
+
+  if (!svg.dataset.kuusiMarkerUid) {
+    svg.dataset.kuusiMarkerUid = `m${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  const uid = svg.dataset.kuusiMarkerUid;
+  const defs = document.createElementNS(SVG_NS, "defs");
+  const result: { markerStart?: string; markerEnd?: string } = {};
+
+  if (direction === "end" || direction === "both") {
+    const id = `${uid}-end`;
+    defs.appendChild(createEdgeMarker(id, style, false));
+    result.markerEnd = `url(#${id})`;
+  }
+
+  if (direction === "start" || direction === "both") {
+    const id = `${uid}-start`;
+    defs.appendChild(createEdgeMarker(id, style, true));
+    result.markerStart = `url(#${id})`;
+  }
+
+  svg.appendChild(defs);
+  return result;
+};
+
+export const resolveNodeBorderRadius = (
+  settings: Pick<AppearanceSettings, "nodeBorderCorner" | "nodeBorderRadius">,
+): string => {
+  if (settings.nodeBorderCorner === "sharp") {
+    return "0";
+  }
+
+  if (settings.nodeBorderCorner === "ellipse") {
+    return "50%";
+  }
+
+  return settings.nodeBorderRadius || DEFAULT_APPEARANCE.nodeBorderRadius;
+};
 
 export const applyAppearanceToScene = (
   scene: HTMLElement,
   settings: AppearanceSettings,
 ): void => {
   scene.dataset.kuusiEdgeStyle = settings.edgeStyle;
-  scene.dataset.kuusiEdgeLinecap = settings.edgeLinecap;
+  scene.dataset.kuusiEdgeArrowDirection = settings.edgeArrowDirection;
+  scene.dataset.kuusiEdgeArrowStyle = settings.edgeArrowStyle;
   scene.dataset.kuusiNodeBorderStyle = settings.nodeBorderStyle;
+  scene.dataset.kuusiNodeBorderCorner = settings.nodeBorderCorner;
 
   const setVar = (name: string, value: string) => {
     if (value) {
@@ -89,6 +233,7 @@ export const applyAppearanceToScene = (
   setVar("--kuusi-edge-color", settings.edgeColor);
   setVar("--kuusi-node-border-width", settings.nodeBorderWidth);
   setVar("--kuusi-node-border-color", settings.nodeBorderColor);
+  setVar("--kuusi-node-border-radius", resolveNodeBorderRadius(settings));
 };
 
 const appendOptionItems = (
@@ -133,26 +278,105 @@ const createLineStylePreview = (style: EdgeLineStyle): HTMLElement => {
   return preview;
 };
 
-const createLineCapPreview = (cap: LineCap): HTMLElement => {
+const createArrowDirectionPreview = (
+  direction: EdgeArrowDirection,
+): HTMLElement => {
   const preview = document.createElement("span");
-  preview.className = `jp-KuusiAppearancePreview jp-KuusiAppearancePreview-line-cap is-${cap}`;
+  preview.className = `jp-KuusiAppearancePreview jp-KuusiAppearancePreview-arrow-direction is-${direction}`;
   preview.setAttribute("aria-hidden", "true");
 
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const svg = document.createElementNS(SVG_NS, "svg");
   svg.setAttribute("width", "56");
   svg.setAttribute("height", "12");
   svg.setAttribute("viewBox", "0 0 56 12");
 
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  line.setAttribute("x1", "4");
+  const line = document.createElementNS(SVG_NS, "line");
+  line.setAttribute("x1", "8");
   line.setAttribute("y1", "6");
-  line.setAttribute("x2", "52");
+  line.setAttribute("x2", "48");
   line.setAttribute("y2", "6");
   line.setAttribute("stroke", "currentColor");
-  line.setAttribute("stroke-width", "4");
-  line.setAttribute("stroke-linecap", cap);
-
+  line.setAttribute("stroke-width", "2");
+  line.setAttribute("stroke-linecap", "round");
   svg.appendChild(line);
+
+  const addHead = (x: number, pointingRight: boolean) => {
+    const head = document.createElementNS(SVG_NS, "path");
+    head.setAttribute(
+      "d",
+      pointingRight ? "M 0 0 L 8 4 L 0 8 Z" : "M 8 0 L 0 4 L 8 8 Z",
+    );
+    head.setAttribute("fill", "currentColor");
+    head.setAttribute(
+      "transform",
+      `translate(${pointingRight ? x - 8 : x}, 2)`,
+    );
+    svg.appendChild(head);
+  };
+
+  if (direction === "end" || direction === "both") {
+    addHead(48, true);
+  }
+
+  if (direction === "start" || direction === "both") {
+    addHead(8, false);
+  }
+
+  preview.appendChild(svg);
+  return preview;
+};
+
+const createArrowStylePreview = (style: EdgeArrowStyle): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className = `jp-KuusiAppearancePreview jp-KuusiAppearancePreview-arrow-style is-${style}`;
+  preview.setAttribute("aria-hidden", "true");
+
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", "56");
+  svg.setAttribute("height", "12");
+  svg.setAttribute("viewBox", "0 0 56 12");
+
+  const line = document.createElementNS(SVG_NS, "line");
+  line.setAttribute("x1", "6");
+  line.setAttribute("y1", "6");
+  line.setAttribute("x2", "40");
+  line.setAttribute("y2", "6");
+  line.setAttribute("stroke", "currentColor");
+  line.setAttribute("stroke-width", "2");
+  line.setAttribute("stroke-linecap", "round");
+  svg.appendChild(line);
+
+  if (style === "circle") {
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("cx", "46");
+    circle.setAttribute("cy", "6");
+    circle.setAttribute("r", "4");
+    circle.setAttribute("fill", "currentColor");
+    svg.appendChild(circle);
+  } else {
+    const head = document.createElementNS(SVG_NS, "path");
+
+    if (style === "stealth") {
+      head.setAttribute("d", "M 38 1 L 52 6 L 38 11 L 42 6 Z");
+    } else if (style === "diamond") {
+      head.setAttribute("d", "M 40 6 L 46 1 L 52 6 L 46 11 Z");
+    } else if (style === "open") {
+      head.setAttribute("d", "M 40 1 L 52 6 L 40 11");
+      head.setAttribute("fill", "none");
+      head.setAttribute("stroke", "currentColor");
+      head.setAttribute("stroke-width", "1.5");
+      head.setAttribute("stroke-linejoin", "round");
+    } else {
+      head.setAttribute("d", "M 38 1 L 52 6 L 38 11 Z");
+    }
+
+    if (style !== "open") {
+      head.setAttribute("fill", "currentColor");
+    }
+
+    svg.appendChild(head);
+  }
+
   preview.appendChild(svg);
   return preview;
 };
@@ -177,6 +401,22 @@ const createBorderWidthPreview = (width: string): HTMLElement => {
   preview.className =
     "jp-KuusiAppearancePreview jp-KuusiAppearancePreview-border-width";
   preview.style.setProperty("--kuusi-preview-border-width", width);
+  preview.setAttribute("aria-hidden", "true");
+  return preview;
+};
+
+const createBorderCornerPreview = (corner: NodeBorderCorner): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className = `jp-KuusiAppearancePreview jp-KuusiAppearancePreview-border-corner is-${corner}`;
+  preview.setAttribute("aria-hidden", "true");
+  return preview;
+};
+
+const createBorderRadiusPreview = (radius: string): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className =
+    "jp-KuusiAppearancePreview jp-KuusiAppearancePreview-border-radius";
+  preview.style.setProperty("--kuusi-preview-border-radius", radius);
   preview.setAttribute("aria-hidden", "true");
   return preview;
 };
@@ -282,13 +522,32 @@ export const createAppearanceToolbar = (
         );
         appendOptionItems(
           root,
-          appendDropdownSectionRow(menu, "Line cap"),
-          LINE_CAPS.map(({ value, label }) => ({
+          appendDropdownSectionRow(menu, "Arrow"),
+          EDGE_ARROW_DIRECTIONS.map(({ value, label }) => ({
             label,
-            isActive: settings.edgeLinecap === value,
-            preview: createLineCapPreview(value),
+            isActive: settings.edgeArrowDirection === value,
+            preview: createArrowDirectionPreview(value),
             onSelect: () => {
-              patch({ edgeLinecap: value });
+              patch({ edgeArrowDirection: value });
+              rebuild();
+            },
+          })),
+        );
+        appendOptionItems(
+          root,
+          appendDropdownSectionRow(menu, "Arrow style"),
+          EDGE_ARROW_STYLES.map(({ value, label }) => ({
+            label,
+            isActive: settings.edgeArrowStyle === value,
+            preview: createArrowStylePreview(value),
+            onSelect: () => {
+              patch({
+                edgeArrowStyle: value,
+                edgeArrowDirection:
+                  settings.edgeArrowDirection === "none"
+                    ? "end"
+                    : settings.edgeArrowDirection,
+              });
               rebuild();
             },
           })),
@@ -340,6 +599,37 @@ export const createAppearanceToolbar = (
             preview: createBorderWidthPreview(width),
             onSelect: () => {
               patch({ nodeBorderWidth: width });
+              rebuild();
+            },
+          })),
+        );
+        appendOptionItems(
+          root,
+          appendDropdownSectionRow(menu, "Corner"),
+          NODE_BORDER_CORNERS.map(({ value, label }) => ({
+            label,
+            isActive: settings.nodeBorderCorner === value,
+            preview: createBorderCornerPreview(value),
+            onSelect: () => {
+              patch({ nodeBorderCorner: value });
+              rebuild();
+            },
+          })),
+        );
+        appendOptionItems(
+          root,
+          appendDropdownSectionRow(menu, "Roundness"),
+          NODE_BORDER_RADII.map((radius) => ({
+            label: radius,
+            isActive:
+              settings.nodeBorderCorner === "rounded" &&
+              settings.nodeBorderRadius === radius,
+            preview: createBorderRadiusPreview(radius),
+            onSelect: () => {
+              patch({
+                nodeBorderCorner: "rounded",
+                nodeBorderRadius: radius,
+              });
               rebuild();
             },
           })),
