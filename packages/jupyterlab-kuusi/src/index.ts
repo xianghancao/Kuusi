@@ -26,11 +26,18 @@ import {
   ToolbarButton,
 } from "@jupyterlab/ui-components";
 import {
+  NotebookMindMapDocumentWidget,
   NotebookMindMapWidgetFactory,
 } from "./notebookMindMapWidget";
+import {
+  copyMindMapSubtree,
+  cutMindMapSubtree,
+  pasteMindMapClipboard,
+} from "./mindMapKeyboard";
 import { registerMindMapToolbarFactories } from "./mindMapToolbar";
 import {
   bindNotebookToMindMapSync,
+  renderMarkdownCellInNotebookEditor,
   revealCellInNotebookEditor,
   syncNotebookPanelToMindMaps,
 } from "./notebookViewSync";
@@ -139,28 +146,48 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     registerNotebookCommand(CommandIDs.cutCell, {
       label: trans.__("Cut Cell"),
-      caption: trans.__("Cut the selected cells"),
+      caption: trans.__("Cut the selected topic and its subtree"),
       icon: cutIcon,
       execute: (notebook) => {
-        NotebookActions.cut(notebook);
+        const model = notebook.model;
+
+        if (!model) {
+          return;
+        }
+
+        cutMindMapSubtree(notebook, model);
       },
     });
 
     registerNotebookCommand(CommandIDs.copyCell, {
       label: trans.__("Copy Cell"),
-      caption: trans.__("Copy the selected cells"),
+      caption: trans.__("Copy the selected topic and its subtree"),
       icon: copyIcon,
       execute: (notebook) => {
-        NotebookActions.copy(notebook);
+        const model = notebook.model;
+
+        if (!model) {
+          return;
+        }
+
+        copyMindMapSubtree(notebook, model);
       },
     });
 
     registerNotebookCommand(CommandIDs.pasteCellBelow, {
       label: trans.__("Paste Cell Below"),
-      caption: trans.__("Paste cells from the clipboard"),
+      caption: trans.__(
+        "Paste a topic subtree, or plain text as child topics",
+      ),
       icon: pasteIcon,
       execute: (notebook) => {
-        NotebookActions.paste(notebook, "below");
+        const model = notebook.model;
+
+        if (!model) {
+          return;
+        }
+
+        void pasteMindMapClipboard(notebook, model);
       },
     });
 
@@ -224,11 +251,29 @@ const plugin: JupyterFrontEndPlugin<void> = {
         );
       });
 
+      widget.content.bindSyncMarkdownToNotebook((cellIndex) => {
+        renderMarkdownCellInNotebookEditor(
+          widget.context.path,
+          cellIndex,
+          notebookTracker,
+        );
+      });
+
+      widget.content.bindSourceActiveCellIndex(() => {
+        let activeIndex = -1;
+
+        notebookTracker.forEach((panel) => {
+          if (panel.context.path === widget.context.path) {
+            activeIndex = panel.content.activeCellIndex;
+          }
+        });
+
+        return activeIndex;
+      });
+
       notebookTracker.forEach((panel) => {
         if (panel.context.path === widget.context.path) {
-          widget.content.syncActiveCellFromNotebook(
-            panel.content.activeCellIndex,
-          );
+          widget.content.requestOpenCenter(panel.content.activeCellIndex);
         }
       });
     });
@@ -255,14 +300,41 @@ const plugin: JupyterFrontEndPlugin<void> = {
       caption: trans.__("Open this notebook in the Kuusi mind map view"),
       isEnabled: (args: OpenNotebookMindMapArgs) =>
         Boolean(resolveNotebookPath(args, notebookTracker)),
-      execute: (args: OpenNotebookMindMapArgs) => {
+      execute: async (args: OpenNotebookMindMapArgs) => {
         const path = resolveNotebookPath(args, notebookTracker);
 
         if (!path) {
           return;
         }
 
-        return openMindMap(path);
+        const widget = await openMindMap(path);
+
+        if (widget instanceof NotebookMindMapDocumentWidget) {
+          let activeIndex = -1;
+
+          notebookTracker.forEach((panel) => {
+            if (panel.context.path === path) {
+              activeIndex = panel.content.activeCellIndex;
+            }
+          });
+
+          if (activeIndex < 0) {
+            activeIndex = widget.content.notebook.activeCellIndex;
+          }
+
+          if (activeIndex >= 0) {
+            widget.content.requestOpenCenter(activeIndex);
+
+            // Layout/viewport may not be ready on the first sync; nudge again.
+            window.requestAnimationFrame(() => {
+              if (!widget.isDisposed && activeIndex >= 0) {
+                widget.content.requestOpenCenter(activeIndex);
+              }
+            });
+          }
+        }
+
+        return widget;
       },
     });
 

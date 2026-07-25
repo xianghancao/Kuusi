@@ -1,16 +1,22 @@
 {
   "name": "kuusi-monorepo",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Kuusi: Jupyter-native notebook mind map view",
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
   "scripts": {
     "build:kernel": "npm run build --workspace=kuusi-kernel",
     "build:extension:lib": "npm run build:lib --workspace=jupyterlab-kuusi",
     "build:extension": "npm run build:kernel && npm run build:extension:lib && npm run build:labextension:dev --workspace=jupyterlab-kuusi",
     "build:release": "npm run build:kernel && npm run build:extension:lib && npm run build:labextension --workspace=jupyterlab-kuusi",
+    "clean:deps": "rm -rf node_modules yarn.lock .yarn",
+    "reinstall": "npm run clean:deps && npm install",
     "check:versions": "bash scripts/check-versions.sh",
     "test": "npm run check:versions && npm run test:kernel && npm run test:build",
     "test:kernel": "npm run test --workspace=kuusi-kernel",

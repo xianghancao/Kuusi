@@ -1,21 +1,14 @@
 # Documentation assets
 
-Visual materials for the README and project pages.
+Versioned screenshots for the README and release notes.
 
-| File | Purpose |
+| Path | Purpose |
 |------|---------|
-| [`kuusi-ui-overview.gif`](./kuusi-ui-overview.gif) | Screen recording of the Kuusi UI (used in README) |
-| `demo.gif` | Optional alternate demo — use `kuusi-ui-overview.gif` unless replacing |
+| [`0.2.4/`](./0.2.4/) | Screenshots for Kuusi **0.2.4** (overview, Node border, formatting, Community) |
+| [`0.2.3/`](./0.2.3/) | Older release visuals (kept for history) |
 
-## Adding a demo GIF
+## Adding screenshots for a release
 
-1. Record JupyterLab with `examples/example.ipynb` open in **Kuusi Mind Map** (10–30 seconds is enough).
-2. Save as `docs/assets/demo.gif` (or `.webp` / `.mp4` and update the README link).
-3. Keep the file under ~5 MB if possible so the repo stays lightweight.
-
-Suggested scenes:
-
-- Pan/zoom the canvas
-- Drag a node to reorder
-- Tab/Enter to insert an empty child/sibling node
-- Open Style / Background / Guide menus
+1. Capture JupyterLab with `examples/example.ipynb` open in **Kuusi Mind Map**.
+2. Save under `docs/assets/<version>/` with short kebab-case names (no spaces).
+3. Update the image links and captions at the top of the root [README](../README.md).

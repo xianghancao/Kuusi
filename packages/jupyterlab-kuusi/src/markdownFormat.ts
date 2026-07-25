@@ -1,6 +1,6 @@
 import type { IMarkdownCellModel } from "@jupyterlab/cells";
 import type { CodeEditor } from "@jupyterlab/codeeditor";
-import { LEGACY_CELL_METADATA_KEY, parseMarkdownHeading } from "kuusi-kernel";
+import { LEGACY_CELL_METADATA_KEY } from "kuusi-kernel";
 
 const LIST_PREFIX_PATTERN =
   /^(?:\d+\.\s+|[-*+–]\s+(?:\[[ xX]\]\s+)?)/;
@@ -316,21 +316,12 @@ export const applyOutlineHeading = (
   cell: IMarkdownCellModel,
   level: number,
 ): void => {
-  const source = editor.model.sharedModel.getSource();
-  const markdownHeading = parseMarkdownHeading(source.trim());
-  const metadataLevel = getMetadataOutlineHeadingLevel(cell);
-  const effectiveLevel = markdownHeading?.level ?? metadataLevel;
-
-  // Prefer markdown source as the single source of truth while editing.
+  // Prefer markdown `#` markers as the single source of truth while editing.
   clearMetadataOutlineHeading(cell);
 
-  // Metadata-only heading at this level → toggle off (leave empty / plain source).
-  if (effectiveLevel === level && !markdownHeading) {
-    editor.focus();
-    return;
-  }
-
-  // Write / update / toggle `#` markers so the change is visible in the editor.
+  // Always write/toggle via source. Metadata-only empty Tab/Enter nodes used to
+  // "toggle off" on the first Heading click (clear metadata, write nothing), so
+  // users had to click twice — once to clear, once to insert `#`.
   applyHeading(editor, level);
 };
 

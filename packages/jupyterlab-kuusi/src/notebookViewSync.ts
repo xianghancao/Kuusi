@@ -1,4 +1,5 @@
 import type { IDocumentManager } from "@jupyterlab/docmanager";
+import { MarkdownCell } from "@jupyterlab/cells";
 import { NotebookPanel, type INotebookTracker } from "@jupyterlab/notebook";
 import type { NotebookMindMapTracker } from "./tracker";
 
@@ -54,9 +55,43 @@ export const revealCellInNotebookEditor = async (
 
   const cell = panel.content.widgets[cellIndex];
 
+  if (cell instanceof MarkdownCell && !cell.rendered) {
+    cell.rendered = true;
+  }
+
   requestAnimationFrame(() => {
     cell?.node.scrollIntoView({ block: "center", behavior: "smooth" });
   });
+};
+
+/** Render a markdown cell in the classic notebook view for the same file. */
+export const renderMarkdownCellInNotebookEditor = (
+  path: string,
+  cellIndex: number,
+  notebookTracker: INotebookTracker,
+): void => {
+  const panel = findNotebookPanel(path, notebookTracker);
+
+  if (!panel) {
+    return;
+  }
+
+  if (cellIndex < 0 || cellIndex >= panel.content.widgets.length) {
+    return;
+  }
+
+  const cell = panel.content.widgets[cellIndex];
+
+  if (cell instanceof MarkdownCell && !cell.rendered) {
+    cell.rendered = true;
+  }
+
+  if (
+    panel.content.activeCellIndex === cellIndex &&
+    panel.content.mode === "edit"
+  ) {
+    panel.content.mode = "command";
+  }
 };
 
 export const bindNotebookToMindMapSync = (

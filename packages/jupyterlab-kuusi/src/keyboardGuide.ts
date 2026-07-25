@@ -14,22 +14,27 @@ export const modKeyLabel = isMac ? "⌘" : "Ctrl";
 export const MIND_MAP_SHORTCUTS: ShortcutGuideEntry[] = [
   { keys: "↑ ↓", description: "Move between siblings" },
   { keys: "← →", description: "Move to parent / first child" },
-  { keys: "Enter", description: "Insert sibling node" },
-  { keys: "Shift+Enter", description: "Render node and insert sibling" },
+  { keys: "Enter", description: "Insert sibling (child when on root)" },
+  { keys: "Shift+Enter", description: "Render node and insert sibling (child on root)" },
   {
     keys: `${modKeyLabel}+Enter`,
     description: "Render node and stay on current node",
   },
   { keys: "Tab", description: "Insert child node" },
-  { keys: `${modKeyLabel}+C`, description: "Copy" },
-  { keys: `${modKeyLabel}+X`, description: "Cut" },
-  { keys: `${modKeyLabel}+V`, description: "Paste" },
+  { keys: "Space", description: "Collapse / expand branch" },
+  { keys: `${modKeyLabel}+C`, description: "Copy selected topic and its subtree" },
+  { keys: `${modKeyLabel}+X`, description: "Cut selected topic and its subtree" },
+  {
+    keys: `${modKeyLabel}+V`,
+    description:
+      "Paste subtree as sibling, or external text as child topics (one per line)",
+  },
   { keys: `${modKeyLabel}+Z`, description: "Undo" },
   {
     keys: isMac ? `${modKeyLabel}+Shift+Z` : `${modKeyLabel}+Y`,
     description: "Redo",
   },
-  { keys: "Delete", description: "Delete selected node" },
+  { keys: "Delete", description: "Delete selected topic and its subtree" },
   { keys: "F2", description: "Edit current node" },
   { keys: "Escape", description: "Exit edit mode" },
   { keys: `${modKeyLabel}+Home`, description: "Jump to root (H1)" },
@@ -49,7 +54,7 @@ export const FORMAT_SHORTCUTS: ShortcutGuideEntry[] = [
 
 export const FORMAT_GUIDE_NOTES: ShortcutGuideEntry[] = [
   {
-    keys: "Title",
+    keys: "Heading",
     description: "Outline headings change the mind map tree (H1 = root)",
   },
   {
@@ -90,6 +95,15 @@ const appendGuideSection = (
   });
 };
 
+export const appendKeyboardGuideContent = (
+  menu: HTMLElement,
+  t: KuusiTranslator,
+): void => {
+  appendGuideSection(menu, t.mindMapShortcuts(), MIND_MAP_SHORTCUTS);
+  appendGuideSection(menu, t.formattingShortcuts(), FORMAT_SHORTCUTS);
+  appendGuideSection(menu, t.formattingNotes(), FORMAT_GUIDE_NOTES);
+};
+
 export const createGuideToolbar = (
   t: KuusiTranslator,
   onOpenChange?: (open: boolean) => void,
@@ -115,9 +129,7 @@ export const createGuideToolbar = (
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.keyboardShortcuts());
 
-  appendGuideSection(menu, t.mindMapShortcuts(), MIND_MAP_SHORTCUTS);
-  appendGuideSection(menu, t.formattingShortcuts(), FORMAT_SHORTCUTS);
-  appendGuideSection(menu, t.formattingNotes(), FORMAT_GUIDE_NOTES);
+  appendKeyboardGuideContent(menu, t);
 
   const setOpen = (open: boolean) => {
     menu.classList.toggle("is-open", open);

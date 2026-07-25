@@ -8,6 +8,8 @@ export type KuusiNodeMetadata = {
   frame?: string;
   /** Inline CSS variable overrides for the node frame. */
   frameStyle?: NodeFrameStyle;
+  /** Custom card width in pixels (used when equal-width layout is off). */
+  width?: number;
 };
 
 /** CSS custom properties applied on `.jp-KuusiNotebookMindMap-cellNode`. */

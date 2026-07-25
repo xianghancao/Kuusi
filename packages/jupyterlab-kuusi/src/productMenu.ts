@@ -1,9 +1,17 @@
 import { closeKuusiDropdownMenus } from "./formatToolbar";
 import type { KuusiTranslator } from "./kuusiI18n";
+import { appendKeyboardGuideContent } from "./keyboardGuide";
 import { applyKuusiLogo } from "./kuusiLogo";
-import { KUUSI_GITHUB_URL, KUUSI_VERSION } from "./version";
+import {
+  KUUSI_DISCOURSE_URL,
+  KUUSI_GITHUB_URL,
+  KUUSI_PYPI_URL,
+  KUUSI_VERSION,
+  KUUSI_X_URL,
+} from "./version";
 
 const KUUSI_GITHUB_REPO = "xianghancao/kuusi";
+const KUUSI_PIP_INSTALL = "pip install jupyterlab-kuusi";
 const VERSION_CACHE_KEY = "jupyterlab-kuusi:latest-version";
 const VERSION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -11,6 +19,17 @@ type VersionCacheEntry = {
   version: string;
   fetchedAt: number;
 };
+
+type ProductSection =
+  | "about"
+  | "version"
+  | "repository"
+  | "community"
+  | "install"
+  | "shortcut";
+
+/** Remember last Kuusi secondary tab within the page session. */
+let lastProductSection: ProductSection = "about";
 
 const normalizeVersion = (version: string): string =>
   version.trim().replace(/^v/i, "");
@@ -100,8 +119,29 @@ export const fetchLatestKuusiVersion = async (): Promise<string | null> => {
   return packageJson.version ? normalizeVersion(packageJson.version) : null;
 };
 
+const setUpdateBadgeVisible = (
+  updateBadge: HTMLElement,
+  trigger: HTMLButtonElement,
+  t: KuusiTranslator,
+  visible: boolean,
+): void => {
+  if (visible) {
+    updateBadge.hidden = false;
+    updateBadge.classList.add("is-visible");
+    trigger.title = t.newVersionAvailable();
+    trigger.setAttribute("aria-label", `Kuusi — ${t.newVersionAvailable()}`);
+    return;
+  }
+
+  updateBadge.hidden = true;
+  updateBadge.classList.remove("is-visible");
+  trigger.title = "Kuusi";
+  trigger.setAttribute("aria-label", "Kuusi");
+};
+
 const applyLatestVersionState = (
   latestValueEl: HTMLElement,
+  versionTabBadge: HTMLElement,
   latest: string,
   t: KuusiTranslator,
   updateBadge: HTMLElement,
@@ -116,10 +156,8 @@ const applyLatestVersionState = (
   if (updateAvailable) {
     latestValueEl.classList.add("is-update-available");
     latestValueEl.title = t.newVersionAvailable();
-    updateBadge.hidden = false;
-    updateBadge.classList.add("is-visible");
-    trigger.title = t.newVersionAvailable();
-    trigger.setAttribute("aria-label", `Kuusi — ${t.newVersionAvailable()}`);
+    versionTabBadge.hidden = false;
+    setUpdateBadgeVisible(updateBadge, trigger, t, true);
     return;
   }
 
@@ -127,14 +165,13 @@ const applyLatestVersionState = (
   latestValueEl.title = cached
     ? `${t.upToDate()} (${t.latestVersion()} cached)`
     : t.upToDate();
-  updateBadge.hidden = true;
-  updateBadge.classList.remove("is-visible");
-  trigger.title = "Kuusi";
-  trigger.setAttribute("aria-label", "Kuusi");
+  versionTabBadge.hidden = true;
+  setUpdateBadgeVisible(updateBadge, trigger, t, false);
 };
 
 const refreshLatestVersion = (
   latestValueEl: HTMLElement,
+  versionTabBadge: HTMLElement,
   t: KuusiTranslator,
   updateBadge: HTMLElement,
   trigger: HTMLButtonElement,
@@ -144,6 +181,7 @@ const refreshLatestVersion = (
   if (cached) {
     applyLatestVersionState(
       latestValueEl,
+      versionTabBadge,
       cached.version,
       t,
       updateBadge,
@@ -154,6 +192,7 @@ const refreshLatestVersion = (
     latestValueEl.textContent = "—";
     latestValueEl.classList.remove("is-update-available", "is-up-to-date");
     latestValueEl.title = t.latestUnavailable();
+    versionTabBadge.hidden = true;
   }
 
   if (cached && isCacheFresh(cached)) {
@@ -166,6 +205,7 @@ const refreshLatestVersion = (
         if (!cached) {
           latestValueEl.textContent = t.latestUnavailable();
           latestValueEl.title = t.latestUnavailable();
+          versionTabBadge.hidden = true;
         }
         return;
       }
@@ -173,6 +213,7 @@ const refreshLatestVersion = (
       writeVersionCache(latest);
       applyLatestVersionState(
         latestValueEl,
+        versionTabBadge,
         latest,
         t,
         updateBadge,
@@ -184,6 +225,7 @@ const refreshLatestVersion = (
       if (!cached) {
         latestValueEl.textContent = t.latestUnavailable();
         latestValueEl.title = t.latestUnavailable();
+        versionTabBadge.hidden = true;
       }
     });
 };
@@ -207,6 +249,90 @@ const createVersionRow = (
   row.append(labelEl, valueEl);
   return { row, valueEl };
 };
+
+const createExternalLink = (
+  label: string,
+  href: string,
+  title: string,
+  displayUrl = href,
+): HTMLAnchorElement => {
+  const link = document.createElement("a");
+  link.className =
+    "jp-KuusiFormatDropdown-item jp-KuusiProductDropdown-link";
+  link.setAttribute("role", "menuitem");
+  link.href = href;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = title;
+
+  const name = document.createElement("span");
+  name.className = "jp-KuusiProductDropdown-linkLabel";
+  name.textContent = label;
+
+  const url = document.createElement("span");
+  url.className = "jp-KuusiProductDropdown-linkUrl";
+  url.textContent = displayUrl;
+
+  link.append(name, url);
+  link.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  return link;
+};
+
+const createInstallRow = (t: KuusiTranslator): HTMLElement => {
+  const row = document.createElement("div");
+  row.className = "jp-KuusiProductDropdown-installRow";
+
+  const command = document.createElement("code");
+  command.className = "jp-KuusiProductDropdown-installCommand";
+  command.textContent = KUUSI_PIP_INSTALL;
+
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "jp-KuusiProductDropdown-copyBtn";
+  copyButton.textContent = t.copy();
+  copyButton.title = t.copyInstallCommand();
+  copyButton.setAttribute("aria-label", t.copyInstallCommand());
+
+  const setCopied = () => {
+    copyButton.textContent = t.copied();
+    window.setTimeout(() => {
+      copyButton.textContent = t.copy();
+    }, 1500);
+  };
+
+  copyButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    void navigator.clipboard.writeText(KUUSI_PIP_INSTALL).then(setCopied).catch(() => {
+      const textarea = document.createElement("textarea");
+      textarea.value = KUUSI_PIP_INSTALL;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+      setCopied();
+    });
+  });
+
+  row.append(command, copyButton);
+  return row;
+};
+
+const PRODUCT_SECTIONS: Array<{
+  id: ProductSection;
+  label: (t: KuusiTranslator) => string;
+}> = [
+  { id: "about", label: (t) => t.about() },
+  { id: "version", label: (t) => t.version() },
+  { id: "repository", label: (t) => t.repository() },
+  { id: "community", label: (t) => t.community() },
+  { id: "install", label: (t) => t.install() },
+  { id: "shortcut", label: (t) => t.shortcut() },
+];
 
 export const createProductMenu = (
   root: HTMLElement,
@@ -236,39 +362,138 @@ export const createProductMenu = (
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", "Kuusi");
 
-  const versionTitle = document.createElement("div");
-  versionTitle.className = "jp-KuusiFormatDropdown-section";
-  versionTitle.textContent = t.version();
-  menu.appendChild(versionTitle);
+  const body = document.createElement("div");
+  body.className = "jp-KuusiSecondaryMenu";
+
+  const nav = document.createElement("div");
+  nav.className = "jp-KuusiSecondaryMenu-nav";
+  nav.setAttribute("role", "tablist");
+  nav.setAttribute("aria-label", "Kuusi");
+
+  const panel = document.createElement("div");
+  panel.className = "jp-KuusiSecondaryMenu-panel jp-KuusiProductDropdown-panel";
+  panel.setAttribute("role", "tabpanel");
+
+  const aboutPanel = document.createElement("div");
+  aboutPanel.className = "jp-KuusiProductDropdown-aboutPanel";
+  const aboutText = document.createElement("p");
+  aboutText.className = "jp-KuusiProductDropdown-aboutText";
+  aboutText.textContent = t.aboutBlurb();
+  aboutPanel.appendChild(aboutText);
 
   const versionPanel = document.createElement("div");
   versionPanel.className = "jp-KuusiProductDropdown-versionPanel";
-
   const currentRow = createVersionRow(t.currentVersion(), `v${KUUSI_VERSION}`);
   const latestRow = createVersionRow(t.latestVersion(), "—");
   versionPanel.append(currentRow.row, latestRow.row);
-  menu.appendChild(versionPanel);
 
-  const repoTitle = document.createElement("div");
-  repoTitle.className = "jp-KuusiFormatDropdown-section";
-  repoTitle.textContent = t.repository();
-  menu.appendChild(repoTitle);
+  const repositoryPanel = document.createElement("div");
+  repositoryPanel.className = "jp-KuusiProductDropdown-repositoryPanel";
+  repositoryPanel.append(
+    createExternalLink("GitHub:", KUUSI_GITHUB_URL, t.openRepository()),
+    createExternalLink("PyPI:", KUUSI_PYPI_URL, t.openPyPI()),
+  );
 
-  const repoLink = document.createElement("a");
-  repoLink.className =
-    "jp-KuusiFormatDropdown-item jp-KuusiProductDropdown-link";
-  repoLink.setAttribute("role", "menuitem");
-  repoLink.href = KUUSI_GITHUB_URL;
-  repoLink.target = "_blank";
-  repoLink.rel = "noopener noreferrer";
-  repoLink.textContent = KUUSI_GITHUB_URL;
-  repoLink.title = t.openRepository();
+  const communityPanel = document.createElement("div");
+  communityPanel.className = "jp-KuusiProductDropdown-communityPanel";
+  const communityText = document.createElement("p");
+  communityText.className = "jp-KuusiProductDropdown-aboutText";
+  communityText.textContent = t.communityBlurb();
+  communityPanel.append(
+    communityText,
+    createExternalLink(
+      "Discourse:",
+      KUUSI_DISCOURSE_URL,
+      t.openDiscourse(),
+      "discourse.jupyter.org/t/…/38802",
+    ),
+    createExternalLink("X:", KUUSI_X_URL, t.openX(), "x.com/KussiMindMap"),
+  );
 
-  repoLink.addEventListener("click", (event) => {
-    event.stopPropagation();
+  const installPanel = document.createElement("div");
+  installPanel.className = "jp-KuusiProductDropdown-installPanel";
+  installPanel.appendChild(createInstallRow(t));
+
+  const shortcutPanel = document.createElement("div");
+  shortcutPanel.className = "jp-KuusiProductDropdown-guidePanel";
+  appendKeyboardGuideContent(shortcutPanel, t);
+
+  const panels: Record<ProductSection, HTMLElement> = {
+    about: aboutPanel,
+    version: versionPanel,
+    repository: repositoryPanel,
+    community: communityPanel,
+    install: installPanel,
+    shortcut: shortcutPanel,
+  };
+
+  const tabButtons = new Map<ProductSection, HTMLButtonElement>();
+  let versionTabBadge: HTMLElement | null = null;
+
+  const setSection = (section: ProductSection) => {
+    const alreadyActive =
+      lastProductSection === section && panel.contains(panels[section]);
+    lastProductSection = section;
+    tabButtons.forEach((button, id) => {
+      const isActive = id === section;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+
+    if (!alreadyActive) {
+      panel.replaceChildren(panels[section]);
+    }
+
+    if (section === "version" && versionTabBadge && !alreadyActive) {
+      refreshLatestVersion(
+        latestRow.valueEl,
+        versionTabBadge,
+        t,
+        updateBadge,
+        trigger,
+      );
+    }
+  };
+
+  PRODUCT_SECTIONS.forEach(({ id, label }) => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "jp-KuusiSecondaryMenu-tab";
+    tab.setAttribute("role", "tab");
+    tab.setAttribute(
+      "aria-selected",
+      id === lastProductSection ? "true" : "false",
+    );
+
+    const labelEl = document.createElement("span");
+    labelEl.className = "jp-KuusiSecondaryMenu-tabLabel";
+    labelEl.textContent = label(t);
+    tab.appendChild(labelEl);
+
+    if (id === "version") {
+      const badge = document.createElement("span");
+      badge.className = "jp-KuusiProductDropdown-versionNew";
+      badge.textContent = t.newBadge();
+      badge.hidden = true;
+      versionTabBadge = badge;
+      tab.appendChild(badge);
+    }
+
+    tab.classList.toggle("is-active", id === lastProductSection);
+    const activate = (event: Event) => {
+      event.stopPropagation();
+      setSection(id);
+    };
+    tab.addEventListener("mouseenter", activate);
+    tab.addEventListener("focus", activate);
+    tab.addEventListener("click", activate);
+    tabButtons.set(id, tab);
+    nav.appendChild(tab);
   });
 
-  menu.appendChild(repoLink);
+  body.append(nav, panel);
+  menu.appendChild(body);
+  setSection(lastProductSection);
 
   trigger.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -276,8 +501,8 @@ export const createProductMenu = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
+      setSection(lastProductSection);
       menu.classList.add("is-open");
-      refreshLatestVersion(latestRow.valueEl, t, updateBadge, trigger);
     }
   });
 
@@ -286,7 +511,16 @@ export const createProductMenu = (
   });
 
   wrapper.append(trigger, menu);
-  // Show the update badge as soon as the header mounts (uses cache / network).
-  refreshLatestVersion(latestRow.valueEl, t, updateBadge, trigger);
+
+  if (versionTabBadge) {
+    refreshLatestVersion(
+      latestRow.valueEl,
+      versionTabBadge,
+      t,
+      updateBadge,
+      trigger,
+    );
+  }
+
   return wrapper;
 };

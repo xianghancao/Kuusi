@@ -1,13 +1,8 @@
-import {
-  appendColorPickerSection,
-  BACKGROUND_COLOR_SWATCHES,
-} from "./colorPicker";
+import { BACKGROUND_COLOR_SWATCHES } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
-import {
-  appendDropdownSection,
-  closeKuusiDropdownMenus,
-  createDropdownOptionRow,
-} from "./formatToolbar";
+import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { renderPanelWidgets } from "./panelWidgets";
+import { mountSecondaryMenu } from "./secondaryMenu";
 
 /** Texture / fill pattern — independent of canvas color. */
 export type MindMapBackgroundPattern =
@@ -29,6 +24,7 @@ export type MindMapBackground =
   | "avocado"
   | "stone-gray"
   | "red-wall"
+  | "ink"
   | "custom";
 
 export const DEFAULT_MIND_MAP_BACKGROUND: MindMapBackground = "default";
@@ -50,6 +46,10 @@ export type MindMapBackgroundState = {
   backgroundPattern: MindMapBackgroundPattern;
   backgroundColor: string;
 };
+
+type BackgroundSection = "pattern" | "color" | "custom";
+
+let lastBackgroundSection: BackgroundSection = "pattern";
 
 const createPatternPreview = (value: MindMapBackgroundPattern): HTMLElement => {
   const preview = document.createElement("span");
@@ -166,6 +166,11 @@ const getMindMapBackgrounds = (
     label: t.backgroundRedWall(),
     title: t.backgroundRedWallTitle(),
   },
+  {
+    value: "ink",
+    label: t.backgroundInk(),
+    title: t.backgroundInkTitle(),
+  },
 ];
 
 export const applyBackgroundToViewport = (
@@ -182,6 +187,98 @@ export const applyBackgroundToViewport = (
   } else {
     viewport.style.removeProperty("--kuusi-background-custom-color");
   }
+};
+
+export const fillBackgroundMenu = (
+  menu: HTMLElement,
+  getBackgroundState: () => MindMapBackgroundState,
+  onChange: (state: MindMapBackgroundState) => void,
+  t: KuusiTranslator,
+  onRebuild: () => void,
+): void => {
+  mountSecondaryMenu(menu, {
+    ariaLabel: t.canvasBackground(),
+    sections: [
+      { id: "pattern", label: t.backgroundPattern() },
+      { id: "color", label: t.backgroundColor() },
+      { id: "custom", label: t.backgroundCustomColor() },
+    ],
+    getActive: () => lastBackgroundSection,
+    setActive: (id) => {
+      lastBackgroundSection = id;
+    },
+    fillSection: (id, panel) => {
+      const { background, backgroundPattern, backgroundColor } =
+        getBackgroundState();
+
+      if (id === "pattern") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: backgroundPattern,
+            options: getBackgroundPatterns(t).map(({ value, label, title }) => ({
+              value,
+              label,
+              title,
+              preview: () => createPatternPreview(value),
+            })),
+            onChange: (value) => {
+              onChange({
+                background,
+                backgroundPattern: value as MindMapBackgroundPattern,
+                backgroundColor,
+              });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "color") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: background,
+            options: getMindMapBackgrounds(t).map(({ value, label, title }) => ({
+              value,
+              label,
+              title,
+              preview: () => createColorPreview(value, backgroundColor),
+            })),
+            onChange: (value) => {
+              onChange({
+                background: value as MindMapBackground,
+                backgroundPattern,
+                backgroundColor,
+              });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      renderPanelWidgets(panel, [
+        {
+          kind: "color",
+          sectionLabel: t.backgroundCustomColor(),
+          value: background === "custom" ? backgroundColor : "",
+          swatches: BACKGROUND_COLOR_SWATCHES,
+          customDefault: backgroundColor || DEFAULT_MIND_MAP_BACKGROUND_COLOR,
+          customInputId: "jp-KuusiBackgroundColorCustom-input",
+          onChange: (color) => {
+            onChange({
+              background: "custom",
+              backgroundPattern,
+              backgroundColor: color || DEFAULT_MIND_MAP_BACKGROUND_COLOR,
+            });
+            onRebuild();
+          },
+        },
+      ]);
+    },
+  });
 };
 
 export const createBackgroundToolbar = (
@@ -207,87 +304,13 @@ export const createBackgroundToolbar = (
 
   const menu = document.createElement("div");
   menu.className =
-    "jp-KuusiFormatDropdown-menu jp-KuusiBackgroundDropdown-menu";
+    "jp-KuusiFormatDropdown-menu jp-KuusiBackgroundDropdown-menu jp-KuusiSecondaryMenu-host";
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.canvasBackground());
 
   const rebuildMenu = () => {
     menu.replaceChildren();
-    const { background, backgroundPattern, backgroundColor } =
-      getBackgroundState();
-
-    appendDropdownSection(menu, t.backgroundPattern());
-    const patternRow = createDropdownOptionRow(menu);
-
-    getBackgroundPatterns(t).forEach(({ value, label, title }) => {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className =
-        "jp-KuusiFormatDropdown-item jp-KuusiBackgroundDropdown-item";
-      item.setAttribute("role", "menuitem");
-      item.setAttribute("aria-label", title);
-      item.title = title;
-      item.classList.toggle("is-active", backgroundPattern === value);
-
-      const labelEl = document.createElement("span");
-      labelEl.className = "jp-KuusiBackgroundDropdown-label";
-      labelEl.textContent = label;
-      item.appendChild(labelEl);
-      item.appendChild(createPatternPreview(value));
-
-      item.addEventListener("click", (event) => {
-        event.stopPropagation();
-        onChange({ background, backgroundPattern: value, backgroundColor });
-        rebuildMenu();
-      });
-      patternRow.appendChild(item);
-    });
-
-    appendDropdownSection(menu, t.backgroundColor());
-    const colorRow = createDropdownOptionRow(menu);
-
-    getMindMapBackgrounds(t).forEach(({ value, label, title }) => {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className =
-        "jp-KuusiFormatDropdown-item jp-KuusiBackgroundDropdown-item";
-      item.setAttribute("role", "menuitem");
-      item.setAttribute("aria-label", title);
-      item.title = title;
-      item.classList.toggle("is-active", background === value);
-
-      const labelEl = document.createElement("span");
-      labelEl.className = "jp-KuusiBackgroundDropdown-label";
-      labelEl.textContent = label;
-      item.appendChild(labelEl);
-      item.appendChild(createColorPreview(value, backgroundColor));
-
-      item.addEventListener("click", (event) => {
-        event.stopPropagation();
-        onChange({ background: value, backgroundPattern, backgroundColor });
-        rebuildMenu();
-      });
-      colorRow.appendChild(item);
-    });
-
-    appendColorPickerSection(
-      menu,
-      t.backgroundCustomColor(),
-      background === "custom" ? backgroundColor : "",
-      (color) => {
-        onChange({
-          background: "custom",
-          backgroundPattern,
-          backgroundColor: color || DEFAULT_MIND_MAP_BACKGROUND_COLOR,
-        });
-        rebuildMenu();
-      },
-      BACKGROUND_COLOR_SWATCHES,
-      {
-        customDefault: backgroundColor || DEFAULT_MIND_MAP_BACKGROUND_COLOR,
-        customInputId: "jp-KuusiBackgroundColorCustom-input",
-      },
-    );
+    fillBackgroundMenu(menu, getBackgroundState, onChange, t, rebuildMenu);
   };
 
   rebuildMenu();
@@ -298,6 +321,7 @@ export const createBackgroundToolbar = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
+      rebuildMenu();
       menu.classList.add("is-open");
     }
   });

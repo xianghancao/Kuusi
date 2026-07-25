@@ -40,12 +40,22 @@
     },
     "theme": {
       "title": "Mind map theme",
+      "description": "Named preset that applies Line, Node, Background, and Font settings together.",
       "type": "string",
-      "enum": ["classic", "soft", "contrast"],
-      "default": "classic"
+      "enum": [
+        "notebook",
+        "soft",
+        "outline",
+        "paper",
+        "board",
+        "black",
+        "minimal"
+      ],
+      "default": "notebook"
     },
     "font": {
-      "title": "Mind map font",
+      "title": "Mind map font (legacy)",
+      "description": "Deprecated. Migrates to editFont and displayFont.",
       "type": "string",
       "enum": [
         "notebook",
@@ -62,11 +72,57 @@
       ],
       "default": "notebook"
     },
-    "fontSize": {
-      "title": "Mind map font size",
+    "editFont": {
+      "title": "Mind map edit font",
+      "description": "Font family while editing cell source (before render).",
       "type": "string",
-      "enum": ["notebook", "small", "medium", "large", "extra-large"],
+      "enum": [
+        "notebook",
+        "system-ui",
+        "arial",
+        "helvetica",
+        "segoe-ui",
+        "verdana",
+        "georgia",
+        "times",
+        "palatino",
+        "garamond",
+        "cambria"
+      ],
       "default": "notebook"
+    },
+    "displayFont": {
+      "title": "Mind map display font",
+      "description": "Font family for rendered markdown/HTML output.",
+      "type": "string",
+      "enum": [
+        "notebook",
+        "system-ui",
+        "arial",
+        "helvetica",
+        "segoe-ui",
+        "verdana",
+        "georgia",
+        "times",
+        "palatino",
+        "garamond",
+        "cambria"
+      ],
+      "default": "notebook"
+    },
+    "editFontSize": {
+      "title": "Mind map edit font size",
+      "description": "Font size while editing cell source (before render).",
+      "type": "string",
+      "enum": ["xxs", "xs", "sm", "md", "lg", "xl", "xxl"],
+      "default": "md"
+    },
+    "displayFontSize": {
+      "title": "Mind map display font size",
+      "description": "Font size for rendered markdown/HTML output.",
+      "type": "string",
+      "enum": ["xxs", "xs", "sm", "md", "lg", "xl", "xxl"],
+      "default": "md"
     },
     "layoutDensity": {
       "title": "Node layout spacing",
@@ -87,8 +143,22 @@
       "description": "Boundary distance between parent and child nodes in the mind map layout.",
       "type": "number",
       "minimum": 0,
-      "maximum": 200,
+      "maximum": 400,
       "default": 52
+    },
+    "equalNodeWidth": {
+      "title": "Equal width",
+      "description": "When true, every mind map node uses the same width. When false, nodes can be resized individually.",
+      "type": "boolean",
+      "default": false
+    },
+    "nodeWidth": {
+      "title": "Node width",
+      "description": "Default mind map node width in pixels.",
+      "type": "number",
+      "minimum": 160,
+      "maximum": 960,
+      "default": 700
     },
     "treeDirection": {
       "title": "Tree direction",
@@ -110,6 +180,7 @@
         "avocado",
         "stone-gray",
         "red-wall",
+        "ink",
         "custom"
       ],
       "default": "default"
@@ -126,7 +197,7 @@
       "default": "#d6ecff"
     },
     "appearance": {
-      "title": "Line and border appearance",
+      "title": "Line and node appearance",
       "type": "object",
       "default": {},
       "additionalProperties": false,
@@ -162,6 +233,12 @@
           "type": "string",
           "default": ""
         },
+        "nodeFillColor": {
+          "type": "string",
+          "title": "Map node fill",
+          "description": "Default fill for mind map nodes. Empty uses the theme. Per-node overrides use cell metadata.",
+          "default": ""
+        },
         "nodeBorderStyle": {
           "type": "string",
           "enum": ["solid", "dashed", "dotted"],
@@ -183,6 +260,18 @@
         "nodeBorderRadius": {
           "type": "string",
           "default": "8px"
+        },
+        "selectionGlowColor": {
+          "type": "string",
+          "title": "Selection glow color",
+          "description": "Glow color for the selected mind map node. Empty uses the theme brand color.",
+          "default": ""
+        },
+        "selectionGlowWidth": {
+          "type": "string",
+          "title": "Selection glow width",
+          "description": "Glow ring width for the selected mind map node.",
+          "default": "2px"
         }
       }
     }

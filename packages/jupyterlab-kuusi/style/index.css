@@ -9,20 +9,117 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  position: relative;
   width: 100%;
 }
 
 .jp-KuusiNotebookMindMap-header {
-  align-items: center;
-  background: var(--jp-layout-color1);
-  border-bottom: 1px solid var(--jp-border-color2);
+  align-items: flex-start;
+  background: transparent;
+  border-bottom: none;
   color: var(--jp-ui-font-color2);
   display: flex;
-  flex: 0 0 auto;
+  flex-wrap: nowrap;
   font-size: var(--jp-ui-font-size1);
-  gap: 12px;
+  gap: 10px;
   justify-content: space-between;
-  padding: 8px 14px;
+  left: 0;
+  overflow: visible;
+  padding: 12px 14px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 30;
+}
+
+.jp-mod-dark .jp-KuusiNotebookMindMap-header {
+  border-bottom: none;
+}
+
+.jp-KuusiToolbarCluster {
+  align-items: center;
+  /* Frosted glass: keep fill translucent so blur reads through. */
+  -webkit-backdrop-filter: saturate(160%) blur(28px);
+  backdrop-filter: saturate(160%) blur(28px);
+  background: color-mix(in srgb, var(--jp-layout-color1) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jp-border-color1) 42%, transparent);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent),
+    0 1px 2px color-mix(in srgb, var(--jp-ui-font-color1) 8%, transparent),
+    0 10px 28px color-mix(in srgb, var(--jp-ui-font-color1) 12%, transparent);
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0;
+  max-width: 100%;
+  min-width: 0;
+  padding: 3px 4px;
+  pointer-events: auto;
+  width: max-content;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
+  background: color-mix(in srgb, var(--jp-layout-color1) 38%, transparent);
+  border-color: color-mix(in srgb, var(--jp-border-color1) 50%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent),
+    0 1px 2px color-mix(in srgb, #000000 35%, transparent),
+    0 12px 32px color-mix(in srgb, #000000 40%, transparent);
+}
+
+.jp-KuusiToolbarCluster--page {
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  /* Keep overflow visible so dropdown menus are not clipped. */
+  overflow: visible;
+}
+
+.jp-KuusiToolbarDivider {
+  align-self: stretch;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 16%, transparent);
+  flex: 0 0 auto;
+  margin: 4px 2px;
+  width: 1px;
+}
+
+.jp-KuusiToolbarCluster--format {
+  flex: 0 0 auto;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.jp-KuusiNotebookMindMap-header--formatVertical .jp-KuusiNotebookMindMap-header-left {
+  margin-right: 44px;
+}
+
+.jp-KuusiNotebookMindMap-header--formatVertical .jp-KuusiNotebookMindMap-header-right {
+  margin-left: 0;
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  z-index: 31;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical {
+  align-items: stretch;
+  border-radius: 18px;
+  flex-direction: column;
+  padding: 4px 3px;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiNotebookMindMap-format-toolbar {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiFormatDropdown-menu {
+  left: auto;
+  right: calc(100% + 6px);
+  top: 0;
 }
 
 .jp-KuusiNotebookMindMap-header-title {
@@ -66,6 +163,7 @@
 .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo {
   color: #2f5d3a;
   font-weight: 800;
+  overflow: visible;
   position: relative;
 }
 
@@ -83,7 +181,7 @@
 }
 
 .jp-KuusiProductDropdown-updateBadge {
-  background: var(--jp-error-color1, #e53935);
+  background: #e53935;
   border: 1.5px solid var(--jp-layout-color1, #fff);
   border-radius: 50%;
   box-sizing: border-box;
@@ -91,9 +189,10 @@
   height: 8px;
   pointer-events: none;
   position: absolute;
-  right: -2px;
+  right: -3px;
   top: -2px;
   width: 8px;
+  z-index: 2;
 }
 
 .jp-KuusiProductDropdown-updateBadge.is-visible {
@@ -115,14 +214,125 @@
 }
 
 .jp-KuusiProductDropdown-menu {
+  box-sizing: border-box;
+  height: min(56vh, 380px);
   left: 0;
-  max-width: 360px;
-  min-width: 280px;
+  overflow: hidden;
+  padding: 0;
   right: auto;
+  width: min(92vw, 560px);
+}
+
+.jp-KuusiSecondaryMenu-host {
+  box-sizing: border-box;
+  height: min(56vh, 380px);
+  left: 0;
+  max-height: none;
+  min-width: unset;
+  overflow: hidden;
+  padding: 0;
+  right: auto;
+  width: min(92vw, 560px);
+}
+
+.jp-KuusiSecondaryMenu {
+  align-items: stretch;
+  color: var(--jp-ui-font-color1);
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiSecondaryMenu-nav {
+  border-right: 1px solid var(--jp-border-color2);
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  padding: 10px 6px;
+  width: max-content;
+}
+
+.jp-KuusiSecondaryMenu-tab {
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--jp-ui-font-family);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  gap: 6px;
+  justify-content: space-between;
+  line-height: 1.25;
+  padding: 8px 10px;
+  position: relative;
+  text-align: left;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.jp-KuusiSecondaryMenu-tabLabel {
+  flex: 1 1 auto;
+}
+
+.jp-KuusiProductDropdown-versionNew {
+  background: #e53935;
+  border-radius: 999px;
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 5px;
+  text-transform: uppercase;
+}
+
+.jp-KuusiSecondaryMenu-tab .jp-KuusiProductDropdown-versionNew,
+.jp-KuusiSecondaryMenu-tab:hover .jp-KuusiProductDropdown-versionNew,
+.jp-KuusiSecondaryMenu-tab.is-active .jp-KuusiProductDropdown-versionNew {
+  background: #e53935;
+  color: #fff;
+}
+
+.jp-KuusiSecondaryMenu-tab:hover {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 8%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
+}
+
+.jp-KuusiSecondaryMenu-tab.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
+}
+
+.jp-KuusiSecondaryMenu-panel {
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  flex: 1 1 auto;
+  font-family: var(--jp-ui-font-family);
+  font-size: var(--jp-ui-font-size1);
+  height: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+}
+
+.jp-KuusiProductDropdown-aboutText {
+  color: var(--jp-ui-font-color1);
+  font-size: inherit;
+  line-height: 1.45;
+  margin: 0;
 }
 
 .jp-KuusiProductDropdown-versionPanel {
-  padding: 2px 10px 8px;
+  padding: 2px 0 4px;
 }
 
 .jp-KuusiProductDropdown-versionRow {
@@ -136,14 +346,14 @@
 .jp-KuusiProductDropdown-versionLabel {
   color: var(--jp-ui-font-color2);
   flex: 0 0 auto;
-  font-size: var(--jp-ui-font-size0);
+  font-size: inherit;
   font-weight: 600;
 }
 
 .jp-KuusiProductDropdown-versionValue {
   color: var(--jp-ui-font-color1);
   flex: 1 1 auto;
-  font-size: var(--jp-ui-font-size0);
+  font-size: inherit;
   font-weight: 600;
   text-align: right;
 }
@@ -156,63 +366,139 @@
   color: var(--jp-success-color1);
 }
 
-.jp-KuusiProductDropdown-link {
+.jp-KuusiProductDropdown-repositoryPanel,
+.jp-KuusiProductDropdown-communityPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Must beat .jp-KuusiFormatDropdown-item { display: block } so gap works. */
+.jp-KuusiFormatDropdown-item.jp-KuusiProductDropdown-link {
+  align-items: baseline;
   color: var(--jp-brand-color1);
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
   font-weight: 600;
+  gap: 12px;
   text-align: left;
   text-decoration: none;
+}
+
+.jp-KuusiProductDropdown-linkLabel {
+  flex: 0 0 auto;
+  margin-right: 4px;
+}
+
+.jp-KuusiProductDropdown-linkUrl {
+  color: var(--jp-ui-font-color2);
+  flex: 1 1 auto;
+  font-family: var(--jp-code-font-family);
+  font-size: inherit;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
   word-break: break-all;
 }
 
 .jp-KuusiProductDropdown-link:hover {
   background: var(--jp-layout-color2);
+  text-decoration: none;
+}
+
+.jp-KuusiProductDropdown-link:hover .jp-KuusiProductDropdown-linkUrl {
   text-decoration: underline;
+}
+
+.jp-KuusiProductDropdown-installRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.jp-KuusiProductDropdown-installCommand {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+  flex: 1 1 auto;
+  font-family: var(--jp-code-font-family);
+  font-size: inherit;
+  line-height: 1.35;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.jp-KuusiProductDropdown-copyBtn {
+  background: color-mix(in srgb, var(--jp-brand-color1) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-family: var(--jp-ui-font-family);
+  font-size: inherit;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.jp-KuusiProductDropdown-copyBtn:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 22%, transparent);
 }
 
 .jp-KuusiNotebookMindMap-header-left {
   align-items: center;
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   gap: 8px;
+  min-width: 0;
+  overflow: visible;
+  pointer-events: none;
 }
 
 .jp-KuusiNotebookMindMap-header-right {
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  gap: 12px;
-  margin-left: auto;
+  gap: 10px;
+  margin-left: 10px;
+  pointer-events: none;
+  position: static;
 }
 
 .jp-KuusiNotebookMindMap-format-toolbar {
   align-items: center;
   display: inline-flex;
-  gap: 4px;
+  gap: 0;
 }
 
 .jp-KuusiNotebookMindMap-format-btn {
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
   font-family: var(--jp-ui-font-family);
   font-size: var(--jp-ui-font-size1);
-  font-weight: 600;
+  font-weight: 550;
   line-height: 100%;
-  min-width: 44px;
-  padding: 4px 8px;
+  min-width: 32px;
+  padding: 5px 9px;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
 }
 
 .jp-KuusiNotebookMindMap-format-btn:hover:not(:disabled) {
-  background: var(--jp-brand-color1);
-  color: var(--jp-ui-inverse-font-color1);
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
 }
 
 .jp-KuusiNotebookMindMap-format-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .jp-KuusiFormatDropdown {
@@ -222,17 +508,24 @@
 .jp-KuusiFormatDropdown-menu {
   background: var(--jp-layout-color1);
   border: 1px solid var(--jp-border-color2);
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: var(--jp-elevation-z4);
+  color: var(--jp-ui-font-color1);
   display: none;
   font-family: var(--jp-ui-font-family);
   font-size: var(--jp-ui-font-size1);
   min-width: 148px;
-  padding: 4px;
+  padding: 6px;
   position: absolute;
   right: 0;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   z-index: 1000;
+}
+
+.jp-mod-dark .jp-KuusiFormatDropdown-menu {
+  background: var(--jp-layout-color1);
+  border-color: var(--jp-border-color1);
+  box-shadow: var(--jp-elevation-z4);
 }
 
 .jp-KuusiFormatDropdown-menu.is-open {
@@ -285,7 +578,7 @@
 .jp-KuusiFormatDropdown-item {
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
   display: block;
@@ -459,6 +752,7 @@
 
 .jp-KuusiFormatDropdown-optionRow.jp-KuusiFormatColorSwatches {
   align-items: center;
+  flex-wrap: nowrap;
   gap: 6px;
 }
 
@@ -470,44 +764,27 @@
   padding: 4px 10px 8px;
 }
 
-.jp-KuusiFormatColorSwatchRow {
-  align-items: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: var(--jp-ui-font-color1);
-  cursor: pointer;
-  display: flex;
-  font-family: inherit;
-  font-size: var(--jp-ui-font-size0);
-  gap: 8px;
-  padding: 4px 6px;
-  text-align: left;
-  width: 100%;
-}
-
-.jp-KuusiFormatColorSwatchRow:hover,
-.jp-KuusiFormatColorDefault:hover {
-  background: var(--jp-layout-color2);
-}
-
-.jp-KuusiFormatColorSwatchRow.is-active,
-.jp-KuusiFormatColorDefault.is-active {
-  background: var(--jp-brand-color3);
-}
-
 .jp-KuusiFormatColorSwatch {
+  appearance: none;
+  background: var(--jp-layout-color2);
   border: 1px solid var(--jp-border-color2);
   border-radius: 50%;
+  box-sizing: border-box;
   cursor: pointer;
   flex: 0 0 auto;
-  height: 18px;
+  height: 20px;
   padding: 0;
-  width: 18px;
+  width: 20px;
 }
 
-.jp-KuusiFormatDropdown-optionRow > .jp-KuusiFormatColorSwatch.is-active,
+.jp-KuusiFormatColorSwatch:hover,
 .jp-KuusiFormatDropdown-optionRow > .jp-KuusiFormatColorSwatch:hover {
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--jp-ui-font-color1) 35%, transparent);
+}
+
+.jp-KuusiFormatColorSwatch.is-active,
+.jp-KuusiFormatDropdown-optionRow > .jp-KuusiFormatColorSwatch.is-active {
   box-shadow: 0 0 0 2px var(--jp-brand-color1);
 }
 
@@ -519,14 +796,6 @@
       var(--jp-warn-color1) 46% 54%,
       var(--jp-layout-color2) 54% 100%
     );
-}
-
-.jp-KuusiFormatColorSwatchLabel {
-  font-weight: 500;
-}
-
-.jp-KuusiFormatColorDefault {
-  margin-top: 2px;
 }
 
 .jp-KuusiFormatColorCustom {
@@ -554,8 +823,12 @@
 }
 
 .jp-KuusiFormatDropdown-item.is-active {
-  background: var(--jp-brand-color3);
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
   font-weight: 600;
+}
+
+.jp-mod-dark .jp-KuusiFormatDropdown-item.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 28%, transparent);
 }
 
 .jp-KuusiGuideDropdown-title + .jp-KuusiGuideDropdown-title {
@@ -567,8 +840,28 @@
 .jp-KuusiNotebookMindMap-appearance-toolbar {
   align-items: center;
   display: inline-flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-title {
+  font-size: inherit;
+  margin-top: 8px;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-title:first-child {
+  margin-top: 0;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-key,
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-desc {
+  font-size: inherit;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-desc {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .jp-KuusiAppearanceDropdown-btn {
@@ -577,11 +870,22 @@
 
 .jp-KuusiAppearanceDropdown-menu {
   left: 0;
-  min-width: 360px;
   right: auto;
 }
 
-.jp-KuusiAppearanceOption-item {
+.jp-KuusiAppearanceDropdown-hint {
+  color: inherit;
+  font-size: inherit;
+  line-height: 1.35;
+  padding: 4px 10px 8px;
+}
+
+/* Unified choice tile used by Line / Node / Layout / Font / Background panels. */
+.jp-KuusiPanelWidget-choice,
+.jp-KuusiAppearanceOption-item,
+.jp-KuusiFontDropdown-item,
+.jp-KuusiLayoutDropdown-item,
+.jp-KuusiBackgroundDropdown-item {
   align-items: center;
   flex-direction: column;
   gap: 4px;
@@ -591,10 +895,36 @@
   text-align: center;
 }
 
-.jp-KuusiAppearanceOption-label {
+.jp-KuusiPanelWidget-choiceLabel,
+.jp-KuusiAppearanceOption-label,
+.jp-KuusiFontDropdown-label,
+.jp-KuusiLayoutDropdown-label,
+.jp-KuusiBackgroundDropdown-label {
   flex: 0 0 auto;
-  font-size: var(--jp-ui-font-size0);
+  font-size: inherit;
+  font-weight: 600;
   text-align: center;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-section {
+  color: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  padding: 8px 8px 4px;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-section:first-child {
+  padding-top: 2px;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-optionRow {
+  gap: 4px;
+  padding: 0 4px 8px;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatColorCustom-label {
+  color: inherit;
+  font-size: inherit;
 }
 
 .jp-KuusiAppearancePreview {
@@ -738,6 +1068,19 @@
   width: 30px;
 }
 
+.jp-KuusiAppearancePreview-selection-glow {
+  background: var(--jp-layout-color2);
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 var(--kuusi-preview-selection-glow-width, 2px) currentColor,
+    0 0 6px 1px color-mix(in srgb, currentColor 45%, transparent);
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
 .jp-KuusiNotebookMindMap-style-toolbar {
   align-items: center;
   display: flex;
@@ -764,51 +1107,117 @@
 
 .jp-KuusiFontDropdown-menu {
   left: 0;
-  min-width: 280px;
   right: auto;
 }
 
-.jp-KuusiFontDropdown-item {
-  align-items: center;
-  flex-direction: column;
-  gap: 4px;
-  justify-content: center;
-  min-width: 3.75rem;
-  padding: 6px 8px;
-  text-align: center;
-}
-
-.jp-KuusiFontDropdown-label {
-  flex: 0 0 auto;
-  font-size: var(--jp-ui-font-size0);
-  text-align: center;
+.jp-KuusiFontDropdown-menu.jp-KuusiSecondaryMenu-host {
+  height: min(56vh, 380px);
+  overflow: hidden;
+  padding: 0;
+  width: min(92vw, 560px);
 }
 
 .jp-KuusiFontDropdown-preview {
-  color: var(--jp-ui-font-color2);
+  color: inherit;
   flex: 0 0 auto;
   font-size: 1.1em;
   line-height: 1;
   min-width: 28px;
-  text-align: right;
-}
-
-.jp-KuusiFontDropdown-sizePreview {
-  font-weight: 600;
-  min-width: 2rem;
+  text-align: center;
 }
 
 .jp-KuusiLayoutDropdown-menu {
   left: 0;
-  min-width: 280px;
   right: auto;
 }
 
+.jp-KuusiSecondaryMenu-panel > .jp-KuusiPanelWidget-slider:first-child,
+.jp-KuusiSecondaryMenu-panel > .jp-KuusiPanelWidget-toggle:first-child,
+.jp-KuusiSecondaryMenu-panel > .jp-KuusiLayoutDropdown-gapSection:first-child {
+  border-top: none;
+}
+
+.jp-KuusiPanelWidget-slider,
+.jp-KuusiPanelWidget-toggle,
 .jp-KuusiLayoutDropdown-gapSection {
   border-top: 1px solid var(--jp-border-color2);
   padding: 8px 12px 10px;
 }
 
+.jp-KuusiPanelWidget-toggle {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.jp-KuusiPanelWidget-toggleLabel {
+  color: inherit;
+  flex: 1 1 auto;
+  font-size: inherit;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+button.jp-KuusiPanelWidget-switch {
+  --kuusi-switch-width: 42px;
+  --kuusi-switch-height: 24px;
+  --kuusi-switch-pad: 2px;
+  --kuusi-switch-thumb: 20px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 22%, transparent);
+  border: none;
+  /* Capsule track — beat Jupyter button radius overrides. */
+  border-radius: 999px;
+  box-sizing: border-box;
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: var(--kuusi-switch-height);
+  margin: 0;
+  overflow: hidden;
+  padding: var(--kuusi-switch-pad);
+  position: relative;
+  transition: background-color 0.16s ease;
+  width: var(--kuusi-switch-width);
+}
+
+button.jp-KuusiPanelWidget-switch.is-on {
+  background: var(--jp-brand-color1);
+}
+
+.jp-mod-dark button.jp-KuusiPanelWidget-switch {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 28%, transparent);
+}
+
+.jp-mod-dark button.jp-KuusiPanelWidget-switch.is-on {
+  background: var(--jp-brand-color1);
+}
+
+button.jp-KuusiPanelWidget-switch .jp-KuusiPanelWidget-switchThumb {
+  background: #fff;
+  border-radius: 999px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 18%),
+    0 1px 3px rgb(0 0 0 / 12%);
+  display: block;
+  flex-shrink: 0;
+  height: var(--kuusi-switch-thumb);
+  transform: translateX(0);
+  transition: transform 0.16s ease;
+  width: var(--kuusi-switch-thumb);
+}
+
+button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
+  transform: translateX(
+    calc(
+      var(--kuusi-switch-width) - var(--kuusi-switch-thumb) -
+        (var(--kuusi-switch-pad) * 2)
+    )
+  );
+}
+
+.jp-KuusiPanelWidget-sliderHeader,
 .jp-KuusiLayoutDropdown-gapHeader {
   align-items: baseline;
   display: flex;
@@ -817,41 +1226,82 @@
   margin-bottom: 6px;
 }
 
+.jp-KuusiPanelWidget-sliderLabel,
 .jp-KuusiLayoutDropdown-gapLabel {
-  color: var(--jp-ui-font-color2);
-  font-size: var(--jp-ui-font-size0);
+  color: inherit;
+  font-size: inherit;
   line-height: 1.2;
 }
 
+.jp-KuusiPanelWidget-sliderValue,
 .jp-KuusiLayoutDropdown-gapValue {
-  color: var(--jp-ui-font-color1);
-  font-size: var(--jp-ui-font-size0);
+  color: inherit;
+  font-size: inherit;
   font-variant-numeric: tabular-nums;
   min-width: 2ch;
   text-align: right;
 }
 
+.jp-KuusiPanelWidget-sliderInput,
 .jp-KuusiLayoutDropdown-gapSlider {
-  accent-color: var(--jp-brand-color1);
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
   cursor: pointer;
   display: block;
+  height: 24px;
+  margin: 0;
   width: 100%;
 }
 
-.jp-KuusiLayoutDropdown-item {
-  align-items: center;
-  flex-direction: column;
-  gap: 4px;
-  justify-content: center;
-  min-width: 4.5rem;
-  padding: 6px 8px;
-  text-align: center;
+.jp-KuusiPanelWidget-sliderInput::-webkit-slider-runnable-track,
+.jp-KuusiLayoutDropdown-gapSlider::-webkit-slider-runnable-track {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 16%, transparent);
+  border: none;
+  border-radius: 999px;
+  height: 4px;
+  width: 100%;
 }
 
-.jp-KuusiLayoutDropdown-label {
-  flex: 0 0 auto;
-  font-size: var(--jp-ui-font-size0);
-  text-align: center;
+.jp-KuusiPanelWidget-sliderInput::-webkit-slider-thumb,
+.jp-KuusiLayoutDropdown-gapSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--jp-brand-color1);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 16%),
+    0 1px 3px rgb(0 0 0 / 10%);
+  height: 16px;
+  margin-top: -6px;
+  width: 16px;
+}
+
+.jp-KuusiPanelWidget-sliderInput::-moz-range-track,
+.jp-KuusiLayoutDropdown-gapSlider::-moz-range-track {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 16%, transparent);
+  border: none;
+  border-radius: 999px;
+  height: 4px;
+}
+
+.jp-KuusiPanelWidget-sliderInput::-moz-range-thumb,
+.jp-KuusiLayoutDropdown-gapSlider::-moz-range-thumb {
+  background: var(--jp-brand-color1);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 16%),
+    0 1px 3px rgb(0 0 0 / 10%);
+  height: 16px;
+  width: 16px;
+}
+
+.jp-KuusiPanelWidget-sliderInput:focus-visible,
+.jp-KuusiLayoutDropdown-gapSlider:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--jp-brand-color1) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .jp-KuusiLayoutDropdown-preview {
@@ -892,24 +1342,7 @@
 
 .jp-KuusiBackgroundDropdown-menu {
   left: 0;
-  min-width: 460px;
   right: auto;
-}
-
-.jp-KuusiBackgroundDropdown-item {
-  align-items: center;
-  flex-direction: column;
-  gap: 4px;
-  justify-content: center;
-  min-width: 4.5rem;
-  padding: 6px 8px;
-  text-align: center;
-}
-
-.jp-KuusiBackgroundDropdown-label {
-  flex: 0 0 auto;
-  font-size: var(--jp-ui-font-size0);
-  text-align: center;
 }
 
 .jp-KuusiBackgroundDropdown-preview {
@@ -1147,6 +1580,16 @@
     linear-gradient(180deg, #4a2828 0%, #3a2020 100%);
 }
 
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="ink"] {
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(90 100 120 / 16%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #161616 0%, #0a0a0a 100%);
+}
+
 .jp-KuusiStyleDropdown-menu {
   left: 0;
   min-width: 220px;
@@ -1184,7 +1627,7 @@
 }
 
 .jp-KuusiDirectionDropdown-item.is-active {
-  background: var(--jp-brand-color3);
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
   color: var(--jp-ui-font-color1);
   font-weight: 600;
 }
@@ -1210,10 +1653,10 @@
 }
 
 .jp-KuusiGuideDropdown-row {
-  align-items: center;
+  align-items: start;
   display: grid;
   gap: 10px;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: max-content minmax(0, 1fr);
   padding: 4px 6px;
 }
 
@@ -1221,12 +1664,17 @@
   background: var(--jp-layout-color2);
   border: 1px solid var(--jp-border-color2);
   border-radius: 4px;
+  box-sizing: border-box;
   color: var(--jp-ui-font-color1);
+  display: inline-block;
   font-family: var(--jp-ui-font-family);
   font-size: var(--jp-ui-font-size1);
   font-weight: 600;
+  line-height: 1.3;
+  max-width: 100%;
   padding: 2px 6px;
   white-space: nowrap;
+  width: max-content;
 }
 
 .jp-KuusiGuideDropdown-desc {
@@ -1234,12 +1682,21 @@
   font-size: var(--jp-ui-font-size1);
 }
 
-.jp-KuusiNotebookMindMap-header-left .jp-ToolbarButtonComponent {
+.jp-KuusiToolbarCluster .jp-ToolbarButtonComponent {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
   font-size: var(--jp-ui-font-size1);
-  font-weight: 600;
+  font-weight: 550;
+  min-height: 26px;
+  padding: 4px 8px;
 }
 
-.jp-KuusiNotebookMindMap-header-left
+.jp-KuusiToolbarCluster .jp-ToolbarButtonComponent:hover {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+}
+
+.jp-KuusiToolbarCluster
   .jp-ToolbarButtonComponent
   .jp-ToolbarButtonComponent-label {
   font-size: var(--jp-ui-font-size1);
@@ -1256,7 +1713,7 @@
 .jp-KuusiNotebookMindMap-direction-btn {
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
   font-family: var(--jp-ui-font-family);
@@ -1264,12 +1721,13 @@
   font-weight: 600;
   line-height: 100%;
   min-width: 30px;
-  padding: 4px 8px;
+  padding: 6px 10px;
+  transition: background-color 0.12s ease;
 }
 
 .jp-KuusiNotebookMindMap-direction-btn:hover {
-  background: var(--jp-brand-color1);
-  color: var(--jp-ui-inverse-font-color1);
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
 }
 
 .jp-KuusiMindMapNotebook-mount {
@@ -1517,6 +1975,18 @@
     linear-gradient(180deg, #4a2828 0%, #3a2020 100%);
 }
 
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="ink"] {
+  --kuusi-background-solid: #0a0a0a;
+  --kuusi-bg-pattern-color: rgb(255 255 255 / 12%);
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(90 100 120 / 16%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #161616 0%, #0a0a0a 100%);
+}
+
 /* Pattern overlays — independent of color theme */
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="plain"] {
   background: var(--kuusi-background-solid);
@@ -1670,7 +2140,7 @@
 
 .jp-KuusiFullscreenShell:fullscreen .jp-KuusiNotebookMindMap-header,
 .jp-KuusiFullscreenShell:-webkit-full-screen .jp-KuusiNotebookMindMap-header {
-  flex: 0 0 auto;
+  position: absolute;
 }
 
 .jp-KuusiFullscreenShell:fullscreen .jp-KuusiNotebookMindMap-viewport,
@@ -1713,7 +2183,7 @@
 
 .jp-KuusiNotebookMindMapDocument:fullscreen .jp-KuusiNotebookMindMap-header,
 .jp-KuusiNotebookMindMapDocument:-webkit-full-screen .jp-KuusiNotebookMindMap-header {
-  flex: 0 0 auto;
+  position: absolute;
 }
 
 .jp-KuusiNotebookMindMapDocument:fullscreen .jp-KuusiNotebookMindMap-viewport,
@@ -1768,12 +2238,115 @@
   border: none;
   color: inherit;
   cursor: pointer;
+  font-variant-numeric: tabular-nums;
   padding: 0;
   white-space: nowrap;
 }
 
 .jp-KuusiNotebookMindMap-status-zoom-btn:hover {
   color: var(--jp-brand-color2);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-slider-wrap {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  bottom: calc(100% + 8px);
+  box-shadow: var(--jp-elevation-z2);
+  display: none;
+  left: 50%;
+  padding: 10px 10px 10px 8px;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 30;
+  --kuusi-zoom-track: 186px;
+  --kuusi-zoom-thumb: 12px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-slider-wrap.is-open {
+  display: block;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-rail {
+  align-items: stretch;
+  display: flex;
+  gap: 8px;
+  height: var(--kuusi-zoom-track);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-ticks {
+  flex: 0 0 auto;
+  height: 100%;
+  position: relative;
+  width: 2.75em;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-tick {
+  background: transparent;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  white-space: nowrap;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-tick:hover {
+  color: var(--jp-brand-color2);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-track {
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 100%;
+  outline: none;
+  position: relative;
+  touch-action: none;
+  width: 18px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-track:focus-visible {
+  outline: 1px solid var(--jp-brand-color1);
+  outline-offset: 2px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-track-line {
+  background: var(--jp-border-color1);
+  border-radius: 999px;
+  bottom: 0;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 4px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-thumb {
+  background: var(--jp-brand-color1);
+  border-radius: 50%;
+  height: var(--kuusi-zoom-thumb);
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, 50%);
+  width: var(--kuusi-zoom-thumb);
+}
+
+/* Dark theme: white track + blue thumb for contrast. */
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-status-zoom-track-line {
+  background: #fff;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
+  background: var(--jp-brand-color1, #1976d2);
+  box-shadow: none;
 }
 
 .jp-KuusiNotebookMindMap-status-fullscreen {
@@ -1803,28 +2376,6 @@
   width: 16px;
 }
 
-.jp-KuusiZoomDropdown-menu {
-  bottom: calc(100% + 6px);
-  left: auto;
-  max-height: 240px;
-  min-width: 88px;
-  overflow-y: auto;
-  right: 0;
-  top: auto;
-  z-index: 1000;
-}
-
-.jp-KuusiZoomDropdown-item {
-  font-weight: 600;
-  text-align: center;
-}
-
-.jp-KuusiZoomDropdown-item.is-active {
-  background: var(--jp-brand-color3);
-  color: var(--jp-ui-font-color1);
-  font-weight: 600;
-}
-
 .jp-KuusiNotebookMindMap-scene {
   left: 0;
   position: absolute;
@@ -1837,95 +2388,99 @@
 .jp-KuusiMindMapNotebook-scene.jp-Notebook {
   --kuusi-edge-color: var(--jp-border-color2);
   --kuusi-edge-width: 3pt;
-  --kuusi-mindmap-font-family: var(
+  --kuusi-mindmap-font-family-edit: var(
     --jp-content-font-family,
     var(--jp-ui-font-family)
   );
-  --kuusi-mindmap-font-size: var(
-    --jp-content-font-size1,
-    var(--jp-ui-font-size1)
+  --kuusi-mindmap-font-family-display: var(
+    --jp-content-font-family,
+    var(--jp-ui-font-family)
   );
+  --kuusi-mindmap-font-size-edit: 1rem;
+  --kuusi-mindmap-font-size-display: 1rem;
+  /* Drive Jupyter/CodeMirror sizes so every node follows Display. */
+  --jp-content-font-size0: calc(var(--kuusi-mindmap-font-size-display) * 0.875);
+  --jp-content-font-size1: var(--kuusi-mindmap-font-size-display);
+  --jp-content-font-size2: calc(var(--kuusi-mindmap-font-size-display) * 1.125);
+  --jp-content-font-size3: calc(var(--kuusi-mindmap-font-size-display) * 1.25);
+  --jp-content-font-size4: calc(var(--kuusi-mindmap-font-size-display) * 1.5);
+  --jp-content-font-size5: calc(var(--kuusi-mindmap-font-size-display) * 1.75);
+  --jp-code-font-size: var(--kuusi-mindmap-font-size-display);
   --kuusi-node-background: var(--jp-layout-color0);
   --kuusi-node-border-color: var(--jp-border-color2);
   --kuusi-node-border-radius: 8px;
   --kuusi-node-border-width: 1px;
+  --kuusi-selection-glow-color: var(--jp-brand-color1);
+  --kuusi-selection-glow-width: 2px;
   --kuusi-node-shadow: 0 1px 4px rgb(0 0 0 / 8%);
   background: transparent;
   overflow: visible;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="notebook"] {
-  --kuusi-mindmap-font-family: var(
-    --jp-content-font-family,
-    var(--jp-ui-font-family)
-  );
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xxs"] {
+  --kuusi-mindmap-font-size-edit: 0.65rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="system-ui"] {
-  --kuusi-mindmap-font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xs"] {
+  --kuusi-mindmap-font-size-edit: 0.75rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="arial"] {
-  --kuusi-mindmap-font-family: Arial, Helvetica, sans-serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="sm"] {
+  --kuusi-mindmap-font-size-edit: 0.85rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="helvetica"] {
-  --kuusi-mindmap-font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="md"] {
+  --kuusi-mindmap-font-size-edit: 1rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="segoe-ui"] {
-  --kuusi-mindmap-font-family: "Segoe UI", Tahoma, sans-serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="lg"] {
+  --kuusi-mindmap-font-size-edit: 1.15rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="verdana"] {
-  --kuusi-mindmap-font-family: Verdana, Geneva, sans-serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xl"] {
+  --kuusi-mindmap-font-size-edit: 1.3rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="georgia"] {
-  --kuusi-mindmap-font-family: Georgia, serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xxl"] {
+  --kuusi-mindmap-font-size-edit: 1.5rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="times"] {
-  --kuusi-mindmap-font-family: "Times New Roman", Times, serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xxs"] {
+  --kuusi-mindmap-font-size-display: 0.65rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="palatino"] {
-  --kuusi-mindmap-font-family: "Palatino Linotype", Palatino, serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xs"] {
+  --kuusi-mindmap-font-size-display: 0.75rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="garamond"] {
-  --kuusi-mindmap-font-family: Garamond, "Times New Roman", serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="sm"] {
+  --kuusi-mindmap-font-size-display: 0.85rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font="cambria"] {
-  --kuusi-mindmap-font-family: Cambria, Georgia, serif;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="md"] {
+  --kuusi-mindmap-font-size-display: 1rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font-size="notebook"] {
-  --kuusi-mindmap-font-size: var(
-    --jp-content-font-size1,
-    var(--jp-ui-font-size1)
-  );
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="lg"] {
+  --kuusi-mindmap-font-size-display: 1.15rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font-size="small"] {
-  --kuusi-mindmap-font-size: 0.85rem;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xl"] {
+  --kuusi-mindmap-font-size-display: 1.3rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font-size="medium"] {
-  --kuusi-mindmap-font-size: 1rem;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xxl"] {
+  --kuusi-mindmap-font-size-display: 1.5rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font-size="large"] {
-  --kuusi-mindmap-font-size: 1.15rem;
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode {
+  font-family: var(--kuusi-mindmap-font-family-display);
+  font-size: var(--kuusi-mindmap-font-size-display);
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-font-size="extra-large"] {
-  --kuusi-mindmap-font-size: 1.3rem;
-}
-
-.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-Cell,
 .jp-KuusiMindMapNotebook-scene
   .jp-KuusiNotebookMindMap-cellNode
   .jp-RenderedHTMLCommon,
@@ -1934,36 +2489,51 @@
   .jp-MarkdownOutput,
 .jp-KuusiMindMapNotebook-scene
   .jp-KuusiNotebookMindMap-cellNode
+  .jp-OutputArea,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
   .jp-InputArea-editor,
 .jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-editor,
 .jp-KuusiMindMapNotebook-scene
   .jp-KuusiNotebookMindMap-cellNode
   .cm-editor
-  .cm-content {
-  font-family: var(--kuusi-mindmap-font-family);
-  font-size: var(--kuusi-mindmap-font-size);
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .cm-scroller {
+  font-family: var(--kuusi-mindmap-font-family-display);
+  font-size: var(--kuusi-mindmap-font-size-display);
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-theme="soft"] {
-  --kuusi-edge-color: var(--jp-brand-color2);
-  --kuusi-node-background: var(--jp-layout-color1);
-  --kuusi-node-border-color: var(--jp-border-color1);
-  --kuusi-node-border-radius: 12px;
-  --kuusi-node-shadow: 0 2px 10px rgb(0 0 0 / 6%);
+/* Active cell while editing uses Edit font + size instead of Display. */
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active {
+  --jp-content-font-size0: calc(var(--kuusi-mindmap-font-size-edit) * 0.875);
+  --jp-content-font-size1: var(--kuusi-mindmap-font-size-edit);
+  --jp-content-font-size2: calc(var(--kuusi-mindmap-font-size-edit) * 1.125);
+  --jp-content-font-size3: calc(var(--kuusi-mindmap-font-size-edit) * 1.25);
+  --jp-content-font-size4: calc(var(--kuusi-mindmap-font-size-edit) * 1.5);
+  --jp-content-font-size5: calc(var(--kuusi-mindmap-font-size-edit) * 1.75);
+  --jp-code-font-size: var(--kuusi-mindmap-font-size-edit);
+  font-family: var(--kuusi-mindmap-font-family-edit);
+  font-size: var(--kuusi-mindmap-font-size-edit);
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-theme="contrast"] {
-  --kuusi-edge-color: var(--jp-brand-color1);
-  --kuusi-node-background: var(--jp-layout-color0);
-  --kuusi-node-border-color: var(--jp-brand-color1);
-  --kuusi-node-border-radius: 6px;
-  --kuusi-node-border-width: 2px;
-  --kuusi-node-shadow: var(--jp-elevation-z2);
-}
-
-.jp-KuusiMindMapNotebook-scene[data-kuusi-theme="contrast"]
-  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-frame="code"] {
-  --kuusi-node-background: var(--jp-layout-color1);
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .cm-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .cm-editor
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .cm-scroller {
+  font-family: var(--kuusi-mindmap-font-family-edit);
+  font-size: var(--kuusi-mindmap-font-size-edit);
 }
 
 .jp-KuusiNotebookMindMap-edges {
@@ -2027,6 +2597,84 @@
   z-index: 1;
 }
 
+/* Explicit fills (e.g. Board white cards under Jupyter Dark) need contrast. */
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode {
+  --jp-content-font-color0: var(--kuusi-node-foreground);
+  --jp-content-font-color1: var(--kuusi-node-foreground);
+  --jp-content-font-color2: var(--kuusi-node-foreground);
+  --jp-content-font-color3: var(--kuusi-node-foreground);
+  --jp-ui-font-color0: var(--kuusi-node-foreground);
+  --jp-ui-font-color1: var(--kuusi-node-foreground);
+  --jp-mirror-editor-variable-color: var(--kuusi-node-foreground);
+  color: var(--kuusi-node-foreground);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-RenderedHTMLCommon,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-MarkdownOutput {
+  color: var(--kuusi-node-foreground);
+}
+
+/* JupyterLab sets active+selected cells to transparent; keep map cards opaque. */
+.jp-KuusiMindMapNotebook-scene.jp-Notebook
+  .jp-Cell.jp-KuusiNotebookMindMap-cellNode,
+.jp-KuusiMindMapNotebook-scene.jp-Notebook.jp-mod-commandMode
+  .jp-Cell.jp-KuusiNotebookMindMap-cellNode.jp-mod-active.jp-mod-selected:not(
+    .jp-mod-multiSelected
+  ),
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.is-selected,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active {
+  background: var(--kuusi-node-background);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.has-children {
+  padding-right: 42px;
+}
+
+.jp-KuusiNotebookMindMap-collapse {
+  align-items: center;
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 14px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--jp-ui-font-family);
+  font-size: 16px;
+  font-weight: 700;
+  height: 30px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 30px;
+  padding: 0 9px;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+
+.jp-KuusiNotebookMindMap-collapse:hover {
+  background: var(--jp-brand-color3);
+  border-color: var(--jp-brand-color1);
+  color: var(--jp-ui-font-color0);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-collapsed > .jp-KuusiNotebookMindMap-collapse {
+  background: var(--jp-brand-color2);
+  border-color: var(--jp-brand-color1);
+  color: var(--jp-ui-inverse-font-color0);
+}
+
 .jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-style="dashed"]
   .jp-KuusiNotebookMindMap-cellNode {
   border-style: dashed;
@@ -2047,10 +2695,12 @@
 }
 
 .jp-KuusiNotebookMindMap-cellNode.is-selected {
-  border-color: var(--jp-brand-color1);
+  border-color: var(--kuusi-selection-glow-color);
   box-shadow:
-    0 0 0 2px var(--jp-brand-color1),
-    0 0 10px 3px var(--jp-brand-color2),
+    0 0 0 var(--kuusi-selection-glow-width) var(--kuusi-selection-glow-color),
+    0 0 calc(var(--kuusi-selection-glow-width) * 5)
+      calc(var(--kuusi-selection-glow-width) * 1.5)
+      color-mix(in srgb, var(--kuusi-selection-glow-color) 55%, transparent),
     var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 
@@ -2085,6 +2735,41 @@
   font-size: 10px;
   line-height: 1;
   text-align: center;
+}
+
+.jp-KuusiNotebookMindMap-resizeHandle {
+  bottom: 0;
+  cursor: ew-resize;
+  position: absolute;
+  right: 0;
+  top: 0;
+  user-select: none;
+  width: 10px;
+  z-index: 3;
+}
+
+.jp-KuusiNotebookMindMap-resizeHandle::after {
+  background: transparent;
+  border-radius: 2px;
+  content: "";
+  height: 28px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.12s ease;
+  width: 3px;
+}
+
+.jp-KuusiNotebookMindMap-cellNode:hover > .jp-KuusiNotebookMindMap-resizeHandle::after,
+.jp-KuusiNotebookMindMap-cellNode.is-selected > .jp-KuusiNotebookMindMap-resizeHandle::after,
+.jp-KuusiNotebookMindMap-cellNode.is-resizing > .jp-KuusiNotebookMindMap-resizeHandle::after {
+  background: var(--jp-brand-color1);
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-resizing {
+  cursor: ew-resize;
+  user-select: none;
 }
 
 .jp-KuusiNotebookMindMap-cellNode.is-drop-before {
@@ -2137,8 +2822,45 @@
 .jp-KuusiNotebookMindMap-cellNode .jp-CodeMirrorEditor,
 .jp-KuusiNotebookMindMap-cellNode .cm-editor,
 .jp-KuusiNotebookMindMap-cellNode .cm-scroller {
-  cursor: text;
+  cursor: default;
   min-height: 3rem;
+}
+
+/* Command mode (and inactive cells): never place a caret on single-click. */
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-CodeMirrorEditor,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-editor,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-content,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-scroller {
+  caret-color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Double-click edit mode: only the active cell editor accepts the caret. */
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-CodeMirrorEditor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .cm-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .cm-scroller {
+  caret-color: auto;
+  cursor: text;
+  pointer-events: auto;
+  user-select: text;
 }
 
 .jp-KuusiNotebookMindMap-cellNode.jp-mod-rendered .jp-MarkdownOutput,

@@ -1,16 +1,22 @@
+import { Clipboard } from "@jupyterlab/apputils";
 import type { INotebookModel } from "@jupyterlab/notebook";
 import { CodeCell, MarkdownCell } from "@jupyterlab/cells";
 import { NotebookActions, type Notebook } from "@jupyterlab/notebook";
 import type { INotebookContent } from "@jupyterlab/nbformat";
 import {
   buildNotebookOutline,
+  collectOutlineSubtreeCellIndices,
   findOutlineNode,
   getInsertIndexAfterSubtree,
   getInsertIndexForChild,
   getMindMapRootNode,
   navigateOutlineNode,
+  remapSubtreeCellsToRootLevel,
   type NotebookCell,
 } from "kuusi-kernel";
+
+/** JupyterLab notebook cell clipboard MIME type. */
+const JUPYTER_CELL_MIME = "application/vnd.jupyter.cells";
 
 const EMPTY_CELL_SOURCE = "";
 
@@ -86,25 +92,33 @@ export const insertMindMapSibling = (
   notebook: Notebook,
   model: INotebookModel,
 ): void => {
-  const insertIndex =
-    notebook.activeCellIndex < 0
-      ? model.cells.length
-      : getInsertIndexAfterSubtree(
-          buildNotebookOutline(getNotebookCells(model)),
-          `cell-${notebook.activeCellIndex}`,
-          model.cells.length,
-        );
-
   if (notebook.activeCellIndex < 0) {
-    insertMarkdownCell(notebook, model, insertIndex, 1);
+    insertMarkdownCell(notebook, model, model.cells.length, 1);
     return;
   }
 
   const outline = buildNotebookOutline(getNotebookCells(model));
-  const level = resolveSiblingHeadingLevel(
+  const nodeId = `cell-${notebook.activeCellIndex}`;
+  const located = findOutlineNode(outline, nodeId);
+
+  // Enter on a map root (H1 under the virtual outline root) would create
+  // another H1 forest with no parent edge — looks like a floating orphan.
+  // Treat Enter as insert-child in that case (same as Tab).
+  if (
+    located &&
+    located.parent.id === "root" &&
+    located.node.headingLevel === 1
+  ) {
+    insertMindMapChild(notebook, model);
+    return;
+  }
+
+  const insertIndex = getInsertIndexAfterSubtree(
     outline,
-    `cell-${notebook.activeCellIndex}`,
+    nodeId,
+    model.cells.length,
   );
+  const level = resolveSiblingHeadingLevel(outline, nodeId);
 
   if (level !== null) {
     insertMarkdownCell(notebook, model, insertIndex, level);
@@ -166,6 +180,250 @@ export const selectRootMindMapCell = (
   }
 };
 
+/**
+ * Select the active mind-map topic and every descendant cell under it.
+ * Falls back to the active cell when it is not in the outline.
+ */
+export const selectMindMapSubtreeCells = (
+  notebook: Notebook,
+  model: INotebookModel,
+): number[] => {
+  const activeIndex = notebook.activeCellIndex;
+
+  if (activeIndex < 0) {
+    return [];
+  }
+
+  const outline = buildNotebookOutline(getNotebookCells(model));
+  const located = findOutlineNode(outline, `cell-${activeIndex}`);
+  const indices = (
+    located
+      ? collectOutlineSubtreeCellIndices(located.node)
+      : [activeIndex]
+  )
+    .filter((index) => index >= 0 && index < notebook.widgets.length)
+    .sort((left, right) => left - right);
+
+  if (indices.length === 0) {
+    return [];
+  }
+
+  notebook.deselectAll();
+  notebook.activeCellIndex = indices[0]!;
+  notebook.mode = "command";
+
+  indices.forEach((index) => {
+    const cell = notebook.widgets[index];
+
+    if (cell) {
+      notebook.select(cell);
+    }
+  });
+
+  return indices;
+};
+
+/**
+ * Delete the active mind-map topic and every descendant cell under it.
+ * Falls back to deleting the active cell when it is not in the outline.
+ */
+export const deleteMindMapSubtree = (
+  notebook: Notebook,
+  model: INotebookModel,
+): void => {
+  if (selectMindMapSubtreeCells(notebook, model).length === 0) {
+    return;
+  }
+
+  NotebookActions.deleteCells(notebook);
+};
+
+/**
+ * Copy the active mind-map topic and its entire subtree to the clipboard.
+ */
+export const copyMindMapSubtree = (
+  notebook: Notebook,
+  model: INotebookModel,
+): void => {
+  const activeIndex = notebook.activeCellIndex;
+
+  if (selectMindMapSubtreeCells(notebook, model).length === 0) {
+    return;
+  }
+
+  void NotebookActions.copy(notebook);
+
+  if (activeIndex >= 0 && activeIndex < notebook.widgets.length) {
+    notebook.activeCellIndex = activeIndex;
+  }
+};
+
+/**
+ * Cut the active mind-map topic and its entire subtree to the clipboard.
+ */
+export const cutMindMapSubtree = (
+  notebook: Notebook,
+  model: INotebookModel,
+): void => {
+  if (selectMindMapSubtreeCells(notebook, model).length === 0) {
+    return;
+  }
+
+  NotebookActions.cut(notebook);
+};
+
+/**
+ * Paste a copied subtree as a sibling after the active topic's branch,
+ * remapping heading levels so hierarchy is preserved under the paste target.
+ */
+export const pasteMindMapSubtree = (
+  notebook: Notebook,
+  model: INotebookModel,
+): void => {
+  const clipboard = Clipboard.getInstance();
+
+  if (!clipboard.hasData(JUPYTER_CELL_MIME)) {
+    return;
+  }
+
+  const raw = clipboard.getData(JUPYTER_CELL_MIME) as NotebookCell[] | null;
+
+  if (!raw || raw.length === 0) {
+    return;
+  }
+
+  const activeIndex = notebook.activeCellIndex;
+  const outline = buildNotebookOutline(getNotebookCells(model));
+  let insertIndex = model.cells.length;
+  let targetLevel: number | null = null;
+
+  if (activeIndex >= 0) {
+    const nodeId = `cell-${activeIndex}`;
+    insertIndex = getInsertIndexAfterSubtree(
+      outline,
+      nodeId,
+      model.cells.length,
+    );
+    targetLevel = resolveSiblingHeadingLevel(outline, nodeId);
+  }
+
+  const prepared =
+    targetLevel !== null
+      ? remapSubtreeCellsToRootLevel(raw, targetLevel)
+      : (JSON.parse(JSON.stringify(raw)) as NotebookCell[]);
+
+  notebook.mode = "command";
+  model.sharedModel.transact(() => {
+    model.sharedModel.insertCells(
+      insertIndex,
+      prepared.map((cell) => {
+        const next = { ...cell } as Record<string, unknown>;
+        delete next.id;
+        return next;
+      }) as Parameters<typeof model.sharedModel.insertCells>[1],
+    );
+  });
+
+  notebook.activeCellIndex = insertIndex;
+  notebook.deselectAll();
+};
+
+/** Split external clipboard text into one topic title per non-empty line. */
+export const splitClipboardTextIntoTopics = (text: string): string[] =>
+  text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      const heading = line.match(/^(#{1,6})\s+(.*)$/);
+      return heading?.[2]?.trim() ? heading[2].trim() : line;
+    });
+
+/**
+ * Paste plain text as child topics under the active node (one node per line).
+ * Returns the index of the first inserted cell, or null if nothing was pasted.
+ */
+export const pasteTextAsMindMapChildren = (
+  notebook: Notebook,
+  model: INotebookModel,
+  text: string,
+): number | null => {
+  const topics = splitClipboardTextIntoTopics(text);
+
+  if (topics.length === 0) {
+    return null;
+  }
+
+  const activeIndex = notebook.activeCellIndex;
+  const outline = buildNotebookOutline(getNotebookCells(model));
+  let insertIndex = model.cells.length;
+  let level = 1;
+
+  if (activeIndex >= 0) {
+    const nodeId = `cell-${activeIndex}`;
+    insertIndex = getInsertIndexForChild(
+      outline,
+      nodeId,
+      model.cells.length,
+    );
+    level = resolveChildHeadingLevel(outline, nodeId);
+  }
+
+  const hashes = "#".repeat(level);
+  const cells = topics.map((title) => ({
+    cell_type: "markdown" as const,
+    source: `${hashes} ${title}`,
+    metadata: { kuusi: { headingLevel: level } },
+  }));
+
+  notebook.mode = "command";
+  model.sharedModel.transact(() => {
+    model.sharedModel.insertCells(
+      insertIndex,
+      cells as Parameters<typeof model.sharedModel.insertCells>[1],
+    );
+  });
+
+  notebook.activeCellIndex = insertIndex;
+  notebook.deselectAll();
+  return insertIndex;
+};
+
+/**
+ * Paste Jupyter cell clipboard as a subtree when present; otherwise paste
+ * system text as child topics under the selection.
+ */
+export const pasteMindMapClipboard = async (
+  notebook: Notebook,
+  model: INotebookModel,
+): Promise<"subtree" | "text" | false> => {
+  const clipboard = Clipboard.getInstance();
+
+  if (clipboard.hasData(JUPYTER_CELL_MIME)) {
+    pasteMindMapSubtree(notebook, model);
+    return "subtree";
+  }
+
+  if (typeof navigator === "undefined" || !navigator.clipboard?.readText) {
+    return false;
+  }
+
+  try {
+    const text = await navigator.clipboard.readText();
+
+    if (!text.trim()) {
+      return false;
+    }
+
+    const index = pasteTextAsMindMapChildren(notebook, model, text);
+    return index === null ? false : "text";
+  } catch {
+    return false;
+  }
+};
+
 export const navigateMindMapSelection = (
   notebook: Notebook,
   model: INotebookModel,
@@ -217,8 +475,10 @@ export const isMindMapEditingText = (notebook: Notebook): boolean => {
 export type MindMapShortcutResult =
   | false
   | "default"
-  | "insert-edit"
-  | "commit-stay";
+  | "insert-edit-child"
+  | "insert-edit-sibling"
+  | "commit-stay"
+  | "paste";
 
 export const handleMindMapShortcut = (
   notebook: Notebook,
@@ -231,7 +491,7 @@ export const handleMindMapShortcut = (
 
   if (isMindMapEditingText(notebook)) {
     if (event.key === "Escape") {
-      notebook.mode = "command";
+      commitActiveMindMapCell(notebook);
       event.preventDefault();
       return "default";
     }
@@ -240,7 +500,7 @@ export const handleMindMapShortcut = (
       commitActiveMindMapCell(notebook);
       insertMindMapSibling(notebook, model);
       event.preventDefault();
-      return "insert-edit";
+      return "insert-edit-sibling";
     }
 
     if (event.key === "Enter" && mod && !event.shiftKey) {
@@ -269,21 +529,20 @@ export const handleMindMapShortcut = (
   }
 
   if (mod && event.key.toLowerCase() === "c") {
-    void NotebookActions.copy(notebook);
+    copyMindMapSubtree(notebook, model);
     event.preventDefault();
     return "default";
   }
 
   if (mod && event.key.toLowerCase() === "x") {
-    NotebookActions.cut(notebook);
+    cutMindMapSubtree(notebook, model);
     event.preventDefault();
     return "default";
   }
 
   if (mod && event.key.toLowerCase() === "v") {
-    NotebookActions.paste(notebook, "below");
     event.preventDefault();
-    return "default";
+    return "paste";
   }
 
   if (mod && event.key === "Home") {
@@ -293,7 +552,7 @@ export const handleMindMapShortcut = (
   }
 
   if (event.key === "Delete" || event.key === "Backspace") {
-    NotebookActions.deleteCells(notebook);
+    deleteMindMapSubtree(notebook, model);
     event.preventDefault();
     return "default";
   }
@@ -301,13 +560,13 @@ export const handleMindMapShortcut = (
   if (event.key === "Enter" && !event.shiftKey && !mod) {
     insertMindMapSibling(notebook, model);
     event.preventDefault();
-    return "insert-edit";
+    return "insert-edit-sibling";
   }
 
   if (event.key === "Tab" && !event.shiftKey && !mod) {
     insertMindMapChild(notebook, model);
     event.preventDefault();
-    return "insert-edit";
+    return "insert-edit-child";
   }
 
   if (event.key === "Escape") {

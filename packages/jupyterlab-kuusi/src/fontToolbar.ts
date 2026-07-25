@@ -1,8 +1,8 @@
 import type { KuusiTranslator } from "./kuusiI18n";
-import {
-  appendDropdownSectionRow,
-  closeKuusiDropdownMenus,
-} from "./formatToolbar";
+import { closeKuusiDropdownMenus } from "./formatToolbar";
+import type { PanelWidget } from "./panelWidgets";
+import { renderPanelWidgets } from "./panelWidgets";
+import { mountSecondaryMenu } from "./secondaryMenu";
 
 export type MindMapFont =
   | "notebook"
@@ -17,15 +17,79 @@ export type MindMapFont =
   | "garamond"
   | "cambria";
 
+/** Seven discrete font-size steps (edit / display independently). */
 export type MindMapFontSize =
-  | "notebook"
-  | "small"
-  | "medium"
-  | "large"
-  | "extra-large";
+  | "xxs"
+  | "xs"
+  | "sm"
+  | "md"
+  | "lg"
+  | "xl"
+  | "xxl";
+
+export const MIND_MAP_FONT_SIZES: readonly MindMapFontSize[] = [
+  "xxs",
+  "xs",
+  "sm",
+  "md",
+  "lg",
+  "xl",
+  "xxl",
+] as const;
 
 export const DEFAULT_MIND_MAP_FONT: MindMapFont = "notebook";
-export const DEFAULT_MIND_MAP_FONT_SIZE: MindMapFontSize = "notebook";
+export const DEFAULT_MIND_MAP_FONT_SIZE: MindMapFontSize = "md";
+
+type FontSection = "edit" | "display";
+
+let lastFontSection: FontSection = "edit";
+
+const FONT_SIZE_LABELS: Record<MindMapFontSize, string> = {
+  xxs: "XXS",
+  xs: "XS",
+  sm: "S",
+  md: "M",
+  lg: "L",
+  xl: "XL",
+  xxl: "XXL",
+};
+
+const LEGACY_FONT_SIZE_MAP: Record<string, MindMapFontSize> = {
+  notebook: "md",
+  small: "sm",
+  medium: "md",
+  large: "lg",
+  "extra-large": "xl",
+  xxs: "xxs",
+  xs: "xs",
+  sm: "sm",
+  md: "md",
+  lg: "lg",
+  xl: "xl",
+  xxl: "xxl",
+};
+
+export const normalizeMindMapFontSize = (value: unknown): MindMapFontSize | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  return LEGACY_FONT_SIZE_MAP[value] ?? null;
+};
+
+export const fontSizeToSliderIndex = (size: MindMapFontSize): number =>
+  Math.max(0, MIND_MAP_FONT_SIZES.indexOf(size));
+
+export const sliderIndexToFontSize = (index: number): MindMapFontSize => {
+  const clamped = Math.min(
+    MIND_MAP_FONT_SIZES.length - 1,
+    Math.max(0, Math.round(index)),
+  );
+  return MIND_MAP_FONT_SIZES[clamped];
+};
+
+export const fontSizeLabel = (size: MindMapFontSize): string =>
+  FONT_SIZE_LABELS[size];
 
 type FontCategory = "default" | "sans" | "serif";
 
@@ -44,7 +108,7 @@ const FONT_OPTIONS: FontOption[] = [
     title: "Use the notebook default font",
     category: "default",
     previewFamily:
-      'var(--jp-content-font-family, var(--jp-ui-font-family, system-ui))',
+      "var(--jp-content-font-family, var(--jp-ui-font-family, system-ui))",
   },
   {
     value: "system-ui",
@@ -59,15 +123,14 @@ const FONT_OPTIONS: FontOption[] = [
     label: "Arial",
     title: "Arial sans-serif",
     category: "sans",
-    previewFamily: 'Arial, Helvetica, sans-serif',
+    previewFamily: "Arial, Helvetica, sans-serif",
   },
   {
     value: "helvetica",
     label: "Helvetica Neue",
     title: "Helvetica Neue sans-serif",
     category: "sans",
-    previewFamily:
-      '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    previewFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
   },
   {
     value: "segoe-ui",
@@ -120,43 +183,9 @@ const FONT_OPTIONS: FontOption[] = [
   },
 ];
 
-const FONT_SIZE_OPTIONS: Array<{
-  value: MindMapFontSize;
-  label: string;
-  title: string;
-  previewSize: string;
-}> = [
-  {
-    value: "notebook",
-    label: "Notebook",
-    title: "Use the notebook default font size",
-    previewSize: "var(--jp-content-font-size1, var(--jp-ui-font-size1))",
-  },
-  {
-    value: "small",
-    label: "Small",
-    title: "Compact text for dense maps",
-    previewSize: "0.85rem",
-  },
-  {
-    value: "medium",
-    label: "Medium",
-    title: "Balanced reading size",
-    previewSize: "1rem",
-  },
-  {
-    value: "large",
-    label: "Large",
-    title: "Larger text for presentations",
-    previewSize: "1.15rem",
-  },
-  {
-    value: "extra-large",
-    label: "Extra Large",
-    title: "Maximum readability",
-    previewSize: "1.3rem",
-  },
-];
+const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = Object.fromEntries(
+  FONT_OPTIONS.map((option) => [option.value, option.previewFamily]),
+) as Record<MindMapFont, string>;
 
 const getSectionLabels = (t: KuusiTranslator): Record<FontCategory, string> => ({
   default: t.fontSectionDefault(),
@@ -166,87 +195,150 @@ const getSectionLabels = (t: KuusiTranslator): Record<FontCategory, string> => (
 
 export const applyFontToScene = (
   scene: HTMLElement,
-  font: MindMapFont,
-  fontSize: MindMapFontSize,
+  editFont: MindMapFont,
+  displayFont: MindMapFont,
+  editFontSize: MindMapFontSize,
+  displayFontSize: MindMapFontSize,
 ): void => {
-  scene.dataset.kuusiFont = font;
-  scene.dataset.kuusiFontSize = fontSize;
+  scene.dataset.kuusiEditFont = editFont;
+  scene.dataset.kuusiDisplayFont = displayFont;
+  scene.dataset.kuusiEditFontSize = editFontSize;
+  scene.dataset.kuusiDisplayFontSize = displayFontSize;
+  delete scene.dataset.kuusiFont;
+  delete scene.dataset.kuusiFontSize;
+  scene.style.setProperty(
+    "--kuusi-mindmap-font-family-edit",
+    FONT_FAMILY_BY_VALUE[editFont],
+  );
+  scene.style.setProperty(
+    "--kuusi-mindmap-font-family-display",
+    FONT_FAMILY_BY_VALUE[displayFont],
+  );
 };
 
-const createFontItem = (
-  root: HTMLElement,
-  option: FontOption,
-  isActive: boolean,
-  onSelect: () => void,
-): HTMLButtonElement => {
-  const item = document.createElement("button");
-  item.type = "button";
-  item.className =
-    "jp-KuusiFormatDropdown-item jp-KuusiFontDropdown-item";
-  item.setAttribute("role", "menuitem");
-  item.title = option.title;
-  item.classList.toggle("is-active", isActive);
-
-  const label = document.createElement("span");
-  label.className = "jp-KuusiFontDropdown-label";
-  label.textContent = option.label;
-  item.appendChild(label);
-
+const createFontPreview = (previewFamily: string): HTMLElement => {
   const preview = document.createElement("span");
   preview.className = "jp-KuusiFontDropdown-preview";
-  preview.style.fontFamily = option.previewFamily;
+  preview.style.fontFamily = previewFamily;
   preview.textContent = "Ag";
   preview.setAttribute("aria-hidden", "true");
-  item.appendChild(preview);
-
-  item.addEventListener("click", (event) => {
-    event.stopPropagation();
-    onSelect();
-  });
-
-  return item;
+  return preview;
 };
 
-const createFontSizeItem = (
-  root: HTMLElement,
-  option: (typeof FONT_SIZE_OPTIONS)[number],
-  isActive: boolean,
-  onSelect: () => void,
-): HTMLButtonElement => {
-  const item = document.createElement("button");
-  item.type = "button";
-  item.className =
-    "jp-KuusiFormatDropdown-item jp-KuusiFontDropdown-item jp-KuusiFontDropdown-sizeItem";
-  item.setAttribute("role", "menuitem");
-  item.title = option.title;
-  item.classList.toggle("is-active", isActive);
+const buildFontModeWidgets = (
+  size: MindMapFontSize,
+  onSizeChange: (size: MindMapFontSize) => void,
+  font: MindMapFont,
+  onFontChange: (font: MindMapFont) => void,
+  t: KuusiTranslator,
+  onRebuild: () => void,
+): PanelWidget[] => {
+  const sectionLabels = getSectionLabels(t);
+  const widgets: PanelWidget[] = [
+    {
+      kind: "slider",
+      label: t.fontSizeSection(),
+      value: fontSizeToSliderIndex(size),
+      min: 0,
+      max: MIND_MAP_FONT_SIZES.length - 1,
+      formatValue: (index) => fontSizeLabel(sliderIndexToFontSize(index)),
+      onChange: (index) => {
+        onSizeChange(sliderIndexToFontSize(index));
+      },
+    },
+  ];
 
-  const label = document.createElement("span");
-  label.className = "jp-KuusiFontDropdown-label";
-  label.textContent = option.label;
-  item.appendChild(label);
+  (["default", "sans", "serif"] as FontCategory[]).forEach((category) => {
+    const options = FONT_OPTIONS.filter((option) => option.category === category);
 
-  const preview = document.createElement("span");
-  preview.className = "jp-KuusiFontDropdown-preview jp-KuusiFontDropdown-sizePreview";
-  preview.style.fontSize = option.previewSize;
-  preview.textContent = "Aa";
-  preview.setAttribute("aria-hidden", "true");
-  item.appendChild(preview);
+    if (options.length === 0) {
+      return;
+    }
 
-  item.addEventListener("click", (event) => {
-    event.stopPropagation();
-    onSelect();
+    widgets.push({
+      kind: "choice",
+      sectionLabel: sectionLabels[category],
+      value: font,
+      options: options.map((option) => ({
+        value: option.value,
+        label: option.label,
+        title: option.title,
+        preview: () => createFontPreview(option.previewFamily),
+      })),
+      onChange: (value) => {
+        onFontChange(value as MindMapFont);
+        onRebuild();
+      },
+    });
   });
 
-  return item;
+  return widgets;
+};
+
+export const fillFontMenu = (
+  menu: HTMLElement,
+  getEditFont: () => MindMapFont,
+  onEditFontChange: (font: MindMapFont) => void,
+  getEditFontSize: () => MindMapFontSize,
+  onEditFontSizeChange: (fontSize: MindMapFontSize) => void,
+  getDisplayFont: () => MindMapFont,
+  onDisplayFontChange: (font: MindMapFont) => void,
+  getDisplayFontSize: () => MindMapFontSize,
+  onDisplayFontSizeChange: (fontSize: MindMapFontSize) => void,
+  t: KuusiTranslator,
+  onRebuild: () => void,
+): void => {
+  mountSecondaryMenu(menu, {
+    ariaLabel: t.mindMapFont(),
+    sections: [
+      { id: "edit", label: t.fontSizeEdit() },
+      { id: "display", label: t.fontSizeDisplay() },
+    ],
+    getActive: () => lastFontSection,
+    setActive: (id) => {
+      lastFontSection = id;
+    },
+    fillSection: (id, panel) => {
+      if (id === "edit") {
+        renderPanelWidgets(
+          panel,
+          buildFontModeWidgets(
+            getEditFontSize(),
+            onEditFontSizeChange,
+            getEditFont(),
+            onEditFontChange,
+            t,
+            onRebuild,
+          ),
+        );
+        return;
+      }
+
+      renderPanelWidgets(
+        panel,
+        buildFontModeWidgets(
+          getDisplayFontSize(),
+          onDisplayFontSizeChange,
+          getDisplayFont(),
+          onDisplayFontChange,
+          t,
+          onRebuild,
+        ),
+      );
+    },
+  });
 };
 
 export const createFontToolbar = (
   root: HTMLElement,
-  getFont: () => MindMapFont,
-  onFontChange: (font: MindMapFont) => void,
-  getFontSize: () => MindMapFontSize,
-  onFontSizeChange: (fontSize: MindMapFontSize) => void,
+  getEditFont: () => MindMapFont,
+  onEditFontChange: (font: MindMapFont) => void,
+  getEditFontSize: () => MindMapFontSize,
+  onEditFontSizeChange: (fontSize: MindMapFontSize) => void,
+  getDisplayFont: () => MindMapFont,
+  onDisplayFontChange: (font: MindMapFont) => void,
+  getDisplayFontSize: () => MindMapFontSize,
+  onDisplayFontSizeChange: (fontSize: MindMapFontSize) => void,
   t: KuusiTranslator,
 ): HTMLElement => {
   const toolbar = document.createElement("div");
@@ -266,46 +358,25 @@ export const createFontToolbar = (
 
   const menu = document.createElement("div");
   menu.className =
-    "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiFontDropdown-menu";
+    "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiFontDropdown-menu jp-KuusiSecondaryMenu-host";
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.mindMapFont());
 
   const rebuildMenu = () => {
     menu.replaceChildren();
-    const sectionLabels = getSectionLabels(t);
-
-    (["default", "sans", "serif"] as FontCategory[]).forEach((category) => {
-      const options = FONT_OPTIONS.filter((option) => option.category === category);
-
-      if (options.length === 0) {
-        return;
-      }
-
-      const row = appendDropdownSectionRow(menu, sectionLabels[category]);
-      options.forEach((option) => {
-        row.appendChild(
-          createFontItem(root, option, getFont() === option.value, () => {
-            onFontChange(option.value);
-            rebuildMenu();
-          }),
-        );
-      });
-    });
-
-    const sizeRow = appendDropdownSectionRow(menu, t.fontSizeSection());
-    FONT_SIZE_OPTIONS.forEach((option) => {
-      sizeRow.appendChild(
-        createFontSizeItem(
-          root,
-          option,
-          getFontSize() === option.value,
-          () => {
-            onFontSizeChange(option.value);
-            rebuildMenu();
-          },
-        ),
-      );
-    });
+    fillFontMenu(
+      menu,
+      getEditFont,
+      onEditFontChange,
+      getEditFontSize,
+      onEditFontSizeChange,
+      getDisplayFont,
+      onDisplayFontChange,
+      getDisplayFontSize,
+      onDisplayFontSizeChange,
+      t,
+      rebuildMenu,
+    );
   };
 
   rebuildMenu();
@@ -316,6 +387,7 @@ export const createFontToolbar = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
+      rebuildMenu();
       menu.classList.add("is-open");
     }
   });

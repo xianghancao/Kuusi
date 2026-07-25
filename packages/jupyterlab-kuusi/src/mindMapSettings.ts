@@ -1,7 +1,7 @@
 import type { ISettingRegistry } from "@jupyterlab/settingregistry";
 import type { JSONValue } from "@lumino/coreutils";
 import type { LayoutDensity, TreeDirection } from "kuusi-kernel";
-import { LAYOUT_CHILD_GAP, LAYOUT_SIBLING_GAP } from "kuusi-kernel";
+import { LAYOUT_CHILD_GAP, LAYOUT_NODE_WIDTH, LAYOUT_SIBLING_GAP } from "kuusi-kernel";
 import {
   DEFAULT_APPEARANCE,
   type AppearanceSettings,
@@ -14,18 +14,22 @@ import {
   type MindMapBackground,
   type MindMapBackgroundPattern,
 } from "./backgroundToolbar";
-import { DEFAULT_MIND_MAP_FONT, DEFAULT_MIND_MAP_FONT_SIZE, type MindMapFont, type MindMapFontSize } from "./fontToolbar";
-import { DEFAULT_MIND_MAP_THEME, type MindMapTheme } from "./styleToolbar";
+import { DEFAULT_MIND_MAP_FONT, DEFAULT_MIND_MAP_FONT_SIZE, normalizeMindMapFontSize, type MindMapFont, type MindMapFontSize } from "./fontToolbar";
+import { DEFAULT_MIND_MAP_THEME, normalizeMindMapTheme, type MindMapTheme } from "./styleToolbar";
 
 export const MIND_MAP_SETTINGS_PLUGIN_ID = "jupyterlab-kuusi:plugin";
 
 export type MindMapUserSettings = {
   theme: MindMapTheme;
-  font: MindMapFont;
-  fontSize: MindMapFontSize;
+  editFont: MindMapFont;
+  displayFont: MindMapFont;
+  editFontSize: MindMapFontSize;
+  displayFontSize: MindMapFontSize;
   layoutDensity: LayoutDensity;
   siblingGap: number;
   childGap: number;
+  equalNodeWidth: boolean;
+  nodeWidth: number;
   treeDirection: TreeDirection;
   background: MindMapBackground;
   backgroundPattern: MindMapBackgroundPattern;
@@ -35,20 +39,21 @@ export type MindMapUserSettings = {
 
 export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   theme: DEFAULT_MIND_MAP_THEME,
-  font: DEFAULT_MIND_MAP_FONT,
-  fontSize: DEFAULT_MIND_MAP_FONT_SIZE,
+  editFont: DEFAULT_MIND_MAP_FONT,
+  displayFont: DEFAULT_MIND_MAP_FONT,
+  editFontSize: DEFAULT_MIND_MAP_FONT_SIZE,
+  displayFontSize: DEFAULT_MIND_MAP_FONT_SIZE,
   layoutDensity: "normal",
   siblingGap: LAYOUT_SIBLING_GAP.default,
   childGap: LAYOUT_CHILD_GAP.default,
+  equalNodeWidth: false,
+  nodeWidth: LAYOUT_NODE_WIDTH.default,
   treeDirection: "LR",
   background: DEFAULT_MIND_MAP_BACKGROUND,
   backgroundPattern: DEFAULT_MIND_MAP_BACKGROUND_PATTERN,
   backgroundColor: DEFAULT_MIND_MAP_BACKGROUND_COLOR,
   appearance: { ...DEFAULT_APPEARANCE },
 };
-
-const isTheme = (value: unknown): value is MindMapTheme =>
-  value === "classic" || value === "soft" || value === "contrast";
 
 const isFont = (value: unknown): value is MindMapFont =>
   value === "notebook" ||
@@ -63,13 +68,6 @@ const isFont = (value: unknown): value is MindMapFont =>
   value === "garamond" ||
   value === "cambria";
 
-const isFontSize = (value: unknown): value is MindMapFontSize =>
-  value === "notebook" ||
-  value === "small" ||
-  value === "medium" ||
-  value === "large" ||
-  value === "extra-large";
-
 const isLayoutDensity = (value: unknown): value is LayoutDensity =>
   value === "compact" || value === "normal" || value === "loose";
 
@@ -82,6 +80,17 @@ const clampLayoutGap = (
   }
 
   return Math.min(spec.max, Math.max(spec.min, Math.round(value)));
+};
+
+const clampNodeWidthSetting = (value: unknown): number => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return LAYOUT_NODE_WIDTH.default;
+  }
+
+  return Math.min(
+    LAYOUT_NODE_WIDTH.max,
+    Math.max(LAYOUT_NODE_WIDTH.min, Math.round(value)),
+  );
 };
 
 const isTreeDirection = (value: unknown): value is TreeDirection =>
@@ -98,6 +107,7 @@ const isBackground = (value: unknown): value is MindMapBackground =>
   value === "avocado" ||
   value === "stone-gray" ||
   value === "red-wall" ||
+  value === "ink" ||
   value === "custom";
 
 const isBackgroundPattern = (
@@ -188,6 +198,10 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
       typeof appearance.edgeColor === "string"
         ? appearance.edgeColor
         : defaults.edgeColor,
+    nodeFillColor:
+      typeof appearance.nodeFillColor === "string"
+        ? appearance.nodeFillColor
+        : defaults.nodeFillColor,
     nodeBorderStyle: isBorderLineStyle(appearance.nodeBorderStyle)
       ? appearance.nodeBorderStyle
       : defaults.nodeBorderStyle,
@@ -206,6 +220,14 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
       typeof appearance.nodeBorderRadius === "string"
         ? appearance.nodeBorderRadius
         : defaults.nodeBorderRadius,
+    selectionGlowColor:
+      typeof appearance.selectionGlowColor === "string"
+        ? appearance.selectionGlowColor
+        : defaults.selectionGlowColor,
+    selectionGlowWidth:
+      typeof appearance.selectionGlowWidth === "string"
+        ? appearance.selectionGlowWidth
+        : defaults.selectionGlowWidth,
   };
 };
 
@@ -221,15 +243,39 @@ export const normalizeMindMapUserSettings = (
     ? raw.background
     : null;
 
+  const legacyFont = isFont((raw as { font?: unknown }).font)
+    ? ((raw as { font: MindMapFont }).font)
+    : null;
+  const legacyFontSize = normalizeMindMapFontSize(
+    (raw as { fontSize?: unknown }).fontSize,
+  );
+
   return {
-    theme: isTheme(raw.theme) ? raw.theme : defaults.theme,
-    font: isFont(raw.font) ? raw.font : defaults.font,
-    fontSize: isFontSize(raw.fontSize) ? raw.fontSize : defaults.fontSize,
+    theme: normalizeMindMapTheme(raw.theme) ?? defaults.theme,
+    editFont: isFont(raw.editFont)
+      ? raw.editFont
+      : (legacyFont ?? defaults.editFont),
+    displayFont: isFont(raw.displayFont)
+      ? raw.displayFont
+      : (legacyFont ?? defaults.displayFont),
+    editFontSize:
+      normalizeMindMapFontSize(raw.editFontSize) ??
+      legacyFontSize ??
+      defaults.editFontSize,
+    displayFontSize:
+      normalizeMindMapFontSize(raw.displayFontSize) ??
+      legacyFontSize ??
+      defaults.displayFontSize,
     layoutDensity: isLayoutDensity(raw.layoutDensity)
       ? raw.layoutDensity
       : defaults.layoutDensity,
     siblingGap: clampLayoutGap(raw.siblingGap, LAYOUT_SIBLING_GAP),
     childGap: clampLayoutGap(raw.childGap, LAYOUT_CHILD_GAP),
+    equalNodeWidth:
+      typeof raw.equalNodeWidth === "boolean"
+        ? raw.equalNodeWidth
+        : defaults.equalNodeWidth,
+    nodeWidth: clampNodeWidthSetting(raw.nodeWidth),
     treeDirection: isTreeDirection(raw.treeDirection)
       ? raw.treeDirection
       : defaults.treeDirection,
@@ -301,11 +347,15 @@ export class MindMapSettingsManager {
 
     await Promise.all([
       this._plugin.set("theme", next.theme),
-      this._plugin.set("font", next.font),
-      this._plugin.set("fontSize", next.fontSize),
+      this._plugin.set("editFont", next.editFont),
+      this._plugin.set("displayFont", next.displayFont),
+      this._plugin.set("editFontSize", next.editFontSize),
+      this._plugin.set("displayFontSize", next.displayFontSize),
       this._plugin.set("layoutDensity", next.layoutDensity),
       this._plugin.set("siblingGap", next.siblingGap),
       this._plugin.set("childGap", next.childGap),
+      this._plugin.set("equalNodeWidth", next.equalNodeWidth),
+      this._plugin.set("nodeWidth", next.nodeWidth),
       this._plugin.set("treeDirection", next.treeDirection),
       this._plugin.set("background", next.background),
       this._plugin.set("backgroundPattern", next.backgroundPattern),

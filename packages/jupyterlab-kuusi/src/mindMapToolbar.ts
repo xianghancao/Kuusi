@@ -1,6 +1,7 @@
 import {
   SessionContextDialogs,
   Toolbar,
+  ToolbarButton,
   type IToolbarWidgetRegistry,
 } from "@jupyterlab/apputils";
 import {
@@ -11,7 +12,17 @@ import {
   type NotebookPanel,
 } from "@jupyterlab/notebook";
 import type { ITranslator } from "@jupyterlab/translation";
+import {
+  copyIcon,
+  cutIcon,
+  pasteIcon,
+} from "@jupyterlab/ui-components";
 import type { Widget } from "@lumino/widgets";
+import {
+  copyMindMapSubtree,
+  cutMindMapSubtree,
+  pasteMindMapClipboard,
+} from "./mindMapKeyboard";
 import type { NotebookMindMapDocumentWidget } from "./notebookMindMapWidget";
 
 export interface MindMapNotebookPanelLike {
@@ -57,17 +68,59 @@ export const registerMindMapToolbarFactories = (
     ToolbarItems.createInsertButton(asNotebookPanel(panelLike(widget)), translator),
   );
 
-  toolbarRegistry.addFactory(factoryName, "cut", (widget) =>
-    ToolbarItems.createCutButton(asNotebookPanel(panelLike(widget)), translator),
-  );
+  toolbarRegistry.addFactory(factoryName, "cut", (widget) => {
+    const panel = panelLike(widget);
 
-  toolbarRegistry.addFactory(factoryName, "copy", (widget) =>
-    ToolbarItems.createCopyButton(asNotebookPanel(panelLike(widget)), translator),
-  );
+    return new ToolbarButton({
+      icon: cutIcon,
+      tooltip: "Cut the selected topic and its subtree",
+      onClick: () => {
+        const model = panel.content.model;
 
-  toolbarRegistry.addFactory(factoryName, "paste", (widget) =>
-    ToolbarItems.createPasteButton(asNotebookPanel(panelLike(widget)), translator),
-  );
+        if (!model) {
+          return;
+        }
+
+        cutMindMapSubtree(panel.content, model);
+      },
+    });
+  });
+
+  toolbarRegistry.addFactory(factoryName, "copy", (widget) => {
+    const panel = panelLike(widget);
+
+    return new ToolbarButton({
+      icon: copyIcon,
+      tooltip: "Copy the selected topic and its subtree",
+      onClick: () => {
+        const model = panel.content.model;
+
+        if (!model) {
+          return;
+        }
+
+        copyMindMapSubtree(panel.content, model);
+      },
+    });
+  });
+
+  toolbarRegistry.addFactory(factoryName, "paste", (widget) => {
+    const panel = panelLike(widget);
+
+    return new ToolbarButton({
+      icon: pasteIcon,
+      tooltip: "Paste subtree or plain text as child topics",
+      onClick: () => {
+        const model = panel.content.model;
+
+        if (!model) {
+          return;
+        }
+
+        void pasteMindMapClipboard(panel.content, model);
+      },
+    });
+  });
 
   toolbarRegistry.addFactory(factoryName, "run", (widget) =>
     ToolbarItems.createRunButton(

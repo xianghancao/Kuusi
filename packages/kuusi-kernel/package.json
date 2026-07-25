@@ -1,6 +1,6 @@
 {
   "name": "kuusi-kernel",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Notebook outline tree and dagre layout for Kuusi",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "tsx --test src/notebook-outline.test.ts src/notebook-tree.test.ts src/layout.test.ts",
+    "test": "tsx --test src/notebook-outline.test.ts src/notebook-tree.test.ts src/layout.test.ts src/outline-view.test.ts src/subtree-clipboard.test.ts",
     "watch": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {

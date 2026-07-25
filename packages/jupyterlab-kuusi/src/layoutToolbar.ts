@@ -4,12 +4,32 @@ import {
   LAYOUT_SIBLING_GAP,
   type LayoutDensity,
 } from "kuusi-kernel";
-import { closeKuusiDropdownMenus, createDropdownOptionRow } from "./formatToolbar";
+import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { renderPanelWidgets } from "./panelWidgets";
+import { mountSecondaryMenu } from "./secondaryMenu";
 
 export type LayoutSpacingState = {
   density: LayoutDensity;
   siblingGap: number;
   childGap: number;
+};
+
+type LayoutSection = "density" | "spacing";
+
+let lastLayoutSection: LayoutSection = "density";
+
+const createDensityPreview = (previewClass: string): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className = `jp-KuusiLayoutDropdown-preview ${previewClass}`;
+  preview.setAttribute("aria-hidden", "true");
+
+  for (let index = 0; index < 3; index += 1) {
+    const bar = document.createElement("span");
+    bar.className = "jp-KuusiLayoutDropdown-previewBar";
+    preview.appendChild(bar);
+  }
+
+  return preview;
 };
 
 const getLayoutDensities = (
@@ -40,55 +60,6 @@ const getLayoutDensities = (
   },
 ];
 
-const appendGapSlider = (
-  menu: HTMLElement,
-  label: string,
-  value: number,
-  min: number,
-  max: number,
-  onChange: (value: number) => void,
-): void => {
-  const section = document.createElement("div");
-  section.className = "jp-KuusiLayoutDropdown-gapSection";
-
-  const header = document.createElement("div");
-  header.className = "jp-KuusiLayoutDropdown-gapHeader";
-
-  const labelEl = document.createElement("span");
-  labelEl.className = "jp-KuusiLayoutDropdown-gapLabel";
-  labelEl.textContent = label;
-
-  const valueEl = document.createElement("span");
-  valueEl.className = "jp-KuusiLayoutDropdown-gapValue";
-  valueEl.textContent = String(value);
-
-  const slider = document.createElement("input");
-  slider.type = "range";
-  slider.className = "jp-KuusiLayoutDropdown-gapSlider";
-  slider.min = String(min);
-  slider.max = String(max);
-  slider.step = "1";
-  slider.value = String(value);
-  slider.setAttribute("aria-label", label);
-  slider.title = label;
-
-  slider.addEventListener("input", () => {
-    const nextValue = Number(slider.value);
-    valueEl.textContent = String(nextValue);
-    onChange(nextValue);
-  });
-  slider.addEventListener("mousedown", (event) => {
-    event.stopPropagation();
-  });
-  slider.addEventListener("click", (event) => {
-    event.stopPropagation();
-  });
-
-  header.append(labelEl, valueEl);
-  section.append(header, slider);
-  menu.appendChild(section);
-};
-
 export const createLayoutToolbar = (
   root: HTMLElement,
   getState: () => LayoutSpacingState,
@@ -113,69 +84,71 @@ export const createLayoutToolbar = (
 
   const menu = document.createElement("div");
   menu.className =
-    "jp-KuusiFormatDropdown-menu jp-KuusiLayoutDropdown-menu";
+    "jp-KuusiFormatDropdown-menu jp-KuusiLayoutDropdown-menu jp-KuusiSecondaryMenu-host";
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.nodeLayoutSpacing());
 
   const rebuildMenu = () => {
     menu.replaceChildren();
-    const row = createDropdownOptionRow(menu);
-    getLayoutDensities(t).forEach(({ value, label, title, previewClass }) => {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className =
-        "jp-KuusiFormatDropdown-item jp-KuusiLayoutDropdown-item";
-      item.setAttribute("role", "menuitem");
-      item.setAttribute("aria-label", title);
-      item.title = title;
-      item.classList.toggle("is-active", getState().density === value);
+    mountSecondaryMenu(menu, {
+      ariaLabel: t.nodeLayoutSpacing(),
+      sections: [
+        { id: "density", label: t.density() },
+        { id: "spacing", label: t.spacing() },
+      ],
+      getActive: () => lastLayoutSection,
+      setActive: (id) => {
+        lastLayoutSection = id;
+      },
+      fillSection: (id, panel) => {
+        const state = getState();
 
-      const labelEl = document.createElement("span");
-      labelEl.className = "jp-KuusiLayoutDropdown-label";
-      labelEl.textContent = label;
-      item.appendChild(labelEl);
+        if (id === "density") {
+          renderPanelWidgets(panel, [
+            {
+              kind: "choice",
+              value: state.density,
+              options: getLayoutDensities(t).map(
+                ({ value, label, title, previewClass }) => ({
+                  value,
+                  label,
+                  title,
+                  preview: () => createDensityPreview(previewClass),
+                }),
+              ),
+              onChange: (value) => {
+                onDensityChange(value as LayoutDensity);
+                rebuildMenu();
+              },
+            },
+          ]);
+          return;
+        }
 
-      const preview = document.createElement("span");
-      preview.className = `jp-KuusiLayoutDropdown-preview ${previewClass}`;
-      preview.setAttribute("aria-hidden", "true");
-
-      for (let index = 0; index < 3; index += 1) {
-        const bar = document.createElement("span");
-        bar.className = "jp-KuusiLayoutDropdown-previewBar";
-        preview.appendChild(bar);
-      }
-
-      item.appendChild(preview);
-
-      item.addEventListener("click", (event) => {
-        event.stopPropagation();
-        onDensityChange(value);
-        rebuildMenu();
-      });
-      row.appendChild(item);
+        renderPanelWidgets(panel, [
+          {
+            kind: "slider",
+            label: t.siblingGap(),
+            value: state.siblingGap,
+            min: LAYOUT_SIBLING_GAP.min,
+            max: LAYOUT_SIBLING_GAP.max,
+            onChange: (siblingGap) => {
+              onGapChange({ siblingGap });
+            },
+          },
+          {
+            kind: "slider",
+            label: t.childGap(),
+            value: state.childGap,
+            min: LAYOUT_CHILD_GAP.min,
+            max: LAYOUT_CHILD_GAP.max,
+            onChange: (childGap) => {
+              onGapChange({ childGap });
+            },
+          },
+        ]);
+      },
     });
-
-    const state = getState();
-    appendGapSlider(
-      menu,
-      t.siblingGap(),
-      state.siblingGap,
-      LAYOUT_SIBLING_GAP.min,
-      LAYOUT_SIBLING_GAP.max,
-      (siblingGap) => {
-        onGapChange({ siblingGap });
-      },
-    );
-    appendGapSlider(
-      menu,
-      t.childGap(),
-      state.childGap,
-      LAYOUT_CHILD_GAP.min,
-      LAYOUT_CHILD_GAP.max,
-      (childGap) => {
-        onGapChange({ childGap });
-      },
-    );
   };
 
   rebuildMenu();

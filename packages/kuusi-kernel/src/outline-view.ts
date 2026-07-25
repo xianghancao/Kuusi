@@ -31,6 +31,24 @@ export const countOutlineDescendants = (node: OutlineNode): number =>
     0,
   );
 
+/** Cell indices for a node and all of its descendants (depth-first). */
+export const collectOutlineSubtreeCellIndices = (
+  node: OutlineNode,
+): number[] => {
+  const indices: number[] = [];
+
+  const visit = (current: OutlineNode) => {
+    if (current.cellIndex !== null) {
+      indices.push(current.cellIndex);
+    }
+
+    current.children.forEach(visit);
+  };
+
+  visit(node);
+  return indices;
+};
+
 /** First `#` heading node — the mind map root topic. */
 export const getMindMapRootNode = (root: OutlineNode): OutlineNode | null => {
   if (root.headingLevel === 1 && root.cellIndex !== null) {

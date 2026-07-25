@@ -8,13 +8,20 @@ import type {
   TreeDirection,
 } from "./types";
 
-const NODE_WIDTH = 520;
+const NODE_WIDTH = 700;
 const NODE_HEIGHT = 160;
 const NODE_LAYOUT_PADDING = 24;
 
 export const DEFAULT_NODE_LAYOUT_SIZE = {
   width: NODE_WIDTH,
   height: NODE_HEIGHT,
+} as const;
+
+/** Global / per-node card width bounds (px). */
+export const LAYOUT_NODE_WIDTH = {
+  min: 160,
+  max: 960,
+  default: NODE_WIDTH,
 } as const;
 
 const getNodeSize = (
@@ -28,7 +35,7 @@ const getNodeSize = (
   }
 
   return {
-    width: Math.max(measured.width, NODE_WIDTH),
+    width: Math.max(measured.width, LAYOUT_NODE_WIDTH.min),
     height: Math.max(measured.height + NODE_LAYOUT_PADDING, NODE_HEIGHT),
   };
 };
@@ -84,7 +91,7 @@ export const LAYOUT_SIBLING_GAP = {
 
 export const LAYOUT_CHILD_GAP = {
   min: 0,
-  max: 200,
+  max: 400,
   default: 52,
 } as const;
 

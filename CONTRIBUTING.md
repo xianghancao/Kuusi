@@ -19,10 +19,17 @@ Open an issue first for large features or architectural changes so we can align 
 |------|---------|
 | JupyterLab | 4.x |
 | Python | 3.9+ |
-| Node.js + npm | LTS recommended |
+| Node.js + npm | Node **≥ 20**, npm **≥ 10** (CI uses Node 24) |
 | Git | any recent version |
 
-Use **npm** for JavaScript dependencies (`package-lock.json`). Yarn artifacts are not supported.
+Use **npm** for JavaScript dependencies (`package-lock.json`). Do not commit Yarn lockfiles.
+
+`jupyter labextension build` may create a local `.yarn/` cache (gitignored). Clear dependency clutter with:
+
+```bash
+npm run clean:deps   # removes node_modules, yarn.lock, .yarn
+npm run reinstall    # clean:deps + npm install
+```
 
 ### Clone and install
 
@@ -95,7 +102,7 @@ Then run `npm run check:versions` before opening a PR.
 packages/kuusi-kernel/      # outline tree, dagre layout, navigation (no Jupyter deps)
 packages/jupyterlab-kuusi/  # JupyterLab extension, toolbars, widget
 examples/example.ipynb      # manual feature tour — update when adding user-facing behavior
-docs/assets/                # README visuals (SVG overview, optional demo GIF)
+docs/assets/                # Versioned README screenshots (e.g. 0.2.4/)
 e2e/                        # JupyterLab smoke E2E (Playwright)
 scripts/                    # install, verify, build/release checks
 ```
@@ -131,12 +138,9 @@ When you add or change user-visible behavior, update `examples/example.ipynb` so
 
 Update `README.md` for installation or feature changes. Add a bullet to `CHANGELOG.md` under `[Unreleased]` (or the appropriate version section).
 
-### Screenshots and demo media
+### Screenshots
 
-Place assets in `docs/assets/`:
-
-- `kuusi-ui-overview.svg` — wireframe (already included)
-- `demo.gif` — optional screen recording referenced from the README
+Place release screenshots in `docs/assets/<version>/` (e.g. `0.2.4/`) and link them from the root README. No demo GIF is required.
 
 ## Submitting a pull request
 

@@ -1,12 +1,10 @@
-import {
-  APPEARANCE_COLOR_SWATCHES,
-  appendColorPickerSection,
-} from "./colorPicker";
+import { APPEARANCE_COLOR_SWATCHES } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
-import {
-  appendDropdownSectionRow,
-  closeKuusiDropdownMenus,
-} from "./formatToolbar";
+import { closeKuusiDropdownMenus } from "./formatToolbar";
+import type { PanelWidget } from "./panelWidgets";
+import { renderPanelWidgets } from "./panelWidgets";
+import { mountSecondaryMenu } from "./secondaryMenu";
+import { LAYOUT_NODE_WIDTH } from "kuusi-kernel";
 
 export type EdgeLineStyle =
   | "solid"
@@ -39,11 +37,17 @@ export type AppearanceSettings = {
   edgeArrowStyle: EdgeArrowStyle;
   edgeWidth: string;
   edgeColor: string;
+  /** Default node fill for the whole map; empty uses theme. */
+  nodeFillColor: string;
   nodeBorderStyle: BorderLineStyle;
   nodeBorderWidth: string;
   nodeBorderColor: string;
   nodeBorderCorner: NodeBorderCorner;
   nodeBorderRadius: string;
+  /** Selected-node glow ring color; empty uses theme brand color. */
+  selectionGlowColor: string;
+  /** Selected-node glow ring width (e.g. `2px`). */
+  selectionGlowWidth: string;
 };
 
 export const DEFAULT_APPEARANCE: AppearanceSettings = {
@@ -52,11 +56,14 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   edgeArrowStyle: "triangle",
   edgeWidth: "3pt",
   edgeColor: "",
+  nodeFillColor: "",
   nodeBorderStyle: "solid",
   nodeBorderWidth: "1px",
   nodeBorderColor: "",
   nodeBorderCorner: "rounded",
   nodeBorderRadius: "8px",
+  selectionGlowColor: "",
+  selectionGlowWidth: "2px",
 };
 
 const EDGE_LINE_STYLES: Array<{ value: EdgeLineStyle; label: string }> = [
@@ -95,14 +102,37 @@ const EDGE_ARROW_STYLES: Array<{ value: EdgeArrowStyle; label: string }> = [
 
 const EDGE_WIDTHS = ["1pt", "2pt", "3pt", "4pt", "5pt", "6pt", "8pt", "10pt"];
 const NODE_BORDER_WIDTHS = ["1px", "2px", "3px", "4px", "5px", "6pt", "8pt", "10pt"];
-
-const NODE_BORDER_CORNERS: Array<{ value: NodeBorderCorner; label: string }> = [
-  { value: "sharp", label: "Sharp" },
-  { value: "rounded", label: "Rounded" },
-  { value: "ellipse", label: "Ellipse" },
+const SELECTION_GLOW_WIDTHS = [
+  "0px",
+  "1px",
+  "2px",
+  "3px",
+  "4px",
+  "6px",
+  "8px",
+  "10px",
+  "12px",
 ];
 
 const NODE_BORDER_RADII = ["4px", "8px", "12px", "16px", "24px", "32px"];
+
+type NodeBorderCornerOption =
+  | { kind: "sharp"; label: string }
+  | { kind: "ellipse"; label: string }
+  | { kind: "radius"; radius: string; label: string };
+
+/** Sharp + radius presets + ellipse in one Corner row. */
+const NODE_BORDER_CORNER_OPTIONS: NodeBorderCornerOption[] = [
+  { kind: "sharp", label: "Sharp" },
+  ...NODE_BORDER_RADII.map(
+    (radius): NodeBorderCornerOption => ({
+      kind: "radius",
+      radius,
+      label: radius,
+    }),
+  ),
+  { kind: "ellipse", label: "Ellipse" },
+];
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -267,6 +297,71 @@ export const resolveNodeBorderRadius = (
   return settings.nodeBorderRadius || DEFAULT_APPEARANCE.nodeBorderRadius;
 };
 
+const parseCssRgb = (color: string): [number, number, number] | null => {
+  const value = color.trim();
+  const long = /^#([0-9a-f]{6})$/i.exec(value);
+
+  if (long) {
+    return [
+      Number.parseInt(long[1].slice(0, 2), 16),
+      Number.parseInt(long[1].slice(2, 4), 16),
+      Number.parseInt(long[1].slice(4, 6), 16),
+    ];
+  }
+
+  const short = /^#([0-9a-f]{3})$/i.exec(value);
+
+  if (short) {
+    const [r, g, b] = short[1];
+    return [
+      Number.parseInt(`${r}${r}`, 16),
+      Number.parseInt(`${g}${g}`, 16),
+      Number.parseInt(`${b}${b}`, 16),
+    ];
+  }
+
+  const rgb = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i.exec(value);
+
+  if (rgb) {
+    return [
+      Number.parseFloat(rgb[1]),
+      Number.parseFloat(rgb[2]),
+      Number.parseFloat(rgb[3]),
+    ];
+  }
+
+  return null;
+};
+
+const relativeLuminance = (r: number, g: number, b: number): number => {
+  const toLinear = (channel: number): number => {
+    const s = Math.min(255, Math.max(0, channel)) / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+
+  return (
+    0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+  );
+};
+
+/**
+ * Explicit light fills (e.g. Board `#ffffff`) need dark text under Jupyter Dark.
+ * Empty fill keeps the theme’s default content color.
+ */
+export const resolveNodeForeground = (fillColor: string): string => {
+  if (!fillColor) {
+    return "";
+  }
+
+  const rgb = parseCssRgb(fillColor);
+
+  if (!rgb) {
+    return "";
+  }
+
+  return relativeLuminance(...rgb) > 0.55 ? "#212121" : "#f5f5f5";
+};
+
 export const applyAppearanceToScene = (
   scene: HTMLElement,
   settings: AppearanceSettings,
@@ -285,46 +380,23 @@ export const applyAppearanceToScene = (
     }
   };
 
+  const nodeForeground = resolveNodeForeground(settings.nodeFillColor);
+
   setVar("--kuusi-edge-width", settings.edgeWidth);
   setVar("--kuusi-edge-color", settings.edgeColor);
+  setVar("--kuusi-node-background", settings.nodeFillColor);
+  setVar("--kuusi-node-foreground", nodeForeground);
   setVar("--kuusi-node-border-width", settings.nodeBorderWidth);
   setVar("--kuusi-node-border-color", settings.nodeBorderColor);
   setVar("--kuusi-node-border-radius", resolveNodeBorderRadius(settings));
-};
+  setVar("--kuusi-selection-glow-color", settings.selectionGlowColor);
+  setVar("--kuusi-selection-glow-width", settings.selectionGlowWidth);
 
-const appendOptionItems = (
-  root: HTMLElement,
-  row: HTMLElement,
-  items: Array<{
-    label: string;
-    isActive?: boolean;
-    onSelect: () => void;
-    preview?: HTMLElement;
-  }>,
-): void => {
-  items.forEach(({ label, isActive, onSelect, preview }) => {
-    const item = document.createElement("button");
-    item.type = "button";
-    item.className =
-      "jp-KuusiFormatDropdown-item jp-KuusiAppearanceOption-item";
-    item.setAttribute("role", "menuitem");
-    item.classList.toggle("is-active", Boolean(isActive));
-
-    const labelEl = document.createElement("span");
-    labelEl.className = "jp-KuusiAppearanceOption-label";
-    labelEl.textContent = label;
-    item.appendChild(labelEl);
-
-    if (preview) {
-      item.appendChild(preview);
-    }
-
-    item.addEventListener("click", (event) => {
-      event.stopPropagation();
-      onSelect();
-    });
-    row.appendChild(item);
-  });
+  if (nodeForeground) {
+    scene.dataset.kuusiNodeContrast = "1";
+  } else {
+    delete scene.dataset.kuusiNodeContrast;
+  }
 };
 
 const createLineStylePreview = (style: EdgeLineStyle): HTMLElement => {
@@ -477,32 +549,407 @@ const createBorderRadiusPreview = (radius: string): HTMLElement => {
   return preview;
 };
 
-const appendAppearanceColorPicker = (
+const createSelectionGlowWidthPreview = (width: string): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className =
+    "jp-KuusiAppearancePreview jp-KuusiAppearancePreview-selection-glow";
+  preview.style.setProperty("--kuusi-preview-selection-glow-width", width);
+  preview.setAttribute("aria-hidden", "true");
+  return preview;
+};
+
+export type AppearanceNodeFillApi = {
+  /** Whether a node is selected for per-node fill. */
+  hasSelection: () => boolean;
+  /** Current selected node's fill (empty = inherit map default). */
+  getSelectedFill: () => string;
+  /** Persist fill on the selected node (`metadata.kuusi.frameStyle.background`). */
+  setSelectedFill: (color: string) => void;
+};
+
+type LineSection = "style" | "arrow" | "arrowStyle" | "width" | "color";
+type NodeSection = "width" | "fill" | "border" | "corner" | "selection";
+
+let lastLineSection: LineSection = "style";
+let lastNodeSection: NodeSection = "width";
+
+export type NodeWidthMenuState = {
+  equalNodeWidth: boolean;
+  nodeWidth: number;
+};
+
+export type NodeWidthMenuApi = {
+  getState: () => NodeWidthMenuState;
+  onChange: (state: {
+    equalNodeWidth?: boolean;
+    nodeWidth?: number;
+  }) => void;
+};
+
+export const fillLineAppearanceMenu = (
+  root: HTMLElement,
   menu: HTMLElement,
-  sectionLabel: string,
-  currentColor: string,
-  onSelect: (color: string) => void,
-  customInputId: string,
+  getSettings: () => AppearanceSettings,
+  onChange: (settings: AppearanceSettings) => void,
+  onRebuild: () => void,
+  t: KuusiTranslator,
 ): void => {
-  appendColorPickerSection(
-    menu,
-    sectionLabel,
-    currentColor,
-    onSelect,
-    APPEARANCE_COLOR_SWATCHES,
-    {
-      includeDefaultSwatch: true,
-      customInputId,
-      customDefault: "#1976d2",
+  mountSecondaryMenu(menu, {
+    ariaLabel: t.connectorLineAppearance(),
+    sections: [
+      { id: "style", label: t.style() },
+      { id: "arrow", label: t.arrow() },
+      { id: "arrowStyle", label: t.arrowStyle() },
+      { id: "width", label: t.width() },
+      { id: "color", label: t.color() },
+    ],
+    getActive: () => lastLineSection,
+    setActive: (id) => {
+      lastLineSection = id;
     },
-  );
+    fillSection: (id, panel) => {
+      const settings = getSettings();
+      const patch = (partial: Partial<AppearanceSettings>) => {
+        onChange({ ...getSettings(), ...partial });
+      };
+
+      if (id === "style") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: settings.edgeStyle,
+            options: EDGE_LINE_STYLES.map(({ value, label }) => ({
+              value,
+              label,
+              preview: () => createLineStylePreview(value),
+            })),
+            onChange: (value) => {
+              patch({ edgeStyle: value as EdgeLineStyle });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "arrow") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: settings.edgeArrowDirection,
+            options: EDGE_ARROW_DIRECTIONS.map(({ value, label }) => ({
+              value,
+              label,
+              preview: () => createArrowDirectionPreview(value),
+            })),
+            onChange: (value) => {
+              patch({ edgeArrowDirection: value as EdgeArrowDirection });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "arrowStyle") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: settings.edgeArrowStyle,
+            options: EDGE_ARROW_STYLES.map(({ value, label }) => ({
+              value,
+              label,
+              preview: () => createArrowStylePreview(value),
+            })),
+            onChange: (value) => {
+              patch({
+                edgeArrowStyle: value as EdgeArrowStyle,
+                edgeArrowDirection:
+                  settings.edgeArrowDirection === "none"
+                    ? "end"
+                    : settings.edgeArrowDirection,
+              });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "width") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: settings.edgeWidth,
+            options: EDGE_WIDTHS.map((width) => ({
+              value: width,
+              label: width,
+              preview: () => createLineWidthPreview(width),
+            })),
+            onChange: (value) => {
+              patch({ edgeWidth: value });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      renderPanelWidgets(panel, [
+        {
+          kind: "color",
+          sectionLabel: t.color(),
+          value: settings.edgeColor,
+          swatches: APPEARANCE_COLOR_SWATCHES,
+          includeDefaultSwatch: true,
+          customInputId: "jp-KuusiAppearanceEdgeColor-input",
+          customDefault: "#1976d2",
+          onChange: (color) => {
+            patch({ edgeColor: color });
+            onRebuild();
+          },
+        },
+      ]);
+    },
+  });
+};
+
+export const fillNodeAppearanceMenu = (
+  root: HTMLElement,
+  menu: HTMLElement,
+  getSettings: () => AppearanceSettings,
+  onChange: (settings: AppearanceSettings) => void,
+  nodeFill: AppearanceNodeFillApi,
+  nodeWidth: NodeWidthMenuApi,
+  onRebuild: () => void,
+  t: KuusiTranslator,
+): void => {
+  mountSecondaryMenu(menu, {
+    ariaLabel: t.nodeAppearance(),
+    sections: [
+      { id: "width", label: t.width() },
+      { id: "fill", label: t.fill() },
+      { id: "border", label: t.border() },
+      { id: "corner", label: t.corner() },
+      { id: "selection", label: t.selection() },
+    ],
+    getActive: () => lastNodeSection,
+    setActive: (id) => {
+      lastNodeSection = id;
+    },
+    fillSection: (id, panel) => {
+      const settings = getSettings();
+      const hasSelection = nodeFill.hasSelection();
+      const selectedFill = hasSelection ? nodeFill.getSelectedFill() : "";
+      const patch = (partial: Partial<AppearanceSettings>) => {
+        onChange({ ...getSettings(), ...partial });
+      };
+
+      if (id === "width") {
+        const widthState = nodeWidth.getState();
+        renderPanelWidgets(panel, [
+          {
+            kind: "slider",
+            label: t.nodeWidth(),
+            value: widthState.nodeWidth,
+            min: LAYOUT_NODE_WIDTH.min,
+            max: LAYOUT_NODE_WIDTH.max,
+            valueSuffix: "px",
+            onChange: (value) => {
+              nodeWidth.onChange({ nodeWidth: value });
+            },
+          },
+          {
+            kind: "toggle",
+            label: t.equalNodeWidth(),
+            title: t.equalNodeWidthTitle(),
+            value: widthState.equalNodeWidth,
+            onChange: (equalNodeWidth) => {
+              nodeWidth.onChange({ equalNodeWidth });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "fill") {
+        const widgets: PanelWidget[] = [
+          {
+            kind: "color",
+            sectionLabel: t.nodeFillDefault(),
+            value: settings.nodeFillColor,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            customInputId: "jp-KuusiAppearanceNodeFillDefault-input",
+            customDefault: "#1976d2",
+            onChange: (color) => {
+              patch({ nodeFillColor: color });
+              onRebuild();
+            },
+          },
+        ];
+
+        if (hasSelection) {
+          widgets.push({
+            kind: "color",
+            sectionLabel: t.nodeFillSelected(),
+            value: selectedFill,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            customInputId: "jp-KuusiAppearanceNodeFillSelected-input",
+            customDefault: "#1976d2",
+            onChange: (color) => {
+              nodeFill.setSelectedFill(color);
+              onRebuild();
+            },
+          });
+          renderPanelWidgets(panel, widgets);
+          return;
+        }
+
+        renderPanelWidgets(panel, widgets);
+        const hint = document.createElement("div");
+        hint.className = "jp-KuusiAppearanceDropdown-hint";
+        hint.textContent = t.nodeFillSelectHint();
+        panel.appendChild(hint);
+        return;
+      }
+
+      if (id === "border") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            sectionLabel: t.nodeBorderStyle(),
+            value: settings.nodeBorderStyle,
+            options: BORDER_LINE_STYLES.map(({ value, label }) => ({
+              value,
+              label,
+              preview: () => createBorderStylePreview(value),
+            })),
+            onChange: (value) => {
+              patch({ nodeBorderStyle: value as BorderLineStyle });
+              onRebuild();
+            },
+          },
+          {
+            kind: "choice",
+            sectionLabel: t.nodeBorderWidth(),
+            value: settings.nodeBorderWidth,
+            options: NODE_BORDER_WIDTHS.map((width) => ({
+              value: width,
+              label: width,
+              preview: () => createBorderWidthPreview(width),
+            })),
+            onChange: (value) => {
+              patch({ nodeBorderWidth: value });
+              onRebuild();
+            },
+          },
+          {
+            kind: "color",
+            sectionLabel: t.nodeBorderColor(),
+            value: settings.nodeBorderColor,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            customInputId: "jp-KuusiAppearanceBorderColor-input",
+            customDefault: "#1976d2",
+            onChange: (color) => {
+              patch({ nodeBorderColor: color });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "corner") {
+        const cornerValue =
+          settings.nodeBorderCorner === "rounded"
+            ? `rounded:${settings.nodeBorderRadius}`
+            : settings.nodeBorderCorner;
+
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: cornerValue,
+            options: NODE_BORDER_CORNER_OPTIONS.map((option) => {
+              if (option.kind === "sharp") {
+                return {
+                  value: "sharp",
+                  label: option.label,
+                  preview: () => createBorderCornerPreview("sharp"),
+                };
+              }
+
+              if (option.kind === "ellipse") {
+                return {
+                  value: "ellipse",
+                  label: option.label,
+                  preview: () => createBorderCornerPreview("ellipse"),
+                };
+              }
+
+              return {
+                value: `rounded:${option.radius}`,
+                label: option.label,
+                preview: () => createBorderRadiusPreview(option.radius),
+              };
+            }),
+            onChange: (value) => {
+              if (value === "sharp" || value === "ellipse") {
+                patch({ nodeBorderCorner: value });
+              } else if (value.startsWith("rounded:")) {
+                patch({
+                  nodeBorderCorner: "rounded",
+                  nodeBorderRadius: value.slice("rounded:".length),
+                });
+              }
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      renderPanelWidgets(panel, [
+        {
+          kind: "choice",
+          sectionLabel: t.selectionGlowWidth(),
+          value: settings.selectionGlowWidth,
+          options: SELECTION_GLOW_WIDTHS.map((width) => ({
+            value: width,
+            label: width,
+            preview: () => createSelectionGlowWidthPreview(width),
+          })),
+          onChange: (value) => {
+            patch({ selectionGlowWidth: value });
+            onRebuild();
+          },
+        },
+        {
+          kind: "color",
+          sectionLabel: t.selectionGlowColor(),
+          value: settings.selectionGlowColor,
+          swatches: APPEARANCE_COLOR_SWATCHES,
+          includeDefaultSwatch: true,
+          customInputId: "jp-KuusiAppearanceSelectionGlowColor-input",
+          customDefault: "#1976d2",
+          onChange: (color) => {
+            patch({ selectionGlowColor: color });
+            onRebuild();
+          },
+        },
+      ]);
+    },
+  });
 };
 
 const createGroupedDropdown = (
   root: HTMLElement,
   buttonLabel: string,
   title: string,
-  buildMenu: (menu: HTMLElement) => void,
+  buildMenu: (menu: HTMLElement, rebuild: () => void) => void,
 ): HTMLElement => {
   const wrapper = document.createElement("div");
   wrapper.className = "jp-KuusiFormatDropdown jp-KuusiAppearanceDropdown";
@@ -518,9 +965,20 @@ const createGroupedDropdown = (
 
   const menu = document.createElement("div");
   menu.className =
-    "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiAppearanceDropdown-menu";
+    "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiAppearanceDropdown-menu jp-KuusiSecondaryMenu-host";
   menu.setAttribute("role", "menu");
-  buildMenu(menu);
+
+  const rebuild = () => {
+    const wasOpen = menu.classList.contains("is-open");
+    menu.replaceChildren();
+    buildMenu(menu, rebuild);
+
+    if (wasOpen) {
+      menu.classList.add("is-open");
+    }
+  };
+
+  rebuild();
 
   button.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -528,6 +986,7 @@ const createGroupedDropdown = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
+      rebuild();
       menu.classList.add("is-open");
     }
   });
@@ -536,179 +995,70 @@ const createGroupedDropdown = (
   return wrapper;
 };
 
+export type AppearanceToolbarHandle = {
+  node: HTMLElement;
+  refresh: () => void;
+};
+
 export const createAppearanceToolbar = (
   root: HTMLElement,
   getSettings: () => AppearanceSettings,
   onChange: (settings: AppearanceSettings) => void,
+  nodeFill: AppearanceNodeFillApi,
+  nodeWidth: NodeWidthMenuApi,
   t: KuusiTranslator,
-): HTMLElement => {
+): AppearanceToolbarHandle => {
   const toolbar = document.createElement("div");
   toolbar.className = "jp-KuusiNotebookMindMap-appearance-toolbar";
-  toolbar.setAttribute("role", "toolbar");
+  toolbar.setAttribute("role", "group");
   toolbar.setAttribute("aria-label", t.appearance());
 
-  const patch = (partial: Partial<AppearanceSettings>) => {
-    onChange({ ...getSettings(), ...partial });
-  };
+  let lineDropdown: HTMLElement;
+  let nodeDropdown: HTMLElement;
 
   const rebuild = () => {
-    const openMenuLabels = new Set(
+    const openLabels = new Set(
       Array.from(toolbar.querySelectorAll(".jp-KuusiAppearanceDropdown-menu.is-open"))
         .map((menu) => menu.previousElementSibling)
         .filter((button): button is HTMLButtonElement => button instanceof HTMLButtonElement)
         .map((button) => button.getAttribute("aria-label"))
         .filter((label): label is string => Boolean(label)),
     );
-    const settings = getSettings();
 
-    toolbar.replaceChildren(
-      createGroupedDropdown(root, t.line(), t.connectorLineAppearance(), (menu) => {
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Style"),
-          EDGE_LINE_STYLES.map(({ value, label }) => ({
-            label,
-            isActive: settings.edgeStyle === value,
-            preview: createLineStylePreview(value),
-            onSelect: () => {
-              patch({ edgeStyle: value });
-              rebuild();
-            },
-          })),
-        );
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Arrow"),
-          EDGE_ARROW_DIRECTIONS.map(({ value, label }) => ({
-            label,
-            isActive: settings.edgeArrowDirection === value,
-            preview: createArrowDirectionPreview(value),
-            onSelect: () => {
-              patch({ edgeArrowDirection: value });
-              rebuild();
-            },
-          })),
-        );
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Arrow style"),
-          EDGE_ARROW_STYLES.map(({ value, label }) => ({
-            label,
-            isActive: settings.edgeArrowStyle === value,
-            preview: createArrowStylePreview(value),
-            onSelect: () => {
-              patch({
-                edgeArrowStyle: value,
-                edgeArrowDirection:
-                  settings.edgeArrowDirection === "none"
-                    ? "end"
-                    : settings.edgeArrowDirection,
-              });
-              rebuild();
-            },
-          })),
-        );
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Width"),
-          EDGE_WIDTHS.map((width) => ({
-            label: width,
-            isActive: settings.edgeWidth === width,
-            preview: createLineWidthPreview(width),
-            onSelect: () => {
-              patch({ edgeWidth: width });
-              rebuild();
-            },
-          })),
-        );
-        appendAppearanceColorPicker(
-          menu,
-          "Color",
-          settings.edgeColor,
-          (color) => {
-            patch({ edgeColor: color });
-            rebuild();
-          },
-          "jp-KuusiAppearanceEdgeColor-input",
-        );
-      }),
-      createGroupedDropdown(root, "Border", t.nodeBorderAppearance(), (menu) => {
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Style"),
-          BORDER_LINE_STYLES.map(({ value, label }) => ({
-            label,
-            isActive: settings.nodeBorderStyle === value,
-            preview: createBorderStylePreview(value),
-            onSelect: () => {
-              patch({ nodeBorderStyle: value });
-              rebuild();
-            },
-          })),
-        );
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Width"),
-          NODE_BORDER_WIDTHS.map((width) => ({
-            label: width,
-            isActive: settings.nodeBorderWidth === width,
-            preview: createBorderWidthPreview(width),
-            onSelect: () => {
-              patch({ nodeBorderWidth: width });
-              rebuild();
-            },
-          })),
-        );
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Corner"),
-          NODE_BORDER_CORNERS.map(({ value, label }) => ({
-            label,
-            isActive: settings.nodeBorderCorner === value,
-            preview: createBorderCornerPreview(value),
-            onSelect: () => {
-              patch({ nodeBorderCorner: value });
-              rebuild();
-            },
-          })),
-        );
-        appendOptionItems(
-          root,
-          appendDropdownSectionRow(menu, "Roundness"),
-          NODE_BORDER_RADII.map((radius) => ({
-            label: radius,
-            isActive:
-              settings.nodeBorderCorner === "rounded" &&
-              settings.nodeBorderRadius === radius,
-            preview: createBorderRadiusPreview(radius),
-            onSelect: () => {
-              patch({
-                nodeBorderCorner: "rounded",
-                nodeBorderRadius: radius,
-              });
-              rebuild();
-            },
-          })),
-        );
-        appendAppearanceColorPicker(
-          menu,
-          "Color",
-          settings.nodeBorderColor,
-          (color) => {
-            patch({ nodeBorderColor: color });
-            rebuild();
-          },
-          "jp-KuusiAppearanceBorderColor-input",
-        );
-      }),
+    lineDropdown = createGroupedDropdown(
+      root,
+      t.line(),
+      t.connectorLineAppearance(),
+      (menu, onRebuild) => {
+        fillLineAppearanceMenu(root, menu, getSettings, onChange, onRebuild, t);
+      },
     );
+    nodeDropdown = createGroupedDropdown(
+      root,
+      t.node(),
+      t.nodeAppearance(),
+      (menu, onRebuild) => {
+        fillNodeAppearanceMenu(
+          root,
+          menu,
+          getSettings,
+          onChange,
+          nodeFill,
+          nodeWidth,
+          onRebuild,
+          t,
+        );
+      },
+    );
+
+    toolbar.replaceChildren(lineDropdown, nodeDropdown);
 
     toolbar.querySelectorAll(".jp-KuusiAppearanceDropdown").forEach((wrapper) => {
       const button = wrapper.querySelector(".jp-KuusiAppearanceDropdown-btn");
       const menu = wrapper.querySelector(".jp-KuusiAppearanceDropdown-menu");
       const label = button?.getAttribute("aria-label");
 
-      if (menu && label && openMenuLabels.has(label)) {
+      if (menu && label && openLabels.has(label)) {
         menu.classList.add("is-open");
       }
     });
@@ -720,5 +1070,8 @@ export const createAppearanceToolbar = (
     closeKuusiDropdownMenus(root);
   });
 
-  return toolbar;
+  return {
+    node: toolbar,
+    refresh: rebuild,
+  };
 };

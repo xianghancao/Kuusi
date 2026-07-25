@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-kuusi",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Jupyter-native notebook mind map view for JupyterLab",
   "keywords": [
     "jupyter",
@@ -28,8 +28,8 @@
     "build:release": "npm run build:kernel && npm run build:lib && npm run build:labextension",
     "build:kernel": "npm run build --workspace=kuusi-kernel",
     "build:lib": "npm run clean:lib && tsc -p tsconfig.json",
-    "build:labextension": "YARN_ENABLE_IMMUTABLE_INSTALLS=false jupyter labextension build .",
-    "build:labextension:dev": "YARN_ENABLE_IMMUTABLE_INSTALLS=false jupyter labextension build --development True .",
+    "build:labextension": "YARN_ENABLE_IMMUTABLE_INSTALLS=false YARN_ENABLE_SCRIPTS=false jupyter labextension build .",
+    "build:labextension:dev": "YARN_ENABLE_IMMUTABLE_INSTALLS=false YARN_ENABLE_SCRIPTS=false jupyter labextension build --development True .",
     "install:extension": "npm run build:kernel && npm run build:lib && npm run build:labextension:dev",
     "clean": "npm run clean:lib && rimraf jupyterlab_kuusi/labextension",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
@@ -52,7 +52,7 @@
     "@jupyterlab/ui-components": "^4.3.5",
     "@lumino/disposable": "^2.1.2",
     "@lumino/widgets": "^2.5.0",
-    "kuusi-kernel": "0.2.3"
+    "kuusi-kernel": "0.2.4"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.5",

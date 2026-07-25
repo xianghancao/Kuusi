@@ -31,7 +31,7 @@ const cellTitle = (cell: NotebookCell, cellIndex: number) => {
   return firstLine ?? "";
 };
 
-const resolveCellHeading = (
+export const resolveCellHeading = (
   cell: NotebookCell,
 ): { level: number; title: string } | null => {
   const source = joinCellSource(cell.source);
@@ -54,6 +54,10 @@ const resolveCellHeading = (
 
   return null;
 };
+
+/** Heading level for a cell from markdown `#` or `metadata.kuusi.headingLevel`. */
+export const getCellHeadingLevel = (cell: NotebookCell): number | null =>
+  resolveCellHeading(cell)?.level ?? null;
 
 type HeadingFrame = {
   level: number;

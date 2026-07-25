@@ -330,49 +330,41 @@ const createColorDropdown = (
   colorLabel.textContent = "Font color";
   menu.appendChild(colorLabel);
 
-  const defaultColorButton = document.createElement("button");
-  defaultColorButton.type = "button";
-  defaultColorButton.className =
-    "jp-KuusiFormatDropdown-item jp-KuusiFormatColorDefault";
-  defaultColorButton.dataset.formatId = "color-default";
-  defaultColorButton.textContent = "Default";
-  defaultColorButton.title = "Remove font color";
+  const swatches = document.createElement("div");
+  swatches.className =
+    "jp-KuusiFormatDropdown-optionRow jp-KuusiFormatColorSwatches";
+
+  const defaultSwatch = document.createElement("button");
+  defaultSwatch.type = "button";
+  defaultSwatch.className =
+    "jp-KuusiFormatColorSwatch jp-KuusiFormatColorSwatch-default";
+  defaultSwatch.dataset.formatId = "color-default";
+  defaultSwatch.title = "Default";
+  defaultSwatch.setAttribute("aria-label", "Default");
   stateTargets.push({
     formatId: "color-default",
-    element: defaultColorButton,
+    element: defaultSwatch,
   });
-  defaultColorButton.addEventListener("click", (event) => {
+  defaultSwatch.addEventListener("click", (event) => {
     event.stopPropagation();
     runOnEditor(getEditor, MarkdownFormat.clearColor, onComplete);
   });
-  menu.appendChild(defaultColorButton);
-
-  const swatches = document.createElement("div");
-  swatches.className = "jp-KuusiFormatColorSwatches";
+  swatches.appendChild(defaultSwatch);
 
   COLOR_SWATCHES.forEach(({ label, color }) => {
-    const swatchRow = document.createElement("button");
-    swatchRow.type = "button";
-    swatchRow.className = "jp-KuusiFormatColorSwatchRow";
-    swatchRow.dataset.formatId = `color:${color}`;
-    swatchRow.title = label;
-    swatchRow.setAttribute("aria-label", label);
-    stateTargets.push({ formatId: `color:${color}`, element: swatchRow });
-
-    const swatch = document.createElement("span");
+    const swatch = document.createElement("button");
+    swatch.type = "button";
     swatch.className = "jp-KuusiFormatColorSwatch";
+    swatch.dataset.formatId = `color:${color}`;
+    swatch.title = label;
+    swatch.setAttribute("aria-label", label);
     swatch.style.backgroundColor = color;
-
-    const swatchLabel = document.createElement("span");
-    swatchLabel.className = "jp-KuusiFormatColorSwatchLabel";
-    swatchLabel.textContent = label;
-
-    swatchRow.append(swatch, swatchLabel);
-    swatchRow.addEventListener("click", (event) => {
+    stateTargets.push({ formatId: `color:${color}`, element: swatch });
+    swatch.addEventListener("click", (event) => {
       event.stopPropagation();
       runOnEditor(getEditor, (editor) => MarkdownFormat.color(editor, color), onComplete);
     });
-    swatches.appendChild(swatchRow);
+    swatches.appendChild(swatch);
   });
 
   menu.appendChild(swatches);
@@ -600,7 +592,7 @@ export const createFormatToolbar = ({
   toolbar.appendChild(
     createDropdown(
       getEditor,
-      "Title",
+      "Heading",
       "Outline heading level (changes mind map structure)",
       [1, 2, 3, 4, 5, 6].map((level) =>
         headingItem(getActiveMarkdownCell, level),

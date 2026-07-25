@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-07-25
+
+### Added
+
+- Branch **collapse / expand** on parent nodes (chevron + hidden-count badge); **Space** toggles
+- Opening Kuusi **centers** the notebook’s current / active cell (one-shot; expands collapsed ancestors if needed)
+- Node **width** slider, **Equal width** switch, and **right-edge drag** to resize cards
+- Appearance → **Node**: map fill, selected-node fill, border controls, selection glow
+- Theme presets: **Notebook** / **Soft** / **Outline** / **Paper** / **Board** / **Black** / **Minimal** (stamp Line + Node + Background + Font)
+- Background color **Ink** (used by Black theme)
+- Kuusi menu **Community** tab: Discourse feedback topic + X (@KussiMindMap)
+- Subtree **Delete** / **Copy** / **Cut** / **Paste**; paste external plain text as child topics
+- Line / Node color pickers: **White** swatch
+
+### Changed
+
+- Appearance **Border** → **Node**; page toolbar **Style** → **Theme**; format **Title** → **Heading**
+- Page toolbars are frosted-glass capsules; menus use a shared **secondary sidebar** shell
+- Kuusi menu: **About** · **Version** · **Repository** · **Community** · **Install** · **Shortcut**
+- Font: **Edit** / **Display** tabs; size scale **XXS→XXL** (7 steps)
+- Zoom UI: click-to-reveal vertical **20%–200%** slider; pinch / Ctrl+wheel roughly **2×** faster
+- Boolean controls use a pill switch; choice rows stay as tiles
+- README screenshots under `docs/assets/0.2.4/` (no demo GIF)
+
+### Fixed
+
+- Opening Kuusi from the notebook toolbar no longer crashes
+- Selected nodes keep an opaque card fill under JupyterLab selection styles
+- Toolbar dropdowns open reliably; narrow header stacks the Aa capsule vertically
+- Secondary / product menu text readable in Jupyter Light and Dark
+- Enter / Tab insert opens edit mode immediately; Enter on **H1 root** inserts a child (not a floating H1)
+- Display font/size changes remeasure and relayout (no overlapping cards)
+- Board (and other explicit fills) auto-contrast node text on Jupyter Dark
+- Glass capsules use lower fill opacity so backdrop blur is visible
+- Zoom slider stays open while dragging; Aa font-color swatches compacted
+
 ## [0.2.3] - 2026-07-18
 
 ### Added
@@ -101,8 +137,9 @@ First public release of the Jupyter-native mind map stack (`kuusi-kernel` + `jup
 
 Pre-0.2.0 prototypes are not part of this changelog.
 
-[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.3...HEAD
-[0.2.3]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.3
-[0.2.2]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.2
-[0.2.1]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.1
+[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/xianghancao/kuusi/compare/v0.2.3...v0.2.4
+[0.2.3]: https://github.com/xianghancao/kuusi/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/xianghancao/kuusi/compare/v0.2.1...v0.2.2
+[0.2.1]: https://github.com/xianghancao/kuusi/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/xianghancao/kuusi/releases/tag/v0.2.0

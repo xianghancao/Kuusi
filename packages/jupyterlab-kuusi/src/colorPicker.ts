@@ -16,6 +16,7 @@ export const APPEARANCE_COLOR_SWATCHES: ColorSwatch[] = [
   { label: "Tech Blue", color: "#00bcd4" },
   { label: "Purple", color: "#7b1fa2" },
   { label: "Pink", color: "#c2185b" },
+  { label: "White", color: "#ffffff" },
   { label: "Gray", color: "#616161" },
   { label: "Black", color: "#212121" },
 ];

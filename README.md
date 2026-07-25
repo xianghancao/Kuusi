@@ -3,40 +3,53 @@
 *Kuusi* (Finnish for spruce) — Jupyter-native **notebook mind map**: rearrange `.ipynb` cells on a spatial canvas by markdown heading hierarchy, using **Jupyter's own cell renderers** (CodeCell / MarkdownCell — not a custom rich-text editor).
 
 <p align="center">
-  <img src="docs/assets/kuusi-ui-overview.gif" alt="Kuusi mind map UI overview" width="720"/>
+  <img src="docs/assets/0.2.4/kuusi-overview-light.png" alt="Kuusi mind map overview (light)" width="720"/>
 </p>
 
-> **Demo:** The GIF above was recorded with [`examples/example.ipynb`](examples/example.ipynb) open in **Kuusi Mind Map**.
+<p align="center"><em>Overview — headings become branches; code and markdown cells attach as nodes</em></p>
+
+<p align="center">
+  <img src="docs/assets/0.2.4/kuusi-overview-dark.png" alt="Kuusi mind map overview (dark)" width="720"/>
+</p>
+
+<p align="center"><em>Same notebook on a dark canvas with glass toolbars</em></p>
+
+<p align="center">
+  <img src="docs/assets/0.2.4/kuusi-node-border.png" alt="Kuusi Node border controls" width="720"/>
+</p>
+
+<p align="center"><em>Node → Border — style, width, and color (including white)</em></p>
+
+<p align="center">
+  <img src="docs/assets/0.2.4/kuusi-formatting.png" alt="Kuusi markdown formatting toolbar" width="720"/>
+</p>
+
+<p align="center"><em>Edit mode formatting — Aa styles, colors, math, and links</em></p>
+
+<p align="center">
+  <img src="docs/assets/0.2.4/kuusi-community.png" alt="Kuusi Community menu" width="720"/>
+</p>
+
+<p align="center"><em>Kuusi → Community — Discourse feedback and X updates</em></p>
 
 ## Version
 
 | Component | Version |
 |-----------|---------|
-| **Kuusi** | `0.2.3` |
-| `kuusi-kernel` | `0.2.3` |
-| `jupyterlab-kuusi` | `0.2.3` |
+| **Kuusi** | `0.2.4` |
+| `kuusi-kernel` | `0.2.4` |
+| `jupyterlab-kuusi` | `0.2.4` |
 
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
 ## Features
 
-- **Native Jupyter cells** on a pannable, zoomable canvas with connector lines
-- **Heading-driven tree**: `#` (H1) defines mind map roots; `##` / `###` / … nest underneath; other cells attach to the current heading
-- **Empty node insertion**: Tab / Enter create blank markdown cells with correct outline placement (no `markdown cell N` placeholder)
-- **Drag-and-drop** reordering with drop zones (before / inside / after)
-- **Two-way notebook sync**: same `.ipynb` model; structural edits update the notebook
-- **Notebook → Kuusi focus**: selecting a cell in the standard ipynb editor pans Kuusi to the matching node
-- **Tree direction**: top-bottom, bottom-top, left-right, right-left
-- **Style themes**: Classic, Soft, Contrast
-- **Font**: notebook default plus sans-serif and serif families; adjustable size (Small → Extra Large)
-- **Layout density**: Compact, Normal, Loose (XMind-style spacing)
-- **Background**: Default, Plain (dark), Grid, Dots, Gradient, Business Blue, Eye Care, Newspaper
-- **Appearance**: connector line and node border style, width, and color
-- **Markdown format toolbar** (edit mode): Title (H1–H6), Aa (bold/italic/underline/strikethrough/code/highlight/block quote), list styles, table grid picker, image (Markdown/HTML), link (Markdown/HTML), font color
-- **Persistent settings**: theme, font, layout, tree direction, background, and appearance survive refresh (JupyterLab settings)
-- **Keyboard shortcuts** (XMind-style) — see **Guide** in the header
-- **Zoom** presets from 10% to 200% (includes 100%) and fullscreen
-- **Product menu**: current version, latest version check (with offline cache), GitHub link
+- **Native Jupyter cells** on a pannable, zoomable canvas
+- **Heading-driven tree** — `#` roots, nested `##`–`######`, other cells attach to the current heading
+- **Edit & structure** — Tab/Enter insert nodes, drag-and-drop reorder, two-way notebook sync
+- **Appearance** — themes, fonts, line/border style, backgrounds; settings persist across refresh
+- **Format toolbar** (edit mode) — headings, inline styles, lists, tables, images, links
+- **Shortcuts, zoom, fullscreen** — XMind-style navigation; product menu for version & links
 
 ## Installation
 
@@ -85,9 +98,13 @@ Open any `.ipynb` (try [`examples/example.ipynb`](examples/example.ipynb)), then
 
 You can keep the classic notebook view and Kuusi open on the same file side by side.
 
+### Feedback
+
+Questions, bugs, and feature ideas: [Jupyter Discourse topic](https://discourse.jupyter.org/t/kuusi-jupyterlab-notebook-mind-map-feedback-welcome/38802). Updates: [X @KussiMindMap](https://x.com/KussiMindMap). Clear reproducible bugs are also welcome on [GitHub Issues](https://github.com/xianghancao/kuusi/issues).
+
 ### Install from source (developers)
 
-For local development or contributing, you need **Node.js + npm** and **Git**. Clone the repo, activate the Python environment where JupyterLab is installed, then run:
+For local development or contributing, you need **Node.js ≥ 20**, **npm ≥ 10**, and **Git**. Clone the repo, activate the Python environment where JupyterLab is installed, then run:
 
 ```bash
 git clone https://github.com/xianghancao/Kuusi.git
@@ -137,7 +154,7 @@ Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, 
 
 | Area | Controls |
 |------|----------|
-| **Left** | **Add Mind Map** (+), **Kuusi** (version menu), **Tree**, **Style**, **Font**, **Line**, **Border**, **Layout**, **Background**, **Guide** |
+| **Left** | **+**, **Kuusi**, **Tree**, **Layout**, **Theme**, **Font**, **Line**, **Node**, **Background** |
 | **Right** | Markdown **format** toolbar (visible in edit mode), see below |
 
 #### Left toolbar
@@ -145,15 +162,14 @@ Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, 
 | Control | What it does |
 |---------|----------------|
 | **+** | Create a new notebook in the same folder and open it as a mind map |
-| **Kuusi** | Current version, latest version (cached when offline), GitHub repository |
+| **Kuusi** | About, version, GitHub / PyPI, Community (Discourse + X), install command, shortcuts |
 | **Tree** | Layout direction: ↓ ↑ → ← |
-| **Style** | Mind map theme: Classic / Soft / Contrast |
-| **Font** | Mind map typeface (notebook default, sans-serif, serif) and size (Small → Extra Large) |
-| **Line** | Connector line style, width, color |
-| **Border** | Node border style, width, color |
 | **Layout** | Node spacing: Compact / Normal / Loose |
-| **Background** | Canvas background: Default, Plain (dark), Grid, Dots, Gradient, Business Blue, Eye Care, Newspaper |
-| **Guide** | Keyboard shortcuts for navigation and markdown formatting |
+| **Theme** | Presets that stamp Line / Node / Background / Font: Notebook, Soft, Outline, Paper, Board, Black, Minimal |
+| **Font** | Mind map typeface (notebook default, sans-serif, serif); **Edit** / **Display** size sliders (XXS–XXL) |
+| **Line** | Connector line style, width, color |
+| **Node** | Width (equal width switch), fill, border, corner, selection glow |
+| **Background** | Canvas pattern and color (including Ink for Black theme) |
 
 All of the above (except zoom and fullscreen) are **saved automatically** and restored on refresh.
 
@@ -161,7 +177,7 @@ All of the above (except zoom and fullscreen) are **saved automatically** and re
 
 | Control | What it does |
 |---------|----------------|
-| **Title** | Outline heading level H1–H6 (changes mind map structure) |
+| **Heading** | Outline heading level H1–H6 (changes mind map structure) |
 | **Aa** | Bold, italic, underline, strikethrough, inline code, highlight, block quote, code block, clear formatting |
 | **List** | Bulleted, dashed, numbered, check list |
 | **Table** | Grid picker to insert a Markdown table |
@@ -169,7 +185,7 @@ All of the above (except zoom and fullscreen) are **saved automatically** and re
 | **Link** | Insert link via Markdown or HTML syntax |
 | **Font color** | Preset swatches, custom color, remove color |
 
-> **Title** changes the outline tree. **Aa** and inline styles affect cell content only, not structure.
+> **Heading** changes the outline tree. **Aa** and inline styles affect cell content only, not structure.
 
 ### Canvas
 
@@ -182,7 +198,7 @@ All of the above (except zoom and fullscreen) are **saved automatically** and re
 | **Drag handle** (left edge) | Reorder in the outline tree |
 | **Wheel** | Pan |
 | **Ctrl/Cmd + wheel** | Zoom |
-| **Bottom-right** | Node count, **Zoom** menu, **Fullscreen** |
+| **Bottom-right** | Node count, **Zoom: N%** (click to open slider with 20% ticks, 20%–200%), **Fullscreen** |
 
 ### Outline rules
 
@@ -218,15 +234,9 @@ Core mind map capability. Much of the kernel and widget plumbing already exists 
 - Relayout after collapse so hidden subtrees free space
 - Optional: collapse all / expand all / collapse to level N
 
-#### Style themes (stronger visual presets)
+#### Style themes
 
-Today Classic / Soft / Contrast differ only slightly (a few CSS variables). Make each preset visually distinct at a glance:
-
-- **Classic** — keep the current Jupyter-neutral look (balanced borders, subtle shadow)
-- **Soft** — larger corner radius (16px), lighter borders, pronounced card shadow, thinner and softer connector lines
-- **Contrast** — bold H1 node border and background tint, thicker connectors, high-contrast palette (not only `brand-color1`)
-
-Optional: small preview swatches in the Style menu (like Layout) so users can see the difference before switching.
+Theme presets now compose Line / Node / Background / Font settings (Notebook, Soft, Outline, Paper, Board, Black, Minimal). Optional next step: preview swatches in the Theme menu.
 
 ### `0.3.x` / `0.4.0` — Export image & PDF
 
@@ -323,7 +333,7 @@ packages/
   kuusi-kernel/         # outline tree, layout, navigation
   jupyterlab-kuusi/     # JupyterLab extension + UI
 docs/
-  assets/               # UI overview SVG, demo GIF (optional)
+  assets/               # Versioned README screenshots (e.g. 0.2.4/)
 examples/
   example.ipynb         # hands-on feature tour
 scripts/
