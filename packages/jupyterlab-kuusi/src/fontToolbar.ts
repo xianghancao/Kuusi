@@ -1,5 +1,5 @@
 import type { KuusiTranslator } from "./kuusiI18n";
-import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import type { PanelWidget } from "./panelWidgets";
 import { renderPanelWidgets } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
@@ -40,7 +40,7 @@ export const MIND_MAP_FONT_SIZES: readonly MindMapFontSize[] = [
 export const DEFAULT_MIND_MAP_FONT: MindMapFont = "notebook";
 export const DEFAULT_MIND_MAP_FONT_SIZE: MindMapFontSize = "md";
 
-type FontSection = "edit" | "display";
+type FontSection = "edit" | "display" | "link";
 
 let lastFontSection: FontSection = "edit";
 
@@ -52,6 +52,17 @@ const FONT_SIZE_LABELS: Record<MindMapFontSize, string> = {
   lg: "L",
   xl: "XL",
   xxl: "XXL",
+};
+
+/** Approximate CSS px at a 16px root (sizes are stored as rem steps). */
+const FONT_SIZE_APPROX_PX: Record<MindMapFontSize, number> = {
+  xxs: 12,
+  xs: 14,
+  sm: 16,
+  md: 18,
+  lg: 20,
+  xl: 23,
+  xxl: 26,
 };
 
 const LEGACY_FONT_SIZE_MAP: Record<string, MindMapFontSize> = {
@@ -89,7 +100,7 @@ export const sliderIndexToFontSize = (index: number): MindMapFontSize => {
 };
 
 export const fontSizeLabel = (size: MindMapFontSize): string =>
-  FONT_SIZE_LABELS[size];
+  `${FONT_SIZE_LABELS[size]} · ${FONT_SIZE_APPROX_PX[size]}px`;
 
 type FontCategory = "default" | "sans" | "serif";
 
@@ -285,6 +296,10 @@ export const fillFontMenu = (
   onDisplayFontChange: (font: MindMapFont) => void,
   getDisplayFontSize: () => MindMapFontSize,
   onDisplayFontSizeChange: (fontSize: MindMapFontSize) => void,
+  getUnifyEditDisplayFont: () => boolean,
+  onUnifyEditDisplayFontChange: (value: boolean) => void,
+  getMatchNotebookFont: () => boolean,
+  onMatchNotebookFontChange: (value: boolean) => void,
   t: KuusiTranslator,
   onRebuild: () => void,
 ): void => {
@@ -293,12 +308,37 @@ export const fillFontMenu = (
     sections: [
       { id: "edit", label: t.fontSizeEdit() },
       { id: "display", label: t.fontSizeDisplay() },
+      { id: "link", label: t.fontLink() },
     ],
     getActive: () => lastFontSection,
     setActive: (id) => {
       lastFontSection = id;
     },
     fillSection: (id, panel) => {
+      if (id === "link") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "toggle",
+            label: t.unifyEditDisplayFont(),
+            value: getUnifyEditDisplayFont(),
+            onChange: (value) => {
+              onUnifyEditDisplayFontChange(value);
+              onRebuild();
+            },
+          },
+          {
+            kind: "toggle",
+            label: t.matchNotebookFont(),
+            value: getMatchNotebookFont(),
+            onChange: (value) => {
+              onMatchNotebookFontChange(value);
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
       if (id === "edit") {
         renderPanelWidgets(
           panel,
@@ -339,6 +379,10 @@ export const createFontToolbar = (
   onDisplayFontChange: (font: MindMapFont) => void,
   getDisplayFontSize: () => MindMapFontSize,
   onDisplayFontSizeChange: (fontSize: MindMapFontSize) => void,
+  getUnifyEditDisplayFont: () => boolean,
+  onUnifyEditDisplayFontChange: (value: boolean) => void,
+  getMatchNotebookFont: () => boolean,
+  onMatchNotebookFontChange: (value: boolean) => void,
   t: KuusiTranslator,
 ): HTMLElement => {
   const toolbar = document.createElement("div");
@@ -374,6 +418,10 @@ export const createFontToolbar = (
       onDisplayFontChange,
       getDisplayFontSize,
       onDisplayFontSizeChange,
+      getUnifyEditDisplayFont,
+      onUnifyEditDisplayFontChange,
+      getMatchNotebookFont,
+      onMatchNotebookFontChange,
       t,
       rebuildMenu,
     );
@@ -388,12 +436,8 @@ export const createFontToolbar = (
 
     if (!isOpen) {
       rebuildMenu();
-      menu.classList.add("is-open");
+      openKuusiDropdownMenu(menu, root);
     }
-  });
-
-  document.addEventListener("click", () => {
-    closeKuusiDropdownMenus(root);
   });
 
   dropdown.append(trigger, menu);

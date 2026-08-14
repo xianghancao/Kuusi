@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-kuusi",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Jupyter-native notebook mind map view for JupyterLab",
   "keywords": [
     "jupyter",
@@ -52,7 +52,7 @@
     "@jupyterlab/ui-components": "^4.3.5",
     "@lumino/disposable": "^2.1.2",
     "@lumino/widgets": "^2.5.0",
-    "kuusi-kernel": "0.2.4"
+    "kuusi-kernel": "0.2.5"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.5",

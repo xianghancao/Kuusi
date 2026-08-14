@@ -25,10 +25,14 @@ export type MindMapUserSettings = {
   displayFont: MindMapFont;
   editFontSize: MindMapFontSize;
   displayFontSize: MindMapFontSize;
+  unifyEditDisplayFont: boolean;
+  matchNotebookFont: boolean;
   layoutDensity: LayoutDensity;
   siblingGap: number;
   childGap: number;
   equalNodeWidth: boolean;
+  /** Fit each card to its content width, capped by `nodeWidth`. */
+  adaptiveNodeWidth: boolean;
   nodeWidth: number;
   treeDirection: TreeDirection;
   background: MindMapBackground;
@@ -43,10 +47,13 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   displayFont: DEFAULT_MIND_MAP_FONT,
   editFontSize: DEFAULT_MIND_MAP_FONT_SIZE,
   displayFontSize: DEFAULT_MIND_MAP_FONT_SIZE,
+  unifyEditDisplayFont: false,
+  matchNotebookFont: false,
   layoutDensity: "normal",
   siblingGap: LAYOUT_SIBLING_GAP.default,
   childGap: LAYOUT_CHILD_GAP.default,
   equalNodeWidth: false,
+  adaptiveNodeWidth: false,
   nodeWidth: LAYOUT_NODE_WIDTH.default,
   treeDirection: "LR",
   background: DEFAULT_MIND_MAP_BACKGROUND,
@@ -116,7 +123,9 @@ const isBackgroundPattern = (
   value === "none" ||
   value === "plain" ||
   value === "grid" ||
+  value === "grid-dense" ||
   value === "dots" ||
+  value === "dots-dense" ||
   value === "gradient";
 
 const isLegacyBackgroundPattern = (
@@ -143,6 +152,14 @@ const isEdgeLineStyle = (
   value === "dash-dot" ||
   value === "dense-dot" ||
   value === "sparse-dash";
+
+const isEdgeRouteStyle = (
+  value: unknown,
+): value is AppearanceSettings["edgeRoute"] =>
+  value === "straight" ||
+  value === "curve" ||
+  value === "orthogonal" ||
+  value === "rounded-orthogonal";
 
 const isBorderLineStyle = (
   value: unknown,
@@ -184,6 +201,9 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
     edgeStyle: isEdgeLineStyle(appearance.edgeStyle)
       ? appearance.edgeStyle
       : defaults.edgeStyle,
+    edgeRoute: isEdgeRouteStyle(appearance.edgeRoute)
+      ? appearance.edgeRoute
+      : defaults.edgeRoute,
     edgeArrowDirection: isEdgeArrowDirection(appearance.edgeArrowDirection)
       ? appearance.edgeArrowDirection
       : defaults.edgeArrowDirection,
@@ -266,6 +286,14 @@ export const normalizeMindMapUserSettings = (
       normalizeMindMapFontSize(raw.displayFontSize) ??
       legacyFontSize ??
       defaults.displayFontSize,
+    unifyEditDisplayFont:
+      typeof raw.unifyEditDisplayFont === "boolean"
+        ? raw.unifyEditDisplayFont
+        : defaults.unifyEditDisplayFont,
+    matchNotebookFont:
+      typeof raw.matchNotebookFont === "boolean"
+        ? raw.matchNotebookFont
+        : defaults.matchNotebookFont,
     layoutDensity: isLayoutDensity(raw.layoutDensity)
       ? raw.layoutDensity
       : defaults.layoutDensity,
@@ -275,6 +303,10 @@ export const normalizeMindMapUserSettings = (
       typeof raw.equalNodeWidth === "boolean"
         ? raw.equalNodeWidth
         : defaults.equalNodeWidth,
+    adaptiveNodeWidth:
+      typeof raw.adaptiveNodeWidth === "boolean"
+        ? raw.adaptiveNodeWidth
+        : defaults.adaptiveNodeWidth,
     nodeWidth: clampNodeWidthSetting(raw.nodeWidth),
     treeDirection: isTreeDirection(raw.treeDirection)
       ? raw.treeDirection
@@ -300,6 +332,9 @@ export class MindMapSettingsManager {
 
   private _plugin: ISettingRegistry.ISettings | null = null;
 
+  /** Suppress plugin.changed → emit while we are writing our own update. */
+  private _writing = 0;
+
   private _listeners = new Set<(settings: MindMapUserSettings) => void>();
 
   readonly changed = {
@@ -324,12 +359,17 @@ export class MindMapSettingsManager {
     this._plugin = plugin;
     this._settings = normalizeMindMapUserSettings(plugin.composite);
     plugin.changed.connect(() => {
+      if (this._writing > 0) {
+        return;
+      }
+
       this._settings = normalizeMindMapUserSettings(plugin.composite);
       this._emit();
     });
   }
 
   async update(partial: Partial<MindMapUserSettings>): Promise<void> {
+    const previous = this._settings;
     const next = normalizeMindMapUserSettings({
       ...this._settings,
       ...partial,
@@ -345,23 +385,106 @@ export class MindMapSettingsManager {
       return;
     }
 
-    await Promise.all([
-      this._plugin.set("theme", next.theme),
-      this._plugin.set("editFont", next.editFont),
-      this._plugin.set("displayFont", next.displayFont),
-      this._plugin.set("editFontSize", next.editFontSize),
-      this._plugin.set("displayFontSize", next.displayFontSize),
-      this._plugin.set("layoutDensity", next.layoutDensity),
-      this._plugin.set("siblingGap", next.siblingGap),
-      this._plugin.set("childGap", next.childGap),
-      this._plugin.set("equalNodeWidth", next.equalNodeWidth),
-      this._plugin.set("nodeWidth", next.nodeWidth),
-      this._plugin.set("treeDirection", next.treeDirection),
-      this._plugin.set("background", next.background),
-      this._plugin.set("backgroundPattern", next.backgroundPattern),
-      this._plugin.set("backgroundColor", next.backgroundColor),
-      this._plugin.set("appearance", next.appearance as unknown as JSONValue),
-    ]);
+    const writes: Promise<void>[] = [];
+    const enqueue = <K extends keyof MindMapUserSettings>(
+      key: K,
+      changed: boolean,
+      value: MindMapUserSettings[K],
+    ): void => {
+      if (changed) {
+        writes.push(this._plugin!.set(key, value as unknown as JSONValue));
+      }
+    };
+
+    enqueue("theme", next.theme !== previous.theme, next.theme);
+    enqueue("editFont", next.editFont !== previous.editFont, next.editFont);
+    enqueue(
+      "displayFont",
+      next.displayFont !== previous.displayFont,
+      next.displayFont,
+    );
+    enqueue(
+      "editFontSize",
+      next.editFontSize !== previous.editFontSize,
+      next.editFontSize,
+    );
+    enqueue(
+      "displayFontSize",
+      next.displayFontSize !== previous.displayFontSize,
+      next.displayFontSize,
+    );
+    enqueue(
+      "unifyEditDisplayFont",
+      next.unifyEditDisplayFont !== previous.unifyEditDisplayFont,
+      next.unifyEditDisplayFont,
+    );
+    enqueue(
+      "matchNotebookFont",
+      next.matchNotebookFont !== previous.matchNotebookFont,
+      next.matchNotebookFont,
+    );
+    enqueue(
+      "layoutDensity",
+      next.layoutDensity !== previous.layoutDensity,
+      next.layoutDensity,
+    );
+    enqueue(
+      "siblingGap",
+      next.siblingGap !== previous.siblingGap,
+      next.siblingGap,
+    );
+    enqueue("childGap", next.childGap !== previous.childGap, next.childGap);
+    enqueue(
+      "equalNodeWidth",
+      next.equalNodeWidth !== previous.equalNodeWidth,
+      next.equalNodeWidth,
+    );
+    enqueue(
+      "adaptiveNodeWidth",
+      next.adaptiveNodeWidth !== previous.adaptiveNodeWidth,
+      next.adaptiveNodeWidth,
+    );
+    enqueue("nodeWidth", next.nodeWidth !== previous.nodeWidth, next.nodeWidth);
+    enqueue(
+      "treeDirection",
+      next.treeDirection !== previous.treeDirection,
+      next.treeDirection,
+    );
+    enqueue(
+      "background",
+      next.background !== previous.background,
+      next.background,
+    );
+    enqueue(
+      "backgroundPattern",
+      next.backgroundPattern !== previous.backgroundPattern,
+      next.backgroundPattern,
+    );
+    enqueue(
+      "backgroundColor",
+      next.backgroundColor !== previous.backgroundColor,
+      next.backgroundColor,
+    );
+
+    if (
+      JSON.stringify(next.appearance) !== JSON.stringify(previous.appearance)
+    ) {
+      writes.push(
+        this._plugin.set("appearance", next.appearance as unknown as JSONValue),
+      );
+    }
+
+    if (writes.length === 0) {
+      return;
+    }
+
+    this._writing += 1;
+
+    try {
+      await Promise.all(writes);
+    } finally {
+      this._writing -= 1;
+    }
   }
 
   private _emit(): void {

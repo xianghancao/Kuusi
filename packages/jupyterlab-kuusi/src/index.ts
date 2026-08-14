@@ -25,6 +25,7 @@ import {
   pasteIcon,
   ToolbarButton,
 } from "@jupyterlab/ui-components";
+import { kuusiIcon } from "./kuusiIcon";
 import {
   NotebookMindMapDocumentWidget,
   NotebookMindMapWidgetFactory,
@@ -36,9 +37,13 @@ import {
 } from "./mindMapKeyboard";
 import { registerMindMapToolbarFactories } from "./mindMapToolbar";
 import {
+  bindMindMapFocusOwnership,
   bindNotebookToMindMapSync,
+  claimKuusiFocus,
+  ensureNotebookPanelOpen,
   renderMarkdownCellInNotebookEditor,
   revealCellInNotebookEditor,
+  splitRightOfNotebookOptions,
   syncNotebookPanelToMindMaps,
 } from "./notebookViewSync";
 import { NotebookMindMapTracker } from "./tracker";
@@ -96,7 +101,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     notebookTracker: INotebookTracker,
     toolbarRegistry: IToolbarWidgetRegistry,
     settingRegistry: ISettingRegistry,
-    translator: ITranslator,
+    _translator: ITranslator,
     palette: ICommandPalette | null,
   ) => {
     const mindMapTracker = new NotebookMindMapTracker();
@@ -131,7 +136,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
       });
     };
 
-    const trans = (translator ?? nullTranslator).load("jupyterlab");
+    // Force English for Kuusi commands/toolbars until a dedicated locale pack exists.
+    const kuusiTranslator = nullTranslator;
+    const trans = kuusiTranslator.load("jupyterlab");
     const mindMapSettings = new MindMapSettingsManager(settingRegistry);
     void mindMapSettings.ready();
 
@@ -177,7 +184,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     registerNotebookCommand(CommandIDs.pasteCellBelow, {
       label: trans.__("Paste Cell Below"),
       caption: trans.__(
-        "Paste a topic subtree, or plain text as child topics",
+        "Paste as child of the selected topic (subtree or plain text)",
       ),
       icon: pasteIcon,
       execute: (notebook) => {
@@ -218,7 +225,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       settingRegistry,
       factoryName,
       PLUGIN_ID,
-      translator,
+      kuusiTranslator,
     );
 
     const factory = new NotebookMindMapWidgetFactory(
@@ -227,7 +234,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       editorServices.mimeTypeService,
       app.commands,
       mindMapSettings,
-      translator ?? nullTranslator,
+      kuusiTranslator,
       toolbarFactory,
     );
 
@@ -236,11 +243,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     registerMindMapToolbarFactories(
       toolbarRegistry,
       factoryName,
-      translator ?? nullTranslator,
+      kuusiTranslator,
     );
 
     factory.widgetCreated.connect((_, widget) => {
       void mindMapTracker.add(widget);
+      bindMindMapFocusOwnership(widget, notebookTracker);
+      claimKuusiFocus(widget.context.path);
 
       widget.content.bindRevealCellInNotebook((cellIndex) => {
         void revealCellInNotebookEditor(
@@ -248,6 +257,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
           cellIndex,
           notebookTracker,
           docManager,
+          mindMapTracker,
         );
       });
 
@@ -279,25 +289,25 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     notebookTracker.forEach((panel) => {
-      bindNotebookToMindMapSync(panel, mindMapTracker);
+      bindNotebookToMindMapSync(panel, mindMapTracker, notebookTracker);
     });
 
     notebookTracker.widgetAdded.connect((_, panel) => {
-      bindNotebookToMindMapSync(panel, mindMapTracker);
+      bindNotebookToMindMapSync(panel, mindMapTracker, notebookTracker);
     });
 
     notebookTracker.currentChanged.connect((_, panel) => {
       if (panel) {
-        syncNotebookPanelToMindMaps(panel, mindMapTracker);
+        syncNotebookPanelToMindMaps(panel, mindMapTracker, notebookTracker);
       }
     });
 
-    const openMindMap = (path: string) =>
-      docManager.openOrReveal(path, factoryName);
-
     app.commands.addCommand(CommandIDs.openNotebookMindMap, {
       label: trans.__("Kuusi"),
-      caption: trans.__("Open this notebook in the Kuusi mind map view"),
+      caption: trans.__(
+        "Open this notebook beside Kuusi (left: notebook, right: mind map)",
+      ),
+      icon: kuusiIcon,
       isEnabled: (args: OpenNotebookMindMapArgs) =>
         Boolean(resolveNotebookPath(args, notebookTracker)),
       execute: async (args: OpenNotebookMindMapArgs) => {
@@ -307,9 +317,33 @@ const plugin: JupyterFrontEndPlugin<void> = {
           return;
         }
 
-        const widget = await openMindMap(path);
+        const notebook = await ensureNotebookPanelOpen(
+          path,
+          notebookTracker,
+          docManager,
+        );
+        const openOptions = splitRightOfNotebookOptions(notebook);
+        const existing = docManager.findWidget(path, factoryName);
+        const wasAttached = Boolean(existing?.isAttached);
+
+        const widget = docManager.openOrReveal(
+          path,
+          factoryName,
+          undefined,
+          openOptions,
+        );
+
+        // openOrReveal only applies split options when attaching a new widget;
+        // re-dock an already-open Kuusi to the right of the notebook.
+        if (widget && notebook && !notebook.isDisposed && wasAttached) {
+          app.shell.add(widget, "main", openOptions);
+        }
 
         if (widget instanceof NotebookMindMapDocumentWidget) {
+          bindMindMapFocusOwnership(widget, notebookTracker);
+          claimKuusiFocus(path);
+          widget.content.focusMapViewport();
+
           let activeIndex = -1;
 
           notebookTracker.forEach((panel) => {
@@ -323,14 +357,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
           }
 
           if (activeIndex >= 0) {
+            // requestOpenCenter already follows dock/layout settling. A single
+            // request is important: delayed requests must not restart
+            // auto-centering after the user has begun panning.
             widget.content.requestOpenCenter(activeIndex);
-
-            // Layout/viewport may not be ready on the first sync; nudge again.
-            window.requestAnimationFrame(() => {
-              if (!widget.isDisposed && activeIndex >= 0) {
-                widget.content.requestOpenCenter(activeIndex);
-              }
-            });
+            widget.content.focusMapViewport();
           }
         }
 
@@ -345,7 +376,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
         new ToolbarButton({
           className: "jp-KuusiNotebookOpenButton",
           label: trans.__("Kuusi"),
-          tooltip: trans.__("Open this notebook in the Kuusi mind map view"),
+          tooltip: trans.__(
+            "Open beside Kuusi (notebook left, mind map right)",
+          ),
           onClick: () => {
             void app.commands.execute(CommandIDs.openNotebookMindMap, {
               path: panel.context.path,

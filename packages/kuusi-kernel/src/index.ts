@@ -4,5 +4,7 @@ export * from "./outline-view";
 export * from "./notebook-tree";
 export * from "./layout";
 export * from "./outline-navigation";
+export * from "./spatial-navigation";
 export * from "./node-frame";
 export * from "./subtree-clipboard";
+export * from "./clipboard-markdown";

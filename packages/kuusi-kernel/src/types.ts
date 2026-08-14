@@ -4,6 +4,30 @@ export type NotebookCell = {
   metadata?: Record<string, unknown>;
 };
 
+/**
+ * Deepest ATX / visual heading Kuusi paints as H1–H3.
+ * Deeper outline levels (4…{@MAX_OUTLINE_DEPTH}) persist in metadata and
+ * render with Body chrome.
+ */
+export const MAX_OUTLINE_HEADING_LEVEL = 3;
+
+/** Deepest structural nesting Kuusi persists (metadata.outlineLevel / headingLevel). */
+export const MAX_OUTLINE_DEPTH = 20;
+
+/** Visual heading for frames / ATX: H1–H3, else Body (`null`). */
+export const outlineVisualHeadingLevel = (
+  level: number | null | undefined,
+): number | null => {
+  if (typeof level !== "number" || level < 1) {
+    return null;
+  }
+
+  return level <= MAX_OUTLINE_HEADING_LEVEL ? level : null;
+};
+
+export const clampOutlineDepth = (level: number): number =>
+  Math.min(MAX_OUTLINE_DEPTH, Math.max(1, Math.round(level)));
+
 export type NotebookContent = {
   cells: NotebookCell[];
 };
@@ -13,6 +37,11 @@ export type OutlineNode = {
   id: string;
   /** Index into notebook.cells, or null for the virtual root */
   cellIndex: number | null;
+  /**
+   * Structural outline depth (1…{@MAX_OUTLINE_DEPTH}), or null for plain Body
+   * content that does not open a nesting frame. Levels above
+   * {@link MAX_OUTLINE_HEADING_LEVEL} still nest, but use Body styling.
+   */
   headingLevel: number | null;
   title: string;
   children: OutlineNode[];
@@ -33,6 +62,13 @@ export type OutlineEdge = {
 
 /** Dagre rank direction for the outline tree layout. */
 export type TreeDirection = "TB" | "BT" | "LR" | "RL";
+
+/** How parent→child connectors are routed between cards. */
+export type EdgeRouteStyle =
+  | "straight"
+  | "curve"
+  | "orthogonal"
+  | "rounded-orthogonal";
 
 /** Spacing preset for mind map node layout. */
 export type LayoutDensity = "compact" | "normal" | "loose";

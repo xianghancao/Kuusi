@@ -12,22 +12,25 @@ const isMac =
 export const modKeyLabel = isMac ? "⌘" : "Ctrl";
 
 export const MIND_MAP_SHORTCUTS: ShortcutGuideEntry[] = [
-  { keys: "↑ ↓", description: "Move between siblings" },
-  { keys: "← →", description: "Move to parent / first child" },
+  { keys: "↑ ↓ ← →", description: "Move selection on the canvas" },
   { keys: "Enter", description: "Insert sibling (child when on root)" },
   { keys: "Shift+Enter", description: "Render node and insert sibling (child on root)" },
   {
     keys: `${modKeyLabel}+Enter`,
     description: "Render node and stay on current node",
   },
-  { keys: "Tab", description: "Insert child node" },
+  { keys: "Tab", description: "Insert child node (also while editing)" },
   { keys: "Space", description: "Collapse / expand branch" },
+  {
+    keys: `${modKeyLabel}+Click`,
+    description: "Multi-select nodes (drag moves them together)",
+  },
   { keys: `${modKeyLabel}+C`, description: "Copy selected topic and its subtree" },
   { keys: `${modKeyLabel}+X`, description: "Cut selected topic and its subtree" },
   {
     keys: `${modKeyLabel}+V`,
     description:
-      "Paste subtree as sibling, or external text as child topics (one per line)",
+      "Paste Markdown outline as child hierarchy, or Kuusi subtree / plain lines",
   },
   { keys: `${modKeyLabel}+Z`, description: "Undo" },
   {
@@ -55,7 +58,8 @@ export const FORMAT_SHORTCUTS: ShortcutGuideEntry[] = [
 export const FORMAT_GUIDE_NOTES: ShortcutGuideEntry[] = [
   {
     keys: "Heading",
-    description: "Outline headings change the mind map tree (H1 = root)",
+    description:
+      "H1–H3 outline chrome or Body; nesting persists to depth 20 with Body style",
   },
   {
     keys: "Aa",
@@ -139,10 +143,6 @@ export const createGuideToolbar = (
   trigger.addEventListener("click", (event) => {
     event.stopPropagation();
     setOpen(!menu.classList.contains("is-open"));
-  });
-
-  document.addEventListener("click", () => {
-    setOpen(false);
   });
 
   dropdown.append(trigger, menu);

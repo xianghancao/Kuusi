@@ -1,0 +1,44 @@
+# Close pull requests from anyone other than the repository owner.
+# Policy: CONTRIBUTING.md — external code contributions are not accepted pre-1.0.
+name: Decline external PRs
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  decline:
+    if: github.event.pull_request.author_association != 'OWNER'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment and close
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "Thanks for your interest in Kuusi.",
+              "",
+              "Until **1.0.0**, this repository does **not accept external pull requests** or code contributions. Development is maintainer-only.",
+              "",
+              "Please open a **GitHub Issue** for bugs or feature ideas instead:",
+              "https://github.com/xianghancao/Kuusi/issues",
+              "",
+              "Details: https://github.com/xianghancao/Kuusi/blob/main/CONTRIBUTING.md",
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              state: "closed",
+            });

@@ -109,7 +109,7 @@ export const registerMindMapToolbarFactories = (
 
     return new ToolbarButton({
       icon: pasteIcon,
-      tooltip: "Paste subtree or plain text as child topics",
+      tooltip: "Paste as child of selection (subtree or plain text)",
       onClick: () => {
         const model = panel.content.model;
 

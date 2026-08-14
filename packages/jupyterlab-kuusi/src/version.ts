@@ -1,5 +1,5 @@
 /** Keep in sync with packages/jupyterlab-kuusi/package.json */
-export const KUUSI_VERSION = "0.2.4";
+export const KUUSI_VERSION = "0.2.5";
 
 export const KUUSI_GITHUB_URL = "https://github.com/xianghancao/kuusi";
 

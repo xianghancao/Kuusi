@@ -1,4 +1,9 @@
 import type { NotebookCell, OutlineNode } from "./types";
+import {
+  clampOutlineDepth,
+  MAX_OUTLINE_DEPTH,
+  MAX_OUTLINE_HEADING_LEVEL,
+} from "./types";
 import { getKuusiNodeMetadata } from "./node-frame";
 
 const joinCellSource = (source: string | string[]) =>
@@ -21,7 +26,8 @@ export const parseMarkdownHeading = (source: string) => {
 
 const cellTitle = (cell: NotebookCell, cellIndex: number) => {
   const source = joinCellSource(cell.source).trim();
-  const heading = cell.cell_type === "markdown" ? parseMarkdownHeading(source) : null;
+  const heading =
+    cell.cell_type === "markdown" ? parseMarkdownHeading(source) : null;
 
   if (heading) {
     return heading.title;
@@ -31,46 +37,64 @@ const cellTitle = (cell: NotebookCell, cellIndex: number) => {
   return firstLine ?? "";
 };
 
-export const resolveCellHeading = (
+/**
+ * Read structural outline depth (1…{@MAX_OUTLINE_DEPTH}) for a cell.
+ * - ATX `#`…`######` map to levels 1–6 (4–6 nest but paint as Body).
+ * - `metadata.kuusi.outlineLevel` or legacy `headingLevel` for 1–20.
+ */
+export const resolveCellOutlineLevel = (
   cell: NotebookCell,
 ): { level: number; title: string } | null => {
   const source = joinCellSource(cell.source);
+  const title = cellTitle(cell, 0);
   const markdownHeading =
     cell.cell_type === "markdown" ? parseMarkdownHeading(source.trim()) : null;
+  const meta = getKuusiNodeMetadata(cell);
+  const metaLevel =
+    typeof meta?.outlineLevel === "number"
+      ? meta.outlineLevel
+      : typeof meta?.headingLevel === "number"
+        ? meta.headingLevel
+        : null;
 
+  // ATX is the source of truth when present (including ####–###### as depth 4–6).
   if (markdownHeading) {
-    return markdownHeading;
+    return {
+      level: clampOutlineDepth(markdownHeading.level),
+      title: markdownHeading.title || title,
+    };
   }
 
-  const metadataLevel = getKuusiNodeMetadata(cell)?.headingLevel;
-
   if (
-    typeof metadataLevel === "number" &&
-    metadataLevel >= 1 &&
-    metadataLevel <= 6
+    typeof metaLevel === "number" &&
+    metaLevel >= 1 &&
+    metaLevel <= MAX_OUTLINE_DEPTH
   ) {
-    return { level: metadataLevel, title: cellTitle(cell, 0) };
+    return { level: clampOutlineDepth(metaLevel), title };
   }
 
   return null;
 };
 
-/** Heading level for a cell from markdown `#` or `metadata.kuusi.headingLevel`. */
-export const getCellHeadingLevel = (cell: NotebookCell): number | null =>
-  resolveCellHeading(cell)?.level ?? null;
+/** @deprecated Prefer {@link resolveCellOutlineLevel}. */
+export const resolveCellHeading = resolveCellOutlineLevel;
 
-type HeadingFrame = {
+/** Structural outline depth for a cell, or null for plain Body content. */
+export const getCellHeadingLevel = (cell: NotebookCell): number | null =>
+  resolveCellOutlineLevel(cell)?.level ?? null;
+
+type OutlineFrame = {
   level: number;
   node: OutlineNode;
 };
 
 /**
- * Build a tree from notebook cells using markdown heading levels.
+ * Build a tree from notebook cells using outline depth.
  *
- * - `#`（一级标题）→ 导图根节点（虚拟 root 的子节点，布局时不显示虚拟 root）
- * - `##` / `###` / … → 根节点下按层级嵌套
- * - 其他 cell → 挂在当前标题节点下
- * - 第一个 `#` 之前的内容，或没有 `#` 时出现的 `##+`，会被忽略
+ * - Level 1 → mind-map roots under the virtual root
+ * - Levels 2…{@MAX_OUTLINE_DEPTH} → nest under the nearest shallower frame
+ * - Plain Body (no level) → hang under the current frame (no new frame)
+ * - Content before the first level-1 node is skipped
  */
 export const buildNotebookOutline = (cells: NotebookCell[]): OutlineNode => {
   const root: OutlineNode = {
@@ -80,29 +104,27 @@ export const buildNotebookOutline = (cells: NotebookCell[]): OutlineNode => {
     title: "",
     children: [],
   };
-  const headingStack: HeadingFrame[] = [];
+  const stack: OutlineFrame[] = [];
 
   cells.forEach((cell, cellIndex) => {
-    const heading = resolveCellHeading(cell);
+    const outline = resolveCellOutlineLevel(cell);
 
-    if (heading) {
+    if (outline) {
       while (
-        headingStack.length > 0 &&
-        headingStack[headingStack.length - 1]!.level >= heading.level
+        stack.length > 0 &&
+        stack[stack.length - 1]!.level >= outline.level
       ) {
-        headingStack.pop();
+        stack.pop();
       }
     }
 
     let parent: OutlineNode | null = null;
 
-    if (heading) {
+    if (outline) {
       parent =
-        heading.level === 1
-          ? root
-          : headingStack[headingStack.length - 1]?.node ?? null;
+        outline.level === 1 ? root : (stack[stack.length - 1]?.node ?? null);
     } else {
-      parent = headingStack[headingStack.length - 1]?.node ?? null;
+      parent = stack[stack.length - 1]?.node ?? null;
     }
 
     if (!parent) {
@@ -112,17 +134,23 @@ export const buildNotebookOutline = (cells: NotebookCell[]): OutlineNode => {
     const node: OutlineNode = {
       id: `cell-${cellIndex}`,
       cellIndex,
-      headingLevel: heading?.level ?? null,
+      headingLevel: outline?.level ?? null,
       title: cellTitle(cell, cellIndex),
       children: [],
     };
 
     parent.children.push(node);
 
-    if (heading) {
-      headingStack.push({ level: heading.level, node });
+    if (outline) {
+      stack.push({ level: outline.level, node });
     }
   });
 
   return root;
 };
+
+/** True when a structural level should use H1–H3 chrome (not Body). */
+export const isVisualOutlineHeading = (level: number | null): boolean =>
+  typeof level === "number" &&
+  level >= 1 &&
+  level <= MAX_OUTLINE_HEADING_LEVEL;

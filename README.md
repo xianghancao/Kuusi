@@ -36,16 +36,23 @@
 
 | Component | Version |
 |-----------|---------|
-| **Kuusi** | `0.2.4` |
-| `kuusi-kernel` | `0.2.4` |
-| `jupyterlab-kuusi` | `0.2.4` |
+| **Kuusi** | `0.2.5` |
+| `kuusi-kernel` | `0.2.5` |
+| `jupyterlab-kuusi` | `0.2.5` |
 
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
+
+## Links
+* Feedback: [Discourse](https://discourse.jupyter.org/t/kuusi-jupyterlab-notebook-mind-map-feedback-welcome/38802) 
+* Community: [X.com @KussiMindMap](https://x.com/KussiMindMap)
+* PyPI: [pypi.org/project/jupyterlab-kuusi/](https://pypi.org/project/jupyterlab-kuusi/)
+* Github: [github.com/xianghancao/kuusi/](https://github.com/xianghancao/kuusi/) 
+* Changelog: [Kuusi/CHANGELOG](https://github.com/xianghancao/kuusi/blob/main/CHANGELOG.md)
 
 ## Features
 
 - **Native Jupyter cells** on a pannable, zoomable canvas
-- **Heading-driven tree** — `#` roots, nested `##`–`######`, other cells attach to the current heading
+- **Heading-driven tree** — `#`–`###` roots/branches, nesting to depth 20 (levels 4+ keep Body chrome via metadata), other cells attach as Body under the current frame
 - **Edit & structure** — Tab/Enter insert nodes, drag-and-drop reorder, two-way notebook sync
 - **Appearance** — themes, fonts, line/border style, backgrounds; settings persist across refresh
 - **Format toolbar** (edit mode) — headings, inline styles, lists, tables, images, links
@@ -343,8 +350,8 @@ CONTRIBUTING.md
 
 ## Contributing
 
-Bug reports, feature ideas, and pull requests are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR.
+Bug reports and feature ideas are welcome via [Issues](https://github.com/xianghancao/Kuusi/issues). **External pull requests are not accepted** before 1.0 — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-BSD-3-Clause (extension)
+BSD-3-Clause (`jupyterlab-kuusi`, `kuusi-kernel`)

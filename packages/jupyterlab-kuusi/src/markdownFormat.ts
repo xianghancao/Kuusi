@@ -1,6 +1,10 @@
 import type { IMarkdownCellModel } from "@jupyterlab/cells";
 import type { CodeEditor } from "@jupyterlab/codeeditor";
-import { LEGACY_CELL_METADATA_KEY } from "kuusi-kernel";
+import {
+  LEGACY_CELL_METADATA_KEY,
+  MAX_OUTLINE_DEPTH,
+  MAX_OUTLINE_HEADING_LEVEL,
+} from "kuusi-kernel";
 
 const LIST_PREFIX_PATTERN =
   /^(?:\d+\.\s+|[-*+–]\s+(?:\[[ xX]\]\s+)?)/;
@@ -260,6 +264,33 @@ const applyHeading = (editor: CodeEditor.IEditor, level: number): void => {
   editor.focus();
 };
 
+/** Strip markdown `#` heading markers from the selected lines (body / plain text). */
+const clearHeadingMarkers = (editor: CodeEditor.IEditor): void => {
+  const { startLine, endLine } = getSelectedLineRange(editor);
+  const source = editor.model.sharedModel.getSource();
+  const lines = source.split("\n");
+  let changed = false;
+
+  for (let line = startLine; line <= endLine; line += 1) {
+    const lineText = lines[line] ?? "";
+    const trimmedStart = lineText.trimStart();
+    const leading = lineText.slice(0, lineText.length - trimmedStart.length);
+    const content = stripLinePrefix(lineText, /^#+\s*/).slice(leading.length);
+    const next = `${leading}${content.trimStart()}`;
+
+    if (next !== lineText) {
+      lines[line] = next;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    editor.model.sharedModel.setSource(lines.join("\n"));
+  }
+
+  editor.focus();
+};
+
 const readCellKuusiMetadata = (
   cell: IMarkdownCellModel,
 ): Record<string, unknown> | null => {
@@ -285,24 +316,29 @@ export const getMetadataOutlineHeadingLevel = (
     return null;
   }
 
-  const level = kuusi.headingLevel;
+  const level =
+    typeof kuusi.outlineLevel === "number"
+      ? kuusi.outlineLevel
+      : kuusi.headingLevel;
 
-  if (typeof level !== "number" || level < 1 || level > 6) {
+  if (typeof level !== "number" || level < 1 || level > MAX_OUTLINE_DEPTH) {
     return null;
   }
 
-  return level;
+  // Toolbar Heading control only exposes H1–H3; deeper levels show as Body.
+  return level <= MAX_OUTLINE_HEADING_LEVEL ? level : null;
 };
 
 const clearMetadataOutlineHeading = (cell: IMarkdownCellModel): void => {
   const kuusi = readCellKuusiMetadata(cell);
 
-  if (!kuusi || typeof kuusi.headingLevel !== "number") {
+  if (!kuusi) {
     return;
   }
 
   const next = { ...kuusi };
   delete next.headingLevel;
+  delete next.outlineLevel;
 
   if (Object.keys(next).length === 0) {
     cell.deleteMetadata("kuusi");
@@ -319,10 +355,27 @@ export const applyOutlineHeading = (
   // Prefer markdown `#` markers as the single source of truth while editing.
   clearMetadataOutlineHeading(cell);
 
+  const clamped = Math.min(
+    MAX_OUTLINE_HEADING_LEVEL,
+    Math.max(1, Math.round(level)),
+  );
+
   // Always write/toggle via source. Metadata-only empty Tab/Enter nodes used to
   // "toggle off" on the first Heading click (clear metadata, write nothing), so
   // users had to click twice — once to clear, once to insert `#`.
-  applyHeading(editor, level);
+  applyHeading(editor, clamped);
+};
+
+/**
+ * Clear outline heading: remove `#` markers and `metadata.kuusi.headingLevel`
+ * so the cell is body / plain text (attaches under the nearest heading).
+ */
+export const applyOutlineBody = (
+  editor: CodeEditor.IEditor,
+  cell: IMarkdownCellModel,
+): void => {
+  clearMetadataOutlineHeading(cell);
+  clearHeadingMarkers(editor);
 };
 
 const clearFormatting = (editor: CodeEditor.IEditor): void => {
@@ -509,5 +562,48 @@ export const MarkdownFormat = {
       urlStart,
       urlStart + DEFAULT_LINK_URL.length,
     );
+  },
+  /** Wrap selection (or empty cursor) in `$…$`. */
+  inlineMath: (editor: CodeEditor.IEditor) =>
+    toggleWrapSelection(editor, "$", "$"),
+  /** Wrap selection (or empty cursor) in `$$…$$`. */
+  displayMath: (editor: CodeEditor.IEditor) =>
+    toggleWrapSelection(editor, "$$", "$$"),
+  /** Insert raw text at the cursor (used for Greek/symbol chips inside math). */
+  insertText: (editor: CodeEditor.IEditor, text: string) => {
+    insertAtCursor(editor, text);
+  },
+  /**
+   * Insert a LaTeX snippet.
+   * `mode: "inline"` → `$latex$`; `mode: "display"` → `$$\nlatex\n$$`.
+   * Optional `select` substring is selected after insert for easy overwrite.
+   */
+  insertLatex: (
+    editor: CodeEditor.IEditor,
+    latex: string,
+    mode: "inline" | "display" = "inline",
+    select?: string,
+  ) => {
+    const snippet =
+      mode === "display" ? `$$\n${latex}\n$$` : `$${latex}$`;
+    const needle = select ?? "";
+    const needleIndex = needle ? snippet.indexOf(needle) : -1;
+
+    if (needleIndex >= 0) {
+      insertAtCursor(
+        editor,
+        snippet,
+        needleIndex,
+        needleIndex + needle.length,
+      );
+      return;
+    }
+
+    // Place caret inside the math delimiters when nothing to select.
+    const caret =
+      mode === "display"
+        ? 3 + latex.length
+        : 1 + latex.length;
+    insertAtCursor(editor, snippet, caret, caret);
   },
 };

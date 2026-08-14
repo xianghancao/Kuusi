@@ -1,4 +1,4 @@
-import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import type { KuusiTranslator } from "./kuusiI18n";
 import { appendKeyboardGuideContent } from "./keyboardGuide";
 import { applyKuusiLogo } from "./kuusiLogo";
@@ -502,12 +502,8 @@ export const createProductMenu = (
 
     if (!isOpen) {
       setSection(lastProductSection);
-      menu.classList.add("is-open");
+      openKuusiDropdownMenu(menu, root);
     }
-  });
-
-  document.addEventListener("click", () => {
-    closeKuusiDropdownMenus(root);
   });
 
   wrapper.append(trigger, menu);

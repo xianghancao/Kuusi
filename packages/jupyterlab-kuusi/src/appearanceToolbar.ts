@@ -1,10 +1,12 @@
 import { APPEARANCE_COLOR_SWATCHES } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
-import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import type { PanelWidget } from "./panelWidgets";
 import { renderPanelWidgets } from "./panelWidgets";
-import { mountSecondaryMenu } from "./secondaryMenu";
-import { LAYOUT_NODE_WIDTH } from "kuusi-kernel";
+import { mountSecondaryMenu, type SecondaryMenuController } from "./secondaryMenu";
+import { LAYOUT_NODE_WIDTH, type EdgeRouteStyle } from "kuusi-kernel";
+
+export type { EdgeRouteStyle };
 
 export type EdgeLineStyle =
   | "solid"
@@ -33,6 +35,7 @@ export type LineStyle = EdgeLineStyle;
 
 export type AppearanceSettings = {
   edgeStyle: EdgeLineStyle;
+  edgeRoute: EdgeRouteStyle;
   edgeArrowDirection: EdgeArrowDirection;
   edgeArrowStyle: EdgeArrowStyle;
   edgeWidth: string;
@@ -52,6 +55,7 @@ export type AppearanceSettings = {
 
 export const DEFAULT_APPEARANCE: AppearanceSettings = {
   edgeStyle: "solid",
+  edgeRoute: "orthogonal",
   edgeArrowDirection: "none",
   edgeArrowStyle: "triangle",
   edgeWidth: "3pt",
@@ -74,6 +78,13 @@ const EDGE_LINE_STYLES: Array<{ value: EdgeLineStyle; label: string }> = [
   { value: "dash-dot", label: "Dash dot" },
   { value: "dense-dot", label: "Dense dot" },
   { value: "sparse-dash", label: "Sparse dash" },
+];
+
+const EDGE_ROUTE_STYLES: Array<{ value: EdgeRouteStyle; label: string }> = [
+  { value: "straight", label: "Straight" },
+  { value: "curve", label: "Curve" },
+  { value: "orthogonal", label: "Orthogonal" },
+  { value: "rounded-orthogonal", label: "Rounded" },
 ];
 
 const BORDER_LINE_STYLES: Array<{ value: BorderLineStyle; label: string }> = [
@@ -367,6 +378,7 @@ export const applyAppearanceToScene = (
   settings: AppearanceSettings,
 ): void => {
   scene.dataset.kuusiEdgeStyle = settings.edgeStyle;
+  scene.dataset.kuusiEdgeRoute = settings.edgeRoute;
   scene.dataset.kuusiEdgeArrowDirection = settings.edgeArrowDirection;
   scene.dataset.kuusiEdgeArrowStyle = settings.edgeArrowStyle;
   scene.dataset.kuusiNodeBorderStyle = settings.nodeBorderStyle;
@@ -403,6 +415,45 @@ const createLineStylePreview = (style: EdgeLineStyle): HTMLElement => {
   const preview = document.createElement("span");
   preview.className = `jp-KuusiAppearancePreview jp-KuusiAppearancePreview-line-style is-${style}`;
   preview.setAttribute("aria-hidden", "true");
+  return preview;
+};
+
+const createEdgeRoutePreview = (route: EdgeRouteStyle): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className = "jp-KuusiAppearancePreview jp-KuusiAppearancePreview-edge-route";
+  preview.setAttribute("aria-hidden", "true");
+
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", "56");
+  svg.setAttribute("height", "28");
+  svg.setAttribute("viewBox", "0 0 56 28");
+
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "currentColor");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linejoin", "round");
+
+  switch (route) {
+    case "straight":
+      path.setAttribute("d", "M 6 6 L 50 22");
+      break;
+    case "curve":
+      path.setAttribute("d", "M 6 6 C 28 6, 28 22, 50 22");
+      break;
+    case "orthogonal":
+      path.setAttribute("d", "M 6 6 L 28 6 L 28 22 L 50 22");
+      break;
+    case "rounded-orthogonal":
+      path.setAttribute("d", "M 6 6 L 22 6 Q 28 6 28 12 L 28 16 Q 28 22 34 22 L 50 22");
+      break;
+    default:
+      path.setAttribute("d", "M 6 6 L 28 6 L 28 22 L 50 22");
+  }
+
+  svg.appendChild(path);
+  preview.appendChild(svg);
   return preview;
 };
 
@@ -567,7 +618,7 @@ export type AppearanceNodeFillApi = {
   setSelectedFill: (color: string) => void;
 };
 
-type LineSection = "style" | "arrow" | "arrowStyle" | "width" | "color";
+type LineSection = "style" | "route" | "arrow" | "arrowStyle" | "width" | "color";
 type NodeSection = "width" | "fill" | "border" | "corner" | "selection";
 
 let lastLineSection: LineSection = "style";
@@ -575,6 +626,7 @@ let lastNodeSection: NodeSection = "width";
 
 export type NodeWidthMenuState = {
   equalNodeWidth: boolean;
+  adaptiveNodeWidth: boolean;
   nodeWidth: number;
 };
 
@@ -582,6 +634,7 @@ export type NodeWidthMenuApi = {
   getState: () => NodeWidthMenuState;
   onChange: (state: {
     equalNodeWidth?: boolean;
+    adaptiveNodeWidth?: boolean;
     nodeWidth?: number;
   }) => void;
 };
@@ -593,11 +646,12 @@ export const fillLineAppearanceMenu = (
   onChange: (settings: AppearanceSettings) => void,
   onRebuild: () => void,
   t: KuusiTranslator,
-): void => {
-  mountSecondaryMenu(menu, {
+): SecondaryMenuController<LineSection> => {
+  return mountSecondaryMenu(menu, {
     ariaLabel: t.connectorLineAppearance(),
     sections: [
       { id: "style", label: t.style() },
+      { id: "route", label: t.route() },
       { id: "arrow", label: t.arrow() },
       { id: "arrowStyle", label: t.arrowStyle() },
       { id: "width", label: t.width() },
@@ -625,6 +679,25 @@ export const fillLineAppearanceMenu = (
             })),
             onChange: (value) => {
               patch({ edgeStyle: value as EdgeLineStyle });
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "route") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: settings.edgeRoute,
+            options: EDGE_ROUTE_STYLES.map(({ value, label }) => ({
+              value,
+              label,
+              preview: () => createEdgeRoutePreview(value),
+            })),
+            onChange: (value) => {
+              patch({ edgeRoute: value as EdgeRouteStyle });
               onRebuild();
             },
           },
@@ -723,8 +796,8 @@ export const fillNodeAppearanceMenu = (
   nodeWidth: NodeWidthMenuApi,
   onRebuild: () => void,
   t: KuusiTranslator,
-): void => {
-  mountSecondaryMenu(menu, {
+): SecondaryMenuController<NodeSection> => {
+  return mountSecondaryMenu(menu, {
     ariaLabel: t.nodeAppearance(),
     sections: [
       { id: "width", label: t.width() },
@@ -750,7 +823,9 @@ export const fillNodeAppearanceMenu = (
         renderPanelWidgets(panel, [
           {
             kind: "slider",
-            label: t.nodeWidth(),
+            label: widthState.adaptiveNodeWidth
+              ? t.nodeWidthMax()
+              : t.nodeWidth(),
             value: widthState.nodeWidth,
             min: LAYOUT_NODE_WIDTH.min,
             max: LAYOUT_NODE_WIDTH.max,
@@ -766,6 +841,16 @@ export const fillNodeAppearanceMenu = (
             value: widthState.equalNodeWidth,
             onChange: (equalNodeWidth) => {
               nodeWidth.onChange({ equalNodeWidth });
+              onRebuild();
+            },
+          },
+          {
+            kind: "toggle",
+            label: t.adaptiveNodeWidth(),
+            title: t.adaptiveNodeWidthTitle(),
+            value: widthState.adaptiveNodeWidth,
+            onChange: (adaptiveNodeWidth) => {
+              nodeWidth.onChange({ adaptiveNodeWidth });
               onRebuild();
             },
           },
@@ -945,12 +1030,20 @@ export const fillNodeAppearanceMenu = (
   });
 };
 
-const createGroupedDropdown = (
+const createGroupedDropdown = <Id extends string>(
   root: HTMLElement,
   buttonLabel: string,
   title: string,
-  buildMenu: (menu: HTMLElement, rebuild: () => void) => void,
-): HTMLElement => {
+  buildMenu: (
+    menu: HTMLElement,
+    refreshPanel: () => void,
+  ) => SecondaryMenuController<Id>,
+): {
+  wrapper: HTMLElement;
+  remount: () => void;
+  refreshPanel: () => void;
+  isOpen: () => boolean;
+} => {
   const wrapper = document.createElement("div");
   wrapper.className = "jp-KuusiFormatDropdown jp-KuusiAppearanceDropdown";
 
@@ -968,17 +1061,23 @@ const createGroupedDropdown = (
     "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiAppearanceDropdown-menu jp-KuusiSecondaryMenu-host";
   menu.setAttribute("role", "menu");
 
-  const rebuild = () => {
+  let controller: SecondaryMenuController<Id> | null = null;
+
+  const refreshPanel = (): void => {
+    controller?.refresh();
+  };
+
+  const remount = (): void => {
     const wasOpen = menu.classList.contains("is-open");
     menu.replaceChildren();
-    buildMenu(menu, rebuild);
+    controller = buildMenu(menu, refreshPanel);
 
     if (wasOpen) {
-      menu.classList.add("is-open");
+      openKuusiDropdownMenu(menu, root);
     }
   };
 
-  rebuild();
+  remount();
 
   button.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -986,18 +1085,26 @@ const createGroupedDropdown = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
-      rebuild();
-      menu.classList.add("is-open");
+      refreshPanel();
+      openKuusiDropdownMenu(menu, root);
     }
   });
 
   wrapper.append(button, menu);
-  return wrapper;
+  return {
+    wrapper,
+    remount,
+    refreshPanel,
+    isOpen: () => menu.classList.contains("is-open"),
+  };
 };
 
 export type AppearanceToolbarHandle = {
   node: HTMLElement;
+  /** Remount Line/Node shells (e.g. after notebook is ready). */
   refresh: () => void;
+  /** Sync selection-dependent Node → Fill UI without remounting shells. */
+  syncSelection: () => void;
 };
 
 export const createAppearanceToolbar = (
@@ -1013,65 +1120,42 @@ export const createAppearanceToolbar = (
   toolbar.setAttribute("role", "group");
   toolbar.setAttribute("aria-label", t.appearance());
 
-  let lineDropdown: HTMLElement;
-  let nodeDropdown: HTMLElement;
+  const lineDropdown = createGroupedDropdown(
+    root,
+    t.line(),
+    t.connectorLineAppearance(),
+    (menu, refreshPanel) =>
+      fillLineAppearanceMenu(root, menu, getSettings, onChange, refreshPanel, t),
+  );
+  const nodeDropdown = createGroupedDropdown(
+    root,
+    t.node(),
+    t.nodeAppearance(),
+    (menu, refreshPanel) =>
+      fillNodeAppearanceMenu(
+        root,
+        menu,
+        getSettings,
+        onChange,
+        nodeFill,
+        nodeWidth,
+        refreshPanel,
+        t,
+      ),
+  );
 
-  const rebuild = () => {
-    const openLabels = new Set(
-      Array.from(toolbar.querySelectorAll(".jp-KuusiAppearanceDropdown-menu.is-open"))
-        .map((menu) => menu.previousElementSibling)
-        .filter((button): button is HTMLButtonElement => button instanceof HTMLButtonElement)
-        .map((button) => button.getAttribute("aria-label"))
-        .filter((label): label is string => Boolean(label)),
-    );
-
-    lineDropdown = createGroupedDropdown(
-      root,
-      t.line(),
-      t.connectorLineAppearance(),
-      (menu, onRebuild) => {
-        fillLineAppearanceMenu(root, menu, getSettings, onChange, onRebuild, t);
-      },
-    );
-    nodeDropdown = createGroupedDropdown(
-      root,
-      t.node(),
-      t.nodeAppearance(),
-      (menu, onRebuild) => {
-        fillNodeAppearanceMenu(
-          root,
-          menu,
-          getSettings,
-          onChange,
-          nodeFill,
-          nodeWidth,
-          onRebuild,
-          t,
-        );
-      },
-    );
-
-    toolbar.replaceChildren(lineDropdown, nodeDropdown);
-
-    toolbar.querySelectorAll(".jp-KuusiAppearanceDropdown").forEach((wrapper) => {
-      const button = wrapper.querySelector(".jp-KuusiAppearanceDropdown-btn");
-      const menu = wrapper.querySelector(".jp-KuusiAppearanceDropdown-menu");
-      const label = button?.getAttribute("aria-label");
-
-      if (menu && label && openLabels.has(label)) {
-        menu.classList.add("is-open");
-      }
-    });
-  };
-
-  rebuild();
-
-  document.addEventListener("click", () => {
-    closeKuusiDropdownMenus(root);
-  });
+  toolbar.replaceChildren(lineDropdown.wrapper, nodeDropdown.wrapper);
 
   return {
     node: toolbar,
-    refresh: rebuild,
+    refresh: () => {
+      lineDropdown.remount();
+      nodeDropdown.remount();
+    },
+    syncSelection: () => {
+      if (nodeDropdown.isOpen()) {
+        nodeDropdown.refreshPanel();
+      }
+    },
   };
 };

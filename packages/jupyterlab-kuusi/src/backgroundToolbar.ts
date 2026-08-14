@@ -1,6 +1,6 @@
 import { BACKGROUND_COLOR_SWATCHES } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
-import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import { renderPanelWidgets } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
 
@@ -9,7 +9,9 @@ export type MindMapBackgroundPattern =
   | "none"
   | "plain"
   | "grid"
+  | "grid-dense"
   | "dots"
+  | "dots-dense"
   | "gradient";
 
 /** Canvas color theme — independent of pattern. */
@@ -98,9 +100,19 @@ const getBackgroundPatterns = (
     title: t.backgroundGridTitle(),
   },
   {
+    value: "grid-dense",
+    label: t.backgroundGridDense(),
+    title: t.backgroundGridDenseTitle(),
+  },
+  {
     value: "dots",
     label: t.backgroundDots(),
     title: t.backgroundDotsTitle(),
+  },
+  {
+    value: "dots-dense",
+    label: t.backgroundDotsDense(),
+    title: t.backgroundDotsDenseTitle(),
   },
   {
     value: "gradient",
@@ -322,12 +334,8 @@ export const createBackgroundToolbar = (
 
     if (!isOpen) {
       rebuildMenu();
-      menu.classList.add("is-open");
+      openKuusiDropdownMenu(menu, root);
     }
-  });
-
-  document.addEventListener("click", () => {
-    closeKuusiDropdownMenus(root);
   });
 
   dropdown.append(trigger, menu);

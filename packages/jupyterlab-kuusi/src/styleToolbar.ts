@@ -6,7 +6,7 @@ import type {
 } from "./backgroundToolbar";
 import type { MindMapFont, MindMapFontSize } from "./fontToolbar";
 import type { KuusiTranslator } from "./kuusiI18n";
-import { closeKuusiDropdownMenus, createDropdownOptionRow } from "./formatToolbar";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 
 /**
  * Theme presets stamp Line / Node / Background / Font menu parameters.
@@ -250,29 +250,96 @@ export const applyThemeToScene = (
   scene.dataset.kuusiTheme = theme;
 };
 
+/** Mini LR map preview for Theme menu rows. */
+const createThemeThumbnail = (theme: MindMapTheme): HTMLElement => {
+  const preset = THEME_PRESETS[theme];
+  const { appearance, background, backgroundPattern } = preset;
+
+  const thumb = document.createElement("span");
+  thumb.className = "jp-KuusiStyleDropdown-thumb";
+  thumb.setAttribute("aria-hidden", "true");
+
+  const canvas = document.createElement("span");
+  canvas.className = "jp-KuusiStyleDropdown-thumbCanvas";
+
+  const bg = document.createElement("span");
+  bg.className =
+    "jp-KuusiStyleDropdown-thumbBg jp-KuusiBackgroundDropdown-preview";
+  bg.dataset.kuusiBackgroundPreview = background;
+  bg.dataset.kuusiBackgroundPatternPreview = backgroundPattern;
+
+  const nodeFill =
+    appearance.nodeFillColor || "var(--jp-layout-color0, #fff)";
+  const nodeBorder =
+    appearance.nodeBorderColor || "var(--jp-border-color2, #ccc)";
+  const edgeColor = appearance.edgeColor || "var(--jp-border-color2, #ccc)";
+  const radius =
+    appearance.nodeBorderCorner === "sharp"
+      ? "0"
+      : appearance.nodeBorderCorner === "ellipse"
+        ? "999px"
+        : appearance.nodeBorderRadius || "6px";
+  const borderWidth = appearance.nodeBorderWidth || "1px";
+
+  canvas.style.setProperty("--kuusi-theme-thumb-fill", nodeFill);
+  canvas.style.setProperty("--kuusi-theme-thumb-border", nodeBorder);
+  canvas.style.setProperty("--kuusi-theme-thumb-edge", edgeColor);
+  canvas.style.setProperty("--kuusi-theme-thumb-radius", radius);
+  canvas.style.setProperty("--kuusi-theme-thumb-border-width", borderWidth);
+
+  const root = document.createElement("span");
+  root.className = "jp-KuusiStyleDropdown-thumbNode is-root";
+
+  const edge = document.createElement("span");
+  edge.className = "jp-KuusiStyleDropdown-thumbEdge";
+
+  const branch = document.createElement("span");
+  branch.className = "jp-KuusiStyleDropdown-thumbBranch";
+
+  for (let i = 0; i < 2; i += 1) {
+    const child = document.createElement("span");
+    child.className = "jp-KuusiStyleDropdown-thumbNode";
+    branch.appendChild(child);
+  }
+
+  canvas.append(bg, root, edge, branch);
+  thumb.appendChild(canvas);
+  return thumb;
+};
+
 export const fillThemeMenu = (
   menu: HTMLElement,
   getTheme: () => MindMapTheme,
   onChange: (theme: MindMapTheme) => void,
   onRebuild: () => void,
 ): void => {
-  const row = createDropdownOptionRow(menu);
+  const list = document.createElement("div");
+  list.className = "jp-KuusiStyleDropdown-list";
+
   MIND_MAP_THEMES.forEach(({ value, label, title }) => {
     const item = document.createElement("button");
     item.type = "button";
-    item.className = "jp-KuusiFormatDropdown-item jp-KuusiStyleDropdown-item";
+    item.className =
+      "jp-KuusiFormatDropdown-item jp-KuusiStyleDropdown-item";
     item.setAttribute("role", "menuitem");
     item.setAttribute("aria-label", title);
     item.title = title;
-    item.textContent = label;
     item.classList.toggle("is-active", getTheme() === value);
+
+    const labelEl = document.createElement("span");
+    labelEl.className = "jp-KuusiStyleDropdown-label";
+    labelEl.textContent = label;
+
+    item.append(labelEl, createThemeThumbnail(value));
     item.addEventListener("click", (event) => {
       event.stopPropagation();
       onChange(value);
       onRebuild();
     });
-    row.appendChild(item);
+    list.appendChild(item);
   });
+
+  menu.appendChild(list);
 };
 
 export const createStyleToolbar = (
@@ -315,12 +382,8 @@ export const createStyleToolbar = (
 
     if (!isOpen) {
       rebuildMenu();
-      menu.classList.add("is-open");
+      openKuusiDropdownMenu(menu, root);
     }
-  });
-
-  document.addEventListener("click", () => {
-    closeKuusiDropdownMenus(root);
   });
 
   dropdown.append(trigger, menu);

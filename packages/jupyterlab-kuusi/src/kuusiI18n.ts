@@ -1,6 +1,17 @@
 import type { TranslationBundle } from "@jupyterlab/translation";
+import { nullTranslator } from "@jupyterlab/translation";
 
-export const createKuusiTranslator = (trans: TranslationBundle) => ({
+/**
+ * Kuusi chrome strings. Always English until a dedicated `jupyterlab-kuusi`
+ * locale pack exists — using the JupyterLab language pack caused mixed UI
+ * (some strings translated, Kuusi-specific ones not).
+ */
+export const createKuusiTranslator = (
+  _trans?: TranslationBundle,
+) => {
+  const trans = nullTranslator.load("jupyterlab");
+
+  return {
   background: () => trans.__("Background"),
   backgroundBusinessBlue: () => trans.__("Business Blue"),
   backgroundBusinessBlueTitle: () =>
@@ -16,6 +27,9 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   backgroundDots: () => trans.__("Dots"),
   backgroundDotsTitle: () =>
     trans.__("Dot pattern for spatial reference"),
+  backgroundDotsDense: () => trans.__("Dots dense"),
+  backgroundDotsDenseTitle: () =>
+    trans.__("Finer, denser dot pattern"),
   backgroundEyeCare: () => trans.__("Eye Care"),
   backgroundEyeCareTitle: () =>
     trans.__("Soft green tint to reduce eye strain"),
@@ -24,6 +38,9 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   backgroundGrid: () => trans.__("Grid"),
   backgroundGridTitle: () =>
     trans.__("Light grid lines for spatial reference"),
+  backgroundGridDense: () => trans.__("Grid dense"),
+  backgroundGridDenseTitle: () =>
+    trans.__("Finer, denser grid lines"),
   backgroundNewspaper: () => trans.__("Newspaper"),
   backgroundNewspaperTitle: () =>
     trans.__("Warm paper tone with a light newsprint texture"),
@@ -60,8 +77,6 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   siblingGap: () => trans.__("Boundary distance between sibling nodes"),
   connectorLineAppearance: () => trans.__("Connector line appearance"),
   currentVersion: () => trans.__("Local"),
-  dragHandleTitle: () =>
-    trans.__("Drag to reorder, click to locate in notebook"),
   collapseBranch: () => trans.__("Collapse branch"),
   expandBranch: (hiddenCount: number) =>
     hiddenCount > 0
@@ -72,6 +87,10 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   editModeHint: () => trans.__("Enter edit mode (F2) to format markdown"),
   enterFullscreen: () => trans.__("Enter fullscreen"),
   exitFullscreen: () => trans.__("Exit fullscreen"),
+  enterLabFullscreen: () => trans.__("JupyterLab fullscreen"),
+  exitLabFullscreen: () => trans.__("Exit JupyterLab fullscreen"),
+  enterKuusiFullscreen: () => trans.__("Kuusi window fullscreen"),
+  exitKuusiFullscreen: () => trans.__("Exit Kuusi window fullscreen"),
   appearance: () => trans.__("Appearance"),
   about: () => trans.__("About"),
   aboutBlurb: () =>
@@ -100,17 +119,26 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   fontSizeSection: () => trans.__("Size"),
   fontSizeEdit: () => trans.__("Edit"),
   fontSizeDisplay: () => trans.__("Display"),
+  fontLink: () => trans.__("Link"),
+  unifyEditDisplayFont: () =>
+    trans.__("Keep edit and display font styles the same"),
+  matchNotebookFont: () =>
+    trans.__("Match notebook (ipynb) font styles"),
   formatNotesAa: () =>
     trans.__("Inline styles only affect node content, not structure"),
   formatNotesCodeCell: () =>
     trans.__("Formatting is available for markdown cells only"),
   formatNotesTitle: () =>
-    trans.__("Outline headings change the mind map tree (H1 = root)"),
+    trans.__(
+      "H1–H3 outline chrome or Body; nesting persists to depth 20 with Body style",
+    ),
   formattingNotes: () => trans.__("Formatting notes"),
   formattingShortcuts: () => trans.__("Formatting shortcuts (edit mode)"),
   guide: () => trans.__("Guide"),
   headingLevel: () =>
-    trans.__("Outline heading level (changes mind map structure)"),
+    trans.__(
+      "Outline heading H1–H3 or Body (nesting to depth 20; deeper levels use Body style)",
+    ),
   keyboardShortcuts: () => trans.__("Keyboard shortcuts"),
   latestUnavailable: () => trans.__("Unavailable"),
   latestVersion: () => trans.__("Latest"),
@@ -118,7 +146,13 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   equalNodeWidth: () => trans.__("Equal width"),
   equalNodeWidthTitle: () =>
     trans.__("When on, every node uses the same width"),
+  adaptiveNodeWidth: () => trans.__("Fit content"),
+  adaptiveNodeWidthTitle: () =>
+    trans.__(
+      "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)",
+    ),
   nodeWidth: () => trans.__("Node width"),
+  nodeWidthMax: () => trans.__("Max width"),
   resizeHandleTitle: () =>
     trans.__("Drag the right edge to resize this node"),
   line: () => trans.__("Line"),
@@ -131,6 +165,8 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
     trans.__("Page and mind map controls"),
   newVersionAvailable: () => trans.__("A newer version is available"),
   node: () => trans.__("Node"),
+  redo: () => trans.__("Redo"),
+  undo: () => trans.__("Undo"),
   nodeAppearance: () =>
     trans.__("Node width, fill, border, and selection glow"),
   nodeFillDefault: () => trans.__("Map fill"),
@@ -147,6 +183,7 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   openRepository: () => trans.__("Open GitHub repository"),
   repository: () => trans.__("Repository"),
   style: () => trans.__("Style"),
+  route: () => trans.__("Route"),
   theme: () => trans.__("Theme"),
   density: () => trans.__("Density"),
   spacing: () => trans.__("Spacing"),
@@ -167,6 +204,7 @@ export const createKuusiTranslator = (trans: TranslationBundle) => ({
   version: () => trans.__("Version"),
   zoom: () => trans.__("Zoom"),
   zoomSlider: () => trans.__("Adjust zoom (20%–200%)"),
-});
+  };
+};
 
 export type KuusiTranslator = ReturnType<typeof createKuusiTranslator>;

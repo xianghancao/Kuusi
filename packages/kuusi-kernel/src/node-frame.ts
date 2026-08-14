@@ -2,7 +2,13 @@ import type { NotebookCell } from "./types";
 
 /** Per-node frame overrides stored in cell metadata (`metadata.kuusi`). */
 export type KuusiNodeMetadata = {
-  /** Outline heading level when the cell has no markdown `#` prefix. */
+  /**
+   * Structural outline depth (1…20). Levels 1–3 sync with ATX headings;
+   * 4–20 persist nesting with Body chrome. Prefer {@link outlineLevel};
+   * `headingLevel` is kept for older notebooks.
+   */
+  outlineLevel?: number;
+  /** @deprecated Prefer {@link outlineLevel}; still read for compatibility. */
   headingLevel?: number;
   /** Named frame preset, e.g. `default`, `code`, or `heading-2`. */
   frame?: string;

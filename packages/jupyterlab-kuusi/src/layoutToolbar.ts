@@ -4,7 +4,7 @@ import {
   LAYOUT_SIBLING_GAP,
   type LayoutDensity,
 } from "kuusi-kernel";
-import { closeKuusiDropdownMenus } from "./formatToolbar";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import { renderPanelWidgets } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
 
@@ -160,12 +160,8 @@ export const createLayoutToolbar = (
 
     if (!isOpen) {
       rebuildMenu();
-      menu.classList.add("is-open");
+      openKuusiDropdownMenu(menu, root);
     }
-  });
-
-  document.addEventListener("click", () => {
-    closeKuusiDropdownMenus(root);
   });
 
   dropdown.append(trigger, menu);

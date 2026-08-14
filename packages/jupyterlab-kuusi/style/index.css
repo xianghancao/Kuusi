@@ -117,9 +117,20 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 }
 
 .jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiFormatDropdown-menu {
+  /* Horizontal offset is computed in positionKuusiDropdownMenu (panel bounds). */
   left: auto;
-  right: calc(100% + 6px);
+  right: auto;
   top: 0;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiFormatDropdown {
+  position: relative;
+  z-index: 1;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical
+  .jp-KuusiFormatDropdown:has(.jp-KuusiFormatDropdown-menu.is-open) {
+  z-index: 2;
 }
 
 .jp-KuusiNotebookMindMap-header-title {
@@ -158,6 +169,26 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 .jp-KuusiLogo--header {
   display: inline-block;
   padding: 0 2px;
+}
+
+.jp-KuusiTabIcon {
+  align-items: center;
+  color: #2f5d3a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-height: 20px;
+  min-width: 20px;
+}
+
+.jp-KuusiTabIcon svg {
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+.jp-mod-dark .jp-KuusiTabIcon {
+  color: #9bc49a;
 }
 
 .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo {
@@ -220,7 +251,8 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   overflow: hidden;
   padding: 0;
   right: auto;
-  width: min(92vw, 560px);
+  /* Cap to panel via JS; keep a sane CSS fallback under wide viewports. */
+  width: min(460px, calc(100vw - 24px));
 }
 
 .jp-KuusiSecondaryMenu-host {
@@ -232,7 +264,7 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   overflow: hidden;
   padding: 0;
   right: auto;
-  width: min(92vw, 560px);
+  width: min(460px, calc(100vw - 24px));
 }
 
 .jp-KuusiSecondaryMenu {
@@ -316,7 +348,7 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   color: var(--jp-ui-font-color1);
   flex: 1 1 auto;
   font-family: var(--jp-ui-font-family);
-  font-size: var(--jp-ui-font-size1);
+  font-size: calc(var(--jp-ui-font-size1) - 1px);
   height: 100%;
   min-width: 0;
   overflow-x: hidden;
@@ -501,6 +533,26 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   opacity: 0.4;
 }
 
+.jp-KuusiNotebookMindMap-history-toolbar {
+  align-items: center;
+  display: inline-flex;
+  gap: 0;
+}
+
+.jp-KuusiNotebookMindMap-history-btn {
+  align-items: center;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 4px 6px;
+}
+
+.jp-KuusiNotebookMindMap-history-btn svg {
+  height: 16px;
+  width: 16px;
+}
+
 .jp-KuusiFormatDropdown {
   position: relative;
 }
@@ -675,6 +727,13 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   line-height: 1.2;
 }
 
+.jp-KuusiFormatDropdown-preview-body {
+  color: var(--jp-ui-font-color2);
+  font-size: 1em;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .jp-KuusiFormatDropdown-preview-code {
   font-family: var(--jp-code-font-family);
   font-size: var(--jp-code-font-size);
@@ -723,6 +782,184 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   margin-right: 0.45em;
   vertical-align: -0.08em;
   width: 0.75em;
+}
+
+.jp-KuusiFormatMath-menu {
+  /* Format cluster sits on the right; keep secondary host from opening off-screen. */
+  height: min(56vh, 400px);
+  left: auto;
+  overflow: hidden;
+  padding: 0;
+  right: 0;
+  width: min(92vw, 460px);
+}
+
+.jp-KuusiFormatMath-panel {
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.jp-KuusiFormatMath-tileRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.jp-KuusiFormatMath-tile {
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 5%, transparent);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 10px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 calc(33.333% - 6px);
+  flex-direction: column;
+  gap: 4px;
+  min-width: 96px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.jp-KuusiFormatMath-tile.is-wide {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 140px;
+}
+
+.jp-KuusiFormatMath-tile:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 14%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 40%, transparent);
+}
+
+.jp-KuusiFormatMath-tileLabel {
+  font-size: calc(var(--jp-ui-font-size1) - 1px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatMath-tilePreview {
+  color: var(--jp-ui-font-color2);
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.jp-KuusiFormatMath-grid {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  padding: 2px 0 4px;
+}
+
+/* Shared chip control — Aa text-style grid + Math symbol grid. */
+.jp-KuusiFormatChip,
+.jp-KuusiFormatMath-chip {
+  align-items: center;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 6%, transparent);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: 13px;
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 0;
+  padding: 0 4px;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.jp-KuusiFormatChip:hover,
+.jp-KuusiFormatMath-chip:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-KuusiFormatChip.is-active,
+.jp-KuusiFormatMath-chip.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-mod-dark .jp-KuusiFormatChip.is-active,
+.jp-mod-dark .jp-KuusiFormatMath-chip.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 28%, transparent);
+}
+
+.jp-KuusiFormatChip-preview {
+  display: inline-block;
+  font-family: var(--jp-ui-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.jp-KuusiFormatChip-preview.jp-KuusiFormatDropdown-preview-code,
+.jp-KuusiFormatChip-preview.jp-KuusiFormatDropdown-preview-codeblock {
+  font-family: var(--jp-code-font-family);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.jp-KuusiFormatChip-preview.jp-KuusiFormatDropdown-preview-clear {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.jp-KuusiFormatAa-menu {
+  min-width: 196px;
+  padding: 6px;
+}
+
+.jp-KuusiFormatAa-grid {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 2px 4px 6px;
+}
+
+.jp-KuusiFormatAa-menu .jp-KuusiFormatDropdown-section {
+  padding: 6px 8px 4px;
+}
+
+.jp-KuusiFormatAa-colorRow {
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  padding: 0 8px 6px;
+}
+
+.jp-KuusiFormatAa-colorRow .jp-KuusiFormatColorSwatch {
+  height: 22px;
+  width: 22px;
+}
+
+.jp-KuusiFormatAa-customColor {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 2px;
+  padding: 8px 8px 4px;
+}
+
+.jp-KuusiFormatMath-chip {
+  border-color: transparent;
+  height: 28px;
+  padding: 0 2px;
+}
+
+.jp-KuusiFormatMath-chip:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
 }
 
 .jp-KuusiFormatDropdown-section {
@@ -822,12 +1059,14 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   width: 40px;
 }
 
-.jp-KuusiFormatDropdown-item.is-active {
+.jp-KuusiFormatDropdown-item.is-active,
+.jp-KuusiFormatChip.is-active {
   background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
   font-weight: 600;
 }
 
-.jp-mod-dark .jp-KuusiFormatDropdown-item.is-active {
+.jp-mod-dark .jp-KuusiFormatDropdown-item.is-active,
+.jp-mod-dark .jp-KuusiFormatChip.is-active {
   background: color-mix(in srgb, var(--jp-brand-color1) 28%, transparent);
 }
 
@@ -939,11 +1178,23 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 }
 
 .jp-KuusiAppearancePreview-line-style.is-dashed {
-  border-top-style: dashed;
+  border-top: none;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 10px,
+    transparent 10px 20px
+  );
 }
 
 .jp-KuusiAppearancePreview-line-style.is-dotted {
-  border-top-style: dotted;
+  border-top: none;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 2px,
+    transparent 2px 12px
+  );
 }
 
 .jp-KuusiAppearancePreview-line-style.is-long-dash,
@@ -957,18 +1208,18 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 .jp-KuusiAppearancePreview-line-style.is-long-dash {
   background: repeating-linear-gradient(
     90deg,
-    var(--jp-ui-font-color1) 0 12px,
-    transparent 12px 18px
+    var(--jp-ui-font-color1) 0 16px,
+    transparent 16px 30px
   );
 }
 
 .jp-KuusiAppearancePreview-line-style.is-dash-dot {
   background: repeating-linear-gradient(
     90deg,
-    var(--jp-ui-font-color1) 0 8px,
-    transparent 8px 12px,
-    var(--jp-ui-font-color1) 12px 14px,
-    transparent 14px 18px
+    var(--jp-ui-font-color1) 0 10px,
+    transparent 10px 18px,
+    var(--jp-ui-font-color1) 18px 20px,
+    transparent 20px 28px
   );
 }
 
@@ -976,15 +1227,15 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   background: repeating-linear-gradient(
     90deg,
     var(--jp-ui-font-color1) 0 2px,
-    transparent 2px 6px
+    transparent 2px 8px
   );
 }
 
 .jp-KuusiAppearancePreview-line-style.is-sparse-dash {
   background: repeating-linear-gradient(
     90deg,
-    var(--jp-ui-font-color1) 0 16px,
-    transparent 16px 24px
+    var(--jp-ui-font-color1) 0 18px,
+    transparent 18px 36px
   );
 }
 
@@ -1087,12 +1338,6 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   flex: 0 0 auto;
 }
 
-.jp-KuusiStyleDropdown-menu {
-  left: 0;
-  min-width: 120px;
-  right: auto;
-}
-
 .jp-KuusiNotebookMindMap-layout-toolbar {
   align-items: center;
   display: flex;
@@ -1114,7 +1359,7 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   height: min(56vh, 380px);
   overflow: hidden;
   padding: 0;
-  width: min(92vw, 560px);
+  width: min(92vw, 460px);
 }
 
 .jp-KuusiFontDropdown-preview {
@@ -1394,6 +1639,14 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   background-size: 7px 7px;
 }
 
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="grid-dense"] {
+  background-color: var(--jp-layout-color1);
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
 .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="dots"] {
   background-color: var(--jp-layout-color1);
   background-image: radial-gradient(
@@ -1402,6 +1655,16 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
     transparent 1px
   );
   background-size: 5px 5px;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="dots-dense"] {
+  background-color: var(--jp-layout-color1);
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 0.75px,
+    transparent 0.75px
+  );
+  background-size: 3px 3px;
 }
 
 .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="gradient"] {
@@ -1592,14 +1855,105 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 
 .jp-KuusiStyleDropdown-menu {
   left: 0;
-  min-width: 220px;
+  min-width: 260px;
+  padding: 6px;
   right: auto;
 }
 
+.jp-KuusiStyleDropdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .jp-KuusiStyleDropdown-item {
-  min-width: 4.5rem;
-  padding: 6px 10px;
-  text-align: center;
+  align-items: center;
+  display: flex !important;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 6px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.jp-KuusiStyleDropdown-label {
+  flex: 1 1 auto;
+  font-weight: 600;
+  min-width: 0;
+  text-align: left;
+}
+
+.jp-KuusiStyleDropdown-thumb {
+  flex: 0 0 auto;
+  line-height: 0;
+}
+
+.jp-KuusiStyleDropdown-thumbCanvas {
+  align-items: center;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 4px;
+  height: 44px;
+  overflow: hidden;
+  padding: 6px 8px;
+  position: relative;
+  width: 88px;
+}
+
+.jp-KuusiStyleDropdown-thumbBg {
+  border: none !important;
+  border-radius: 0 !important;
+  bottom: 0;
+  height: auto !important;
+  left: 0;
+  position: absolute !important;
+  right: 0;
+  top: 0;
+  width: auto !important;
+  z-index: 0;
+}
+
+.jp-KuusiStyleDropdown-thumbNode,
+.jp-KuusiStyleDropdown-thumbEdge,
+.jp-KuusiStyleDropdown-thumbBranch {
+  position: relative;
+  z-index: 1;
+}
+
+.jp-KuusiStyleDropdown-thumbNode {
+  background: var(--kuusi-theme-thumb-fill, var(--jp-layout-color0));
+  border: var(--kuusi-theme-thumb-border-width, 1px) solid
+    var(--kuusi-theme-thumb-border, var(--jp-border-color2));
+  border-radius: var(--kuusi-theme-thumb-radius, 6px);
+  box-sizing: border-box;
+  display: block;
+  flex: 0 0 auto;
+  height: 12px;
+  width: 18px;
+}
+
+.jp-KuusiStyleDropdown-thumbNode.is-root {
+  height: 16px;
+  width: 20px;
+}
+
+.jp-KuusiStyleDropdown-thumbEdge {
+  background: var(--kuusi-theme-thumb-edge, var(--jp-border-color2));
+  border-radius: 1px;
+  flex: 0 0 auto;
+  height: 2px;
+  width: 10px;
+}
+
+.jp-KuusiStyleDropdown-thumbBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
 }
 
 .jp-KuusiNotebookMindMap-direction-toolbar {
@@ -2005,7 +2359,9 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid-dense"]::before,
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots-dense"]::before,
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="gradient"]::before {
   content: "";
   inset: 0;
@@ -2021,6 +2377,13 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   background-size: 28px 28px;
 }
 
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid-dense"]::before {
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots"]::before {
   background-image: radial-gradient(
     circle,
@@ -2028,6 +2391,15 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
     transparent 1.25px
   );
   background-size: 20px 20px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots-dense"]::before {
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 1px,
+    transparent 1px
+  );
+  background-size: 10px 10px;
 }
 
 .jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="gradient"]::before {
@@ -2063,7 +2435,32 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   user-select: none;
 }
 
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-edges {
+  opacity: 0.2;
+  transition: opacity 0.15s ease;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-cellNode:not(.is-drag-source) {
+  transition: transform 0.18s ease;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-cellNode.is-drag-source {
+  transition: transform 0.18s ease, opacity 0.15s ease;
+  z-index: 2;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-cellNode.is-slot-neighbor {
+  box-shadow: var(--jp-elevation-z2);
+}
+
 .jp-KuusiFullscreenShell {
+  box-sizing: border-box;
+  display: none;
+  flex-direction: column;
   height: 0;
   overflow: hidden;
   pointer-events: none;
@@ -2074,11 +2471,13 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 }
 
 .jp-KuusiFullscreenShell:fullscreen,
-.jp-KuusiFullscreenShell:-webkit-full-screen {
+.jp-KuusiFullscreenShell:-webkit-full-screen,
+.jp-KuusiFullscreenShell.is-kuusi-maximized,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active {
   background: var(--jp-layout-color0);
   box-sizing: border-box;
   color: var(--jp-ui-font-color1);
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
@@ -2087,14 +2486,24 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   overflow: hidden;
   pointer-events: auto;
   position: relative;
-  visibility: visible;
+  visibility: visible !important;
   width: 100vw;
   width: 100dvw;
   z-index: auto;
 }
 
-.jp-KuusiFullscreenShell:fullscreen .jp-KuusiNotebookMindMapDocument,
-.jp-KuusiFullscreenShell:-webkit-full-screen .jp-KuusiNotebookMindMapDocument {
+.jp-KuusiFullscreenShell.is-kuusi-maximized,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active {
+  inset: 0;
+  position: fixed;
+  z-index: 100000;
+}
+
+.jp-KuusiFullscreenShell:fullscreen > .jp-KuusiNotebookMindMapDocument,
+.jp-KuusiFullscreenShell:-webkit-full-screen > .jp-KuusiNotebookMindMapDocument,
+.jp-KuusiFullscreenShell.is-kuusi-maximized > .jp-KuusiNotebookMindMapDocument,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active
+  > .jp-KuusiNotebookMindMapDocument {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -2111,6 +2520,12 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 .jp-KuusiFullscreenShell:fullscreen .jp-KuusiNotebookMindMapDocument > .jp-Toolbar,
 .jp-KuusiFullscreenShell:-webkit-full-screen
   .jp-KuusiNotebookMindMapDocument
+  > .jp-Toolbar,
+.jp-KuusiFullscreenShell.is-kuusi-maximized
+  .jp-KuusiNotebookMindMapDocument
+  > .jp-Toolbar,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active
+  .jp-KuusiNotebookMindMapDocument
   > .jp-Toolbar {
   flex: 0 0 auto;
   height: auto !important;
@@ -2123,6 +2538,12 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   .jp-KuusiNotebookMindMapDocument
   > .jp-KuusiNotebookMindMap,
 .jp-KuusiFullscreenShell:-webkit-full-screen
+  .jp-KuusiNotebookMindMapDocument
+  > .jp-KuusiNotebookMindMap,
+.jp-KuusiFullscreenShell.is-kuusi-maximized
+  .jp-KuusiNotebookMindMapDocument
+  > .jp-KuusiNotebookMindMap,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active
   .jp-KuusiNotebookMindMapDocument
   > .jp-KuusiNotebookMindMap {
   display: flex;
@@ -2139,12 +2560,20 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 }
 
 .jp-KuusiFullscreenShell:fullscreen .jp-KuusiNotebookMindMap-header,
-.jp-KuusiFullscreenShell:-webkit-full-screen .jp-KuusiNotebookMindMap-header {
+.jp-KuusiFullscreenShell:-webkit-full-screen .jp-KuusiNotebookMindMap-header,
+.jp-KuusiFullscreenShell.is-kuusi-maximized
+  .jp-KuusiNotebookMindMap-header,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active
+  .jp-KuusiNotebookMindMap-header {
   position: absolute;
 }
 
 .jp-KuusiFullscreenShell:fullscreen .jp-KuusiNotebookMindMap-viewport,
-.jp-KuusiFullscreenShell:-webkit-full-screen .jp-KuusiNotebookMindMap-viewport {
+.jp-KuusiFullscreenShell:-webkit-full-screen .jp-KuusiNotebookMindMap-viewport,
+.jp-KuusiFullscreenShell.is-kuusi-maximized
+  .jp-KuusiNotebookMindMap-viewport,
+.jp-KuusiFullscreenShell.is-kuusi-fullscreen-active
+  .jp-KuusiNotebookMindMap-viewport {
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -2350,6 +2779,8 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 }
 
 .jp-KuusiNotebookMindMap-status-fullscreen {
+  display: inline-flex;
+  gap: 2px;
   pointer-events: auto;
 }
 
@@ -2357,6 +2788,7 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   align-items: center;
   background: transparent;
   border: none;
+  border-radius: 4px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
   display: inline-flex;
@@ -2366,7 +2798,8 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   width: 24px;
 }
 
-.jp-KuusiNotebookMindMap-status-fullscreen-btn:hover {
+.jp-KuusiNotebookMindMap-status-fullscreen-btn:hover,
+.jp-KuusiNotebookMindMap-status-fullscreen-btn.is-active {
   color: var(--jp-brand-color2);
 }
 
@@ -2418,59 +2851,59 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xxs"] {
-  --kuusi-mindmap-font-size-edit: 0.65rem;
-}
-
-.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xs"] {
   --kuusi-mindmap-font-size-edit: 0.75rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="sm"] {
-  --kuusi-mindmap-font-size-edit: 0.85rem;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xs"] {
+  --kuusi-mindmap-font-size-edit: 0.875rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="md"] {
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="sm"] {
   --kuusi-mindmap-font-size-edit: 1rem;
 }
 
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="md"] {
+  --kuusi-mindmap-font-size-edit: 1.125rem;
+}
+
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="lg"] {
-  --kuusi-mindmap-font-size-edit: 1.15rem;
+  --kuusi-mindmap-font-size-edit: 1.25rem;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xl"] {
-  --kuusi-mindmap-font-size-edit: 1.3rem;
+  --kuusi-mindmap-font-size-edit: 1.4375rem;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edit-font-size="xxl"] {
-  --kuusi-mindmap-font-size-edit: 1.5rem;
+  --kuusi-mindmap-font-size-edit: 1.625rem;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xxs"] {
-  --kuusi-mindmap-font-size-display: 0.65rem;
-}
-
-.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xs"] {
   --kuusi-mindmap-font-size-display: 0.75rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="sm"] {
-  --kuusi-mindmap-font-size-display: 0.85rem;
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xs"] {
+  --kuusi-mindmap-font-size-display: 0.875rem;
 }
 
-.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="md"] {
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="sm"] {
   --kuusi-mindmap-font-size-display: 1rem;
 }
 
+.jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="md"] {
+  --kuusi-mindmap-font-size-display: 1.125rem;
+}
+
 .jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="lg"] {
-  --kuusi-mindmap-font-size-display: 1.15rem;
+  --kuusi-mindmap-font-size-display: 1.25rem;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xl"] {
-  --kuusi-mindmap-font-size-display: 1.3rem;
+  --kuusi-mindmap-font-size-display: 1.4375rem;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-display-font-size="xxl"] {
-  --kuusi-mindmap-font-size-display: 1.5rem;
+  --kuusi-mindmap-font-size-display: 1.625rem;
 }
 
 .jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode {
@@ -2507,7 +2940,7 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 
 /* Active cell while editing uses Edit font + size instead of Display. */
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active {
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered)) {
   --jp-content-font-size0: calc(var(--kuusi-mindmap-font-size-edit) * 0.875);
   --jp-content-font-size1: var(--kuusi-mindmap-font-size-edit);
   --jp-content-font-size2: calc(var(--kuusi-mindmap-font-size-edit) * 1.125);
@@ -2515,22 +2948,23 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   --jp-content-font-size4: calc(var(--kuusi-mindmap-font-size-edit) * 1.5);
   --jp-content-font-size5: calc(var(--kuusi-mindmap-font-size-edit) * 1.75);
   --jp-code-font-size: var(--kuusi-mindmap-font-size-edit);
+  cursor: text;
   font-family: var(--kuusi-mindmap-font-family-edit);
   font-size: var(--kuusi-mindmap-font-size-edit);
 }
 
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .jp-InputArea-editor,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .cm-editor,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .cm-editor
   .cm-content,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .cm-scroller {
   font-family: var(--kuusi-mindmap-font-family-edit);
   font-size: var(--kuusi-mindmap-font-size-edit);
@@ -2538,6 +2972,7 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 
 .jp-KuusiNotebookMindMap-edges {
   left: 0;
+  overflow: visible;
   pointer-events: none;
   position: absolute;
   top: 0;
@@ -2555,32 +2990,33 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dashed"]
   .jp-KuusiNotebookMindMap-edge {
-  stroke-dasharray: 8 4;
+  /* Wider gaps so round linecaps do not visually close into a solid stroke. */
+  stroke-dasharray: 14 12;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dotted"]
   .jp-KuusiNotebookMindMap-edge {
-  stroke-dasharray: 2 4;
+  stroke-dasharray: 0.01 10;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="long-dash"]
   .jp-KuusiNotebookMindMap-edge {
-  stroke-dasharray: 12 6;
+  stroke-dasharray: 20 14;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dash-dot"]
   .jp-KuusiNotebookMindMap-edge {
-  stroke-dasharray: 8 4 2 4;
+  stroke-dasharray: 12 8 0.01 8;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dense-dot"]
   .jp-KuusiNotebookMindMap-edge {
-  stroke-dasharray: 1 3;
+  stroke-dasharray: 0.01 6;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="sparse-dash"]
   .jp-KuusiNotebookMindMap-edge {
-  stroke-dasharray: 16 8;
+  stroke-dasharray: 22 18;
 }
 
 .jp-KuusiNotebookMindMap-cellNode {
@@ -2591,10 +3027,15 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   border-width: var(--kuusi-node-border-width);
   box-shadow: var(--kuusi-node-shadow);
   box-sizing: border-box;
-  cursor: default;
+  cursor: grab;
   overflow: hidden;
   padding-left: 20px;
   z-index: 1;
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-drag-source {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 /* Explicit fills (e.g. Board white cards under Jupyter Dark) need contrast. */
@@ -2642,15 +3083,22 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 
 .jp-KuusiNotebookMindMap-collapse {
   align-items: center;
-  background: var(--jp-layout-color2);
-  border: 1px solid var(--jp-border-color2);
-  border-radius: 14px;
-  color: var(--jp-ui-font-color1);
+  /* Fill = node border color at 30% opacity; stroke matches the card. */
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-border-color) 30%,
+    transparent
+  );
+  border: 1px solid var(--kuusi-node-border-color);
+  /* Match Node → Corner (overridden per-corner below / via inline sync). */
+  border-radius: var(--kuusi-node-border-radius, 8px);
+  color: var(--kuusi-node-border-color);
   cursor: pointer;
   display: inline-flex;
   font-family: var(--jp-ui-font-family);
   font-size: 16px;
   font-weight: 700;
+  gap: 0.15em;
   height: 30px;
   justify-content: center;
   line-height: 1;
@@ -2660,19 +3108,77 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   right: 5px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 3;
+  /* Above the right-edge resize strip (z-index 3) so trackpad presses hit
+     collapse/expand instead of starting a width drag on the overlap. */
+  z-index: 4;
+  box-shadow: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.jp-KuusiNotebookMindMap-collapse-arrow {
+  color: var(--kuusi-node-border-color);
+}
+
+/* Hidden-branch count: border color darkened 2× (halfway toward black). */
+.jp-KuusiNotebookMindMap-collapse-count {
+  color: color-mix(in srgb, var(--kuusi-node-border-color), black 50%);
+  font-variant-numeric: tabular-nums;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-corner="sharp"]
+  .jp-KuusiNotebookMindMap-collapse {
+  border-radius: 0;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-corner="ellipse"]
+  .jp-KuusiNotebookMindMap-collapse {
+  /* Pill chip — same “fully round” language as ellipse cards (50% on a
+     large node looks oval; on a 30px control use a stadium). */
+  border-radius: 999px;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-corner="rounded"]
+  .jp-KuusiNotebookMindMap-collapse {
+  border-radius: var(--kuusi-node-border-radius, 8px);
 }
 
 .jp-KuusiNotebookMindMap-collapse:hover {
-  background: var(--jp-brand-color3);
-  border-color: var(--jp-brand-color1);
-  color: var(--jp-ui-font-color0);
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-border-color) 45%,
+    transparent
+  );
+  border-color: var(--kuusi-node-border-color);
+  box-shadow:
+    0 0 0 1px var(--kuusi-node-border-color),
+    0 0 8px 2px
+      color-mix(in srgb, var(--kuusi-node-border-color) 55%, transparent);
+}
+
+.jp-KuusiNotebookMindMap-collapse:hover .jp-KuusiNotebookMindMap-collapse-arrow {
+  color: var(--kuusi-node-border-color);
+}
+
+.jp-KuusiNotebookMindMap-collapse:hover .jp-KuusiNotebookMindMap-collapse-count {
+  color: color-mix(in srgb, var(--kuusi-node-border-color), black 62%);
 }
 
 .jp-KuusiNotebookMindMap-cellNode.is-collapsed > .jp-KuusiNotebookMindMap-collapse {
-  background: var(--jp-brand-color2);
-  border-color: var(--jp-brand-color1);
-  color: var(--jp-ui-inverse-font-color0);
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-border-color) 30%,
+    transparent
+  );
+  border-color: var(--kuusi-node-border-color);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-collapsed
+  > .jp-KuusiNotebookMindMap-collapse
+  .jp-KuusiNotebookMindMap-collapse-count {
+  color: color-mix(in srgb, var(--kuusi-node-border-color), black 50%);
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-style="dashed"]
@@ -2714,29 +3220,6 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
     var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 
-.jp-KuusiNotebookMindMap-dragHandle {
-  align-items: center;
-  background: var(--jp-layout-color2);
-  border-radius: 4px;
-  color: var(--jp-ui-font-color3);
-  cursor: grab;
-  display: flex;
-  justify-content: center;
-  left: 0;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  user-select: none;
-  width: 12px;
-}
-
-.jp-KuusiNotebookMindMap-dragHandle::before {
-  content: "⋮⋮";
-  font-size: 10px;
-  line-height: 1;
-  text-align: center;
-}
-
 .jp-KuusiNotebookMindMap-resizeHandle {
   bottom: 0;
   cursor: ew-resize;
@@ -2773,32 +3256,46 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 }
 
 .jp-KuusiNotebookMindMap-cellNode.is-drop-before {
-  box-shadow: inset 0 3px 0 var(--jp-brand-color1);
+  /* Sibling slots use live gap animation instead of inset bars. */
+  box-shadow: var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 
 .jp-KuusiNotebookMindMap-cellNode.is-drop-inside {
-  box-shadow: inset 0 0 0 2px var(--jp-brand-color1);
+  border-color: var(--kuusi-selection-glow-color);
+  box-shadow:
+    0 0 0 var(--kuusi-selection-glow-width) var(--kuusi-selection-glow-color),
+    0 0 calc(var(--kuusi-selection-glow-width) * 5)
+      calc(var(--kuusi-selection-glow-width) * 1.5)
+      color-mix(in srgb, var(--kuusi-selection-glow-color) 55%, transparent),
+    var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 
 .jp-KuusiNotebookMindMap-cellNode.is-drop-after {
-  box-shadow: inset 0 -3px 0 var(--jp-brand-color1);
+  box-shadow: var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 
 .jp-KuusiNotebookMindMap-drag-ghost {
-  background: var(--jp-layout-color0);
-  border: 2px solid var(--jp-brand-color1);
-  border-radius: 8px;
-  box-shadow: var(--jp-elevation-z4);
-  color: var(--jp-ui-font-color1);
-  font-size: var(--jp-ui-font-size0);
-  max-width: 320px;
+  /* Cloned cell card — keep rendered node chrome; only pin above the canvas. */
+  box-sizing: border-box;
+  cursor: grabbing;
+  margin: 0;
+  max-width: none;
+  opacity: 0.94;
   overflow: hidden;
-  padding: 8px 12px;
   pointer-events: none;
   position: fixed;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   z-index: 10000;
+}
+
+.jp-KuusiNotebookMindMap-drag-ghost .jp-Cell {
+  margin: 0;
+  overflow: visible;
+}
+
+.jp-KuusiNotebookMindMap-drag-ghost .jp-Collapser,
+.jp-KuusiNotebookMindMap-drag-ghost .jp-InputArea-prompt,
+.jp-KuusiNotebookMindMap-drag-ghost .jp-OutputArea-prompt {
+  display: none;
 }
 
 .jp-KuusiNotebookMindMap-cellNode .jp-Cell {
@@ -2843,19 +3340,19 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 
 /* Double-click edit mode: only the active cell editor accepts the caret. */
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .jp-InputArea-editor,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .jp-CodeMirrorEditor,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .cm-editor,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .cm-content,
 .jp-KuusiMindMapNotebook-scene.jp-mod-editMode
-  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
   .cm-scroller {
   caret-color: auto;
   cursor: text;
@@ -2863,8 +3360,49 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   user-select: text;
 }
 
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode:has(.jp-mod-rendered) {
+  cursor: grab;
+}
+
 .jp-KuusiNotebookMindMap-cellNode.jp-mod-rendered .jp-MarkdownOutput,
 .jp-KuusiNotebookMindMap-cellNode .jp-mod-rendered .jp-MarkdownOutput {
   cursor: pointer;
   padding: 2px 6px 2px 0;
+}
+
+/* JupyterLab ¶ heading anchors — not useful on the mind-map canvas. */
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h1:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h2:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h3:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h4:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h5:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h6:hover
+  a.jp-InternalAnchorLink {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
 }

@@ -15,7 +15,8 @@ describe("remapSubtreeCellsToRootLevel", () => {
     assert.equal(getCellHeadingLevel(remapped[1]!), 4);
     assert.equal(getCellHeadingLevel(remapped[2]!), 5);
     assert.match(String(remapped[0]!.source), /^### Parent/);
-    assert.match(String(remapped[1]!.source), /^#### Child/);
+    // Deep levels drop ATX and keep metadata depth.
+    assert.doesNotMatch(String(remapped[1]!.source), /^#/);
   });
 
   it("leaves levels unchanged when already matching", () => {
@@ -28,17 +29,17 @@ describe("remapSubtreeCellsToRootLevel", () => {
     assert.equal(getCellHeadingLevel(remapped[1]!), 3);
   });
 
-  it("remaps metadata-only heading levels", () => {
+  it("remaps metadata-only heading levels into deep outline", () => {
     const remapped = remapSubtreeCellsToRootLevel(
       [
         md("", { kuusi: { headingLevel: 2 } }),
         md("", { kuusi: { headingLevel: 3 } }),
       ],
-      4,
+      3,
     );
 
-    assert.equal(getCellHeadingLevel(remapped[0]!), 4);
-    assert.equal(getCellHeadingLevel(remapped[1]!), 5);
+    assert.equal(getCellHeadingLevel(remapped[0]!), 3);
+    assert.equal(getCellHeadingLevel(remapped[1]!), 4);
   });
 
   it("stamps metadata on the first markdown cell when none have headings", () => {
@@ -51,13 +52,24 @@ describe("remapSubtreeCellsToRootLevel", () => {
     assert.equal(getCellHeadingLevel(remapped[1]!), null);
   });
 
-  it("clamps remapped levels to 1–6", () => {
+  it("keeps ATX H4+ as deep outline under a deep paste target", () => {
     const remapped = remapSubtreeCellsToRootLevel(
       [md("##### Deep"), md("###### Deeper")],
-      6,
+      5,
     );
 
-    assert.equal(getCellHeadingLevel(remapped[0]!), 6);
+    assert.equal(getCellHeadingLevel(remapped[0]!), 5);
     assert.equal(getCellHeadingLevel(remapped[1]!), 6);
+  });
+
+  it("preserves relative depth when remapping under H3", () => {
+    const remapped = remapSubtreeCellsToRootLevel(
+      [md("# Mid"), md("## Deep"), md("### Deeper")],
+      2,
+    );
+
+    assert.equal(getCellHeadingLevel(remapped[0]!), 2);
+    assert.equal(getCellHeadingLevel(remapped[1]!), 3);
+    assert.equal(getCellHeadingLevel(remapped[2]!), 4);
   });
 });

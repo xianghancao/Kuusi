@@ -78,6 +78,55 @@ export const getInsertIndexForChild = (
   cellCount: number,
 ): number => getInsertIndexAfterSubtree(root, nodeId, cellCount);
 
+/**
+ * After deleting `deletedNodeId`, pick the next focus target:
+ * next sibling, then previous sibling, then parent (not virtual root).
+ */
+export const resolveFocusAfterDelete = (
+  root: OutlineNode,
+  deletedNodeId: string,
+  visibleIds: ReadonlySet<string>,
+): OutlineNavigationResult | null => {
+  const located = findOutlineNode(root, deletedNodeId);
+
+  if (!located) {
+    return null;
+  }
+
+  const { parent } = located;
+  const siblings = visibleCellChildren(parent, visibleIds);
+  const siblingIndex = siblings.findIndex((child) => child.id === deletedNodeId);
+
+  if (siblingIndex === -1) {
+    return null;
+  }
+
+  const nextSibling = siblings[siblingIndex + 1];
+
+  if (nextSibling?.cellIndex !== null && nextSibling?.cellIndex !== undefined) {
+    return cellNodeFromId(nextSibling.id);
+  }
+
+  const previousSibling = siblings[siblingIndex - 1];
+
+  if (
+    previousSibling?.cellIndex !== null &&
+    previousSibling?.cellIndex !== undefined
+  ) {
+    return cellNodeFromId(previousSibling.id);
+  }
+
+  if (parent.id !== "root" && parent.cellIndex !== null) {
+    return cellNodeFromId(parent.id);
+  }
+
+  const firstRoot = visibleCellChildren(root, visibleIds)[0];
+
+  return firstRoot?.cellIndex !== null && firstRoot?.cellIndex !== undefined
+    ? cellNodeFromId(firstRoot.id)
+    : null;
+};
+
 export const navigateOutlineNode = (
   root: OutlineNode,
   currentNodeId: string,

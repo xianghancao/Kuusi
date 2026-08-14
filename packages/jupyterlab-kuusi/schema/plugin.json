@@ -124,6 +124,18 @@
       "enum": ["xxs", "xs", "sm", "md", "lg", "xl", "xxl"],
       "default": "md"
     },
+    "unifyEditDisplayFont": {
+      "title": "Unify edit and display fonts",
+      "description": "Keep edit and display font family and size the same.",
+      "type": "boolean",
+      "default": false
+    },
+    "matchNotebookFont": {
+      "title": "Match notebook fonts",
+      "description": "Use the same font family as the classic notebook (ipynb).",
+      "type": "boolean",
+      "default": false
+    },
     "layoutDensity": {
       "title": "Node layout spacing",
       "type": "string",
@@ -152,9 +164,15 @@
       "type": "boolean",
       "default": false
     },
+    "adaptiveNodeWidth": {
+      "title": "Fit content",
+      "description": "When true, node width follows content (capped by Node width). With Equal width, all nodes share the widest content width, still capped.",
+      "type": "boolean",
+      "default": false
+    },
     "nodeWidth": {
       "title": "Node width",
-      "description": "Default mind map node width in pixels.",
+      "description": "Default mind map node width in pixels. When Fit content is on, this is the maximum width.",
       "type": "number",
       "minimum": 160,
       "maximum": 960,
@@ -188,7 +206,7 @@
     "backgroundPattern": {
       "title": "Canvas background pattern",
       "type": "string",
-      "enum": ["none", "plain", "grid", "dots", "gradient"],
+      "enum": ["none", "plain", "grid", "grid-dense", "dots", "dots-dense", "gradient"],
       "default": "none"
     },
     "backgroundColor": {
@@ -214,6 +232,18 @@
             "sparse-dash"
           ],
           "default": "solid"
+        },
+        "edgeRoute": {
+          "type": "string",
+          "title": "Edge route",
+          "description": "How connectors bend between parent and child nodes.",
+          "enum": [
+            "straight",
+            "curve",
+            "orthogonal",
+            "rounded-orthogonal"
+          ],
+          "default": "orthogonal"
         },
         "edgeArrowDirection": {
           "type": "string",
