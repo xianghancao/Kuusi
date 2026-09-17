@@ -3,44 +3,46 @@
 *Kuusi* (Finnish for spruce) — Jupyter-native **notebook mind map**: rearrange `.ipynb` cells on a spatial canvas by markdown heading hierarchy, using **Jupyter's own cell renderers** (CodeCell / MarkdownCell — not a custom rich-text editor).
 
 <p align="center">
-  <img src="docs/assets/0.2.4/kuusi-overview-light.png" alt="Kuusi mind map overview (light)" width="720"/>
+  <img src="docs/assets/0.2.6/kuusi-overview-light.png" alt="Kuusi mind map overview (light)" width="720"/>
 </p>
 
 <p align="center"><em>Overview — headings become branches; code and markdown cells attach as nodes</em></p>
 
 <p align="center">
-  <img src="docs/assets/0.2.4/kuusi-overview-dark.png" alt="Kuusi mind map overview (dark)" width="720"/>
+  <img src="docs/assets/0.2.6/kuusi-overview-dark.png" alt="Kuusi mind map overview (dark)" width="720"/>
 </p>
 
 <p align="center"><em>Same notebook on a dark canvas with glass toolbars</em></p>
 
 <p align="center">
-  <img src="docs/assets/0.2.4/kuusi-node-border.png" alt="Kuusi Node border controls" width="720"/>
+  <img src="docs/assets/0.2.6/kuusi-launcher-core.png" alt="Kuusi Launcher (core tier)" width="720"/>
 </p>
 
-<p align="center"><em>Node → Border — style, width, and color (including white)</em></p>
-
-<p align="center">
-  <img src="docs/assets/0.2.4/kuusi-formatting.png" alt="Kuusi markdown formatting toolbar" width="720"/>
-</p>
-
-<p align="center"><em>Edit mode formatting — Aa styles, colors, math, and links</em></p>
-
-<p align="center">
-  <img src="docs/assets/0.2.4/kuusi-community.png" alt="Kuusi Community menu" width="720"/>
-</p>
-
-<p align="center"><em>Kuusi → Community — Discourse feedback and X updates</em></p>
+<p align="center"><em>Launcher → Kuusi on 0.2.x — Mind Map and Settings (full-tier tiles unlock in 0.3.0)</em></p>
 
 ## Version
 
 | Component | Version |
 |-----------|---------|
-| **Kuusi** | `0.2.5` |
-| `kuusi-kernel` | `0.2.5` |
-| `jupyterlab-kuusi` | `0.2.5` |
+| **Kuusi** | `0.2.6` |
+| `kuusi-kernel` | `0.2.6` |
+| `jupyterlab-kuusi` | `0.2.6` |
 
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
+
+## What’s in 0.2.x (core tier)
+
+`pip install jupyterlab-kuusi` at **0.2.x** turns on **core** features only:
+
+| Active on core | Description |
+|----------------|-------------|
+| **Mind Map** | Open `.ipynb` files in the Kuusi canvas (toolbar **Kuusi** or **Open With → Kuusi Mind Map**). |
+| **Launcher → Kuusi** | **Mind Map** — create a notebook in the current folder and open it as a map. **Settings** — version, PyPI update check, community links, repository, about, and default openers (notebooks only). |
+| **Page header (row 2)** | Left **mind map icon** opens the **keyboard shortcuts** guide; appearance and format toolbars behave as in earlier 0.2 releases. |
+
+The same wheel also **bundles** Live PDF, TeX workspace, Markdown preview, image viewer, voice recorder, transfer-speed monitor, and ZIP compress/extract. Those plugins **do not register** until **0.3.0** (full tier). Jupyter server APIs for TeX, channel monitor, and compress follow the same rule — core installs log that full-tier APIs are disabled.
+
+**Maintainers / QA (full tier locally):** in the browser console, run `localStorage.setItem('jupyterlab-kuusi:release-tier-override', 'full')` and reload JupyterLab. Remove the key or set `'core'` to return to PyPI behavior.
 
 ## Links
 * Feedback: [Discourse](https://discourse.jupyter.org/t/kuusi-jupyterlab-notebook-mind-map-feedback-welcome/38802) 
@@ -56,7 +58,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 - **Edit & structure** — Tab/Enter insert nodes, drag-and-drop reorder, two-way notebook sync
 - **Appearance** — themes, fonts, line/border style, backgrounds; settings persist across refresh
 - **Format toolbar** (edit mode) — headings, inline styles, lists, tables, images, links
-- **Shortcuts, zoom, fullscreen** — XMind-style navigation; product menu for version & links
+- **Shortcuts, zoom, fullscreen** — XMind-style navigation; shortcuts from the page-header mind map icon; version and community links in **Launcher → Kuusi → Settings**
 
 ## Installation
 
@@ -81,6 +83,24 @@ pip install -U jupyterlab-kuusi
 ```
 
 No Node.js is required for the PyPI install.
+
+### LaTeX / PDF (optional, full tier from 0.3.0)
+
+On **0.2.x PyPI**, TeX compile and Live PDF are **bundled but inactive** (see [What’s in 0.2.x](#whats-in-02x-core-tier)). From **0.3.0** onward, Kuusi can compile `.tex` files and preview PDFs with SyncTeX jumps. **`pip install jupyterlab-kuusi` never includes a TeX distribution** — install these on the machine that runs `jupyter lab`:
+
+| Tool | Used for |
+|------|----------|
+| `pdflatex` | Default LaTeX → PDF compile |
+| `xelatex` | Chinese / `fontspec` / `ctex` documents |
+| `synctex` | PDF ↔ source line jumps |
+
+**macOS** — [MacTeX](https://tug.org/mactex/) or `brew install --cask mactex-no-gui`
+
+**Windows** — [MiKTeX](https://miktex.org/download) or [TeX Live](https://tug.org/texlive/)
+
+**Linux** — e.g. `sudo apt install texlive-latex-extra texlive-xetex`
+
+After installing TeX, restart JupyterLab. In a `.tex` editor, click **Help** in the Kuusi toolbar for platform-specific steps and PATH checks.
 
 ### Verify
 
@@ -122,7 +142,9 @@ jupyter lab
 
 `npm run jlab:install` builds the extension, installs it with pip, and rebuilds JupyterLab.
 
-Use a specific Python/Jupyter if they are not first on your `PATH`:
+This repo’s `scripts/kuusi-env.sh` pins **Anaconda** for install/dev (`KUUSI_PYTHON` / `KUUSI_JUPYTER`), so `pip list` matches the JupyterLab you start. Edit that file if your conda path changes.
+
+Override for one command:
 
 ```bash
 KUUSI_PYTHON=/path/to/python KUUSI_JUPYTER=/path/to/jupyter npm run jlab:install
@@ -161,7 +183,7 @@ Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, 
 
 | Area | Controls |
 |------|----------|
-| **Left** | **+**, **Kuusi**, **Tree**, **Layout**, **Theme**, **Font**, **Line**, **Node**, **Background** |
+| **Left** | **+**, **Mind map icon** (shortcuts), **Tree**, **Layout**, **Theme**, **Font**, **Line**, **Node**, **Background** |
 | **Right** | Markdown **format** toolbar (visible in edit mode), see below |
 
 #### Left toolbar
@@ -169,16 +191,18 @@ Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, 
 | Control | What it does |
 |---------|----------------|
 | **+** | Create a new notebook in the same folder and open it as a mind map |
-| **Kuusi** | About, version, GitHub / PyPI, Community (Discourse + X), install command, shortcuts |
+| **Mind map icon** | Opens the **keyboard shortcuts** guide (navigation, formatting, notes) |
 | **Tree** | Layout direction: ↓ ↑ → ← |
 | **Layout** | Node spacing: Compact / Normal / Loose |
 | **Theme** | Presets that stamp Line / Node / Background / Font: Notebook, Soft, Outline, Paper, Board, Black, Minimal |
 | **Font** | Mind map typeface (notebook default, sans-serif, serif); **Edit** / **Display** size sliders (XXS–XXL) |
 | **Line** | Connector line style, width, color |
-| **Node** | Width (equal width switch), fill, border, corner, selection glow |
+| **Node** | Width (equal width switch), fill, border, corner, hover glow, selection glow |
 | **Background** | Canvas pattern and color (including Ink for Black theme) |
 
 All of the above (except zoom and fullscreen) are **saved automatically** and restored on refresh.
+
+**Version, PyPI update badge, GitHub / PyPI links, Community (Discourse + X), install command, and default file openers** — **Launcher → Kuusi → Settings** (not the mind map page header).
 
 #### Right format toolbar (edit mode, markdown cells)
 
@@ -230,6 +254,10 @@ No Tiptap, React Flow, or separate JSON sidecar in this line.
 Planned work after `0.2.0`. These items do not block the current release.
 
 ### `0.3.0`
+
+#### Full tier
+
+Enable bundled Live PDF, TeX, Markdown preview, Image, Voice, channel monitor, and compress features for all installs (today they ship in the wheel but stay off on 0.2.x — see [What’s in 0.2.x](#whats-in-02x-core-tier)).
 
 #### Collapse branches
 
@@ -340,7 +368,7 @@ packages/
   kuusi-kernel/         # outline tree, layout, navigation
   jupyterlab-kuusi/     # JupyterLab extension + UI
 docs/
-  assets/               # Versioned README screenshots (e.g. 0.2.4/)
+  assets/               # Versioned README screenshots (e.g. 0.2.6/)
 examples/
   example.ipynb         # hands-on feature tour
 scripts/

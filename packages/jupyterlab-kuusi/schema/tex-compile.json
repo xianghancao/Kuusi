@@ -1,0 +1,50 @@
+{
+  "title": "Kuusi TeX compile",
+  "description": "Kuusi TeX compile toolbar and shortcuts.",
+  "jupyter.lab.toolbars": {
+    "Editor": [
+      {
+        "name": "tex-toc",
+        "rank": 43
+      },
+      {
+        "name": "compile-tex",
+        "rank": 44
+      },
+      {
+        "name": "tex-engine",
+        "rank": 45
+      },
+      {
+        "name": "tex-jump-pdf",
+        "rank": 46
+      },
+      {
+        "name": "tex-auto-reload",
+        "rank": 47
+      },
+      {
+        "name": "tex-help",
+        "rank": 48
+      }
+    ]
+  },
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "jupyterlab-kuusi:compile-tex",
+      "keys": ["Accel Shift B"],
+      "selector": ".jp-FileEditor"
+    }
+  ],
+  "type": "object",
+  "properties": {
+    "texEngine": {
+      "title": "TeX engine",
+      "description": "LaTeX engine used by the Compile button. Auto picks xelatex for ctex/fontspec documents, otherwise pdflatex.",
+      "type": "string",
+      "enum": ["auto", "pdflatex", "xelatex"],
+      "default": "auto"
+    }
+  },
+  "additionalProperties": false
+}

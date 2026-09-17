@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-dependencies = []
+dependencies = ["jupyter_server>=2.0.0,<3"]
 dynamic = ["version"]
 
 [tool.hatch.version]
@@ -28,9 +28,13 @@ path = "jupyterlab_kuusi/_version.py"
 [project.optional-dependencies]
 test = ["pytest>=7.0", "pytest-asyncio>=0.21"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"jupyterlab_kuusi/channel_monitor/static/index.html" = "jupyterlab_kuusi/channel_monitor/static/index.html"
+
 [tool.hatch.build.targets.wheel.shared-data]
 "jupyterlab_kuusi/labextension" = "share/jupyter/labextensions/jupyterlab-kuusi"
 "install.json" = "share/jupyter/labextensions/jupyterlab-kuusi/install.json"
+"jupyterlab_kuusi/jupyter-config/jupyter_server_config.d/jupyterlab-kuusi.json" = "etc/jupyter/jupyter_server_config.d/jupyterlab-kuusi.json"
 
 [tool.hatch.build.targets.sdist]
 artifacts = ["jupyterlab_kuusi/labextension"]

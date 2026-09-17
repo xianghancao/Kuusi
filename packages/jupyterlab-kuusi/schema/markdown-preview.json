@@ -1,0 +1,32 @@
+{
+  "title": "Kuusi Markdown Preview",
+  "description": "Linked navigation between Markdown editor and preview.",
+  "jupyter.lab.toolbars": {
+    "Editor": [
+      {
+        "name": "md-auto-reload",
+        "rank": 55
+      },
+      {
+        "name": "md-jump-preview",
+        "rank": 56
+      }
+    ]
+  },
+  "type": "object",
+  "properties": {
+    "autoReload": {
+      "title": "Editor auto reload",
+      "description": "When enabled, keep the Markdown preview open and synced to the editor cursor while editing.",
+      "type": "boolean",
+      "default": true
+    },
+    "previewAutoReload": {
+      "title": "Preview auto reload",
+      "description": "When enabled, reload the Markdown preview when the file changes on disk.",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

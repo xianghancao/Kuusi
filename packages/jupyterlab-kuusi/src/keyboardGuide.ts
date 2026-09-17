@@ -1,4 +1,6 @@
 import type { KuusiTranslator } from "./kuusiI18n";
+import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
+import { mindMapIcon } from "./kuusiIcon";
 
 export type ShortcutGuideEntry = {
   keys: string;
@@ -106,6 +108,49 @@ export const appendKeyboardGuideContent = (
   appendGuideSection(menu, t.mindMapShortcuts(), MIND_MAP_SHORTCUTS);
   appendGuideSection(menu, t.formattingShortcuts(), FORMAT_SHORTCUTS);
   appendGuideSection(menu, t.formattingNotes(), FORMAT_GUIDE_NOTES);
+};
+
+/** Mind map page toolbar: mind map icon opens the shortcut guide directly. */
+export const createMindMapShortcutMenu = (
+  root: HTMLElement,
+  t: KuusiTranslator,
+): HTMLElement => {
+  const dropdown = document.createElement("div");
+  dropdown.className =
+    "jp-KuusiFormatDropdown jp-KuusiGuideDropdown jp-KuusiNotebookMindMap-header-brand";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className =
+    "jp-KuusiNotebookMindMap-header-title jp-KuusiLogo jp-KuusiLogo--header jp-KuusiLogo--iconOnly";
+  trigger.setAttribute("aria-haspopup", "menu");
+  trigger.setAttribute("aria-label", t.keyboardShortcuts());
+  trigger.title = t.keyboardShortcuts();
+
+  const mark = document.createElement("span");
+  mark.className = "jp-KuusiLogo-mark";
+  mark.setAttribute("aria-hidden", "true");
+  mindMapIcon.render(mark);
+  trigger.appendChild(mark);
+
+  const menu = document.createElement("div");
+  menu.className =
+    "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiGuideDropdown-menu";
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-label", t.keyboardShortcuts());
+  appendKeyboardGuideContent(menu, t);
+
+  trigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = menu.classList.contains("is-open");
+    closeKuusiDropdownMenus(root);
+    if (!isOpen) {
+      openKuusiDropdownMenu(menu, root);
+    }
+  });
+
+  dropdown.append(trigger, menu);
+  return dropdown;
 };
 
 export const createGuideToolbar = (

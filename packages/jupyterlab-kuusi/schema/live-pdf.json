@@ -1,0 +1,31 @@
+{
+  "title": "Kuusi Live PDF",
+  "description": "Kuusi Live PDF viewer preferences.",
+  "type": "object",
+  "properties": {
+    "background": {
+      "title": "Viewer background",
+      "description": "Background color behind PDF pages in the Kuusi Live PDF viewer.",
+      "type": "string",
+      "enum": [
+        "default",
+        "gray",
+        "sepia",
+        "blue",
+        "green",
+        "dark",
+        "white",
+        "black"
+      ],
+      "default": "default"
+    },
+    "navMode": {
+      "title": "Navigation sidebar mode",
+      "description": "Default content shown in the Live PDF navigation sidebar.",
+      "type": "string",
+      "enum": ["thumbnails", "outline"],
+      "default": "thumbnails"
+    }
+  },
+  "additionalProperties": false
+}

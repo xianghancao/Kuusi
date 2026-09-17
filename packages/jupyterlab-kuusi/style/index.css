@@ -1,3 +1,48 @@
+/*
+ * Kuusi brand palette — remaps Jupyter accent tokens inside Kuusi UI so
+ * buttons, switches, sliders, and active states use spruce green instead
+ * of the default Jupyter blue.
+ */
+body[data-jp-theme-light="true"] {
+  --kuusi-brand-green: #2f5d3a;
+  --kuusi-brand-green-light: #4a7a55;
+  --kuusi-brand-green-dark: #244a2e;
+  --kuusi-brand-green-tint: color-mix(in srgb, #2f5d3a 12%, var(--jp-layout-color1));
+  --kuusi-brand-green-soft: color-mix(in srgb, #2f5d3a 14%, transparent);
+}
+
+body[data-jp-theme-light="false"],
+.jp-mod-dark {
+  --kuusi-brand-green: #9bc49a;
+  --kuusi-brand-green-light: #b5d4b4;
+  --kuusi-brand-green-dark: #7fa87e;
+  --kuusi-brand-green-tint: color-mix(in srgb, #9bc49a 16%, var(--jp-layout-color1));
+  --kuusi-brand-green-soft: color-mix(in srgb, #9bc49a 18%, transparent);
+}
+
+.jp-KuusiNotebookMindMap,
+.jp-KuusiNotebookMindMapDocument,
+.jp-KuusiLivePdfViewer,
+.jp-KuusiLivePdfDocument,
+.jp-KuusiImageViewer,
+.jp-KuusiImageDocument,
+.jp-KuusiTexEditor-body,
+.jp-KuusiDefaultOpeners,
+.jp-KuusiNotebookOpenButton,
+[class*="jp-Kuusi"],
+.jp-FileEditor-Document:has([data-jp-item-name="compile-tex"]),
+.jp-FileEditor-Document:has([data-jp-item-name="md-jump-preview"]),
+.jp-FileEditor-Document:has([data-jp-item-name="md-auto-reload"]),
+.jp-MarkdownViewer-Document:has([data-jp-item-name="md-jump-source"]),
+.jp-MarkdownViewer-Document:has([data-jp-item-name="md-preview-auto-reload"]) {
+  --jp-brand-color1: var(--kuusi-brand-green);
+  --jp-brand-color2: var(--kuusi-brand-green-light);
+  --jp-brand-color3: var(--kuusi-brand-green-tint);
+  --jp-success-color0: var(--kuusi-brand-green-light);
+  --jp-success-color1: var(--kuusi-brand-green);
+  --jp-success-color2: var(--kuusi-brand-green-soft);
+}
+
 .jp-KuusiNotebookMindMapDocument .jp-Toolbar {
   border-bottom: 1px solid var(--jp-border-color2);
   flex: 0 0 auto;
@@ -13,6 +58,13 @@
   width: 100%;
 }
 
+/* Page chrome (header pill, corner status) — keep separate from canvas rem font sizes. */
+.jp-KuusiNotebookMindMap {
+  --kuusi-mindmap-chrome-font-family: var(--jp-ui-font-family);
+  --kuusi-mindmap-chrome-font-size: var(--jp-ui-font-size1);
+  --kuusi-mindmap-chrome-font-weight: 550;
+}
+
 .jp-KuusiNotebookMindMap-header {
   align-items: flex-start;
   background: transparent;
@@ -20,7 +72,9 @@
   color: var(--jp-ui-font-color2);
   display: flex;
   flex-wrap: nowrap;
-  font-size: var(--jp-ui-font-size1);
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
   gap: 10px;
   justify-content: space-between;
   left: 0;
@@ -75,6 +129,12 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   min-width: 0;
   /* Keep overflow visible so dropdown menus are not clipped. */
   overflow: visible;
+}
+
+/* Auto reload belongs on the tab's Notebook plugin toolbar, not the page pill. */
+.jp-KuusiToolbarCluster--page .jp-KuusiNotebook-autoReload,
+.jp-KuusiToolbarCluster--page [data-jp-item-name="kuusi-notebook-auto-reload"] {
+  display: none !important;
 }
 
 .jp-KuusiToolbarDivider {
@@ -167,8 +227,171 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 }
 
 .jp-KuusiLogo--header {
-  display: inline-block;
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
   padding: 0 2px;
+}
+
+.jp-KuusiLogo--header.jp-KuusiLogo--iconOnly {
+  gap: 0;
+  padding: 2px;
+}
+
+.jp-KuusiLogo-mark {
+  align-items: center;
+  color: #2f5d3a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  line-height: 0;
+}
+
+.jp-KuusiLogo-mark svg {
+  display: block;
+  height: 18px;
+  width: 18px;
+}
+
+.jp-KuusiLogo-label {
+  color: #000000;
+  flex: 0 0 auto;
+  line-height: 100%;
+}
+
+.jp-mod-dark .jp-KuusiLogo-mark {
+  color: #9bc49a;
+}
+
+.jp-mod-dark .jp-KuusiLogo-label {
+  color: #f5f5f5;
+}
+
+/*
+ * JupyterLab 4.x: cwd first, then Notebook (unchanged habit), Kuusi on the next
+ * row, then Console and other extension categories.
+ */
+.jp-Launcher-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-Launcher-cwd {
+  order: -100;
+}
+
+.jp-Launcher-section {
+  order: 50;
+}
+
+/* JupyterLab 4.5+ launcher cards expose data-category only (no data-command). */
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Notebook"]) {
+  order: 10;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"]) {
+  order: 11;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Console"]) {
+  order: 12;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Other"]) {
+  order: 13;
+}
+
+.jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon {
+  color: #2f5d3a;
+}
+
+.jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon svg,
+.jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon path {
+  color: #2f5d3a;
+  fill: currentColor;
+}
+
+.jp-mod-dark .jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon {
+  color: #9bc49a;
+}
+
+.jp-mod-dark
+  .jp-LauncherCard[data-category="Kuusi"]
+  .jp-LauncherCard-icon
+  svg,
+.jp-mod-dark
+  .jp-LauncherCard[data-category="Kuusi"]
+  .jp-LauncherCard-icon
+  path {
+  color: #9bc49a;
+  fill: currentColor;
+}
+
+.jp-KuusiTexIcon-bold path {
+  paint-order: stroke fill;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 26;
+}
+
+/* PDF / IMG wordmarks — small path coords; do not reuse TeX stroke-width (26). */
+.jp-KuusiWordmarkIcon-bold path {
+  paint-order: stroke fill;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 0.72;
+}
+
+/* Kuusi section header — brand spruce in brand green (not theme blue). */
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  .jp-Icon,
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  svg {
+  color: #2f5d3a;
+}
+
+.jp-mod-dark
+  .jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  .jp-Icon,
+.jp-mod-dark
+  .jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  svg {
+  color: #9bc49a;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionTitle {
+  color: #2f5d3a;
+}
+
+.jp-mod-dark
+  .jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionTitle {
+  color: #9bc49a;
+}
+
+/*
+ * Section-only brand tile (rank -100) — keep in DOM for the header icon.
+ * Collapse in-place (no display:none / position:absolute; those hid the section).
+ */
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  > .jp-Launcher-cardContainer
+  > .jp-LauncherCard:first-child {
+  block-size: 0;
+  border: none;
+  box-shadow: none;
+  inline-size: 0;
+  margin: 0;
+  min-block-size: 0;
+  min-inline-size: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  pointer-events: none;
 }
 
 .jp-KuusiTabIcon {
@@ -192,23 +415,28 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 }
 
 .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo {
-  color: #2f5d3a;
   font-weight: 800;
   overflow: visible;
   position: relative;
 }
 
-.jp-mod-dark .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo {
-  color: #9bc49a;
-}
-
-.jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover {
+.jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover .jp-KuusiLogo-mark {
   color: #244a2e;
   filter: none;
 }
 
-.jp-mod-dark .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover {
+.jp-mod-dark .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover .jp-KuusiLogo-mark {
   color: #b8d8b6;
+}
+
+.jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover .jp-KuusiLogo-label {
+  color: #000000;
+}
+
+.jp-mod-dark
+  .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover
+  .jp-KuusiLogo-label {
+  color: #f5f5f5;
 }
 
 .jp-KuusiProductDropdown-updateBadge {
@@ -512,9 +740,9 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   border-radius: 999px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
-  font-family: var(--jp-ui-font-family);
-  font-size: var(--jp-ui-font-size1);
-  font-weight: 550;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
   line-height: 100%;
   min-width: 32px;
   padding: 5px 9px;
@@ -1319,19 +1547,6 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   width: 30px;
 }
 
-.jp-KuusiAppearancePreview-selection-glow {
-  background: var(--jp-layout-color2);
-  border: 1px solid currentColor;
-  border-radius: 3px;
-  box-shadow:
-    0 0 0 var(--kuusi-preview-selection-glow-width, 2px) currentColor,
-    0 0 6px 1px color-mix(in srgb, currentColor 45%, transparent);
-  box-sizing: border-box;
-  display: block;
-  height: 18px;
-  width: 30px;
-}
-
 .jp-KuusiNotebookMindMap-style-toolbar {
   align-items: center;
   display: flex;
@@ -1405,10 +1620,10 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
 }
 
 button.jp-KuusiPanelWidget-switch {
-  --kuusi-switch-width: 42px;
-  --kuusi-switch-height: 24px;
+  --kuusi-switch-width: 30px;
+  --kuusi-switch-height: 16px;
   --kuusi-switch-pad: 2px;
-  --kuusi-switch-thumb: 20px;
+  --kuusi-switch-thumb: 12px;
   -webkit-appearance: none;
   appearance: none;
   background: color-mix(in srgb, var(--jp-ui-font-color1) 22%, transparent);
@@ -2040,8 +2255,9 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   background: transparent;
   border: none;
   border-radius: 999px;
-  font-size: var(--jp-ui-font-size1);
-  font-weight: 550;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
   min-height: 26px;
   padding: 4px 8px;
 }
@@ -2053,7 +2269,9 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 .jp-KuusiToolbarCluster
   .jp-ToolbarButtonComponent
   .jp-ToolbarButtonComponent-label {
-  font-size: var(--jp-ui-font-size1);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .jp-KuusiNotebookMindMap-viewport:focus {
@@ -2070,9 +2288,9 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   border-radius: 10px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
-  font-family: var(--jp-ui-font-family);
-  font-size: var(--jp-ui-font-size1);
-  font-weight: 600;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
   line-height: 100%;
   min-width: 30px;
   padding: 6px 10px;
@@ -2630,6 +2848,32 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   width: 100%;
 }
 
+.jp-KuusiNotebookMindMap-status-updated {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  bottom: 12px;
+  box-shadow: var(--jp-elevation-z2);
+  color: var(--jp-ui-font-color1);
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  left: 12px;
+  line-height: 100%;
+  max-width: min(42vw, 420px);
+  overflow: hidden;
+  padding: 6px 10px;
+  pointer-events: none;
+  position: absolute;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.jp-KuusiNotebookMindMap-status-updated[hidden] {
+  display: none;
+}
+
 .jp-KuusiNotebookMindMap-status {
   align-items: center;
   background: var(--jp-layout-color2);
@@ -2639,8 +2883,9 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   box-shadow: var(--jp-elevation-z2);
   color: var(--jp-ui-font-color1);
   display: flex;
-  font-family: var(--jp-ui-font-family);
-  font-size: var(--jp-ui-font-size1);
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
   gap: 12px;
   padding: 6px 10px;
   pointer-events: none;
@@ -2653,8 +2898,15 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
 .jp-KuusiNotebookMindMap-status-zoom-btn {
   font-family: inherit;
   font-size: inherit;
-  font-weight: 600;
+  font-weight: inherit;
   line-height: 100%;
+}
+
+.jp-KuusiNotebookMindMap-status-node {
+  max-width: min(42vw, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .jp-KuusiNotebookMindMap-status-zoom {
@@ -2767,14 +3019,14 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   width: var(--kuusi-zoom-thumb);
 }
 
-/* Dark theme: white track + blue thumb for contrast. */
+/* Dark theme: white track + brand-green thumb for contrast. */
 body[data-jp-theme-light="false"]
   .jp-KuusiNotebookMindMap-status-zoom-track-line {
   background: #fff;
 }
 
 body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
-  background: var(--jp-brand-color1, #1976d2);
+  background: var(--kuusi-brand-green, #9bc49a);
   box-shadow: none;
 }
 
@@ -2843,6 +3095,8 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   --kuusi-node-border-color: var(--jp-border-color2);
   --kuusi-node-border-radius: 8px;
   --kuusi-node-border-width: 1px;
+  --kuusi-hover-glow-fallback: #1976d2;
+  --kuusi-hover-glow-width: 1px;
   --kuusi-selection-glow-color: var(--jp-brand-color1);
   --kuusi-selection-glow-width: 2px;
   --kuusi-node-shadow: 0 1px 4px rgb(0 0 0 / 8%);
@@ -3213,10 +3467,17 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 .jp-KuusiNotebookMindMap-cellNode:hover:not(.is-selected):not(.is-drop-before):not(
     .is-drop-inside
   ):not(.is-drop-after) {
-  border-color: var(--jp-brand-color1);
+  border-color: var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback));
   box-shadow:
-    0 0 0 1px var(--jp-brand-color1),
-    0 0 8px 2px color-mix(in srgb, var(--jp-brand-color2) 60%, transparent),
+    0 0 0 var(--kuusi-hover-glow-width)
+      var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback)),
+    0 0 calc(var(--kuusi-hover-glow-width) * 5)
+      calc(var(--kuusi-hover-glow-width) * 1.5)
+      color-mix(
+        in srgb,
+        var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback)) 55%,
+        transparent
+      ),
     var(--kuusi-node-shadow, var(--jp-elevation-z1));
 }
 
@@ -3244,10 +3505,13 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   width: 3px;
 }
 
-.jp-KuusiNotebookMindMap-cellNode:hover > .jp-KuusiNotebookMindMap-resizeHandle::after,
+.jp-KuusiNotebookMindMap-cellNode:hover > .jp-KuusiNotebookMindMap-resizeHandle::after {
+  background: var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback));
+}
+
 .jp-KuusiNotebookMindMap-cellNode.is-selected > .jp-KuusiNotebookMindMap-resizeHandle::after,
 .jp-KuusiNotebookMindMap-cellNode.is-resizing > .jp-KuusiNotebookMindMap-resizeHandle::after {
-  background: var(--jp-brand-color1);
+  background: var(--kuusi-selection-glow-color, var(--jp-brand-color1));
 }
 
 .jp-KuusiNotebookMindMap-viewport.is-node-resizing {
@@ -3405,4 +3669,2059 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   pointer-events: none !important;
   visibility: hidden !important;
   width: 0 !important;
+}
+
+:root {
+  --kuusi-glass-bg: color-mix(in srgb, var(--jp-layout-color1) 55%, transparent);
+  --kuusi-glass-bg-hover: color-mix(in srgb, var(--jp-layout-color1) 78%, transparent);
+  --kuusi-glass-border: color-mix(in srgb, var(--jp-ui-font-color0) 13%, transparent);
+  --kuusi-glass-blur: blur(14px) saturate(180%);
+  --kuusi-glass-shadow: 0 1px 2px color-mix(in srgb, var(--jp-ui-font-color0) 16%, transparent);
+  --kuusi-glass-sheen: inset 0 1px 0 color-mix(in srgb, white 15%, transparent);
+  --kuusi-glass-segment-hover: color-mix(in srgb, var(--jp-ui-font-color0) 8%, transparent);
+}
+
+.jp-KuusiLivePdfOpenHub {
+  background: var(--jp-layout-color1);
+  height: 100%;
+  overflow: auto;
+}
+
+.jp-KuusiLivePdfOpenHub-layout {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 520px;
+  min-height: min(480px, 100%);
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.jp-KuusiLivePdfOpenHub-title {
+  color: var(--kuusi-brand-green, var(--jp-brand-color1));
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 700;
+  margin: 0;
+}
+
+.jp-KuusiLivePdfOpenHub-hint {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiLivePdfOpenHub-dropZone {
+  align-items: center;
+  background: color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 6%, var(--jp-layout-color1));
+  border: 2px dashed color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 35%, var(--jp-border-color2));
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  min-height: 160px;
+  padding: 28px 20px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+  width: 100%;
+}
+
+.jp-KuusiLivePdfOpenHub-dropZone.is-dragover {
+  background: color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 14%, var(--jp-layout-color1));
+  border-color: var(--kuusi-brand-green, var(--jp-brand-color1));
+}
+
+.jp-KuusiLivePdfOpenHub-dropLabel {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 600;
+}
+
+.jp-KuusiLivePdfOpenHub-dropSub {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+  max-width: 28em;
+}
+
+.jp-KuusiLivePdfOpenHub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.jp-KuusiLivePdfOpenHub-browse,
+.jp-KuusiLivePdfOpenHub-upload {
+  font-size: var(--jp-ui-font-size1);
+  padding: 8px 16px;
+}
+
+.jp-KuusiLivePdfDocument {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.jp-KuusiLivePdfDocument > .jp-Toolbar,
+.jp-KuusiLivePdfDocument > .jp-Toolbar .jp-Toolbar-item {
+  overflow: visible;
+}
+
+.jp-KuusiLivePdfViewer {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiLivePdf-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiLivePdf-nav {
+  background: var(--jp-layout-color2);
+  border-right: 1px solid var(--jp-border-color2);
+  display: flex;
+  flex: 0 0 168px;
+  flex-direction: column;
+  min-height: 0;
+  width: 168px;
+}
+
+.jp-KuusiLivePdf-nav.is-hidden {
+  display: none;
+}
+
+.jp-KuusiLivePdf-navSearch {
+  border-bottom: 1px solid var(--jp-border-color2);
+  flex: 0 0 auto;
+  padding: 8px;
+}
+
+.jp-KuusiLivePdf-navSearchInput {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+  padding: 4px 8px;
+  width: 100%;
+}
+
+.jp-KuusiLivePdf-navSearchInput:focus {
+  border-color: var(--jp-brand-color1);
+  outline: none;
+}
+
+.jp-KuusiLivePdf-navMode {
+  border-bottom: 1px solid var(--jp-border-color2);
+  display: grid;
+  flex: 0 0 auto;
+  gap: 2px;
+  grid-template-columns: 1fr 1fr;
+  padding: 8px;
+}
+
+.jp-KuusiLivePdf-navModeButton {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.2;
+  padding: 4px 6px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.jp-KuusiLivePdf-navModeButton:hover {
+  border-color: var(--jp-brand-color2);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-KuusiLivePdf-navModeButton.is-active {
+  background: var(--jp-brand-color1);
+  border-color: var(--jp-brand-color1);
+  color: #fff;
+  font-weight: 600;
+}
+
+.jp-KuusiLivePdf-navPanels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.jp-KuusiLivePdf-navThumbs,
+.jp-KuusiLivePdf-navOutline,
+.jp-KuusiLivePdf-navOutlineEmpty {
+  box-sizing: border-box;
+  inset: 0;
+  overflow: auto;
+  position: absolute;
+}
+
+.jp-KuusiLivePdf-navThumbs[hidden],
+.jp-KuusiLivePdf-navOutline[hidden],
+.jp-KuusiLivePdf-navOutlineEmpty[hidden] {
+  display: none !important;
+}
+
+.jp-KuusiLivePdf-navThumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+
+.jp-KuusiLivePdf-navOutline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 4px 8px;
+}
+
+.jp-KuusiLivePdf-navOutlineItem {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 5px 8px 5px 10px;
+  text-align: left;
+  transition: background 0.15s ease;
+  width: 100%;
+}
+
+.jp-KuusiLivePdf-navOutlineItem:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 12%, transparent);
+}
+
+.jp-KuusiLivePdf-navOutlineItem.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  color: var(--jp-brand-color1);
+  font-weight: 600;
+}
+
+.jp-KuusiLivePdf-navOutlineLabel {
+  flex: 1 1 auto;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.25;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-KuusiLivePdf-navOutlinePage {
+  color: var(--jp-ui-font-color2);
+  flex: 0 0 auto;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+}
+
+.jp-KuusiLivePdf-navOutlineItem.is-active .jp-KuusiLivePdf-navOutlinePage {
+  color: var(--jp-brand-color1);
+}
+
+.jp-KuusiLivePdf-navOutlineEmpty {
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.35;
+  padding: 12px 10px;
+  text-align: center;
+}
+
+.jp-FileEditor-Document .jp-KuusiTexEditor-body {
+  display: flex;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiTexEditor-body > .jp-FileEditor {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.jp-KuusiTexOutline-nav {
+  flex: 0 0 168px;
+  min-height: 0;
+  width: 168px;
+}
+
+.jp-KuusiOutlineNav-modeSingle {
+  grid-template-columns: 1fr;
+}
+
+.jp-KuusiOutlineNav-modeSingle .jp-KuusiLivePdf-navModeButton {
+  cursor: default;
+}
+
+.jp-KuusiTexOutline-nav
+  .jp-KuusiLivePdf-navOutlineItem.is-active
+  .jp-KuusiTexOutline-lineTag {
+  background: var(--jp-success-color1);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 1.6em;
+  padding: 2px 5px;
+  text-align: center;
+}
+
+.jp-KuusiTexEditor-body .cm-lineNumbers .cm-gutterElement.cm-activeLineGutter,
+.jp-KuusiMarkdownEditor .cm-lineNumbers .cm-gutterElement.cm-activeLineGutter {
+  background: var(--jp-success-color1);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: #fff;
+  font-weight: 600;
+  margin: 0 2px;
+  min-width: 1.6em;
+  padding: 0 4px;
+  text-align: center;
+}
+
+.jp-KuusiLivePdf-navThumb {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  text-align: center;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.jp-KuusiLivePdf-navThumb:hover {
+  border-color: var(--jp-brand-color2);
+}
+
+.jp-KuusiLivePdf-navThumb.is-active {
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-KuusiLivePdf-navThumbCanvas {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 0;
+}
+
+.jp-KuusiLivePdf-navThumbImage {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.jp-KuusiLivePdf-navThumbLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+}
+
+.jp-KuusiLivePdf-navThumb.is-active .jp-KuusiLivePdf-navThumbLabel {
+  color: var(--jp-brand-color1);
+  font-weight: 600;
+}
+
+.jp-KuusiLivePdf-textHighlight {
+  background: color-mix(in srgb, #ffd400 55%, transparent);
+  border-radius: 2px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.jp-mod-dark .jp-KuusiLivePdf-textHighlight {
+  background: color-mix(in srgb, #ffd400 40%, transparent);
+  mix-blend-mode: screen;
+}
+
+.jp-KuusiLivePdf-navToggle.jp-ToolbarButtonComponent.is-active {
+  background: var(--jp-brand-color1) !important;
+  color: #fff;
+}
+
+.jp-KuusiLivePdf-scroll {
+  background: var(--kuusi-live-pdf-bg, var(--jp-layout-color1));
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  position: relative;
+}
+
+.jp-KuusiLivePdf-pageWrap.jp-KuusiLivePdf-pageWrap-isFlashing {
+  overflow: visible;
+  z-index: 3;
+}
+
+.jp-KuusiLivePdf-reloadFlash {
+  inset: -12px;
+  pointer-events: none;
+  position: absolute;
+  z-index: 30;
+}
+
+.jp-KuusiLivePdf-reloadFlashSvg {
+  display: block;
+  height: 100%;
+  overflow: visible;
+  width: 100%;
+}
+
+.jp-KuusiLivePdf-reloadFlashLight {
+  fill: none;
+  opacity: 0;
+  stroke: color-mix(in srgb, var(--jp-success-color1) 82%, white);
+  stroke-dasharray: 7 93;
+  stroke-linecap: round;
+  stroke-width: 12px;
+  vector-effect: non-scaling-stroke;
+}
+
+.jp-KuusiLivePdf-reloadFlash.is-active .jp-KuusiLivePdf-reloadFlashLight {
+  animation: jp-KuusiLivePdf-reloadBacklight 1s linear forwards;
+  opacity: 1;
+}
+
+@keyframes jp-KuusiLivePdf-reloadBacklight {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.jp-KuusiLivePdfViewer[data-pdf-background="dark"] .jp-KuusiLivePdf-nav,
+.jp-KuusiLivePdfViewer[data-pdf-background="black"] .jp-KuusiLivePdf-nav {
+  background: color-mix(in srgb, var(--kuusi-live-pdf-bg) 92%, white);
+  border-right-color: color-mix(in srgb, var(--kuusi-live-pdf-bg) 70%, white);
+}
+
+.jp-KuusiLivePdfViewer[data-pdf-background="blue"] .jp-KuusiLivePdf-nav,
+.jp-KuusiLivePdfViewer[data-pdf-background="green"] .jp-KuusiLivePdf-nav {
+  background: color-mix(in srgb, var(--kuusi-live-pdf-bg) 88%, white);
+  border-right-color: color-mix(in srgb, var(--kuusi-live-pdf-bg) 72%, var(--jp-border-color2));
+}
+
+.jp-KuusiLivePdf-background {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.jp-KuusiLivePdf-backgroundSelect {
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  padding: 0 6px;
+}
+
+.jp-KuusiLivePdf-backgroundSelect:focus {
+  border-color: var(--jp-brand-color1);
+  outline: none;
+}
+
+.jp-KuusiLivePdf-status {
+  align-items: center;
+  background: var(--jp-layout-color2);
+  border-bottom: 1px solid var(--jp-border-color2);
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  flex: 0 0 auto;
+  font-size: var(--jp-ui-font-size0);
+  gap: 12px;
+  justify-content: flex-start;
+  padding: 4px 10px;
+}
+
+.jp-KuusiLivePdf-statusModified {
+  color: var(--jp-ui-font-color2);
+  flex: 0 0 auto;
+  font-size: var(--jp-ui-font-size0);
+  white-space: nowrap;
+}
+
+.jp-KuusiLivePdf-pages {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 12px 24px;
+}
+
+.jp-KuusiLivePdf-loading {
+  animation: jp-KuusiLivePdf-loading-pulse 1.4s ease-in-out infinite;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  padding: 32px 0;
+}
+
+@keyframes jp-KuusiLivePdf-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.jp-KuusiLivePdf-pageWrap {
+  box-shadow: 0 1px 6px color-mix(in srgb, var(--jp-ui-font-color0) 18%, transparent);
+  position: relative;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer {
+  caret-color: CanvasText;
+  forced-color-adjust: none;
+  inset: 0;
+  left: 0;
+  line-height: 1;
+  opacity: 1;
+  overflow: clip;
+  position: absolute;
+  text-align: initial;
+  top: 0;
+  transform-origin: 0 0;
+  z-index: 1;
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer.highlighting {
+  touch-action: none;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer :is(span, br) {
+  color: transparent;
+  cursor: text;
+  position: absolute;
+  transform-origin: 0 0;
+  white-space: pre;
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  > :not(.markedContent),
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .markedContent
+  span:not(.markedContent) {
+  z-index: 1;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer span.markedContent {
+  height: 0;
+  top: 0;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer span[role="img"] {
+  cursor: default;
+  user-select: none;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer ::selection {
+  background: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer ::-moz-selection {
+  background: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer .endOfContent {
+  cursor: default;
+  display: block;
+  inset: 100% 0 0;
+  position: absolute;
+  user-select: none;
+  z-index: 0;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer.selecting .endOfContent {
+  top: 0;
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .jp-KuusiLivePdf-textWhitespace {
+  pointer-events: none;
+  user-select: none;
+}
+
+.jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer .jp-KuusiLivePdf-userHighlight {
+  border-radius: 4px;
+  margin: -1px;
+  padding: 1px;
+}
+
+.appended:is(
+  .jp-KuusiLivePdf-pageWrap .jp-KuusiLivePdf-textLayer .jp-KuusiLivePdf-userHighlight
+) {
+  position: initial;
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .jp-KuusiLivePdf-userHighlight--yellow {
+  background-color: color-mix(in srgb, #ffeb3b 65%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .jp-KuusiLivePdf-userHighlight--green {
+  background-color: color-mix(in srgb, #a5d6a7 70%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .jp-KuusiLivePdf-userHighlight--blue {
+  background-color: color-mix(in srgb, #90caf9 70%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .jp-KuusiLivePdf-userHighlight--pink {
+  background-color: color-mix(in srgb, #f48fb1 65%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap
+  .jp-KuusiLivePdf-textLayer
+  .jp-KuusiLivePdf-userHighlight--orange {
+  background-color: color-mix(in srgb, #ffcc80 70%, transparent);
+}
+
+.jp-KuusiLivePdf-pageWrap .annotationLayer {
+  --link-outline: none;
+  inset: 0;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform-origin: 0 0;
+  z-index: 2;
+}
+
+.jp-KuusiLivePdf-pageWrap .annotationLayer section {
+  box-sizing: border-box;
+  pointer-events: auto;
+  position: absolute;
+  text-align: initial;
+  transform-origin: 0 0;
+}
+
+.jp-KuusiLivePdf-pageWrap .annotationLayer :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton) > a {
+  font-size: 1em;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.jp-KuusiLivePdf-pageWrap .annotationLayer :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton):not(.hasBorder) > a:hover {
+  background-color: rgb(255 255 0 / 0.35);
+  opacity: 1;
+}
+
+.jp-KuusiLivePdfViewer[data-scale-mode="fit-width"] .jp-KuusiLivePdf-pageWrap,
+.jp-KuusiLivePdfViewer[data-scale-mode="fit-page"] .jp-KuusiLivePdf-pageWrap {
+  max-width: 100%;
+}
+
+.jp-KuusiLivePdf-syncHighlight {
+  animation: jp-KuusiLivePdf-syncHighlight-flash 1.5s ease-out forwards;
+  background: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+  border: 2px solid var(--jp-brand-color1);
+  border-radius: 3px;
+  pointer-events: none;
+  position: absolute;
+}
+
+@keyframes jp-KuusiLivePdf-syncHighlight-flash {
+  0% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.jp-KuusiLivePdf-page {
+  display: block;
+  height: auto;
+  width: auto;
+}
+
+.jp-KuusiLivePdfViewer[data-scale-mode="fit-width"] .jp-KuusiLivePdf-page,
+.jp-KuusiLivePdfViewer[data-scale-mode="fit-page"] .jp-KuusiLivePdf-page {
+  max-width: 100%;
+}
+
+/* Apple-style "liquid glass" chrome on Kuusi tex/pdf/image/voice toolbars.
+   Scope refresh/reveal by document shell — JupyterLab file browser uses the
+   same `data-jp-item-name="refresh"` and must keep the default square button. */
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent,
+.jp-KuusiLivePdfDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent,
+.jp-KuusiLivePdfDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent,
+.jp-KuusiImageDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent,
+.jp-KuusiImageDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent,
+.jp-KuusiVoiceDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent,
+.jp-KuusiVoiceDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent,
+.jp-KuusiTexCompile-toc.jp-ToolbarButtonComponent,
+.jp-KuusiTexCompile-help.jp-ToolbarButtonComponent,
+.jp-KuusiTexCompile-jumpPdf.jp-ToolbarButtonComponent,
+.jp-KuusiLivePdf-jumpToSource.jp-ToolbarButtonComponent,
+.jp-KuusiMdPreview-jumpPreview.jp-ToolbarButtonComponent,
+.jp-KuusiMdPreview-jumpSource.jp-ToolbarButtonComponent,
+.jp-KuusiLivePdf-zoomGroup,
+.jp-KuusiLivePdf-pageNavGroup,
+.jp-KuusiLivePdf-highlightGroup,
+.jp-KuusiLivePdf-autoReload,
+.jp-KuusiTexCompile-autoReload,
+.jp-KuusiMdPreview-autoReload,
+.jp-KuusiNotebook-autoReload,
+.jp-KuusiTexCompile-engineSelect,
+.jp-KuusiLivePdf-backgroundSelect {
+  background: var(--kuusi-glass-bg);
+  backdrop-filter: var(--kuusi-glass-blur);
+  -webkit-backdrop-filter: var(--kuusi-glass-blur);
+  border: 1px solid var(--kuusi-glass-border);
+  border-radius: 999px !important;
+  box-shadow: var(--kuusi-glass-shadow), var(--kuusi-glass-sheen);
+  box-sizing: border-box;
+  height: 26px !important;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent:hover,
+.jp-KuusiLivePdfDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent:hover,
+.jp-KuusiLivePdfDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent:hover,
+.jp-KuusiImageDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent:hover,
+.jp-KuusiImageDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent:hover,
+.jp-KuusiVoiceDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent:hover,
+.jp-KuusiVoiceDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent:hover,
+.jp-KuusiTexCompile-toc.jp-ToolbarButtonComponent:hover,
+.jp-KuusiTexCompile-help.jp-ToolbarButtonComponent:hover,
+.jp-KuusiTexCompile-jumpPdf.jp-ToolbarButtonComponent:hover,
+.jp-KuusiLivePdf-jumpToSource.jp-ToolbarButtonComponent:hover,
+.jp-KuusiMdPreview-jumpPreview.jp-ToolbarButtonComponent:hover,
+.jp-KuusiMdPreview-jumpSource.jp-ToolbarButtonComponent:hover,
+.jp-KuusiTexCompile-engineSelect:hover {
+  background: var(--kuusi-glass-bg-hover);
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent:active,
+.jp-KuusiLivePdfDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent:active,
+.jp-KuusiLivePdfDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent:active,
+.jp-KuusiImageDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent:active,
+.jp-KuusiImageDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent:active,
+.jp-KuusiVoiceDocument .jp-Toolbar-item[data-jp-item-name="refresh"] .jp-ToolbarButtonComponent:active,
+.jp-KuusiVoiceDocument .jp-Toolbar-item[data-jp-item-name="reveal"] .jp-ToolbarButtonComponent:active,
+.jp-KuusiTexCompile-toc.jp-ToolbarButtonComponent:active,
+.jp-KuusiTexCompile-help.jp-ToolbarButtonComponent:active,
+.jp-KuusiTexCompile-jumpPdf.jp-ToolbarButtonComponent:active,
+.jp-KuusiLivePdf-jumpToSource.jp-ToolbarButtonComponent:active,
+.jp-KuusiMdPreview-jumpPreview.jp-ToolbarButtonComponent:active,
+.jp-KuusiMdPreview-jumpSource.jp-ToolbarButtonComponent:active {
+  transform: scale(0.96);
+}
+
+/* Compile is the primary action, so it gets a solid green fill instead of
+   the neutral glass tint, with no icon — just a clear, compact label. */
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent {
+  background: var(--jp-success-color1) !important;
+  border-color: color-mix(in srgb, var(--jp-success-color0) 40%, transparent);
+  position: relative;
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent:hover {
+  background: var(--jp-success-color0) !important;
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent-label {
+  color: #fff;
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"].jp-KuusiTexCompile-isCompiling,
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent.jp-KuusiTexCompile-isCompiling {
+  overflow: visible;
+  z-index: 4;
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"].jp-KuusiTexCompile-isCompiling
+  .jp-ToolbarButtonComponent,
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent.jp-KuusiTexCompile-isCompiling {
+  animation: jp-KuusiTexCompile-glow 0.9s ease-in-out infinite;
+}
+
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"].jp-KuusiTexCompile-isCompiling
+  .jp-ToolbarButtonComponent::after,
+.jp-FileEditor-Document:has(.jp-KuusiTexEditor-body)
+  .jp-Toolbar-item[data-jp-item-name="compile-tex"]
+  .jp-ToolbarButtonComponent.jp-KuusiTexCompile-isCompiling::after {
+  animation: jp-KuusiTexCompile-ring 0.9s ease-in-out infinite;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  box-sizing: border-box;
+  content: "";
+  inset: -4px;
+  pointer-events: none;
+  position: absolute;
+}
+
+@keyframes jp-KuusiTexCompile-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.95),
+      0 0 10px 3px var(--jp-success-color0),
+      0 0 22px 7px color-mix(in srgb, var(--jp-success-color1) 75%, white) !important;
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 3px #fff,
+      0 0 16px 5px var(--jp-success-color0),
+      0 0 34px 12px color-mix(in srgb, var(--jp-success-color1) 85%, white) !important;
+  }
+}
+
+@keyframes jp-KuusiTexCompile-ring {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.jp-FileEditor-Document .jp-Toolbar {
+  overflow: visible;
+}
+
+.jp-KuusiTexCompile-toc.jp-ToolbarButtonComponent,
+.jp-KuusiTexCompile-help.jp-ToolbarButtonComponent,
+.jp-KuusiTexCompile-jumpPdf.jp-ToolbarButtonComponent,
+.jp-KuusiLivePdf-jumpToSource.jp-ToolbarButtonComponent,
+.jp-KuusiMdPreview-jumpPreview.jp-ToolbarButtonComponent,
+.jp-KuusiMdPreview-jumpSource.jp-ToolbarButtonComponent {
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 500;
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.jp-KuusiLivePdf-autoReload {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+}
+
+.jp-KuusiTexCompile-autoReload {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+}
+
+.jp-KuusiMdPreview-autoReload {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+}
+
+.jp-KuusiMdPreview-autoReloadLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.jp-KuusiMdPreview-autoReload .jp-KuusiPanelWidget-switch {
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebook-autoReload {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+}
+
+.jp-KuusiNotebook-autoReloadLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jp-KuusiLivePdf-autoReloadLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jp-KuusiTexCompile-autoReloadLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jp-KuusiLivePdf-zoom,
+.jp-KuusiLivePdf-pageNav,
+.jp-KuusiLivePdf-highlight {
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.jp-KuusiLivePdf-highlightGroup {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px 6px;
+}
+
+.jp-KuusiLivePdf-highlightHistory {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0 4px;
+  transition: background 0.15s ease;
+}
+
+.jp-KuusiLivePdf-highlightHistory:hover:not(:disabled) {
+  background: var(--kuusi-glass-segment-hover);
+}
+
+.jp-KuusiLivePdf-highlightHistory:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.jp-KuusiLivePdf-highlightHistory svg {
+  height: 16px;
+  width: 16px;
+}
+
+.jp-KuusiLivePdf-highlightPicker {
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+.jp-KuusiLivePdf-highlightPickerHost {
+  border-left: 1px solid var(--kuusi-glass-border);
+  height: 100%;
+  margin-left: 2px;
+  padding-left: 4px;
+  position: relative;
+}
+
+.jp-KuusiLivePdf-highlightPickerTrigger {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 500;
+  gap: 6px;
+  height: 100%;
+  line-height: 1;
+  padding: 0 8px;
+  transition: background 0.15s ease;
+}
+
+.jp-KuusiLivePdf-highlightPickerTrigger:hover {
+  background: var(--kuusi-glass-segment-hover);
+}
+
+.jp-KuusiLivePdf-highlightPickerTriggerSwatch,
+.jp-KuusiLivePdf-highlightPickerItemSwatch {
+  border: 1px solid color-mix(in srgb, var(--jp-ui-font-color0) 18%, transparent);
+  border-radius: 999px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+
+.jp-KuusiLivePdf-highlightPickerMenu {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-shadow: var(--jp-elevation-z2);
+  display: none;
+  min-width: 132px;
+  padding: 4px;
+}
+
+.jp-KuusiLivePdf-highlightPickerMenu.is-open {
+  display: block;
+}
+
+.jp-KuusiLivePdf-highlightPickerItem {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  gap: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  transition: background 0.15s ease;
+  width: 100%;
+}
+
+.jp-KuusiLivePdf-highlightPickerItem:hover {
+  background: var(--kuusi-glass-segment-hover);
+}
+
+.jp-KuusiLivePdf-highlightPickerItemLabel {
+  flex: 1 1 auto;
+  line-height: 1.2;
+}
+
+.jp-KuusiLivePdf-highlightSwatch--yellow {
+  background: #ffeb3b;
+}
+
+.jp-KuusiLivePdf-highlightSwatch--green {
+  background: #a5d6a7;
+}
+
+.jp-KuusiLivePdf-highlightSwatch--blue {
+  background: #90caf9;
+}
+
+.jp-KuusiLivePdf-highlightSwatch--pink {
+  background: #f48fb1;
+}
+
+.jp-KuusiLivePdf-highlightSwatch--orange {
+  background: #ffcc80;
+}
+
+.jp-KuusiLivePdf-highlightClear,
+.jp-KuusiLivePdf-highlightCopy {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 500;
+  line-height: 1;
+  margin-left: 2px;
+  padding: 0 8px;
+  transition: background 0.15s ease;
+}
+
+.jp-KuusiLivePdf-highlightClear:hover,
+.jp-KuusiLivePdf-highlightCopy:hover {
+  background: var(--kuusi-glass-segment-hover);
+}
+
+/* The zoom and page-nav clusters are Apple-style segmented controls: a
+   glass pill housing borderless buttons, with only the active/hovered
+   segment picking up its own soft rounded highlight — no hard divider
+   lines between segments. */
+.jp-KuusiLivePdf-zoomGroup,
+.jp-KuusiLivePdf-pageNavGroup {
+  align-items: center;
+  display: inline-flex;
+  gap: 1px;
+  padding: 2px;
+}
+
+.jp-KuusiLivePdf-zoomGroup > *,
+.jp-KuusiLivePdf-pageNavGroup > * {
+  align-items: center;
+  display: flex;
+  height: 100%;
+}
+
+.jp-KuusiLivePdf-zoomGroup .jp-ToolbarButtonComponent,
+.jp-KuusiLivePdf-pageNavGroup .jp-ToolbarButtonComponent {
+  background: transparent;
+  border-radius: 999px !important;
+  box-shadow: none;
+  height: 100%;
+  transition: background 0.15s ease;
+}
+
+.jp-KuusiLivePdf-zoomGroup .jp-ToolbarButtonComponent:hover,
+.jp-KuusiLivePdf-pageNavGroup .jp-ToolbarButtonComponent:hover {
+  background: var(--kuusi-glass-segment-hover);
+}
+
+.jp-KuusiLivePdf-zoomGroup .jp-ToolbarButtonComponent {
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  line-height: 1;
+  min-width: 20px;
+  padding: 0 6px;
+}
+
+.jp-KuusiLivePdf-zoomFit.jp-ToolbarButtonComponent,
+.jp-KuusiLivePdf-zoomSliderTrigger {
+  font-weight: 500;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.jp-KuusiLivePdf-zoomFit.is-active {
+  background: var(--jp-brand-color1) !important;
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--jp-brand-color1) 55%, transparent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.jp-KuusiTexCompile-engine {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.jp-KuusiTexCompile-engineSelect,
+.jp-KuusiLivePdf-backgroundSelect {
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  padding: 0 6px;
+}
+
+.jp-KuusiTexCompile-engineSelect:focus {
+  border-color: var(--jp-brand-color1);
+  outline: none;
+}
+
+.jp-KuusiTexCompile-log {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  color: var(--jp-ui-font-color1);
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: 1.35;
+  margin: 0;
+  max-height: min(60vh, 480px);
+  overflow: auto;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.jp-KuusiTexCompile-help {
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.jp-KuusiTexCompile-helpHeading {
+  color: var(--jp-ui-font-color0);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+
+.jp-KuusiTexCompile-helpHeading:first-child {
+  margin-top: 0;
+}
+
+.jp-KuusiTexCompile-helpParagraph {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0 0 8px;
+}
+
+.jp-KuusiTexCompile-helpCode {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  color: var(--jp-ui-font-color1);
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: 1.35;
+  margin: 0 0 8px;
+  overflow-x: auto;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.jp-KuusiTexCompile-helpList {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+}
+
+.jp-KuusiTexCompile-helpList a {
+  color: var(--jp-content-link-color);
+}
+
+.jp-KuusiLivePdf-goToPage {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 0 2px 0 4px;
+}
+
+.jp-KuusiLivePdf-goToPageInput {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  background: transparent;
+  border: none;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+  height: 100%;
+  padding: 0 4px;
+  text-align: center;
+  width: 40px;
+}
+
+.jp-KuusiLivePdf-goToPageInput::-webkit-outer-spin-button,
+.jp-KuusiLivePdf-goToPageInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.jp-KuusiLivePdf-goToPageInput:focus {
+  background: var(--kuusi-glass-segment-hover);
+  border-radius: 999px;
+  outline: none;
+}
+
+.jp-KuusiLivePdf-goToPageTotal {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 1;
+  padding-right: 4px;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jp-KuusiLivePdf-zoomSlider {
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+.jp-KuusiLivePdf-zoomSliderHost {
+  height: 100%;
+  position: relative;
+}
+
+.jp-KuusiLivePdf-zoomSliderTrigger {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  height: 100%;
+  line-height: 1;
+  min-width: 44px;
+  padding: 0 8px;
+  transition: background 0.15s ease;
+}
+
+.jp-KuusiLivePdf-zoomSliderTrigger:hover {
+  background: var(--kuusi-glass-segment-hover);
+}
+
+.jp-KuusiLivePdf-zoomSliderWrap {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-shadow: var(--jp-elevation-z2);
+  display: none;
+  padding: 10px 10px 10px 8px;
+}
+
+.jp-KuusiLivePdf-zoomSliderWrap.is-open {
+  display: block;
+}
+
+.jp-KuusiLivePdf-zoomSliderRail {
+  align-items: stretch;
+  display: flex;
+  gap: 8px;
+  height: var(--kuusi-live-pdf-zoom-track, 140px);
+}
+
+.jp-KuusiLivePdf-zoomSliderTicks {
+  flex: 0 0 auto;
+  height: 100%;
+  position: relative;
+  width: 2.75em;
+}
+
+.jp-KuusiLivePdf-zoomSliderTick {
+  background: transparent;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  white-space: nowrap;
+}
+
+.jp-KuusiLivePdf-zoomSliderTick:hover {
+  color: var(--jp-brand-color2);
+}
+
+.jp-KuusiLivePdf-zoomSliderTrack {
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 100%;
+  outline: none;
+  position: relative;
+  touch-action: none;
+  width: 18px;
+}
+
+.jp-KuusiLivePdf-zoomSliderTrack:focus-visible {
+  outline: 1px solid var(--jp-brand-color1);
+  outline-offset: 2px;
+}
+
+.jp-KuusiLivePdf-zoomSliderTrackLine {
+  background: var(--jp-border-color1);
+  border-radius: 999px;
+  bottom: 0;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 4px;
+}
+
+.jp-KuusiLivePdf-zoomSliderThumb {
+  background: var(--jp-brand-color1);
+  border-radius: 50%;
+  height: var(--kuusi-live-pdf-zoom-thumb, 12px);
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, 50%);
+  width: var(--kuusi-live-pdf-zoom-thumb, 12px);
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiLivePdf-zoomSliderTrackLine {
+  background: #fff;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiLivePdf-zoomSliderThumb {
+  background: var(--kuusi-brand-green, #9bc49a);
+  box-shadow: none;
+}
+
+.jp-KuusiDefaultOpeners-settingsWrap {
+  display: inline-flex;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.jp-KuusiDefaultOpeners-settingsBtn {
+  align-items: center;
+  color: #2f5d3a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0;
+  position: relative;
+}
+
+/* Kuusi Settings — lock JupyterLab dialog frame (content defaults to shrink-wrap). */
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) {
+  box-sizing: border-box;
+  height: 480px;
+  max-height: min(480px, 90vh);
+  min-height: min(480px, 90vh);
+  max-width: min(568px, calc(100vw - 32px));
+  min-width: min(568px, calc(100vw - 32px));
+  overflow: hidden;
+  resize: none;
+  width: min(568px, calc(100vw - 32px));
+}
+
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) .jp-Dialog-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiSettings-dialogBody {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.jp-KuusiSettings-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+  max-height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiSettings-secondary.jp-KuusiSecondaryMenu {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-nav {
+  flex: 0 0 132px;
+  min-width: 132px;
+  width: 132px;
+}
+
+.jp-KuusiSettings-panel.jp-KuusiSecondaryMenu-panel {
+  flex: 1 1 auto;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.jp-KuusiSettings-sectionPanel {
+  box-sizing: border-box;
+  height: 100%;
+  left: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.jp-KuusiSettings-sectionPanel[hidden] {
+  display: none !important;
+}
+
+.jp-mod-dark .jp-KuusiDefaultOpeners-settingsBtn {
+  color: #9bc49a;
+}
+
+.jp-KuusiDefaultOpeners-settingsBtn:hover {
+  color: var(--jp-brand-color1);
+}
+
+.jp-KuusiDefaultOpeners {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 360px;
+}
+
+.jp-KuusiDefaultOpeners-intro {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiDefaultOpeners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-KuusiDefaultOpeners-row {
+  align-items: center;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.jp-KuusiDefaultOpeners-rowText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.jp-KuusiDefaultOpeners-rowDescription {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.35;
+}
+
+/* --- Kuusi Image --- */
+
+.jp-KuusiImageOpenHub {
+  background: var(--jp-layout-color1);
+  height: 100%;
+  overflow: auto;
+}
+
+.jp-KuusiImageOpenHub-layout {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 520px;
+  min-height: min(480px, 100%);
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.jp-KuusiImageOpenHub-title {
+  color: var(--kuusi-brand-green, var(--jp-brand-color1));
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 700;
+  margin: 0;
+}
+
+.jp-KuusiImageOpenHub-hint {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiImageOpenHub-dropZone {
+  align-items: center;
+  background: color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 6%, var(--jp-layout-color1));
+  border: 2px dashed color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 35%, var(--jp-border-color2));
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  min-height: 160px;
+  padding: 28px 20px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+  width: 100%;
+}
+
+.jp-KuusiImageOpenHub-dropZone.is-dragover {
+  background: color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 14%, var(--jp-layout-color1));
+  border-color: var(--kuusi-brand-green, var(--jp-brand-color1));
+}
+
+.jp-KuusiImageOpenHub-dropLabel {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 600;
+}
+
+.jp-KuusiImageOpenHub-dropSub {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+  max-width: 28em;
+}
+
+.jp-KuusiImageOpenHub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.jp-KuusiImageOpenHub-browse,
+.jp-KuusiImageOpenHub-upload {
+  font-size: var(--jp-ui-font-size1);
+  padding: 8px 16px;
+}
+
+.jp-KuusiImageDocument {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.jp-KuusiImageViewer {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+.jp-KuusiImageViewer-scroller {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  outline: none;
+}
+
+.jp-KuusiImageViewer-stage {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  min-height: 100%;
+  min-width: 100%;
+  padding: 12px;
+  position: relative;
+  transform-origin: center center;
+}
+
+.jp-KuusiImageViewer-img {
+  display: block;
+  max-width: none;
+  transform-origin: center center;
+  user-select: none;
+}
+
+.jp-KuusiImageViewer-error {
+  color: var(--jp-error-color1);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  max-width: 28em;
+  padding: 24px;
+  text-align: center;
+}
+
+.jp-KuusiImageViewer-status {
+  border-top: 1px solid var(--jp-border-color2);
+  color: var(--jp-ui-font-color2);
+  flex: 0 0 auto;
+  font-size: var(--jp-ui-font-size0);
+  overflow: hidden;
+  padding: 4px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-KuusiImage-zoom {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.jp-KuusiImage-zoomLabel {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+  min-width: 3.2em;
+  text-align: center;
+}
+
+.jp-KuusiImage-autoReload {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.jp-KuusiImage-autoReloadLabel {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
+.jp-KuusiImage-transform,
+.jp-KuusiImage-export,
+.jp-KuusiImage-zoom {
+  flex-wrap: wrap;
+}
+
+.jp-KuusiImage-transform .jp-ToolbarButtonComponent,
+.jp-KuusiImage-export .jp-ToolbarButtonComponent {
+  min-width: 2rem;
+}
+
+.jp-KuusiImage-invert.is-active {
+  background: color-mix(in srgb, var(--kuusi-brand-green, #2f5d3a) 18%, transparent);
+  border-radius: 4px;
+}
+
+.jp-KuusiImageCropOverlay {
+  cursor: crosshair;
+  inset: 0;
+  position: absolute;
+  z-index: 4;
+}
+
+.jp-KuusiImageCropOverlay[hidden] {
+  display: none !important;
+  pointer-events: none;
+}
+
+.jp-KuusiImageCropOverlay-shade {
+  background: color-mix(in srgb, var(--jp-layout-color0) 35%, transparent);
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.jp-KuusiImageCropOverlay-box {
+  border: 2px dashed var(--kuusi-brand-green, var(--jp-brand-color1));
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--jp-layout-color0) 45%, transparent);
+  box-sizing: border-box;
+  pointer-events: none;
+  position: absolute;
+}
+
+.jp-KuusiImageEditPopover-panel {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  box-shadow: var(--jp-elevation-z4);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 280px;
+  padding: 12px 14px;
+}
+
+.jp-KuusiImageEditPopover-host {
+  display: none;
+}
+
+.jp-KuusiImageEditPopover-host.p-mod-visible {
+  display: block;
+}
+
+.jp-KuusiImageEditPopover-title {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+}
+
+.jp-KuusiImageEditPopover-hint {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.jp-KuusiImageEditPopover-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jp-KuusiImageEditPopover-input {
+  max-width: 5.5rem;
+}
+
+.jp-KuusiImageEditPopover-estimate {
+  color: var(--kuusi-brand-green, var(--jp-brand-color1));
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+}
+
+.jp-KuusiImageEditPopover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.jp-KuusiImageEditPopover-save {
+  font-weight: 600;
+}
+
+.jp-KuusiImageEditPopover-crop.is-active {
+  border-color: var(--kuusi-brand-green, var(--jp-brand-color1));
+}
+
+/* --- Kuusi voice recorder (Phase 1) --- */
+
+.jp-KuusiChannelMonitorPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiChannelMonitor-iframe {
+  border: none;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiVoiceRecorder {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+  max-width: 36rem;
+  padding: 24px 28px;
+}
+
+.jp-KuusiVoiceRecorder-title {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 700;
+  margin: 0;
+}
+
+.jp-KuusiVoiceRecorder-status,
+.jp-KuusiVoiceRecorder-format {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiVoiceRecorder-permissionNote {
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiVoiceRecorder-permissionNote.is-denied {
+  color: var(--jp-error-color1);
+  font-weight: 500;
+}
+
+.jp-KuusiVoiceRecorder-meterRow {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.jp-KuusiVoiceRecorder-timer {
+  color: var(--kuusi-brand-green, var(--jp-brand-color1));
+  font-size: var(--jp-ui-font-size3);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 3.5rem;
+}
+
+.jp-KuusiVoiceRecorder-level {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  flex: 1 1 12rem;
+  max-width: 100%;
+}
+
+.jp-KuusiVoiceRecorder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jp-KuusiVoiceRecorder-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jp-KuusiVoiceRecorder-fieldLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+}
+
+.jp-KuusiVoiceRecorder-filename {
+  max-width: 100%;
+  width: 100%;
+}
+
+.jp-KuusiVoiceRecorder-formatSelect,
+.jp-KuusiVoiceRecorder-maxMinutes {
+  max-width: 16rem;
+}
+
+.jp-KuusiVoiceRecorder-saveStatus {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  margin: 0;
+}
+
+.jp-KuusiVoiceRecorder-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.jp-KuusiVoiceRecorder-record {
+  font-weight: 600;
+}
+
+.jp-KuusiVoiceRecorder-preview {
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.jp-KuusiVoicePlayer {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.jp-KuusiVoicePlayer-body {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  padding: 24px;
+}
+
+.jp-KuusiVoicePlayer-audio {
+  inline-size: min(100%, 40rem);
+}
+
+.jp-KuusiVoicePlayer-error {
+  color: var(--jp-error-color1);
+  margin-top: 12px;
+  text-align: center;
+}
+
+.jp-KuusiVoicePlayer-footer {
+  border-top: 1px solid var(--jp-border-color2);
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  padding: 8px 16px;
+}
+
+.jp-KuusiVoicePlayer-status {
+  font-variant-numeric: tabular-nums;
 }

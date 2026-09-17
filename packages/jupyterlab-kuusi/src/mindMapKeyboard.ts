@@ -1,6 +1,6 @@
 import { Clipboard, SystemClipboard } from "@jupyterlab/apputils";
 import type { INotebookModel } from "@jupyterlab/notebook";
-import { CodeCell, MarkdownCell, type IMarkdownCellModel } from "@jupyterlab/cells";
+import { CodeCell, MarkdownCell } from "@jupyterlab/cells";
 import { NotebookActions, type Notebook } from "@jupyterlab/notebook";
 import {
   buildNotebookOutline,
@@ -20,7 +20,7 @@ import {
   type OutlineNode,
 } from "kuusi-kernel";
 import { snapshotNotebookCells } from "./notebookCells";
-import { writeCellHeadingLevel } from "./notebookSync";
+import { MIND_MAP_ROOT_CELL_SOURCE } from "./mindMapNotebook";
 
 /** JupyterLab notebook cell clipboard MIME type. */
 const JUPYTER_CELL_MIME = "application/vnd.jupyter.cells";
@@ -119,6 +119,7 @@ const insertMarkdownCell = (
   model: INotebookModel,
   index: number,
   headingLevel?: number,
+  source: string = EMPTY_CELL_SOURCE,
 ): void => {
   const meta =
     headingLevel !== undefined
@@ -132,7 +133,7 @@ const insertMarkdownCell = (
   model.sharedModel.insertCell(index, {
     cell_type: "markdown",
     metadata: meta,
-    source: EMPTY_CELL_SOURCE,
+    source,
   });
   notebook.activeCellIndex = index;
   notebook.deselectAll();
@@ -155,7 +156,7 @@ export const ensureMindMapRoot = (
   }
 
   if (model.cells.length === 0) {
-    insertMarkdownCell(notebook, model, 0, 1);
+    insertMarkdownCell(notebook, model, 0, 1, MIND_MAP_ROOT_CELL_SOURCE);
     return true;
   }
 
@@ -174,15 +175,15 @@ export const ensureMindMapRoot = (
     const markdown = model.cells.get(0);
 
     if (markdown?.type === "markdown") {
-      writeCellHeadingLevel(markdown as IMarkdownCellModel, 1);
+      markdown.sharedModel.setSource(MIND_MAP_ROOT_CELL_SOURCE);
     }
 
     notebook.mode = "command";
     return true;
   }
 
-  // Non-empty cells but no H1 yet — prepend a blank map root.
-  insertMarkdownCell(notebook, model, 0, 1);
+  // Non-empty cells but no H1 yet — prepend a map root.
+  insertMarkdownCell(notebook, model, 0, 1, MIND_MAP_ROOT_CELL_SOURCE);
   return true;
 };
 

@@ -1,0 +1,32 @@
+{
+  "title": "Kuusi Voice",
+  "description": "Voice note recorder and audio playback.",
+  "jupyter.lab.setting-icon": "jupyterlab-kuusi:voice-recorder",
+  "jupyter.lab.setting-icon-label": "Kuusi Voice",
+  "type": "object",
+  "properties": {
+    "recordingFilenamePrefix": {
+      "title": "Default recording file name prefix",
+      "description": "Used when saving a new recording (timestamp is appended automatically).",
+      "type": "string",
+      "default": "voice-note"
+    },
+    "maxRecordingDurationSeconds": {
+      "title": "Default max recording duration (seconds)",
+      "description": "Recording stops automatically when this limit is reached.",
+      "type": "number",
+      "minimum": 60,
+      "maximum": 14400,
+      "default": 3600
+    },
+    "autosaveIntervalSeconds": {
+      "title": "Autosave interval while recording (seconds)",
+      "description": "Merged audio is written to the Jupyter file on this interval.",
+      "type": "number",
+      "minimum": 15,
+      "maximum": 600,
+      "default": 60
+    }
+  },
+  "additionalProperties": false
+}

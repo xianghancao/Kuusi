@@ -22,10 +22,18 @@ import {
   addIcon,
   copyIcon,
   cutIcon,
+  notebookIcon,
   pasteIcon,
   ToolbarButton,
 } from "@jupyterlab/ui-components";
-import { kuusiIcon } from "./kuusiIcon";
+import { mindMapIcon } from "./kuusiIcon";
+import { createKuusiMindMapNotebook } from "./mindMapNotebook";
+import { attachNotebookAutoReload } from "./notebookAutoReload";
+import {
+  getNotebookAutoReloadEnabled,
+  registerNotebookAutoReloadListener,
+} from "./notebookAutoReloadRegistry";
+import { registerNotebookAutoReloadToolbarFactories } from "./notebookAutoReloadToolbar";
 import {
   NotebookMindMapDocumentWidget,
   NotebookMindMapWidgetFactory,
@@ -37,6 +45,7 @@ import {
 } from "./mindMapKeyboard";
 import { registerMindMapToolbarFactories } from "./mindMapToolbar";
 import {
+  activateNotebookView,
   bindMindMapFocusOwnership,
   bindNotebookToMindMapSync,
   claimKuusiFocus,
@@ -48,12 +57,23 @@ import {
 } from "./notebookViewSync";
 import { NotebookMindMapTracker } from "./tracker";
 import { MindMapSettingsManager } from "./mindMapSettings";
+import defaultOpenersPlugin from "./defaultOpeners/plugin";
+import launcherPlugin from "./launcherPlugin";
+import channelMonitorPlugin from "./channelMonitor/plugin";
+import compressPlugin from "./compress/plugin";
+import imagePlugin from "./imageView/plugin";
+import livePdfPlugin from "./livePdf/plugin";
+import voiceRecorderPlugin from "./voiceRecorder/plugin";
+import markdownPreviewPlugin from "./markdownPreview/plugin";
+import texCompilePlugin from "./texCompile/plugin";
+import { gateFullReleasePlugin } from "./releaseTierGate";
 
 const PLUGIN_ID = "jupyterlab-kuusi:plugin";
 
 namespace CommandIDs {
   export const openNotebookMindMap =
     "jupyterlab-kuusi:open-notebook-mindmap";
+  export const openNotebookView = "jupyterlab-kuusi:open-notebook-view";
   export const addMindMap = "jupyterlab-kuusi:add-mindmap";
   export const insertCellBelow = "jupyterlab-kuusi:insert-cell-below";
   export const cutCell = "jupyterlab-kuusi:cut-cell";
@@ -66,6 +86,10 @@ type OpenNotebookMindMapArgs = {
   toolbar?: boolean;
 };
 
+type OpenNotebookViewArgs = {
+  path?: string;
+};
+
 const resolveNotebookPath = (
   args: OpenNotebookMindMapArgs,
   notebookTracker: INotebookTracker,
@@ -75,6 +99,17 @@ const resolveNotebookPath = (
   }
 
   return notebookTracker.currentWidget?.context.path ?? null;
+};
+
+const resolveMindMapPath = (
+  args: OpenNotebookViewArgs,
+  mindMapTracker: NotebookMindMapTracker,
+): string | null => {
+  if (args.path) {
+    return args.path;
+  }
+
+  return mindMapTracker.currentWidget?.context.path ?? null;
 };
 
 const plugin: JupyterFrontEndPlugin<void> = {
@@ -211,12 +246,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
         }
 
         const directory = PathExt.dirname(panel.context.localPath);
-        const model = await docManager.newUntitled({
-          path: directory,
-          type: "notebook",
-        });
+        const path = await createKuusiMindMapNotebook(docManager, directory);
 
-        return docManager.openOrReveal(model.path, factoryName);
+        return docManager.openOrReveal(path, factoryName);
       },
     });
 
@@ -228,6 +260,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       kuusiTranslator,
     );
 
+    const contents = app.serviceManager.contents;
+
     const factory = new NotebookMindMapWidgetFactory(
       rendermime,
       contentFactory,
@@ -235,10 +269,40 @@ const plugin: JupyterFrontEndPlugin<void> = {
       app.commands,
       mindMapSettings,
       kuusiTranslator,
+      contents,
       toolbarFactory,
     );
 
     app.docRegistry.addWidgetFactory(factory);
+
+    const attachClassicNotebookAutoReload = (panel: NotebookPanel): void => {
+      void panel.context.ready.then(() => {
+        if (panel.isDisposed) {
+          return;
+        }
+
+        const path = panel.context.path;
+        const handle = attachNotebookAutoReload(panel.context, contents, {
+          getEnabled: () => getNotebookAutoReloadEnabled(path),
+          onLastModified: () => undefined,
+        });
+        const unregister = registerNotebookAutoReloadListener(path, handle);
+
+        panel.disposed.connect(() => {
+          unregister();
+          handle.dispose();
+        });
+      });
+    };
+
+    notebookTracker.forEach((panel) => {
+      attachClassicNotebookAutoReload(panel);
+    });
+    notebookTracker.widgetAdded.connect((_, panel) => {
+      attachClassicNotebookAutoReload(panel);
+    });
+
+    registerNotebookAutoReloadToolbarFactories(toolbarRegistry);
 
     registerMindMapToolbarFactories(
       toolbarRegistry,
@@ -307,7 +371,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       caption: trans.__(
         "Open this notebook beside Kuusi (left: notebook, right: mind map)",
       ),
-      icon: kuusiIcon,
+      icon: mindMapIcon,
       isEnabled: (args: OpenNotebookMindMapArgs) =>
         Boolean(resolveNotebookPath(args, notebookTracker)),
       execute: async (args: OpenNotebookMindMapArgs) => {
@@ -369,6 +433,31 @@ const plugin: JupyterFrontEndPlugin<void> = {
       },
     });
 
+    app.commands.addCommand(CommandIDs.openNotebookView, {
+      label: trans.__("Notebook"),
+      caption: trans.__(
+        "Switch to the classic notebook view for this file",
+      ),
+      icon: notebookIcon,
+      isEnabled: (args: OpenNotebookViewArgs) =>
+        Boolean(resolveMindMapPath(args, mindMapTracker)),
+      execute: async (args: OpenNotebookViewArgs) => {
+        const path = resolveMindMapPath(args, mindMapTracker);
+
+        if (!path) {
+          return;
+        }
+
+        return activateNotebookView(
+          path,
+          notebookTracker,
+          docManager,
+          mindMapTracker,
+          app,
+        );
+      },
+    });
+
     toolbarRegistry.addFactory(
       "Notebook",
       "open-mindmap",
@@ -387,9 +476,31 @@ const plugin: JupyterFrontEndPlugin<void> = {
         }),
     );
 
+    toolbarRegistry.addFactory(
+      factoryName,
+      "open-notebook",
+      (widget: NotebookMindMapDocumentWidget) =>
+        new ToolbarButton({
+          className: "jp-KuusiNotebookOpenButton",
+          label: trans.__("Notebook"),
+          tooltip: trans.__(
+            "Switch to the classic notebook view for this file",
+          ),
+          onClick: () => {
+            void app.commands.execute(CommandIDs.openNotebookView, {
+              path: widget.context.path,
+            });
+          },
+        }),
+    );
+
     if (palette) {
       palette.addItem({
         command: CommandIDs.openNotebookMindMap,
+        category: "Kuusi",
+      });
+      palette.addItem({
+        command: CommandIDs.openNotebookView,
         category: "Kuusi",
       });
     }
@@ -398,4 +509,15 @@ const plugin: JupyterFrontEndPlugin<void> = {
   },
 };
 
-export default plugin;
+export default [
+  plugin,
+  gateFullReleasePlugin(livePdfPlugin),
+  gateFullReleasePlugin(imagePlugin),
+  gateFullReleasePlugin(voiceRecorderPlugin),
+  gateFullReleasePlugin(texCompilePlugin),
+  gateFullReleasePlugin(markdownPreviewPlugin),
+  gateFullReleasePlugin(channelMonitorPlugin),
+  gateFullReleasePlugin(compressPlugin),
+  defaultOpenersPlugin,
+  launcherPlugin,
+];

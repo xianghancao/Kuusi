@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-09-17
+
+### Added
+
+- **Release tier (core vs full)**: PyPI **0.2.x** activates **core** only — notebook **Mind Map** plus Launcher **Kuusi → Mind Map** and **Settings**. Live PDF, TeX workspace, Markdown preview, Image viewer, Voice recorder, **Transfer speed** (channel monitor), and **Compress** (ZIP) ship in the labextension but stay inactive until **0.3.0** (semver `minor >= 3` → **full** tier). Matching server APIs (TeX compile, channel monitor, compress) are disabled on core as well.
+- Kuusi **Settings** (Launcher → **Settings**): card layout with tabs for default file openers, **About** / version (local + PyPI latest), community, and repository; gear badge when a newer PyPI release exists.
+- **Launcher → Kuusi** section: **Mind Map** (new notebook in the current folder) and **Settings** on core; additional tiles appear on full tier only.
+- Mind Map page toolbar: **mind map icon** (left) opens the **keyboard shortcuts** guide (mind map, formatting, and notes); version, install command, and community links live under **Settings**, not in the page header.
+- **Full tier (bundled, inactive on 0.2.x PyPI)**: Live PDF + SyncTeX, TeX compile workspace, Kuusi Markdown preview, image hub, voice recorder, Jupyter **channel monitor** (`jupyterlab-kuusi/channel-monitor/` and standalone `python -m jupyterlab_kuusi.channel_monitor`), workspace **Compress / extract ZIP** (context menu, command palette, launcher tile).
+
+### Changed
+
+- Default openers on **core**: only **Notebooks → Kuusi Mind Map** is configurable; other Kuusi default viewers are ignored until full tier.
+- Appearance → **Node**: **Hover glow width** control; **Selection glow width** uses the same presets and preview as border width; status bar timestamp and node/zoom labels follow mind-map chrome font tokens.
+
+### Developer notes
+
+- Local full-tier QA: `localStorage.setItem('jupyterlab-kuusi:release-tier-override', 'full')` then reload JupyterLab.
+
 ## [0.2.5] - 2026-08-14
 
 ### Added
@@ -209,7 +228,8 @@ First public release of the Jupyter-native mind map stack (`kuusi-kernel` + `jup
 
 Pre-0.2.0 prototypes are not part of this changelog.
 
-[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/xianghancao/kuusi/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/xianghancao/kuusi/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/xianghancao/kuusi/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/xianghancao/kuusi/compare/v0.2.2...v0.2.3

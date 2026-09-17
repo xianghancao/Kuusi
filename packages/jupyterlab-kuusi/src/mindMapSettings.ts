@@ -38,6 +38,8 @@ export type MindMapUserSettings = {
   background: MindMapBackground;
   backgroundPattern: MindMapBackgroundPattern;
   backgroundColor: string;
+  /** Show disk last-modified time in the bottom-left of the mind map canvas. */
+  showUpdatedTimestamp: boolean;
   appearance: AppearanceSettings;
 };
 
@@ -59,6 +61,7 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   background: DEFAULT_MIND_MAP_BACKGROUND,
   backgroundPattern: DEFAULT_MIND_MAP_BACKGROUND_PATTERN,
   backgroundColor: DEFAULT_MIND_MAP_BACKGROUND_COLOR,
+  showUpdatedTimestamp: true,
   appearance: { ...DEFAULT_APPEARANCE },
 };
 
@@ -248,6 +251,14 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
       typeof appearance.selectionGlowWidth === "string"
         ? appearance.selectionGlowWidth
         : defaults.selectionGlowWidth,
+    hoverGlowColor:
+      typeof appearance.hoverGlowColor === "string"
+        ? appearance.hoverGlowColor
+        : defaults.hoverGlowColor,
+    hoverGlowWidth:
+      typeof appearance.hoverGlowWidth === "string"
+        ? appearance.hoverGlowWidth
+        : defaults.hoverGlowWidth,
   };
 };
 
@@ -321,6 +332,10 @@ export const normalizeMindMapUserSettings = (
       typeof raw.backgroundColor === "string"
         ? raw.backgroundColor
         : defaults.backgroundColor,
+    showUpdatedTimestamp:
+      typeof raw.showUpdatedTimestamp === "boolean"
+        ? raw.showUpdatedTimestamp
+        : defaults.showUpdatedTimestamp,
     appearance: normalizeAppearance(raw.appearance),
   };
 };
@@ -464,6 +479,11 @@ export class MindMapSettingsManager {
       "backgroundColor",
       next.backgroundColor !== previous.backgroundColor,
       next.backgroundColor,
+    );
+    enqueue(
+      "showUpdatedTimestamp",
+      next.showUpdatedTimestamp !== previous.showUpdatedTimestamp,
+      next.showUpdatedTimestamp,
     );
 
     if (

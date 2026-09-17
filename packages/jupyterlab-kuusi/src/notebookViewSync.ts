@@ -1,3 +1,4 @@
+import type { JupyterFrontEnd } from "@jupyterlab/application";
 import type { IDocumentManager } from "@jupyterlab/docmanager";
 import type { DocumentRegistry } from "@jupyterlab/docregistry";
 import { MarkdownCell } from "@jupyterlab/cells";
@@ -171,6 +172,53 @@ export const ensureNotebookPanelOpen = async (
   }
 
   await panel.revealed;
+  return panel;
+};
+
+/** Open the classic notebook view, sync selection from Kuusi, and focus it. */
+export const activateNotebookView = async (
+  path: string,
+  notebookTracker: INotebookTracker,
+  docManager: IDocumentManager,
+  mindMapTracker: NotebookMindMapTracker,
+  app: JupyterFrontEnd,
+): Promise<NotebookPanel | null> => {
+  const mindMap = findMindMapForPath(path, mindMapTracker);
+  const cellIndex = mindMap?.content.notebook.activeCellIndex ?? -1;
+
+  const panel = await ensureNotebookPanelOpen(
+    path,
+    notebookTracker,
+    docManager,
+  );
+
+  if (!panel || panel.isDisposed) {
+    return null;
+  }
+
+  if (cellIndex >= 0 && cellIndex < panel.content.widgets.length) {
+    beginQuietNotebookSync(400);
+
+    try {
+      panel.content.deselectAll();
+      panel.content.activeCellIndex = cellIndex;
+      panel.content.mode = "command";
+
+      const cell = panel.content.widgets[cellIndex];
+
+      if (cell instanceof MarkdownCell && !cell.rendered) {
+        cell.rendered = true;
+      }
+
+      cell?.node.scrollIntoView({ block: "nearest", behavior: "auto" });
+    } finally {
+      endQuietNotebookSync();
+    }
+  }
+
+  claimNotebookFocus(path);
+  app.shell.activateById(panel.id);
+
   return panel;
 };
 
@@ -377,38 +425,32 @@ export const bindMindMapFocusOwnership = (
     }
   };
 
-  widget.node.addEventListener(
-    "pointerdown",
-    () => {
-      claimKuusiFocus(path());
-    },
-    true,
-  );
+  const onPointerDown = (): void => {
+    claimKuusiFocus(path());
+  };
 
-  widget.node.addEventListener(
-    "focusin",
-    () => {
-      claimKuusiFocus(path());
-    },
-    true,
-  );
+  const onFocusIn = (): void => {
+    claimKuusiFocus(path());
+  };
 
-  // After click handling (selection sync), force viewport focus again.
-  widget.node.addEventListener(
-    "pointerup",
-    () => {
-      if (getSplitFocusOwner(path()) === "kuusi") {
-        window.requestAnimationFrame(() => {
-          if (!widget.isDisposed) {
-            lockToKuusi();
-          }
-        });
-      }
-    },
-    true,
-  );
+  const onPointerUp = (): void => {
+    if (getSplitFocusOwner(path()) === "kuusi") {
+      window.requestAnimationFrame(() => {
+        if (!widget.isDisposed) {
+          lockToKuusi();
+        }
+      });
+    }
+  };
+
+  widget.node.addEventListener("pointerdown", onPointerDown, true);
+  widget.node.addEventListener("focusin", onFocusIn, true);
+  widget.node.addEventListener("pointerup", onPointerUp, true);
 
   widget.disposed.connect(() => {
+    widget.node.removeEventListener("pointerdown", onPointerDown, true);
+    widget.node.removeEventListener("focusin", onFocusIn, true);
+    widget.node.removeEventListener("pointerup", onPointerUp, true);
     focusOwnerByPath.delete(path());
   });
 };
@@ -443,6 +485,9 @@ export const bindNotebookToMindMapSync = (
   };
 
   panel.content.activeCellChanged.connect(syncToMindMaps);
+  panel.disposed.connect(() => {
+    panel.content.activeCellChanged.disconnect(syncToMindMaps);
+  });
 };
 
 export const syncNotebookPanelToMindMaps = (

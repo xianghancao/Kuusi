@@ -8,6 +8,10 @@
         "command": "jupyterlab-kuusi:open-notebook-mindmap",
         "label": "Kuusi",
         "rank": 41
+      },
+      {
+        "name": "kuusi-notebook-auto-reload",
+        "rank": 42
       }
     ],
     "Kuusi Mind Map": [
@@ -21,6 +25,16 @@
       { "name": "restart", "rank": 32 },
       { "name": "restart-and-run", "rank": 33 },
       { "name": "cellType", "rank": 40 },
+      {
+        "name": "open-notebook",
+        "command": "jupyterlab-kuusi:open-notebook-view",
+        "label": "Notebook",
+        "rank": 41
+      },
+      {
+        "name": "kuusi-notebook-auto-reload",
+        "rank": 42
+      },
       { "name": "spacer", "type": "spacer", "rank": 100 },
       { "name": "kernelName", "rank": 1000 },
       { "name": "executionProgress", "rank": 1002 }
@@ -214,6 +228,12 @@
       "type": "string",
       "default": "#d6ecff"
     },
+    "showUpdatedTimestamp": {
+      "title": "Show mind map updated time",
+      "description": "Display the notebook file last-modified time in the bottom-left corner of the mind map.",
+      "type": "boolean",
+      "default": true
+    },
     "appearance": {
       "title": "Line and node appearance",
       "type": "object",
@@ -302,6 +322,18 @@
           "title": "Selection glow width",
           "description": "Glow ring width for the selected mind map node.",
           "default": "2px"
+        },
+        "hoverGlowColor": {
+          "type": "string",
+          "title": "Hover glow color",
+          "description": "Edge glow when the pointer is over a mind map node. Empty follows the map node border color when set; otherwise blue (#1976d2).",
+          "default": ""
+        },
+        "hoverGlowWidth": {
+          "type": "string",
+          "title": "Hover glow width",
+          "description": "Glow ring and soft halo size when hovering a mind map node (same presets as node border width).",
+          "default": "1px"
         }
       }
     }

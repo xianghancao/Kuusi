@@ -1,6 +1,6 @@
 {
   "name": "kuusi-kernel",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Notebook outline tree and dagre layout for Kuusi",
   "license": "BSD-3-Clause",
   "type": "module",

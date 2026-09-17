@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-kuusi",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Jupyter-native notebook mind map view for JupyterLab",
   "keywords": [
     "jupyter",
@@ -21,7 +21,8 @@
   "files": [
     "lib/**/*",
     "style/**/*",
-    "schema/*.json"
+    "schema/*.json",
+    "jupyterlab_kuusi/jupyter-config/**/*"
   ],
   "scripts": {
     "build": "npm run build:kernel && npm run build:lib && npm run build:labextension:dev",
@@ -43,16 +44,23 @@
     "@jupyterlab/codeeditor": "^4.3.5",
     "@jupyterlab/docmanager": "^4.3.5",
     "@jupyterlab/docregistry": "^4.3.5",
+    "@jupyterlab/filebrowser": "^4.3.5",
+    "@jupyterlab/fileeditor": "^4.3.5",
+    "@jupyterlab/launcher": "^4.3.5",
+    "@jupyterlab/markdownviewer": "^4.3.5",
     "@jupyterlab/nbformat": "^4.3.5",
     "@jupyterlab/notebook": "^4.3.5",
     "@jupyterlab/rendermime": "^4.3.5",
     "@jupyterlab/services": "^7.3.5",
     "@jupyterlab/settingregistry": "^4.3.5",
+    "@jupyterlab/toc": "~6.5.9",
     "@jupyterlab/translation": "^4.3.5",
     "@jupyterlab/ui-components": "^4.3.5",
     "@lumino/disposable": "^2.1.2",
     "@lumino/widgets": "^2.5.0",
-    "kuusi-kernel": "0.2.5"
+    "kuusi-kernel": "0.2.6",
+    "pdfjs-dist": "4.10.38",
+    "utif": "^3.1.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.5",
@@ -62,6 +70,7 @@
   "jupyterlab": {
     "extension": true,
     "outputDir": "jupyterlab_kuusi/labextension",
-    "schemaDir": "schema"
+    "schemaDir": "schema",
+    "webpackConfig": "webpack.config.js"
   }
 }

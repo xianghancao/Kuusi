@@ -1,0 +1,75 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+
+\title{Kuusi Live PDF Example}
+\author{Edit \texttt{sample.tex} in your editor}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Open in JupyterLab}
+
+\begin{enumerate}
+  \item In the file browser, open the \texttt{examples/live-pdf} folder.
+  \item Right-click \texttt{sample.pdf} and choose \textbf{Open with Kuusi Live PDF}.
+  \item Keep the viewer open while you edit this \texttt{.tex} file elsewhere.
+\end{enumerate}
+
+\section{Live reload}
+
+Compile locally, for example:
+
+\begin{verbatim}
+cd examples/live-pdf
+pdflatex sample.tex
+\end{verbatim}
+
+When \texttt{sample.pdf} changes on disk, Kuusi Live PDF reloads it automatically
+and tries to keep your scroll position.
+
+\section{Edit this section}
+
+Change this paragraph, recompile, and confirm the PDF updates without closing
+the tab.
+
+\section{Try the toolbar}
+
+Use the viewer controls while this PDF stays open:
+
+\begin{itemize}
+  \item \textbf{Refresh} reloads from disk without losing scroll when possible.
+  \item \textbf{Page nav} and the page input jump between pages in this two-page sample.
+  \item \textbf{Width / Page / 100\%} adjust zoom; \textbf{Auto reload} watches file changes.
+\end{itemize}
+
+\newpage
+
+\section{Page two}
+
+This page is here on purpose so you can test \textbf{Page 2 / 2}, previous/next
+page buttons, and \texttt{Home}/\texttt{End} keyboard shortcuts.
+
+\subsection{Scroll and reload together}
+
+\begin{enumerate}
+  \item Scroll to this page and leave the viewer open.
+  \item Edit text below, then run \texttt{pdflatex sample.tex} again.
+  \item Confirm the PDF refreshes and your scroll position is preserved when possible.
+\end{enumerate}
+
+\subsection{Edit me on page two}
+
+Replace this sentence with your own text, recompile, and check that Live PDF
+picks up the change while you remain on page~2. haha~ 
+
+\vfill
+\begin{center}
+\textit{End of sample document.}
+\end{center}
+\end{document}

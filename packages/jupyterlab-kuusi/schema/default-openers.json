@@ -1,0 +1,46 @@
+{
+  "title": "Kuusi Default Openers",
+  "description": "Choose which file types open with Kuusi by default in the file browser.",
+  "jupyter.lab.setting-icon": "jupyterlab-kuusi:logo",
+  "jupyter.lab.setting-icon-label": "Kuusi",
+  "type": "object",
+  "properties": {
+    "useKuusiForNotebook": {
+      "title": "Notebooks (.ipynb)",
+      "description": "Open notebooks with Kuusi Mind Map instead of the standard notebook view.",
+      "type": "boolean",
+      "default": true
+    },
+    "useKuusiForMarkdown": {
+      "title": "Markdown (.md)",
+      "description": "Open Markdown files with the Kuusi preview workflow (Markdown Preview by default).",
+      "type": "boolean",
+      "default": true
+    },
+    "useKuusiForTex": {
+      "title": "LaTeX (.tex)",
+      "description": "Enable Kuusi TeX compile, outline, and SyncTeX tools in the editor.",
+      "type": "boolean",
+      "default": true
+    },
+    "useKuusiForPdf": {
+      "title": "PDF (.pdf)",
+      "description": "Open PDF files with Kuusi Live PDF instead of the built-in viewer.",
+      "type": "boolean",
+      "default": true
+    },
+    "useKuusiForImage": {
+      "title": "Images (PNG, JPEG, …)",
+      "description": "Open image files with Kuusi Image instead of the built-in viewer.",
+      "type": "boolean",
+      "default": true
+    },
+    "useKuusiForAudio": {
+      "title": "Audio (WebM, OGG, …)",
+      "description": "Open audio files with Kuusi Voice instead of the generic file handler.",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

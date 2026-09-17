@@ -12,6 +12,7 @@ import { Notebook, NotebookActions, NotebookPanel } from "@jupyterlab/notebook";
 import type { CellList } from "@jupyterlab/notebook/lib/celllist";
 import type { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 import type { IObservableList } from "@jupyterlab/observables";
+import type { Contents } from "@jupyterlab/services";
 import { Message } from "@lumino/messaging";
 import { PanelLayout, Widget } from "@lumino/widgets";
 import {
@@ -94,7 +95,14 @@ import {
   DEFAULT_MIND_MAP_THEME,
   type MindMapTheme,
 } from "./styleToolbar";
-import { createProductMenu } from "./productMenu";
+import { formatContentsModified } from "./formatModifiedTime";
+import { attachNotebookAutoReload } from "./notebookAutoReload";
+import { ensureNotebookAutoReloadOnPluginToolbar } from "./notebookAutoReloadPlacement";
+import {
+  getNotebookAutoReloadEnabled,
+  registerNotebookAutoReloadListener,
+} from "./notebookAutoReloadRegistry";
+import { createMindMapShortcutMenu } from "./keyboardGuide";
 import { createPageToolbar, type PageToolbarItem } from "./pageToolbar";
 import { closeKuusiDropdownMenus, openKuusiDropdownMenu, positionKuusiDropdownMenu } from "./formatToolbar";
 import { modKeyLabel } from "./keyboardGuide";
@@ -115,10 +123,13 @@ import {
   writeCellNodeWidth,
 } from "./nodeWidth";
 import { createKuusiTranslator, type KuusiTranslator } from "./kuusiI18n";
-import { kuusiIcon } from "./kuusiIcon";
+import { mindMapIcon } from "./kuusiIcon";
+import { applyKuusiTabIcon } from "./kuusiTabIcon";
 import type { ITranslator } from "@jupyterlab/translation";
 
 export const KUUSI_ADD_MINDMAP_COMMAND = "jupyterlab-kuusi:add-mindmap";
+export const KUUSI_OPEN_NOTEBOOK_VIEW_COMMAND =
+  "jupyterlab-kuusi:open-notebook-view";
 
 const TREE_DIRECTION_LABELS: Record<TreeDirection, string> = {
   TB: "↓",
@@ -183,7 +194,9 @@ const appearanceEquals = (
   left.nodeBorderCorner === right.nodeBorderCorner &&
   left.nodeBorderRadius === right.nodeBorderRadius &&
   left.selectionGlowColor === right.selectionGlowColor &&
-  left.selectionGlowWidth === right.selectionGlowWidth;
+  left.selectionGlowWidth === right.selectionGlowWidth &&
+  left.hoverGlowColor === right.hoverGlowColor &&
+  left.hoverGlowWidth === right.hoverGlowWidth;
 
 const collectVisibleCellIndices = (
   outline: OutlineNode,
@@ -290,6 +303,8 @@ export class NotebookMindMapWidget extends Widget {
   private _notebookAttached = false;
   private _contentChangeTimer: number | null = null;
   private _statusNodeEl: HTMLElement;
+  private _statusModifiedEl: HTMLElement;
+  private _showUpdatedTimestamp = true;
   private _zoomLabel: HTMLElement | null = null;
   private _zoomTrigger: HTMLButtonElement | null = null;
   private _zoomTrack: HTMLElement | null = null;
@@ -323,6 +338,7 @@ export class NotebookMindMapWidget extends Widget {
   private _formatToolbar: FormatToolbarHandle | null = null;
   private _appearanceToolbar: AppearanceToolbarHandle | null = null;
   private _addMindMapButton: CommandToolbarButton | null = null;
+  private _openNotebookButton: CommandToolbarButton | null = null;
   private _undoButton: HTMLButtonElement | null = null;
   private _redoButton: HTMLButtonElement | null = null;
   private _undoManagerCleanup: (() => void) | null = null;
@@ -397,6 +413,10 @@ export class NotebookMindMapWidget extends Widget {
   private _t: KuusiTranslator;
   private _settingsManager: MindMapSettingsManager;
   private _settingsConn: { disconnect: () => void } | null = null;
+  private _autoReloadListenerDispose: (() => void) | null = null;
+  private _autoReloadHandle: ReturnType<typeof attachNotebookAutoReload> | null =
+    null;
+  private _lastModifiedLabel = "";
 
   constructor(
     private _context: DocumentRegistry.IContext<INotebookModel>,
@@ -406,6 +426,7 @@ export class NotebookMindMapWidget extends Widget {
     private _commands: CommandRegistry,
     settingsManager: MindMapSettingsManager,
     translator: ITranslator,
+    private _contents: Contents.IManager,
   ) {
     super();
     this._settingsManager = settingsManager;
@@ -424,6 +445,13 @@ export class NotebookMindMapWidget extends Widget {
       commands: this._commands,
       id: KUUSI_ADD_MINDMAP_COMMAND,
     });
+
+    this._openNotebookButton = new CommandToolbarButton({
+      commands: this._commands,
+      id: KUUSI_OPEN_NOTEBOOK_VIEW_COMMAND,
+      args: { path: this._context.path },
+    });
+    this._openNotebookButton.addClass("jp-KuusiNotebookOpenButton");
 
     this._appearanceToolbar = createAppearanceToolbar(
       this.node,
@@ -460,7 +488,13 @@ export class NotebookMindMapWidget extends Widget {
         id: "brand",
         group: "brand",
         order: 10,
-        create: () => createProductMenu(this.node, this._t),
+        create: () => createMindMapShortcutMenu(this.node, this._t),
+      },
+      {
+        id: "open-notebook",
+        group: "brand",
+        order: 12,
+        create: () => this._openNotebookButton!.node,
       },
       {
         id: "add-node",
@@ -632,6 +666,14 @@ export class NotebookMindMapWidget extends Widget {
               });
             },
             this._t,
+            {
+              getShowUpdatedTimestamp: () => this._showUpdatedTimestamp,
+              onShowUpdatedTimestampChange: (show) => {
+                void this._settingsManager.update({
+                  showUpdatedTimestamp: show,
+                });
+              },
+            },
           ),
       },
     ];
@@ -669,6 +711,12 @@ export class NotebookMindMapWidget extends Widget {
     this._applyScenePresentation();
     this._applyBackground();
 
+    this._statusModifiedEl = document.createElement("div");
+    this._statusModifiedEl.className =
+      "jp-KuusiNotebookMindMap-status-updated";
+    this._statusModifiedEl.setAttribute("aria-live", "polite");
+    this._viewport.appendChild(this._statusModifiedEl);
+
     const statusBar = document.createElement("div");
     statusBar.className = "jp-KuusiNotebookMindMap-status";
     this._statusNodeEl = document.createElement("span");
@@ -679,6 +727,9 @@ export class NotebookMindMapWidget extends Widget {
       this._createFullscreenControl(),
     );
     this._viewport.appendChild(statusBar);
+
+    this._lastModifiedLabel =
+      this._context.contentsModel?.last_modified ?? this._lastModifiedLabel;
     this._updateStatusBar();
 
     this.node.appendChild(this._viewport);
@@ -722,6 +773,29 @@ export class NotebookMindMapWidget extends Widget {
     this._settingsConn = this._settingsManager.changed.connect((settings) => {
       this._applyUserSettings(settings);
     });
+
+    const notebookPath = this._context.path;
+
+    this._autoReloadHandle = attachNotebookAutoReload(
+      this._context,
+      this._contents,
+      {
+        getEnabled: () => getNotebookAutoReloadEnabled(notebookPath),
+        onLastModified: (lastModified) => {
+          this._lastModifiedLabel = lastModified;
+          this._updateStatusBar();
+        },
+        onReverted: () => {
+          this._invalidateOutlineCache();
+          this._scheduleLayout();
+        },
+      },
+    );
+
+    this._autoReloadListenerDispose = registerNotebookAutoReloadListener(
+      notebookPath,
+      this._autoReloadHandle,
+    );
   }
 
   private _applyUserSettings(settings: MindMapUserSettings): void {
@@ -765,8 +839,10 @@ export class NotebookMindMapWidget extends Widget {
     this._mindMapBackground = settings.background;
     this._mindMapBackgroundPattern = settings.backgroundPattern;
     this._mindMapBackgroundColor = settings.backgroundColor;
+    this._showUpdatedTimestamp = settings.showUpdatedTimestamp;
     this._appearanceSettings = { ...settings.appearance };
     this._updateDirectionButtons();
+    this._updateModifiedTimestamp();
     this._applyScenePresentation();
     this._applyBackground();
     this._syncSceneEditMode();
@@ -1121,6 +1197,11 @@ export class NotebookMindMapWidget extends Widget {
   }
 
   dispose(): void {
+    this._autoReloadListenerDispose?.();
+    this._autoReloadListenerDispose = null;
+    this._autoReloadHandle?.dispose();
+    this._autoReloadHandle = null;
+
     this._context.model.cells.changed.disconnect(this._onCellsChanged, this);
     this._context.model.contentChanged.disconnect(this._onModelContentChanged, this);
 
@@ -1196,6 +1277,8 @@ export class NotebookMindMapWidget extends Widget {
     this._redoButton = null;
     this._settingsConn?.disconnect();
     this._settingsConn = null;
+    this._unbindAllMarkdownAnchorStrips();
+    this._unbindNotebookEditState();
     this._notebook.dispose();
     super.dispose();
   }
@@ -3400,6 +3483,11 @@ export class NotebookMindMapWidget extends Widget {
         };
 
         cell.renderedChanged.connect(onRenderedChanged);
+
+        if (this.isDisposed || cell.isDisposed) {
+          cell.renderedChanged.disconnect(onRenderedChanged);
+          resolve();
+        }
       });
     }
 
@@ -3454,6 +3542,11 @@ export class NotebookMindMapWidget extends Widget {
         }
 
         cell.renderedChanged.disconnect(onRendered);
+
+        if (this.isDisposed || cell.isDisposed) {
+          return;
+        }
+
         syncAndRelayout();
       };
 
@@ -3476,56 +3569,90 @@ export class NotebookMindMapWidget extends Widget {
   }
 
   private _previousActiveCell: Cell | null = null;
+  private _notebookEditStateBound = false;
+  private _anchorStripBindings = new WeakMap<
+    MarkdownCell,
+    {
+      onRenderedChanged: (_sender: MarkdownCell, rendered: boolean) => void;
+      onContentChanged: () => void;
+      onCellDisposed: () => void;
+    }
+  >();
 
-  private _bindNotebookEditState(): void {
-    this._notebook.activeCellChanged.connect((_sender, cell) => {
-      if (this._previousActiveCell instanceof MarkdownCell) {
-        this._restoreMarkdownPreview(this._previousActiveCell);
-      }
+  private _onNotebookActiveCellChanged = (
+    _sender: Notebook,
+    cell: Cell | null,
+  ): void => {
+    if (this._previousActiveCell instanceof MarkdownCell) {
+      this._restoreMarkdownPreview(this._previousActiveCell);
+    }
 
-      this._previousActiveCell = cell;
-      this._updateSelectedNodeHighlight();
-      this._updateFormatToolbar();
-      this._appearanceToolbar?.syncSelection();
-      this._syncSceneEditMode();
-    });
+    this._previousActiveCell = cell;
+    this._updateSelectedNodeHighlight();
+    this._updateFormatToolbar();
+    this._appearanceToolbar?.syncSelection();
+    this._syncSceneEditMode();
+  };
 
-    this._notebook.selectionChanged.connect(() => {
-      this._updateSelectedNodeHighlight();
-      this._appearanceToolbar?.syncSelection();
-    });
+  private _onNotebookSelectionChanged = (): void => {
+    this._updateSelectedNodeHighlight();
+    this._appearanceToolbar?.syncSelection();
+  };
 
-    this._notebook.stateChanged.connect((_sender, args) => {
-      if (args.name === "mode") {
-        if (args.newValue === "command") {
-          const index = this._notebook.activeCellIndex;
+  private _onNotebookStateChanged = (
+    _sender: Notebook,
+    args: { name: string; newValue: unknown; oldValue: unknown },
+  ): void => {
+    if (args.name === "mode") {
+      if (args.newValue === "command") {
+        const index = this._notebook.activeCellIndex;
 
-          if (index >= 0 && this._isEditEntryProtected(index)) {
-            // Notebook can briefly drop to command while the editor mounts.
-            queueMicrotask(() => {
-              if (
-                this.isDisposed ||
-                this._notebook.activeCellIndex !== index ||
-                !this._isEditEntryProtected(index)
-              ) {
-                return;
-              }
+        if (index >= 0 && this._isEditEntryProtected(index)) {
+          // Notebook can briefly drop to command while the editor mounts.
+          queueMicrotask(() => {
+            if (
+              this.isDisposed ||
+              this._notebook.activeCellIndex !== index ||
+              !this._isEditEntryProtected(index)
+            ) {
+              return;
+            }
 
-              this._notebook.mode = "edit";
-              this._syncSceneEditMode();
-            });
-            return;
-          }
-
-          this._restoreMarkdownPreview(this._notebook.activeCell);
+            this._notebook.mode = "edit";
+            this._syncSceneEditMode();
+          });
+          return;
         }
 
-        this._syncSceneEditMode();
-        this._updateFormatToolbar();
+        this._restoreMarkdownPreview(this._notebook.activeCell);
       }
-    });
 
+      this._syncSceneEditMode();
+      this._updateFormatToolbar();
+    }
+  };
+
+  private _bindNotebookEditState(): void {
+    if (this._notebookEditStateBound) {
+      return;
+    }
+
+    this._notebook.activeCellChanged.connect(this._onNotebookActiveCellChanged);
+    this._notebook.selectionChanged.connect(this._onNotebookSelectionChanged);
+    this._notebook.stateChanged.connect(this._onNotebookStateChanged);
+    this._notebookEditStateBound = true;
     this._syncSceneEditMode();
+  }
+
+  private _unbindNotebookEditState(): void {
+    if (!this._notebookEditStateBound || this._notebook.isDisposed) {
+      return;
+    }
+
+    this._notebook.activeCellChanged.disconnect(this._onNotebookActiveCellChanged);
+    this._notebook.selectionChanged.disconnect(this._onNotebookSelectionChanged);
+    this._notebook.stateChanged.disconnect(this._onNotebookStateChanged);
+    this._notebookEditStateBound = false;
   }
 
   /**
@@ -3901,7 +4028,7 @@ export class NotebookMindMapWidget extends Widget {
     }
 
     return !target.closest(
-      ".jp-KuusiNotebookMindMap-cellNode, .jp-KuusiNotebookMindMap-resizeHandle, .jp-KuusiNotebookMindMap-collapse, .jp-KuusiNotebookMindMap-status",
+      ".jp-KuusiNotebookMindMap-cellNode, .jp-KuusiNotebookMindMap-resizeHandle, .jp-KuusiNotebookMindMap-collapse, .jp-KuusiNotebookMindMap-status, .jp-KuusiNotebookMindMap-status-updated",
     );
   }
 
@@ -3931,6 +4058,28 @@ export class NotebookMindMapWidget extends Widget {
     });
   }
 
+  private _unbindMarkdownAnchorStrip(cell: MarkdownCell): void {
+    const bindings = this._anchorStripBindings.get(cell);
+
+    if (!bindings) {
+      return;
+    }
+
+    cell.renderedChanged.disconnect(bindings.onRenderedChanged);
+    cell.model.contentChanged.disconnect(bindings.onContentChanged);
+    cell.disposed.disconnect(bindings.onCellDisposed);
+    delete cell.node.dataset.kuusiAnchorStripBound;
+    this._anchorStripBindings.delete(cell);
+  }
+
+  private _unbindAllMarkdownAnchorStrips(): void {
+    for (const cell of this._notebook.widgets) {
+      if (cell instanceof MarkdownCell) {
+        this._unbindMarkdownAnchorStrip(cell);
+      }
+    }
+  }
+
   private _bindMarkdownAnchorStrip(cell: MarkdownCell): void {
     if (cell.node.dataset.kuusiAnchorStripBound === "1") {
       return;
@@ -3946,9 +4095,25 @@ export class NotebookMindMapWidget extends Widget {
       this._stripInternalHeadingAnchors(cell.node);
     };
 
-    cell.renderedChanged.connect(strip);
-    cell.model.contentChanged.connect(() => {
+    const onRenderedChanged = (_sender: MarkdownCell, rendered: boolean) => {
+      if (rendered) {
+        strip();
+      }
+    };
+    const onContentChanged = (): void => {
       window.requestAnimationFrame(strip);
+    };
+    const onCellDisposed = (): void => {
+      this._unbindMarkdownAnchorStrip(cell);
+    };
+
+    cell.renderedChanged.connect(onRenderedChanged);
+    cell.model.contentChanged.connect(onContentChanged);
+    cell.disposed.connect(onCellDisposed);
+    this._anchorStripBindings.set(cell, {
+      onRenderedChanged,
+      onContentChanged,
+      onCellDisposed,
     });
   }
 
@@ -3978,8 +4143,20 @@ export class NotebookMindMapWidget extends Widget {
     this._updateStatusBar();
   }
 
+  private _updateModifiedTimestamp(): void {
+    const modifiedLabel = formatContentsModified(this._lastModifiedLabel);
+    const show =
+      this._showUpdatedTimestamp && Boolean(modifiedLabel);
+
+    this._statusModifiedEl.hidden = !show;
+    this._statusModifiedEl.textContent = show
+      ? `Updated ${modifiedLabel}`
+      : "";
+  }
+
   private _updateStatusBar(nodeCount = this._cellNodes.size): void {
     this._statusNodeEl.textContent = `Node: ${nodeCount}`;
+    this._updateModifiedTimestamp();
     this._updateZoomControl();
   }
 
@@ -6011,9 +6188,15 @@ export class NotebookMindMapWidget extends Widget {
     if (cell instanceof MarkdownCell && !this._isCellEditingMarkdown(cell, index)) {
       if (!cell.rendered) {
         await new Promise<void>((resolve) => {
+          if (this.isDisposed || cell.isDisposed) {
+            resolve();
+            return;
+          }
+
           const handler = (_sender: MarkdownCell, rendered: boolean) => {
+            cell.renderedChanged.disconnect(handler);
+
             if (rendered) {
-              cell.renderedChanged.disconnect(handler);
               resolve();
             }
           };
@@ -6175,9 +6358,15 @@ export class NotebookMindMapWidget extends Widget {
     if (cell instanceof MarkdownCell && !this._isCellEditingMarkdown(cell, index)) {
       if (!cell.rendered) {
         await new Promise<void>((resolve) => {
+          if (this.isDisposed || cell.isDisposed) {
+            resolve();
+            return;
+          }
+
           const handler = (_sender: MarkdownCell, rendered: boolean) => {
+            cell.renderedChanged.disconnect(handler);
+
             if (rendered) {
-              cell.renderedChanged.disconnect(handler);
               resolve();
             }
           };
@@ -6498,10 +6687,25 @@ export class NotebookMindMapDocumentWidget extends DocumentWidget<NotebookMindMa
     this.addClass("jp-KuusiNotebookMindMapDocument");
     this.toolbar.addClass("jp-NotebookPanel-toolbar");
 
-    this.title.icon = kuusiIcon;
-    this.title.iconClass = "jp-KuusiTabIcon";
-    this.title.iconLabel = "Kuusi";
+    applyKuusiTabIcon(this.title, mindMapIcon, "Kuusi Mind Map");
     options.content.bindDocumentWidget(this);
+
+    const syncAutoReloadPlacement = (): void => {
+      ensureNotebookAutoReloadOnPluginToolbar(this);
+    };
+
+    const placementObserver = new MutationObserver(syncAutoReloadPlacement);
+    placementObserver.observe(this.content.node, {
+      childList: true,
+      subtree: true,
+    });
+    this.disposed.connect(() => {
+      placementObserver.disconnect();
+    });
+    requestAnimationFrame(() => {
+      syncAutoReloadPlacement();
+      window.setTimeout(syncAutoReloadPlacement, 0);
+    });
   }
 }
 
@@ -6518,6 +6722,7 @@ export class NotebookMindMapWidgetFactory extends ABCWidgetFactory<
     private _commands: CommandRegistry,
     private _settingsManager: MindMapSettingsManager,
     private _kuusiTranslator: ITranslator,
+    private _contents: Contents.IManager,
     toolbarFactory?: (
       widget: NotebookMindMapDocumentWidget,
     ) =>
@@ -6529,7 +6734,7 @@ export class NotebookMindMapWidgetFactory extends ABCWidgetFactory<
       modelName: "notebook",
       fileTypes: ["notebook"],
       toolbarFactory,
-      preferKernel: true,
+      preferKernel: false,
       canStartKernel: true,
     });
   }
@@ -6545,6 +6750,7 @@ export class NotebookMindMapWidgetFactory extends ABCWidgetFactory<
       this._commands,
       this._settingsManager,
       this._kuusiTranslator,
+      this._contents,
     );
     return new NotebookMindMapDocumentWidget({ content, context });
   }

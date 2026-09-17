@@ -49,7 +49,12 @@ export type MindMapBackgroundState = {
   backgroundColor: string;
 };
 
-type BackgroundSection = "pattern" | "color" | "custom";
+type BackgroundSection = "pattern" | "color" | "custom" | "status";
+
+export type MindMapBackgroundDisplayOptions = {
+  getShowUpdatedTimestamp: () => boolean;
+  onShowUpdatedTimestampChange: (show: boolean) => void;
+};
 
 let lastBackgroundSection: BackgroundSection = "pattern";
 
@@ -207,14 +212,21 @@ export const fillBackgroundMenu = (
   onChange: (state: MindMapBackgroundState) => void,
   t: KuusiTranslator,
   onRebuild: () => void,
+  displayOptions?: MindMapBackgroundDisplayOptions,
 ): void => {
+  const sections: { id: BackgroundSection; label: string }[] = [
+    { id: "pattern", label: t.backgroundPattern() },
+    { id: "color", label: t.backgroundColor() },
+    { id: "custom", label: t.backgroundCustomColor() },
+  ];
+
+  if (displayOptions) {
+    sections.push({ id: "status", label: t.backgroundStatusSection() });
+  }
+
   mountSecondaryMenu(menu, {
     ariaLabel: t.canvasBackground(),
-    sections: [
-      { id: "pattern", label: t.backgroundPattern() },
-      { id: "color", label: t.backgroundColor() },
-      { id: "custom", label: t.backgroundCustomColor() },
-    ],
+    sections,
     getActive: () => lastBackgroundSection,
     setActive: (id) => {
       lastBackgroundSection = id;
@@ -271,6 +283,22 @@ export const fillBackgroundMenu = (
         return;
       }
 
+      if (id === "status" && displayOptions) {
+        renderPanelWidgets(panel, [
+          {
+            kind: "toggle",
+            label: t.showUpdatedTimestamp(),
+            title: t.showUpdatedTimestampTitle(),
+            value: displayOptions.getShowUpdatedTimestamp(),
+            onChange: (value) => {
+              displayOptions.onShowUpdatedTimestampChange(value);
+              onRebuild();
+            },
+          },
+        ]);
+        return;
+      }
+
       renderPanelWidgets(panel, [
         {
           kind: "color",
@@ -298,6 +326,7 @@ export const createBackgroundToolbar = (
   getBackgroundState: () => MindMapBackgroundState,
   onChange: (state: MindMapBackgroundState) => void,
   t: KuusiTranslator,
+  displayOptions?: MindMapBackgroundDisplayOptions,
 ): HTMLElement => {
   const toolbar = document.createElement("div");
   toolbar.className = "jp-KuusiNotebookMindMap-background-toolbar";
@@ -322,7 +351,14 @@ export const createBackgroundToolbar = (
 
   const rebuildMenu = () => {
     menu.replaceChildren();
-    fillBackgroundMenu(menu, getBackgroundState, onChange, t, rebuildMenu);
+    fillBackgroundMenu(
+      menu,
+      getBackgroundState,
+      onChange,
+      t,
+      rebuildMenu,
+      displayOptions,
+    );
   };
 
   rebuildMenu();

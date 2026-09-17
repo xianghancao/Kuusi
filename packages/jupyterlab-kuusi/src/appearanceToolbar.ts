@@ -51,6 +51,10 @@ export type AppearanceSettings = {
   selectionGlowColor: string;
   /** Selected-node glow ring width (e.g. `2px`). */
   selectionGlowWidth: string;
+  /** Hover-node edge glow; empty follows border color or blue when border unset. */
+  hoverGlowColor: string;
+  /** Hover-node glow ring width (same scale as selection glow). */
+  hoverGlowWidth: string;
 };
 
 export const DEFAULT_APPEARANCE: AppearanceSettings = {
@@ -68,6 +72,8 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   nodeBorderRadius: "8px",
   selectionGlowColor: "",
   selectionGlowWidth: "2px",
+  hoverGlowColor: "",
+  hoverGlowWidth: "1px",
 };
 
 const EDGE_LINE_STYLES: Array<{ value: EdgeLineStyle; label: string }> = [
@@ -113,17 +119,6 @@ const EDGE_ARROW_STYLES: Array<{ value: EdgeArrowStyle; label: string }> = [
 
 const EDGE_WIDTHS = ["1pt", "2pt", "3pt", "4pt", "5pt", "6pt", "8pt", "10pt"];
 const NODE_BORDER_WIDTHS = ["1px", "2px", "3px", "4px", "5px", "6pt", "8pt", "10pt"];
-const SELECTION_GLOW_WIDTHS = [
-  "0px",
-  "1px",
-  "2px",
-  "3px",
-  "4px",
-  "6px",
-  "8px",
-  "10px",
-  "12px",
-];
 
 const NODE_BORDER_RADII = ["4px", "8px", "12px", "16px", "24px", "32px"];
 
@@ -403,6 +398,12 @@ export const applyAppearanceToScene = (
   setVar("--kuusi-node-border-radius", resolveNodeBorderRadius(settings));
   setVar("--kuusi-selection-glow-color", settings.selectionGlowColor);
   setVar("--kuusi-selection-glow-width", settings.selectionGlowWidth);
+  setVar("--kuusi-hover-glow-color", settings.hoverGlowColor);
+  setVar("--kuusi-hover-glow-width", settings.hoverGlowWidth);
+  scene.style.setProperty(
+    "--kuusi-hover-glow-fallback",
+    settings.nodeBorderColor.trim() ? settings.nodeBorderColor : "#1976d2",
+  );
 
   if (nodeForeground) {
     scene.dataset.kuusiNodeContrast = "1";
@@ -600,15 +601,6 @@ const createBorderRadiusPreview = (radius: string): HTMLElement => {
   return preview;
 };
 
-const createSelectionGlowWidthPreview = (width: string): HTMLElement => {
-  const preview = document.createElement("span");
-  preview.className =
-    "jp-KuusiAppearancePreview jp-KuusiAppearancePreview-selection-glow";
-  preview.style.setProperty("--kuusi-preview-selection-glow-width", width);
-  preview.setAttribute("aria-hidden", "true");
-  return preview;
-};
-
 export type AppearanceNodeFillApi = {
   /** Whether a node is selected for per-node fill. */
   hasSelection: () => boolean;
@@ -619,7 +611,13 @@ export type AppearanceNodeFillApi = {
 };
 
 type LineSection = "style" | "route" | "arrow" | "arrowStyle" | "width" | "color";
-type NodeSection = "width" | "fill" | "border" | "corner" | "selection";
+type NodeSection =
+  | "width"
+  | "fill"
+  | "border"
+  | "corner"
+  | "selection"
+  | "hover";
 
 let lastLineSection: LineSection = "style";
 let lastNodeSection: NodeSection = "width";
@@ -805,6 +803,7 @@ export const fillNodeAppearanceMenu = (
       { id: "border", label: t.border() },
       { id: "corner", label: t.corner() },
       { id: "selection", label: t.selection() },
+      { id: "hover", label: t.hover() },
     ],
     getActive: () => lastNodeSection,
     setActive: (id) => {
@@ -997,15 +996,52 @@ export const fillNodeAppearanceMenu = (
         return;
       }
 
+      if (id === "hover") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            sectionLabel: t.hoverGlowWidth(),
+            value: settings.hoverGlowWidth,
+            options: NODE_BORDER_WIDTHS.map((width) => ({
+              value: width,
+              label: width,
+              preview: () => createBorderWidthPreview(width),
+            })),
+            onChange: (value) => {
+              patch({ hoverGlowWidth: value });
+              onRebuild();
+            },
+          },
+          {
+            kind: "color",
+            sectionLabel: t.hoverGlowColor(),
+            value: settings.hoverGlowColor,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            customInputId: "jp-KuusiAppearanceHoverGlowColor-input",
+            customDefault: settings.nodeBorderColor || "#888888",
+            onChange: (color) => {
+              patch({ hoverGlowColor: color });
+              onRebuild();
+            },
+          },
+        ]);
+        const hint = document.createElement("div");
+        hint.className = "jp-KuusiAppearanceDropdown-hint";
+        hint.textContent = t.hoverGlowFollowsBorderHint();
+        panel.appendChild(hint);
+        return;
+      }
+
       renderPanelWidgets(panel, [
         {
           kind: "choice",
           sectionLabel: t.selectionGlowWidth(),
           value: settings.selectionGlowWidth,
-          options: SELECTION_GLOW_WIDTHS.map((width) => ({
+          options: NODE_BORDER_WIDTHS.map((width) => ({
             value: width,
             label: width,
-            preview: () => createSelectionGlowWidthPreview(width),
+            preview: () => createBorderWidthPreview(width),
           })),
           onChange: (value) => {
             patch({ selectionGlowWidth: value });

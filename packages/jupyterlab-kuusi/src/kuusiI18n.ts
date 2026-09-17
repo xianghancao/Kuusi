@@ -70,6 +70,12 @@ export const createKuusiTranslator = (
   backgroundPlainTitle: () =>
     trans.__("Flat solid fill without texture overlays"),
   canvasBackground: () => trans.__("Canvas background"),
+  backgroundStatusSection: () => trans.__("Status"),
+  showUpdatedTimestamp: () => trans.__("Show updated time"),
+  showUpdatedTimestampTitle: () =>
+    trans.__(
+      "Show the notebook file last-modified time in the bottom-left corner",
+    ),
   childGap: () =>
     trans.__("Boundary distance between parent and child nodes"),
   compactLayout: () =>
@@ -106,10 +112,14 @@ export const createKuusiTranslator = (
   openDiscourse: () =>
     trans.__("Open Jupyter Discourse feedback topic"),
   openX: () => trans.__("Open Kuusi on X"),
+  openCommunityEmail: () => trans.__("Email Kuusi"),
+  close: () => trans.__("Close"),
   community: () => trans.__("Community"),
+  defaultFiles: () => trans.__("Default files"),
+  kuusiSettings: () => trans.__("Kuusi Settings"),
   communityBlurb: () =>
     trans.__(
-      "Join the conversation — feedback on Discourse, updates on X.",
+      "Join the conversation — feedback on Discourse, updates on X, or email us.",
     ),
   shortcut: () => trans.__("Shortcut"),
   font: () => trans.__("Font"),
@@ -142,6 +152,7 @@ export const createKuusiTranslator = (
   keyboardShortcuts: () => trans.__("Keyboard shortcuts"),
   latestUnavailable: () => trans.__("Unavailable"),
   latestVersion: () => trans.__("Latest"),
+  pypiLatestVersion: () => trans.__("PyPI latest"),
   layout: () => trans.__("Layout"),
   equalNodeWidth: () => trans.__("Equal width"),
   equalNodeWidthTitle: () =>
@@ -178,6 +189,13 @@ export const createKuusiTranslator = (
   nodeBorderColor: () => trans.__("Border color"),
   selectionGlowColor: () => trans.__("Selection glow color"),
   selectionGlowWidth: () => trans.__("Selection glow width"),
+  hover: () => trans.__("Hover"),
+  hoverGlowColor: () => trans.__("Hover glow color"),
+  hoverGlowWidth: () => trans.__("Hover glow width"),
+  hoverGlowFollowsBorderHint: () =>
+    trans.__(
+      "Default uses the map node border color when set; otherwise blue.",
+    ),
   nodeLayoutSpacing: () => trans.__("Node layout spacing"),
   normalLayout: () => trans.__("Balanced default spacing like XMind auto layout"),
   openRepository: () => trans.__("Open GitHub repository"),

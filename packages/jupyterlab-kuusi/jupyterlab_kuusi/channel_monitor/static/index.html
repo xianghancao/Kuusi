@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer Speed</title>
+  <style>
+    :root {
+      --bg: #000;
+      --card: #1c1c1e;
+      --text: #f2f2f7;
+      --muted: #8e8e93;
+      --line: #38383a;
+      --hot: #30d158;
+      --usb: #ff453a;
+      --ios-green: #34c759;
+      --ios-off: #39393d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 48px; }
+    h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 6px; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .langs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; padding-top: 4px; }
+    .langs button {
+      appearance: none;
+      border: 0;
+      background: #2c2c2e;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font: 12px/1.2 inherit;
+      cursor: pointer;
+    }
+    .langs button.on { background: #3a3a3c; color: var(--text); }
+    .sub { color: var(--muted); margin-bottom: 22px; }
+    .banner {
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      background: var(--card);
+    }
+    .banner.hot { outline: 1px solid var(--hot); }
+    .banner.usb { outline: 1px solid var(--usb); }
+    .banner .k { color: var(--muted); font-size: 13px; }
+    .banner .v { font-size: 22px; font-weight: 650; margin-top: 4px; letter-spacing: -0.02em; }
+    .group {
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .chan {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px 18px 10px;
+      margin-bottom: 14px;
+    }
+    .chan.on { outline: 1px solid var(--accent); }
+    .chan .k {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .chan .v { font-size: 22px; font-weight: 650; margin-top: 4px; letter-spacing: -0.02em; }
+    .chan .v.io { display: flex; gap: 20px; flex-wrap: wrap; }
+    .chan .v.io span { font-variant-numeric: tabular-nums; }
+    .chan .cap {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 4px;
+      opacity: 0.88;
+    }
+    .chan-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: start;
+    }
+    .chan .chart-k { color: var(--muted); font-size: 12px; margin: 10px 2px 4px; }
+    .chan canvas { display: block; width: 100%; height: 120px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 16px;
+      min-height: 60px;
+    }
+    .row + .row { border-top: 0.5px solid var(--line); }
+    .row.winner .name { color: var(--hot); }
+    .name { font-weight: 400; font-size: 17px; }
+    .meta { color: var(--muted); font-size: 13px; margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .side { display: flex; align-items: center; gap: 12px; }
+    .rate {
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+      min-width: 72px;
+    }
+
+    /* iOS Settings switch: 51×31, thumb 27, travel 20 */
+    .switch {
+      position: relative;
+      width: 51px;
+      height: 31px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      margin: 0;
+      cursor: pointer;
+    }
+    .track {
+      position: absolute;
+      inset: 0;
+      background: var(--ios-off);
+      border-radius: 31px;
+      pointer-events: none;
+      transition: background 0.22s ease;
+    }
+    .thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 27px;
+      height: 27px;
+      background: #fff;
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+      transition: transform 0.22s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+    .switch input:checked + .track { background: var(--ios-green); }
+    .switch input:checked + .track .thumb { transform: translateX(20px); }
+    .switch input:disabled { cursor: wait; }
+    .switch input:disabled + .track { opacity: 0.5; }
+
+    .err { color: var(--usb); margin-top: 12px; min-height: 1.2em; font-size: 13px; }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 16px; }
+
+    h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; margin: 28px 0 6px; }
+    .xfer {
+      display: grid;
+      grid-template-columns: 1fr 72px 1fr;
+      gap: 10px;
+      align-items: stretch;
+      min-height: 420px;
+    }
+    .pane {
+      background: var(--card);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .pane-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px 8px;
+    }
+    .pane-head strong { font-size: 15px; }
+    .pane-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+    .ghost {
+      appearance: none;
+      border: 0;
+      background: #2c2c2e;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font: 12px/1.2 inherit;
+      cursor: pointer;
+    }
+    .pathbar {
+      display: flex;
+      gap: 6px;
+      padding: 0 12px 10px;
+    }
+    .pathbar input {
+      flex: 1;
+      min-width: 0;
+      background: #000;
+      color: var(--text);
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: 12px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .files {
+      flex: 1;
+      overflow: auto;
+      border-top: 0.5px solid var(--line);
+      min-height: 280px;
+    }
+    .file {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .file:hover { background: #2c2c2e; }
+    .file.sel { background: #0a84ff33; }
+    .file .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file .sz { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .mid {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+    .arrow {
+      width: 52px;
+      height: 52px;
+      border: 0;
+      border-radius: 14px;
+      background: #2c2c2e;
+      color: var(--text);
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .arrow:hover { background: #3a3a3c; }
+    .arrow:disabled { opacity: 0.35; cursor: wait; }
+    .xfer-status { color: var(--muted); font-size: 13px; margin-top: 10px; min-height: 1.3em; }
+    .xfer-status.bad { color: var(--usb); }
+    @media (max-width: 800px) {
+      .xfer { grid-template-columns: 1fr; }
+      .mid { flex-direction: row; padding: 8px 0; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <div>
+        <h1 data-i18n="h1">Transfer Speed</h1>
+        <p class="sub" id="page-sub">Local loop · refreshes every second · toggling asks for macOS password</p>
+      </div>
+      <div class="langs" id="langs"></div>
+    </div>
+    <div id="chans"></div>
+    <div class="err" id="err"></div>
+    <p class="sub" id="disk-caption" style="margin:16px 0 8px">Disks · plug in a USB stick or drive to see USB 2, USB 3, or Thunderbolt</p>
+    <p class="hint" id="page-hint">Thunderbolt 3/4 is 40 <b>Gb</b>/s (bits), not 40 GB/s. Mac-to-Mac copies are often 0.5–2 GB/s. A USB 2.0 stick maxes out around 20–35 MB/s. The disk section names the link.</p>
+    <div id="xfer-section" hidden>
+    <h2 data-i18n="xfer_h2">Transfer</h2>
+    <p class="sub" data-i18n="xfer_sub">Local on the left, peer on the right. After you plug Thunderbolt in, it connects by itself — no IP to type.</p>
+    <div class="xfer">
+      <div class="pane" id="pane-local"></div>
+      <div class="mid">
+        <button type="button" class="arrow" id="to-remote" title="传到对端">→</button>
+        <button type="button" class="arrow" id="to-local" title="传到本机">←</button>
+      </div>
+      <div class="pane" id="pane-remote"></div>
+    </div>
+    <div class="xfer-status" id="xfer-status"></div>
+    </div>
+  </main>
+  <script>
+    const API_BASE = (document.querySelector('meta[name="channel-api-base"]')?.getAttribute("content") || "").replace(/\/$/, "");
+    const XSRF = document.querySelector('meta[name="channel-xsrf"]')?.getAttribute("content") || "";
+    function apiPath(p) {
+      const lead = p.startsWith("/") ? p : "/" + p;
+      return API_BASE ? API_BASE + lead : lead;
+    }
+    let hostOS = "mac";
+    let PACK = {};
+    let LANG = "";
+    let LANGS = [];
+    const prev = {};
+    const busy = new Set();
+    const hist = {};
+    const histIn = {};
+    const histOut = {};
+    const HISTORY = 60;
+    let lastRows = [];
+    const roleColor = {
+      thunderbolt: "#64d2ff",
+      wifi: "#bf5af2",
+      usb: "#ff453a",
+      usb2: "#ff453a",
+      usb3: "#ff9f0a",
+      disk_tb: "#64d2ff",
+      internal: "#30d158",
+      hdd: "#ffd60a",
+      other: "#8e8e93",
+    };
+
+    function detectLang() {
+      const saved = localStorage.getItem("channel-lang") || "";
+      if (["zh", "en", "ja", "fi"].includes(saved)) return saved;
+      return "en";
+    }
+
+    function t(key, vars) {
+      const table = PACK[LANG] || PACK.en || PACK.zh || {};
+      let s = table[key] || (PACK.en && PACK.en[key]) || (PACK.zh && PACK.zh[key]) || key;
+      if (vars) Object.keys(vars).forEach((k) => { s = String(s).split("{" + k + "}").join(vars[k]); });
+      return s;
+    }
+
+    function roleName(role, fallback) {
+      const key = "role." + role;
+      const v = t(key);
+      return v === key ? (fallback || role) : v;
+    }
+
+    function withLang(url) {
+      const sep = url.indexOf("?") >= 0 ? "&" : "?";
+      return url + sep + "lang=" + encodeURIComponent(LANG);
+    }
+
+    async function api(url, opts) {
+      opts = opts || {};
+      const headers = Object.assign({ "X-Lang": LANG }, opts.headers || {});
+      if (XSRF && opts.method && String(opts.method).toUpperCase() !== "GET") {
+        headers["X-XSRFToken"] = XSRF;
+      }
+      if (opts.body && typeof opts.body === "string") {
+        try {
+          const o = JSON.parse(opts.body);
+          o.lang = LANG;
+          opts = Object.assign({}, opts, { body: JSON.stringify(o) });
+        } catch (e) {}
+      }
+      const target = withLang(apiPath(url));
+      return fetch(target, Object.assign({}, opts, { headers, credentials: "same-origin" }));
+    }
+
+    function applyStatic() {
+      document.documentElement.lang = LANG === "zh" ? "zh-CN" : LANG;
+      document.title = t("title");
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        el.textContent = t(el.getAttribute("data-i18n"));
+      });
+      const pageSub = document.getElementById("page-sub");
+      if (pageSub) pageSub.textContent = t(hostOS === "windows" ? "page_sub_win" : "page_sub_mac");
+      const hint = document.getElementById("page-hint");
+      if (hint) hint.textContent = t("hint");
+      const diskCap = document.getElementById("disk-caption");
+      if (diskCap) diskCap.textContent = t("disk_caption");
+      document.querySelectorAll("#langs button").forEach((b) => {
+        b.classList.toggle("on", b.dataset.lang === LANG);
+      });
+      if (lastRows.length) drawChart(lastRows);
+    }
+
+    function buildLangs() {
+      const box = document.getElementById("langs");
+      box.innerHTML = LANGS.map((item) =>
+        `<button type="button" data-lang="${item.id}">${item.label}</button>`
+      ).join("");
+    }
+
+    async function setLang(next) {
+      LANG = next;
+      localStorage.setItem("channel-lang", LANG);
+      applyStatic();
+      await tick();
+      if (xferEnabled()) {
+        await loadPane("local", panes.local.path);
+        await loadPane("remote", panes.remote.path);
+      }
+    }
+
+    function xferEnabled() {
+      const el = document.getElementById("xfer-section");
+      return el && !el.hidden;
+    }
+
+    function kb(n) {
+      const v = n / 1024;
+      if (Math.abs(v) >= 1024) return (v / 1024).toFixed(1) + " MB/s";
+      return Math.round(v) + " KB/s";
+    }
+
+    function niceMax(bytes) {
+      const steps = [
+        64 * 1024, 256 * 1024, 1024 * 1024, 4 * 1024 * 1024,
+        16 * 1024 * 1024, 64 * 1024 * 1024, 256 * 1024 * 1024, 1024 * 1024 * 1024,
+      ];
+      for (const s of steps) if (bytes <= s) return s;
+      return bytes * 1.2;
+    }
+
+    function lighten(hex, t) {
+      if (!hex || hex[0] !== "#") return hex;
+      const n = parseInt(hex.slice(1), 16);
+      const mix = (c) => Math.round(c + (255 - c) * t);
+      return `rgb(${mix((n >> 16) & 255)},${mix((n >> 8) & 255)},${mix(n & 255)})`;
+    }
+
+    function padSeries(arr) {
+      const data = arr ? arr.slice() : [];
+      while (data.length < HISTORY) data.unshift(0);
+      return data;
+    }
+
+    function drawOneChart(canvas, row) {
+      if (!canvas) return;
+      const wrap = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.max(wrap.clientWidth - 8, 200);
+      const h = 120;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const net = row.kind !== "disk";
+      const down = net ? padSeries(histIn[row.id]) : padSeries(hist[row.id]);
+      const up = net ? padSeries(histOut[row.id]) : null;
+      let peak = 0;
+      down.forEach((v) => { if (v > peak) peak = v; });
+      if (up) up.forEach((v) => { if (v > peak) peak = v; });
+      const ymax = niceMax(peak);
+      const pad = { t: 6, r: 6, b: 18, l: 58 };
+      const innerW = w - pad.l - pad.r;
+      const innerH = h - pad.t - pad.b;
+
+      ctx.strokeStyle = "#2c2c2e";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#8e8e93";
+      ctx.font = "11px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i <= 2; i++) {
+        const y = pad.t + innerH * (1 - i / 2);
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(w - pad.r, y);
+        ctx.stroke();
+        ctx.fillText(kb(ymax * i / 2), pad.l - 6, y);
+      }
+
+      const slot = innerW / HISTORY;
+      const color = roleColor[row.role] || roleColor.other;
+      if (up) {
+        const pair = slot * 0.78;
+        const barW = Math.max(1, (pair - 0.8) / 2);
+        down.forEach((v, i) => {
+          const x0 = pad.l + i * slot + (slot - pair) / 2;
+          const bhD = ymax ? (v / ymax) * innerH : 0;
+          const bhU = ymax ? (up[i] / ymax) * innerH : 0;
+          ctx.fillStyle = color;
+          ctx.fillRect(x0, pad.t + innerH - bhD, barW, bhD);
+          ctx.fillStyle = lighten(color, 0.42);
+          ctx.fillRect(x0 + barW + 0.8, pad.t + innerH - bhU, barW, bhU);
+        });
+      } else {
+        const barW = Math.max(1, slot * 0.42);
+        ctx.fillStyle = color;
+        down.forEach((v, i) => {
+          const bh = ymax ? (v / ymax) * innerH : 0;
+          const x = pad.l + i * slot + (slot - barW) / 2;
+          ctx.fillRect(x, pad.t + innerH - bh, barW, bh);
+        });
+      }
+
+      ctx.fillStyle = "#8e8e93";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(t("chart_ago"), pad.l, h - 6);
+      ctx.textAlign = "right";
+      ctx.fillText(t("chart_now"), w - pad.r, h - 6);
+    }
+
+    function drawChart(rows) {
+      lastRows = rows;
+      rows.forEach((r) => {
+        const el = document.querySelector(`[data-row="${r.id}"]`);
+        if (!el) return;
+        const label = el.querySelector("[data-chart-label]");
+        if (label) {
+          label.textContent = r.kind === "disk"
+            ? t("chart_k")
+            : `${t("chart_k")}  ↓ ${t("dir_down")}  ↑ ${t("dir_up")}`;
+        }
+        drawOneChart(el.querySelector("canvas"), r);
+      });
+    }
+
+    function ensureChan(id, kind) {
+      const box = document.getElementById("chans");
+      let el = box.querySelector(`[data-row="${id}"]`);
+      if (el) return el;
+      el = document.createElement("div");
+      el.className = "chan";
+      el.dataset.row = id;
+      const sw = kind === "disk" ? "" : `
+          <label class="switch">
+            <input type="checkbox" role="switch">
+            <span class="track"><span class="thumb"></span></span>
+          </label>`;
+      const speed = kind === "disk"
+        ? `<div class="v"></div>`
+        : `<div class="v io"><span class="dn"></span><span class="up"></span></div>`;
+      el.innerHTML = `
+        <div class="chan-head">
+          <div>
+            <div class="k"></div>
+            ${speed}
+            <div class="cap"></div>
+            <div class="meta"></div>
+          </div>
+          <div class="side">
+            ${sw}
+          </div>
+        </div>
+        <div class="chart-k" data-chart-label></div>
+        <canvas height="120"></canvas>`;
+      box.appendChild(el);
+      if (kind !== "disk") {
+        const input = el.querySelector("input");
+        input.addEventListener("change", () => toggle(id, input.checked));
+      }
+      return el;
+    }
+
+    async function toggle(id, on) {
+      document.getElementById("err").textContent = "";
+      busy.add(id);
+      const input = document.querySelector(`[data-row="${id}"] input`);
+      if (input) input.disabled = true;
+      try {
+        const res = await api("/api/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, action: on ? "up" : "down" }),
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          document.getElementById("err").textContent = data.error || t("fail");
+          if (input) input.checked = !on;
+        }
+      } catch (e) {
+        document.getElementById("err").textContent = t("req_fail");
+        if (input) input.checked = !on;
+      }
+      busy.delete(id);
+      if (input) input.disabled = false;
+      tick();
+    }
+
+    const LIVE = 2048;
+
+    function applyCardChrome(el, r) {
+      const on = r.kind === "disk" ? r.total >= LIVE : r.status === "active";
+      el.className = on ? "chan on" : "chan";
+      el.style.setProperty("--accent", roleColor[r.role] || roleColor.other);
+    }
+
+    function fillTitle(el, role, text) {
+      const title = el.querySelector(".k");
+      title.textContent = text;
+      title.style.color = roleColor[role] || roleColor.other;
+    }
+
+    function fmtCap(bytes) {
+      if (!bytes) return "";
+      const mb = bytes / 1024 / 1024;
+      if (mb >= 1024) {
+        const gb = mb / 1024;
+        return (gb >= 10 ? gb.toFixed(0) : gb.toFixed(1).replace(/\.0$/, "")) + " GB/s";
+      }
+      return Math.round(mb) + " MB/s";
+    }
+
+    function capKey(r) {
+      if (r.media === "hdd") return "cap.hdd";
+      const blob = ((r.label || "") + " " + (r.id || "")).toLowerCase();
+      if (r.role === "other" && /ether|以太|乙太|イーサ/.test(blob)) return "cap.ethernet";
+      return "cap." + r.role;
+    }
+
+    function fillCap(el, r) {
+      let capEl = el.querySelector(".cap");
+      if (!capEl) {
+        capEl = document.createElement("div");
+        capEl.className = "cap";
+        const meta = el.querySelector(".meta");
+        if (meta && meta.parentNode) meta.parentNode.insertBefore(capEl, meta);
+        else el.appendChild(capEl);
+      }
+      const bytes = r.cap || (r.role === "usb3" ? 400 * 1024 * 1024 : 0);
+      capEl.textContent = t(capKey(r), { cap: fmtCap(bytes) || "—" });
+    }
+
+    function fillIo(el, r) {
+      const dn = el.querySelector(".dn");
+      const up = el.querySelector(".up");
+      if (!dn || !up) {
+        el.querySelector(".v").textContent = liveSpeed(r);
+        return;
+      }
+      const color = roleColor[r.role] || roleColor.other;
+      dn.textContent = "↓ " + kb(r.din);
+      up.textContent = "↑ " + kb(r.dout);
+      dn.style.color = color;
+      up.style.color = lighten(color, 0.42);
+    }
+
+    function liveSpeed(r) {
+      let s = kb(r.total);
+      if (r.role === "thunderbolt" && r.total > 5 * 1024 * 1024 && r.total < 80 * 1024 * 1024) {
+        s += " · " + t("winner_slow");
+      }
+      return s;
+    }
+
+    function isInternalSsd(r) {
+      if (r.media === "hdd") return false;
+      return r.role === "internal" || r.internal === true;
+    }
+
+    function isRaised(r) {
+      if (isInternalSsd(r)) return true;
+      if (r.kind === "disk") return r.total >= LIVE;
+      return r.status === "active" || r.total >= LIVE;
+    }
+
+    function orderCards(rows) {
+      const box = document.getElementById("chans");
+      const map = {};
+      rows.forEach((r, i) => { map[r.id] = { r, i }; });
+      [...box.children]
+        .filter((el) => el.dataset.row)
+        .sort((a, b) => {
+          const aa = map[a.dataset.row];
+          const bb = map[b.dataset.row];
+          const ra = (aa && aa.r) || { total: 0 };
+          const rb = (bb && bb.r) || { total: 0 };
+          const sa = isInternalSsd(ra) ? 1 : 0;
+          const sb = isInternalSsd(rb) ? 1 : 0;
+          if (sa !== sb) return sb - sa;
+          const la = isRaised(ra) ? 1 : 0;
+          const lb = isRaised(rb) ? 1 : 0;
+          if (la !== lb) return lb - la;
+          if (rb.total !== ra.total) return rb.total - ra.total;
+          return ((aa && aa.i) || 0) - ((bb && bb.i) || 0);
+        })
+        .forEach((el) => box.appendChild(el));
+    }
+
+    async function tick() {
+      const res = await api("/api/stats");
+      const data = await res.json();
+      if (data.os) {
+        hostOS = data.os;
+        const pageSub = document.getElementById("page-sub");
+        if (pageSub) {
+          pageSub.textContent = t(hostOS === "windows" ? "page_sub_win" : "page_sub_mac");
+        }
+      }
+      const ifRows = data.interfaces.map((ifc) => {
+        const p = prev[ifc.id] || { in: ifc.ibytes, out: ifc.obytes };
+        const din = Math.max(0, ifc.ibytes - p.in);
+        const dout = Math.max(0, ifc.obytes - p.out);
+        prev[ifc.id] = { in: ifc.ibytes, out: ifc.obytes };
+        return { ...ifc, din, dout, total: din + dout, kind: "iface" };
+      });
+      const diskRows = (data.disks || []).map((d) => {
+        const total = d.rate || d.total || 0;
+        return { ...d, din: 0, dout: 0, total, kind: "disk" };
+      });
+      const rows = ifRows.concat(diskRows);
+      rows.forEach((r) => {
+        if (!hist[r.id]) hist[r.id] = [];
+        hist[r.id].push(r.total);
+        if (hist[r.id].length > HISTORY) hist[r.id].shift();
+        if (r.kind !== "disk") {
+          if (!histIn[r.id]) histIn[r.id] = [];
+          if (!histOut[r.id]) histOut[r.id] = [];
+          histIn[r.id].push(r.din);
+          histOut[r.id].push(r.dout);
+          if (histIn[r.id].length > HISTORY) histIn[r.id].shift();
+          if (histOut[r.id].length > HISTORY) histOut[r.id].shift();
+        }
+      });
+      Object.keys(hist).forEach((id) => {
+        if (!rows.some((r) => r.id === id)) {
+          delete hist[id];
+          delete histIn[id];
+          delete histOut[id];
+        }
+      });
+
+      const box = document.getElementById("chans");
+      const seen = new Set();
+      ifRows.forEach((r) => {
+        seen.add(r.id);
+        const on = r.status === "active";
+        const el = ensureChan(r.id, "iface");
+        applyCardChrome(el, r);
+        fillTitle(el, r.role, `${roleName(r.role, r.label)} · ${r.id}`);
+        fillIo(el, r);
+        fillCap(el, r);
+        let meta = `${on ? t("connected") : t("closed")} · ${r.ip || t("no_ip")}`;
+        if (r.role === "thunderbolt" && r.total > 5 * 1024 * 1024 && r.total < 80 * 1024 * 1024) {
+          meta += " · " + t("winner_slow");
+        }
+        el.querySelector(".meta").textContent = meta;
+        const input = el.querySelector("input");
+        if (input && !busy.has(r.id)) {
+          input.checked = on;
+          input.setAttribute("aria-checked", on ? "true" : "false");
+        }
+      });
+      diskRows.forEach((d) => {
+        seen.add(d.id);
+        const vols = (d.volumes && d.volumes.length) ? d.volumes.join(" · ") : t("unmounted");
+        const el = ensureChan(d.id, "disk");
+        applyCardChrome(el, d);
+        fillTitle(el, d.role, `${roleName(d.role, d.label)} · ${d.label}`);
+        fillIo(el, d);
+        fillCap(el, d);
+        el.querySelector(".meta").textContent = `${d.link || ""} · ${vols}${d.note ? " · " + d.note : ""}`;
+      });
+      [...box.children].forEach((el) => {
+        if (!seen.has(el.dataset.row)) el.remove();
+      });
+      orderCards(rows);
+      drawChart(rows);
+    }
+
+    window.addEventListener("resize", () => drawChart(lastRows));
+
+    const panes = {
+      local: { path: "", selected: new Set() },
+      remote: { path: "", selected: new Set() },
+    };
+    let elPeers = { peers: [], ours: [] };
+    let wasCopying = false;
+    let connectingRemote = false;
+    let remoteKind = "smb";
+
+    function lsUrl(side, path) {
+      if (side === "remote" && remoteKind === "http") {
+        return "/api/remote-ls?path=" + encodeURIComponent(path || "");
+      }
+      return "/api/ls?path=" + encodeURIComponent(path || "");
+    }
+
+    async function ensureRemote(force) {
+      const status = document.getElementById("xfer-status");
+      const peers = await (await api("/api/peers")).json();
+      elPeers = peers;
+      if (!force && peers.saved && peers.saved.mode === "http" && peers.saved.home) {
+        remoteKind = "http";
+        status.textContent = t("connect_checking");
+      }
+      if (!force && peers.volumes && peers.volumes.length && remoteKind !== "http") {
+        remoteKind = "smb";
+        return loadPane("remote", peers.volumes[0].path);
+      }
+      connectingRemote = true;
+      status.className = "xfer-status";
+      status.textContent = t("connect_auto");
+      renderPane("remote", { path: "", items: [] }, { hint: t("connect_auto_hint") });
+      let out = { ok: false, error: t("connect_fail") };
+      try {
+        out = await (await api("/api/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(force ? { force: true } : {}),
+        })).json();
+      } catch (e) {
+        out = { ok: false, error: t("connect_req_fail") };
+      }
+      connectingRemote = false;
+      remoteKind = out.mode || "smb";
+      status.className = out.ok ? "xfer-status" : "xfer-status bad";
+      status.textContent = out.message || out.error || "";
+      const path = out.path
+        || (out.volumes && out.volumes[0] && out.volumes[0].path)
+        || "";
+      if (out.ok && path) return loadPane("remote", path);
+      renderPane("remote", { path: "", items: [] }, { hint: out.error || t("not_connected") });
+    }
+
+    function fmtSize(n, isDir) {
+      if (isDir) return t("folder");
+      if (n < 1024) return n + " B";
+      if (n < 1024 * 1024) return (n / 1024).toFixed(0) + " KB";
+      if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
+      return (n / 1024 / 1024 / 1024).toFixed(2) + " GB";
+    }
+
+    function renderPane(side, data, extra) {
+      const st = panes[side];
+      st.path = data.path;
+      const el = document.getElementById(side === "local" ? "pane-local" : "pane-remote");
+      const title = side === "local" ? t("pane_local") : (remoteKind === "http" ? t("pane_remote_http") : t("pane_remote"));
+      const tools = side === "remote"
+        ? `<button class="ghost" data-act="connect">${t("btn_reconnect")}</button><button class="ghost" data-act="refresh">${t("btn_refresh")}</button>`
+        : `<button class="ghost" data-act="home">${t("btn_home")}</button><button class="ghost" data-act="refresh">${t("btn_refresh")}</button>`;
+      const parentBtn = data.parent
+        ? `<div class="file" data-go="${encodeURIComponent(data.parent)}"><div class="nm">${t("parent")}</div><div class="sz"></div></div>`
+        : "";
+      const rows = (data.items || []).map((it) => {
+        const sel = st.selected.has(it.name) ? " sel" : "";
+        return `<div class="file${sel}" data-name="${encodeURIComponent(it.name)}" data-dir="${it.is_dir ? "1" : "0"}">
+          <div class="nm">${it.is_dir ? "▸ " : ""}${it.name}</div>
+          <div class="sz">${fmtSize(it.size, it.is_dir)}</div>
+        </div>`;
+      }).join("");
+      const peerHint = extra && extra.hint ? `<div class="meta" style="padding:0 14px 8px">${extra.hint}</div>` : "";
+      el.innerHTML = `
+        <div class="pane-head"><strong>${title}</strong><div class="pane-tools">${tools}</div></div>
+        ${peerHint}
+        <div class="pathbar">
+          <button class="ghost" data-act="up">${t("btn_up")}</button>
+          <input value="${data.path || ""}" data-act="path">
+        </div>
+        <div class="files">${parentBtn}${rows || '<div class="file"><div class="nm">' + t("empty_folder") + '</div></div>'}</div>`;
+    }
+
+    async function loadPane(side, path) {
+      panes[side].selected = new Set();
+      const res = await api(lsUrl(side, path || ""));
+      const data = await res.json();
+      if (!data.ok) {
+        document.getElementById("xfer-status").className = "xfer-status bad";
+        document.getElementById("xfer-status").textContent = data.error || t("ls_fail");
+        return;
+      }
+      let extra = {};
+      if (side === "remote") {
+        const peers = await (await api("/api/peers")).json();
+        const bits = [];
+        if (remoteKind === "http") {
+          bits.push(t("hint_http"));
+        } else if (peers.volumes && peers.volumes.length) {
+          bits.push(t("hint_mounted", { names: peers.volumes.map((v) => v.name).join(" · ") }));
+        } else if (connectingRemote) {
+          bits.push(t("hint_connecting"));
+        } else {
+          bits.push(t("hint_need"));
+        }
+        if (peers.saved && peers.saved.ip) {
+          bits.push(t("hint_last", { name: peers.saved.name || peers.saved.ip }));
+        }
+        extra.hint = bits.join(" · ");
+        elPeers = peers;
+      }
+      renderPane(side, data, extra);
+    }
+
+    function paneFromEvent(e) {
+      return e.target.closest("#pane-local") ? "local" : "remote";
+    }
+
+    document.addEventListener("click", async (e) => {
+      const paneEl = e.target.closest(".pane");
+      if (!paneEl) return;
+      const side = paneEl.id === "pane-local" ? "local" : "remote";
+      const act = e.target.dataset.act;
+      if (act === "home") return loadPane("local", "");
+      if (act === "refresh") return loadPane(side, panes[side].path);
+      if (act === "up") {
+        const res = await api(lsUrl(side, panes[side].path));
+        const data = await res.json();
+        if (data.parent) return loadPane(side, data.parent);
+      }
+      if (act === "connect") {
+        ensureRemote(true);
+        return;
+      }
+      const go = e.target.closest("[data-go]");
+      if (go) return loadPane(side, decodeURIComponent(go.dataset.go));
+      const file = e.target.closest(".file[data-name]");
+      if (!file) return;
+      const name = decodeURIComponent(file.dataset.name);
+      if (e.detail === 2 && file.dataset.dir === "1") {
+        return loadPane(side, panes[side].path.replace(/\/$/, "") + "/" + name);
+      }
+      if (panes[side].selected.has(name)) panes[side].selected.delete(name);
+      else panes[side].selected.add(name);
+      file.classList.toggle("sel");
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const input = e.target.closest("input[data-act=path]");
+      if (!input) return;
+      const side = input.closest("#pane-local") ? "local" : "remote";
+      loadPane(side, input.value.trim());
+    });
+
+    async function sendCopy(direction) {
+      const from = direction === "to-remote" ? "local" : "remote";
+      const to = direction === "to-remote" ? "remote" : "local";
+      const names = [...panes[from].selected];
+      const status = document.getElementById("xfer-status");
+      status.className = "xfer-status";
+      if (!names.length) {
+        status.className = "xfer-status bad";
+        status.textContent = t("copy_pick");
+        return;
+      }
+      document.getElementById("to-remote").disabled = true;
+      document.getElementById("to-local").disabled = true;
+      const out = await (await api("/api/copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          direction,
+          src: panes[from].path,
+          dst: panes[to].path,
+          names,
+        }),
+      })).json();
+      if (!out.ok) {
+        status.className = "xfer-status bad";
+        status.textContent = out.error || t("copy_fail");
+        document.getElementById("to-remote").disabled = false;
+        document.getElementById("to-local").disabled = false;
+      } else if (out.warning) {
+        status.textContent = out.warning;
+      }
+    }
+
+    document.getElementById("to-remote").addEventListener("click", () => sendCopy("to-remote"));
+    document.getElementById("to-local").addEventListener("click", () => sendCopy("to-local"));
+
+    async function pollTransfer() {
+      const st = await (await api("/api/transfer")).json();
+      const el = document.getElementById("xfer-status");
+      const arrows = () => {
+        document.getElementById("to-remote").disabled = false;
+        document.getElementById("to-local").disabled = false;
+      };
+      if (st.active) {
+        wasCopying = true;
+        const pct = st.total ? Math.min(100, Math.round(100 * st.done / st.total)) : 0;
+        el.className = "xfer-status";
+        el.textContent = t("copying", { name: st.current || "", pct: String(pct) });
+        if (st.warning) el.textContent += " · " + st.warning;
+        return;
+      }
+      if (wasCopying) {
+        wasCopying = false;
+        arrows();
+        if (st.ok) {
+          el.className = "xfer-status";
+          el.textContent = t("copy_done");
+          loadPane("local", panes.local.path);
+          loadPane("remote", panes.remote.path);
+        } else if (st.error) {
+          el.className = "xfer-status bad";
+          el.textContent = st.error;
+        }
+      }
+    }
+
+    async function boot() {
+      LANG = detectLang();
+      try {
+        const data = await (await fetch(apiPath("/api/i18n") + "?lang=" + encodeURIComponent(LANG), { credentials: "same-origin" })).json();
+        PACK = data.strings || {};
+        LANGS = data.langs || [];
+      } catch (e) {
+        LANGS = [
+          { id: "zh", label: "中文" },
+          { id: "en", label: "EN" },
+          { id: "ja", label: "日本語" },
+          { id: "fi", label: "Suomi" },
+        ];
+      }
+      buildLangs();
+      applyStatic();
+      tick();
+      setInterval(tick, 1000);
+      if (xferEnabled()) {
+        loadPane("local", "");
+        ensureRemote(false);
+        setInterval(pollTransfer, 800);
+      }
+    }
+
+    document.getElementById("langs").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-lang]");
+      if (!btn || btn.dataset.lang === LANG) return;
+      setLang(btn.dataset.lang);
+    });
+
+    boot();
+  </script>
+</body>
+</html>
