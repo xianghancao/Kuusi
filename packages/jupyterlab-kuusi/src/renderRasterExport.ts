@@ -842,6 +842,11 @@ export const exportRenderedPdf = async (
     const { jsPDF: JsPDF } = await import("jspdf");
     let doc: jsPDF | null = null;
 
+    const paper =
+      widget.node.closest<HTMLElement>(".jp-KuusiArticle-paper") ??
+      widget.node.querySelector<HTMLElement>(".jp-KuusiArticle-paper");
+    const pdfQuality = paper?.dataset.kuusiArticlePdfQuality === "high" ? 1 : LOSSY_QUALITY;
+    const wantBookmarks = paper?.dataset.kuusiArticlePdfBookmarks !== "0";
     const outline = await target.pdfPages(
       (canvas, page) => {
         const orientation =
@@ -862,7 +867,7 @@ export const exportRenderedPdf = async (
         const width = page.pageWidth;
         const height = (page.region.height / page.region.width) * width;
         doc.addImage(
-          canvas.toDataURL("image/jpeg", LOSSY_QUALITY),
+          canvas.toDataURL("image/jpeg", pdfQuality),
           "JPEG",
           0,
           page.top,
@@ -887,7 +892,7 @@ export const exportRenderedPdf = async (
 
     finished.setProperties({ title: fileStem(widget) });
 
-    if (outline && outline.length > 0) {
+    if (wantBookmarks && outline && outline.length > 0) {
       const parents = outlineParents(outline);
       const nodes: unknown[] = [];
 

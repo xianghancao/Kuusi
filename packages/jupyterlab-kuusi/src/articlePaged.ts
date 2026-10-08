@@ -18,6 +18,8 @@ import {
   applyStructure,
   clearStructure,
   fillChapterTokens,
+  setStructureLabels,
+  structureLabels,
   fillTocPages,
 } from "./articleStructure";
 
@@ -40,6 +42,8 @@ const LAYOUT_ATTRIBUTES = [
   "data-kuusi-article-paper-size",
   "data-kuusi-article-paper-orientation",
   "data-kuusi-article-table-repeat-header",
+  "data-kuusi-article-hyphenate",
+  "data-kuusi-article-indent-chars",
   "data-kuusi-article-columns",
   "data-kuusi-article-padding",
   "data-kuusi-article-font",
@@ -537,6 +541,21 @@ const decorateSheet = (
     (settings.pageNumberPosition === "header" ? header : footer)[
       settings.pageNumberAlign
     ].push(label);
+  }
+
+  if (settings.pageHeaderMirror && physicalIndex % 2 === 1) {
+    const flip = (slots: Record<ArticleHeaderAlign, string[]>): void => {
+      [slots.left, slots.right] = [slots.right, slots.left];
+    };
+    flip(header);
+    flip(footer);
+  }
+
+  if (settings.watermarkText.trim()) {
+    const mark = document.createElement("div");
+    mark.className = "jp-KuusiArticle-watermark";
+    mark.textContent = settings.watermarkText.trim();
+    sheet.appendChild(mark);
   }
 
   const bands = [
@@ -1430,7 +1449,8 @@ export const paginateArticle = (
       rendered,
       resolveFlowContainer(rendered),
       settings,
-      tocDefaultTitle,
+      structureLabels.contents,
+      title,
     );
   } else {
     clearStructure(rendered);
@@ -1463,12 +1483,12 @@ export const paginateArticle = (
   }
 };
 
-let tocDefaultTitle = "Contents";
-
-/** Localized heading used when the user leaves the contents title empty. */
-export const setTocDefaultTitle = (title: string): void => {
-  tocDefaultTitle = title;
-};
+/** Localized words for generated blocks (contents, figures, links). */
+export const setStructureWords = (words: {
+  contents: string;
+  figure: string;
+  links: string;
+}): void => setStructureLabels(words);
 
 /**
  * Paged article layout: split the rendered flow into paper sheets with a desk

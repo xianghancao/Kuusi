@@ -443,9 +443,9 @@ button.jp-KuusiArticle-scrollAxis-btn {
 .jp-Document.jp-KuusiMarkdownArticle .jp-MarkdownViewer :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
 .jp-KuusiMarkdownArticle.jp-KuusiNotebookArticle .jp-MarkdownViewer :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
   padding-top: var(--kuusi-article-padding-top);
-  padding-right: var(--kuusi-article-padding-x);
+  padding-right: var(--kuusi-article-padding-right, var(--kuusi-article-padding-x));
   padding-bottom: var(--kuusi-article-padding-bottom);
-  padding-left: var(--kuusi-article-padding-x);
+  padding-left: var(--kuusi-article-padding-left, var(--kuusi-article-padding-x));
 }
 
 .jp-KuusiArticle-paper[data-kuusi-article-column-align="left"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
@@ -1134,4 +1134,117 @@ button.jp-KuusiArticle-scrollAxis-btn {
 .jp-KuusiArticle-tocRow.is-unpaged .jp-KuusiArticle-tocLeader,
 .jp-KuusiArticle-tocRow.is-unpaged .jp-KuusiArticle-tocPage {
   display: none;
+}
+
+/* ---- Margins, tabs, orphans, hyphenation, indent, tables ---- */
+.jp-KuusiArticle-paper pre,
+.jp-KuusiArticle-paper code {
+  tab-size: var(--kuusi-article-tab-size, 4);
+}
+
+.jp-KuusiArticle-paper :is(p, li, dd) {
+  orphans: var(--kuusi-article-orphans, 2);
+  widows: var(--kuusi-article-orphans, 2);
+}
+
+[data-kuusi-article-hyphenate="1"] :is(p, li, dd) {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+[data-kuusi-article-indent-chars="1"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  > p {
+  text-indent: var(--kuusi-article-indent-chars, 0);
+}
+
+.jp-KuusiArticle-paper table {
+  font-size: var(--kuusi-article-table-font, 100%);
+}
+
+[data-kuusi-table-style="banded"] tbody tr:nth-child(even) > td,
+.jp-KuusiArticle-paper[style*="--kuusi-table-band"]
+  tbody tr:nth-child(even) > td {
+  background: var(--kuusi-table-band, color-mix(in srgb, currentColor 5%, transparent));
+}
+
+/* ---- Watermark, cover, captions, link notes, code gutter ---- */
+.jp-KuusiArticle-pageSheet {
+  overflow: hidden;
+}
+
+.jp-KuusiArticle-watermark {
+  align-items: center;
+  color: currentColor;
+  display: flex;
+  font-size: 7rem;
+  font-weight: 700;
+  inset: 0;
+  justify-content: center;
+  letter-spacing: 0.1em;
+  opacity: 0.07;
+  pointer-events: none;
+  position: absolute;
+  transform: rotate(-32deg);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.jp-KuusiArticle-tocCover {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: calc(var(--kuusi-article-paper-height, 1000px) * 0.55);
+  justify-content: center;
+  text-align: center;
+}
+
+.jp-KuusiArticle-tocCoverTitle {
+  font-size: 2.4em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.jp-KuusiArticle-tocCoverDate {
+  margin-top: 1.2em;
+  opacity: 0.6;
+}
+
+.jp-KuusiArticle-tocCaption {
+  display: block;
+  font-size: 0.88em;
+  margin-top: 0.4em;
+  opacity: 0.75;
+  text-align: center;
+}
+
+.jp-KuusiArticle-tocLinkRef {
+  font-size: 0.75em;
+  opacity: 0.7;
+}
+
+.jp-KuusiArticle-tocLinkItem {
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+[data-kuusi-lines="1"] {
+  display: block;
+  padding-left: 3em;
+}
+
+.jp-KuusiArticle-codeLine {
+  display: block;
+  min-height: 1lh;
+  position: relative;
+}
+
+.jp-KuusiArticle-codeLine::before {
+  color: color-mix(in srgb, currentColor 45%, transparent);
+  content: attr(data-n);
+  left: -3em;
+  position: absolute;
+  text-align: right;
+  user-select: none;
+  width: 2.4em;
 }

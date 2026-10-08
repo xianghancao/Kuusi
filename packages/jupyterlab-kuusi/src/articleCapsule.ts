@@ -6,7 +6,7 @@ import {
   createArticleThemeToolbar,
   createArticleTypographyModel,
 } from "./articleMenus";
-import { bindArticlePagedLayout, setTocDefaultTitle } from "./articlePaged";
+import { bindArticlePagedLayout, setStructureWords } from "./articlePaged";
 import {
   applyArticleAppearance,
   type ArticleSettingsManager,
@@ -180,7 +180,14 @@ export const ensureKuusiArticleChrome = (
 ): void => {
   applyArticleToMarkdownDocument(widget, manager);
   mountArticleHeader(widget, manager);
-  setTocDefaultTitle(createKuusiTranslator().contentsDefaultTitle());
+  {
+    const words = createKuusiTranslator();
+    setStructureWords({
+      contents: words.contentsDefaultTitle(),
+      figure: words.figureLabel(),
+      links: words.linksLabel(),
+    });
+  }
   bindArticlePagedLayout(widget, manager, () =>
     PathExt.basename(
       widget.context.path,

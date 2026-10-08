@@ -6,7 +6,7 @@ const out = process.env.KUUSI_E2E_OUT ?? "/tmp/kuusi-outline.pdf";
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const page = await browser.newPage({ viewport: { width: 1500, height: 950 }, acceptDownloads: true });
 try {
-  await page.goto(`${baseUrl}/lab/tree/pdf-outline.md?reset&token=${token}`, { waitUntil: "domcontentloaded", timeout: 120000 });
+  await page.goto(`${baseUrl}/lab/tree/${process.env.KUUSI_E2E_FILE ?? "pdf-outline.md"}?reset&token=${token}`, { waitUntil: "domcontentloaded", timeout: 120000 });
   await page.waitForSelector("#jupyterlab-splash", { state: "hidden", timeout: 120000 }).catch(() => {});
   await page.waitForSelector(".jp-FileEditor", { timeout: 30000 });
   await page.waitForTimeout(1200);

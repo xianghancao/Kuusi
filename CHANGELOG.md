@@ -45,6 +45,11 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 - **Article — more paper**: A3, A5, B5 and Legal beside A4 and Letter; the PDF and print page size follow.
 - **Article — header & footer**: `{chapter}` and `{date}` placeholders, a rule line under the header and above the footer, and a different (empty) first page.
 - **Article — table headers**: Page → Layout → **Repeat table headers** turns header repetition on long tables on or off.
+- **Article — margins**: Page → Margins sets top, bottom, left and right margins in mm (Auto follows Padding) plus a binding gutter.
+- **Article — typesetting**: Page → Typesetting adds line-spacing presets (1 / 1.15 / 1.5 / 2), orphan / widow lines, hyphenation, and a first-line indent in characters for Chinese paragraphs.
+- **Article — cover page and watermark**: an optional title page (document name and date) before the contents, and diagonal watermark text on every page.
+- **Article — blocks**: code line numbers and tab width, image captions (“Figure N. alt text”), link footnotes (numbered links with an address list at the end), table text size and banded-row color.
+- **Article — PDF export**: Page → PDF export turns bookmarks on or off and picks image quality; mirrored header / footer alignment on even pages for bound documents.
 
 ### Changed
 

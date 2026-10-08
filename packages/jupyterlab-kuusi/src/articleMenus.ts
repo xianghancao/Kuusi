@@ -13,7 +13,7 @@ import { appendMenuFooterAction, createKeyedReset } from "./menuFooter";
 import type { KuusiTranslator } from "./kuusiI18n";
 import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown";
 import { presetMatches } from "./themeRestore";
-import { renderPanelWidgets } from "./panelWidgets";
+import { renderPanelWidgets, type PanelWidget } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
 import { buildStatusPanelWidgets } from "./statusDisplay";
 import { getTextAlignOptions, type TypographyModel } from "./typographyMenus";
@@ -58,6 +58,11 @@ type PageSection =
   | "status"
   | "contents"
   | "chapters"
+  | "margins"
+  | "typesetting"
+  | "blocks"
+  | "watermark"
+  | "export"
   | FurnitureSection;
 type FurnitureSection = "header" | "footer" | "numbers";
 
@@ -396,6 +401,23 @@ const ARTICLE_PAGE_KEYS = [
   "tocShow",
   "tocDepth",
   "tocTitle",
+  "coverPage",
+  "marginTopMm",
+  "marginBottomMm",
+  "marginLeftMm",
+  "marginRightMm",
+  "marginGutterMm",
+  "watermarkText",
+  "pageHeaderMirror",
+  "orphanLines",
+  "hyphenate",
+  "indentChars",
+  "codeLineNumbers",
+  "codeTabSize",
+  "imageCaptions",
+  "linkFootnotes",
+  "tableFontPercent",
+  "tableBandColor",
 ] as const satisfies ReadonlyArray<keyof ArticleSettings>;
 
 export const createArticlePageToolbar = (
@@ -432,7 +454,7 @@ export const createArticlePageToolbar = (
     triggerClass: "jp-KuusiArticlePageDropdown-trigger",
     ariaLabel: t.articlePage(),
     triggerLabel: t.page(),
-    // 13 tabs + 5 group captions: taller than the default menu.
+    // 18 tabs + 5 group captions: taller than the default menu.
     menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiSecondaryMenu-host--tall`,
     fillMenu: (menu, rebuild) => {
       const settings = manager.settings;
@@ -443,7 +465,10 @@ export const createArticlePageToolbar = (
           { id: "paper", label: t.paperSize(), group: t.layout() },
           { id: "columns", label: t.columns(), group: t.layout() },
           { id: "measure", label: t.measure(), group: t.layout() },
+          { id: "margins", label: t.marginsSection(), group: t.layout() },
+          { id: "typesetting", label: t.typesettingSection(), group: t.layout() },
           { id: "padding", label: t.padding(), group: t.surface() },
+          { id: "watermark", label: t.watermarkSection(), group: t.surface() },
           { id: "background", label: t.background(), group: t.surface() },
           { id: "view", label: t.viewBackground(), group: t.surface() },
           { id: "header", label: t.pageHeader(), group: t.headerFooter() },
@@ -451,6 +476,8 @@ export const createArticlePageToolbar = (
           { id: "numbers", label: t.pageNumbers(), group: t.headerFooter() },
           { id: "contents", label: t.contentsSection(), group: t.groupStructure() },
           { id: "chapters", label: t.chaptersSection(), group: t.groupStructure() },
+          { id: "blocks", label: t.blocksSection(), group: t.groupStructure() },
+          { id: "export", label: t.exportSection(), group: t.groupDisplay() },
           {
             id: "status",
             label: t.backgroundStatusSection(),
@@ -464,6 +491,17 @@ export const createArticlePageToolbar = (
         fillSection: (id, panel) => {
           if (id === "header" || id === "footer" || id === "numbers") {
             fillFurnitureSection(id, panel, manager, t, rebuild);
+            return;
+          }
+
+          if (
+            id === "margins" ||
+            id === "typesetting" ||
+            id === "blocks" ||
+            id === "watermark" ||
+            id === "export"
+          ) {
+            fillExtraSection(id, panel, manager, t, rebuild);
             return;
           }
 
@@ -883,6 +921,15 @@ const fillStructureSection = (
     renderPanelWidgets(panel, [
       {
         kind: "toggle",
+        label: t.coverPage(),
+        title: t.coverPageTitle(),
+        value: settings.coverPage,
+        onChange: (coverPage) => {
+          void manager.update({ coverPage });
+        },
+      },
+      {
+        kind: "toggle",
         label: t.contentsShow(),
         title: t.contentsShowTitle(),
         value: settings.tocShow,
@@ -977,6 +1024,229 @@ const fillStructureSection = (
   ]);
 };
 
+const numberSlider = (
+  label: string,
+  value: number,
+  min: number,
+  max: number,
+  step: number,
+  format: (value: number) => string,
+  onChange: (value: number) => void,
+): PanelWidget => ({
+  kind: "slider",
+  label,
+  value,
+  min,
+  max,
+  step,
+  formatValue: format,
+  onChange,
+});
+
+const fillExtraSection = (
+  id: "margins" | "typesetting" | "blocks" | "watermark" | "export",
+  panel: HTMLElement,
+  manager: ArticleSettingsManager,
+  t: KuusiTranslator,
+  rebuild: () => void,
+): void => {
+  const s = manager.settings;
+  const mm = (value: number): string =>
+    value > 0 ? `${value} mm` : t.marginAuto();
+
+  if (id === "margins") {
+    renderPanelWidgets(panel, [
+      numberSlider(t.marginTop(), s.marginTopMm, 0, 60, 1, mm, (marginTopMm) => {
+        void manager.update({ marginTopMm });
+      }),
+      numberSlider(t.marginBottom(), s.marginBottomMm, 0, 60, 1, mm, (marginBottomMm) => {
+        void manager.update({ marginBottomMm });
+      }),
+      numberSlider(t.marginLeft(), s.marginLeftMm, 0, 60, 1, mm, (marginLeftMm) => {
+        void manager.update({ marginLeftMm });
+      }),
+      numberSlider(t.marginRight(), s.marginRightMm, 0, 60, 1, mm, (marginRightMm) => {
+        void manager.update({ marginRightMm });
+      }),
+      numberSlider(
+        t.marginGutter(),
+        s.marginGutterMm,
+        0,
+        30,
+        1,
+        (value) => (value > 0 ? `${value} mm` : "0"),
+        (marginGutterMm) => {
+          void manager.update({ marginGutterMm });
+        },
+      ),
+    ]);
+    appendHint(panel, t.marginsHint());
+    return;
+  }
+
+  if (id === "typesetting") {
+    const presets = ["1", "1.15", "1.5", "2"];
+    const current = presets.find((p) => Math.abs(Number(p) - s.lineHeight) < 0.01);
+    renderPanelWidgets(panel, [
+      {
+        kind: "choice",
+        sectionLabel: t.lineSpacingPresets(),
+        value: current ?? "",
+        options: presets.map((value) => ({
+          value,
+          label: `${value}×`,
+          title: `${value}×`,
+        })),
+        onChange: (value) => {
+          void manager.update({ lineHeight: Number(value) });
+          rebuild();
+        },
+      },
+      numberSlider(
+        t.orphanLines(),
+        s.orphanLines,
+        1,
+        4,
+        1,
+        (value) => String(value),
+        (orphanLines) => {
+          void manager.update({ orphanLines });
+        },
+      ),
+      {
+        kind: "toggle",
+        label: t.hyphenation(),
+        title: t.hyphenationTitle(),
+        value: s.hyphenate,
+        onChange: (hyphenate) => {
+          void manager.update({ hyphenate });
+        },
+      },
+      numberSlider(
+        t.indentChars(),
+        s.indentChars,
+        0,
+        4,
+        0.5,
+        (value) => `${value} ${t.indentCharsFormat()}`,
+        (indentChars) => {
+          void manager.update({ indentChars });
+        },
+      ),
+    ]);
+    return;
+  }
+
+  if (id === "blocks") {
+    renderPanelWidgets(panel, [
+      {
+        kind: "toggle",
+        label: t.codeLineNumbers(),
+        value: s.codeLineNumbers,
+        onChange: (codeLineNumbers) => {
+          void manager.update({ codeLineNumbers });
+        },
+      },
+      numberSlider(
+        t.codeTabSize(),
+        s.codeTabSize,
+        2,
+        8,
+        1,
+        (value) => String(value),
+        (codeTabSize) => {
+          void manager.update({ codeTabSize });
+        },
+      ),
+      {
+        kind: "toggle",
+        label: t.imageCaptions(),
+        title: t.imageCaptionsTitle(),
+        value: s.imageCaptions,
+        onChange: (imageCaptions) => {
+          void manager.update({ imageCaptions });
+        },
+      },
+      {
+        kind: "toggle",
+        label: t.linkFootnotes(),
+        title: t.linkFootnotesTitle(),
+        value: s.linkFootnotes,
+        onChange: (linkFootnotes) => {
+          void manager.update({ linkFootnotes });
+        },
+      },
+      numberSlider(
+        t.tableFontSize(),
+        s.tableFontPercent,
+        60,
+        100,
+        5,
+        (value) => `${value}%`,
+        (tableFontPercent) => {
+          void manager.update({ tableFontPercent });
+        },
+      ),
+      {
+        kind: "color",
+        sectionLabel: t.tableBandColor(),
+        value: s.tableBandColor,
+        swatches: APPEARANCE_COLOR_SWATCHES,
+        includeDefaultSwatch: true,
+        onChange: (tableBandColor) => {
+          void manager.update({ tableBandColor });
+        },
+      },
+    ]);
+    return;
+  }
+
+  if (id === "watermark") {
+    if (s.pageLayout !== "paged") {
+      appendPagedOnlyHint(panel, t);
+    }
+
+    renderPanelWidgets(panel, [
+      {
+        kind: "text",
+        label: t.watermarkText(),
+        placeholder: "DRAFT",
+        maxLength: 40,
+        value: s.watermarkText,
+        onChange: (watermarkText) => {
+          void manager.update({ watermarkText });
+        },
+      },
+    ]);
+    return;
+  }
+
+  renderPanelWidgets(panel, [
+    {
+      kind: "toggle",
+      label: t.pdfBookmarksLabel(),
+      title: t.pdfBookmarksTitle(),
+      value: s.pdfBookmarks,
+      onChange: (pdfBookmarks) => {
+        void manager.update({ pdfBookmarks });
+      },
+    },
+    {
+      kind: "choice",
+      sectionLabel: t.pdfQualityLabel(),
+      value: s.pdfQuality,
+      options: [
+        { value: "standard", label: t.pdfQualityStandard(), title: "JPEG 0.92" },
+        { value: "high", label: t.pdfQualityHigh(), title: "JPEG 1.0" },
+      ],
+      onChange: (value) => {
+        void manager.update({ pdfQuality: value as "standard" | "high" });
+        rebuild();
+      },
+    },
+  ]);
+};
+
 const appendPagedOnlyHint = (panel: HTMLElement, t: KuusiTranslator): void => {
   const hint = document.createElement("div");
   hint.className = "jp-KuusiPanelWidget-hint";
@@ -1045,6 +1315,15 @@ const fillFurnitureSection = (
           void manager.update(
             isHeader ? { pageHeaderRule: value } : { pageFooterRule: value },
           );
+        },
+      },
+      {
+        kind: "toggle",
+        label: t.pageMirror(),
+        title: t.pageMirrorTitle(),
+        value: settings.pageHeaderMirror,
+        onChange: (pageHeaderMirror) => {
+          void manager.update({ pageHeaderMirror });
         },
       },
       {

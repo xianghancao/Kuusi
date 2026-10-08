@@ -725,6 +725,142 @@
       "type": "boolean",
       "default": true
     },
+    "coverPage": {
+      "title": "Cover page",
+      "description": "Insert a cover page (title and date) before the contents.",
+      "type": "boolean",
+      "default": false
+    },
+    "codeLineNumbers": {
+      "title": "Code line numbers",
+      "description": "Number the lines of code blocks.",
+      "type": "boolean",
+      "default": false
+    },
+    "imageCaptions": {
+      "title": "Image captions",
+      "description": "Show an image's alt text as a numbered caption beneath it.",
+      "type": "boolean",
+      "default": false
+    },
+    "hyphenate": {
+      "title": "Hyphenation",
+      "description": "Break long words at syllables so justified text sets more evenly.",
+      "type": "boolean",
+      "default": false
+    },
+    "linkFootnotes": {
+      "title": "Link footnotes",
+      "description": "Number links in the text and list their addresses at the end.",
+      "type": "boolean",
+      "default": false
+    },
+    "pdfBookmarks": {
+      "title": "PDF bookmarks",
+      "description": "Write one bookmark per heading into exported PDFs.",
+      "type": "boolean",
+      "default": true
+    },
+    "pageHeaderMirror": {
+      "title": "Mirror header on even pages",
+      "description": "Swap left and right header/footer alignment on even pages (book spreads).",
+      "type": "boolean",
+      "default": false
+    },
+    "codeTabSize": {
+      "title": "Code tab width",
+      "description": "Spaces per tab in code blocks.",
+      "type": "number",
+      "minimum": 2,
+      "maximum": 8,
+      "default": 4
+    },
+    "marginTopMm": {
+      "title": "Top margin",
+      "description": "Top page margin in mm; 0 follows the padding setting.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 60,
+      "default": 0
+    },
+    "marginBottomMm": {
+      "title": "Bottom margin",
+      "description": "Bottom page margin in mm; 0 follows the padding setting.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 60,
+      "default": 0
+    },
+    "marginLeftMm": {
+      "title": "Left margin",
+      "description": "Left page margin in mm; 0 follows the padding setting.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 60,
+      "default": 0
+    },
+    "marginRightMm": {
+      "title": "Right margin",
+      "description": "Right page margin in mm; 0 follows the padding setting.",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 60,
+      "default": 0
+    },
+    "marginGutterMm": {
+      "title": "Gutter",
+      "description": "Extra inner margin for binding, added to the left margin (mm).",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 30,
+      "default": 0
+    },
+    "orphanLines": {
+      "title": "Orphan / widow lines",
+      "description": "Minimum lines of a paragraph left at the bottom or carried to the top of a page.",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 4,
+      "default": 2
+    },
+    "indentChars": {
+      "title": "First-line indent (characters)",
+      "description": "First-line indent in characters, for Chinese paragraphs (2 = two characters).",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 4,
+      "default": 0
+    },
+    "tableFontPercent": {
+      "title": "Table text size",
+      "description": "Table text size as a percentage of body text.",
+      "type": "number",
+      "minimum": 60,
+      "maximum": 100,
+      "default": 100
+    },
+    "watermarkText": {
+      "title": "Watermark",
+      "description": "Diagonal text drawn behind every page, such as DRAFT.",
+      "type": "string",
+      "default": ""
+    },
+    "tableBandColor": {
+      "title": "Table band color",
+      "description": "Color of banded table rows; empty follows the text color.",
+      "type": "string",
+      "default": ""
+    },
+    "pdfQuality": {
+      "title": "PDF image quality",
+      "description": "JPEG quality of exported PDF pages.",
+      "type": "string",
+      "enum": [
+        "standard",
+        "high"
+      ],
+      "default": "standard"
+    },
     "headingNumbering": {
       "title": "Heading numbering",
       "description": "Number headings 1 / 1.1, or 第一章 / 1.1.",

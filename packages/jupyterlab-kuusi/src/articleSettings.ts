@@ -267,6 +267,25 @@ export type ArticleSettings = {
   tocDepth: number;
   /** Contents page heading; empty uses the localized “Contents”. */
   tocTitle: string;
+  coverPage: boolean;
+  codeLineNumbers: boolean;
+  imageCaptions: boolean;
+  hyphenate: boolean;
+  linkFootnotes: boolean;
+  pdfBookmarks: boolean;
+  pageHeaderMirror: boolean;
+  codeTabSize: number;
+  marginTopMm: number;
+  marginBottomMm: number;
+  marginLeftMm: number;
+  marginRightMm: number;
+  marginGutterMm: number;
+  orphanLines: number;
+  indentChars: number;
+  tableFontPercent: number;
+  watermarkText: string;
+  tableBandColor: string;
+  pdfQuality: "standard" | "high";
 };
 
 /** Page furniture and code chrome are per-user, not part of a theme preset. */
@@ -316,7 +335,26 @@ type ArticleUserOnlyKey =
   | "chapterBreak"
   | "tocShow"
   | "tocDepth"
-  | "tocTitle";
+  | "tocTitle"
+  | "coverPage"
+  | "codeLineNumbers"
+  | "imageCaptions"
+  | "hyphenate"
+  | "linkFootnotes"
+  | "pdfBookmarks"
+  | "pageHeaderMirror"
+  | "codeTabSize"
+  | "marginTopMm"
+  | "marginBottomMm"
+  | "marginLeftMm"
+  | "marginRightMm"
+  | "marginGutterMm"
+  | "orphanLines"
+  | "indentChars"
+  | "tableFontPercent"
+  | "watermarkText"
+  | "tableBandColor"
+  | "pdfQuality";
 
 export const ARTICLE_HEADER_LEVELS: ArticleHeaderLevel[] = [1, 2, 3, 4, 5, 6];
 
@@ -445,6 +483,25 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tocShow: false,
   tocDepth: 3,
   tocTitle: "",
+  coverPage: false,
+  codeLineNumbers: false,
+  imageCaptions: false,
+  hyphenate: false,
+  linkFootnotes: false,
+  pdfBookmarks: true,
+  pageHeaderMirror: false,
+  codeTabSize: 4,
+  marginTopMm: 0,
+  marginBottomMm: 0,
+  marginLeftMm: 0,
+  marginRightMm: 0,
+  marginGutterMm: 0,
+  orphanLines: 2,
+  indentChars: 0,
+  tableFontPercent: 100,
+  watermarkText: "",
+  tableBandColor: "",
+  pdfQuality: "standard",
 };
 
 const headersFromLegacyTitle = (raw: {
@@ -1177,6 +1234,61 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
           )
         : defaults.tocDepth,
     tocTitle: normalizePageText(raw.tocTitle, defaults.tocTitle),
+    coverPage:
+      typeof raw.coverPage === "boolean" ? raw.coverPage : defaults.coverPage,
+    codeLineNumbers:
+      typeof raw.codeLineNumbers === "boolean" ? raw.codeLineNumbers : defaults.codeLineNumbers,
+    imageCaptions:
+      typeof raw.imageCaptions === "boolean" ? raw.imageCaptions : defaults.imageCaptions,
+    hyphenate:
+      typeof raw.hyphenate === "boolean" ? raw.hyphenate : defaults.hyphenate,
+    linkFootnotes:
+      typeof raw.linkFootnotes === "boolean" ? raw.linkFootnotes : defaults.linkFootnotes,
+    pdfBookmarks:
+      typeof raw.pdfBookmarks === "boolean" ? raw.pdfBookmarks : defaults.pdfBookmarks,
+    pageHeaderMirror:
+      typeof raw.pageHeaderMirror === "boolean" ? raw.pageHeaderMirror : defaults.pageHeaderMirror,
+    codeTabSize:
+      typeof raw.codeTabSize === "number" && Number.isFinite(raw.codeTabSize)
+        ? Math.min(8, Math.max(2, Math.round(raw.codeTabSize)))
+        : defaults.codeTabSize,
+    marginTopMm:
+      typeof raw.marginTopMm === "number" && Number.isFinite(raw.marginTopMm)
+        ? Math.min(60, Math.max(0, Math.round(raw.marginTopMm)))
+        : defaults.marginTopMm,
+    marginBottomMm:
+      typeof raw.marginBottomMm === "number" && Number.isFinite(raw.marginBottomMm)
+        ? Math.min(60, Math.max(0, Math.round(raw.marginBottomMm)))
+        : defaults.marginBottomMm,
+    marginLeftMm:
+      typeof raw.marginLeftMm === "number" && Number.isFinite(raw.marginLeftMm)
+        ? Math.min(60, Math.max(0, Math.round(raw.marginLeftMm)))
+        : defaults.marginLeftMm,
+    marginRightMm:
+      typeof raw.marginRightMm === "number" && Number.isFinite(raw.marginRightMm)
+        ? Math.min(60, Math.max(0, Math.round(raw.marginRightMm)))
+        : defaults.marginRightMm,
+    marginGutterMm:
+      typeof raw.marginGutterMm === "number" && Number.isFinite(raw.marginGutterMm)
+        ? Math.min(30, Math.max(0, Math.round(raw.marginGutterMm)))
+        : defaults.marginGutterMm,
+    orphanLines:
+      typeof raw.orphanLines === "number" && Number.isFinite(raw.orphanLines)
+        ? Math.min(4, Math.max(1, Math.round(raw.orphanLines)))
+        : defaults.orphanLines,
+    indentChars:
+      typeof raw.indentChars === "number" && Number.isFinite(raw.indentChars)
+        ? Math.min(4, Math.max(0, Math.round(raw.indentChars * 2) / 2))
+        : defaults.indentChars,
+    tableFontPercent:
+      typeof raw.tableFontPercent === "number" && Number.isFinite(raw.tableFontPercent)
+        ? Math.min(100, Math.max(60, Math.round(raw.tableFontPercent)))
+        : defaults.tableFontPercent,
+    watermarkText: normalizePageText(raw.watermarkText, defaults.watermarkText),
+    tableBandColor: normalizePageText(raw.tableBandColor, defaults.tableBandColor),
+    pdfQuality: raw.pdfQuality === "standard" || raw.pdfQuality === "high"
+      ? (raw.pdfQuality as ArticleSettings["pdfQuality"])
+      : defaults.pdfQuality,
   };
 };
 
@@ -1209,6 +1321,54 @@ export const applyArticleAppearance = (
     "--kuusi-article-padding-bottom",
     `calc(${settings.padding}rem * 2)`,
   );
+  {
+    // Per-side margins in mm; 0 keeps the padding setting. The gutter widens
+    // the left margin for binding.
+    const side = (mm: number, fallback: string): string =>
+      mm > 0 ? `${mm}mm` : fallback;
+    const base = `${settings.padding}rem`;
+    host.style.setProperty(
+      "--kuusi-article-padding-top",
+      side(settings.marginTopMm, `calc(${base} * 1.125)`),
+    );
+    host.style.setProperty(
+      "--kuusi-article-padding-bottom",
+      side(settings.marginBottomMm, `calc(${base} * 2)`),
+    );
+    const left = side(settings.marginLeftMm, base);
+    host.style.setProperty(
+      "--kuusi-article-padding-left",
+      settings.marginGutterMm > 0
+        ? `calc(${left} + ${settings.marginGutterMm}mm)`
+        : left,
+    );
+    host.style.setProperty(
+      "--kuusi-article-padding-right",
+      side(settings.marginRightMm, base),
+    );
+  }
+  host.style.setProperty("--kuusi-article-tab-size", String(settings.codeTabSize));
+  host.style.setProperty("--kuusi-article-orphans", String(settings.orphanLines));
+  host.style.setProperty(
+    "--kuusi-article-indent-chars",
+    settings.indentChars > 0 ? `${settings.indentChars}em` : "",
+  );
+  host.dataset.kuusiArticleIndentChars = settings.indentChars > 0 ? "1" : "0";
+  host.dataset.kuusiArticleHyphenate = settings.hyphenate ? "1" : "0";
+  if (settings.hyphenate && !host.lang) {
+    host.lang = document.documentElement.lang || "en";
+  }
+  host.style.setProperty(
+    "--kuusi-article-table-font",
+    `${settings.tableFontPercent}%`,
+  );
+  if (settings.tableBandColor) {
+    host.style.setProperty("--kuusi-table-band", settings.tableBandColor);
+  } else {
+    host.style.removeProperty("--kuusi-table-band");
+  }
+  host.dataset.kuusiArticlePdfQuality = settings.pdfQuality;
+  host.dataset.kuusiArticlePdfBookmarks = settings.pdfBookmarks ? "1" : "0";
   host.dataset.kuusiArticleColumnAlign = settings.columnAlign;
   host.dataset.kuusiArticleColumns = String(settings.columns);
   host.dataset.kuusiArticlePageLayout = settings.pageLayout;
@@ -1642,6 +1802,25 @@ export class ArticleSettingsManager {
         "tocShow",
         "tocDepth",
         "tocTitle",
+        "coverPage",
+        "codeLineNumbers",
+        "imageCaptions",
+        "hyphenate",
+        "linkFootnotes",
+        "pdfBookmarks",
+        "pageHeaderMirror",
+        "codeTabSize",
+        "marginTopMm",
+        "marginBottomMm",
+        "marginLeftMm",
+        "marginRightMm",
+        "marginGutterMm",
+        "orphanLines",
+        "indentChars",
+        "tableFontPercent",
+        "watermarkText",
+        "tableBandColor",
+        "pdfQuality",
       ] as const
     ).forEach((key) => {
       enqueue(key, next[key] !== previous[key], next[key]);

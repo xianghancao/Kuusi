@@ -106,7 +106,24 @@ export const tocEntries = (
   );
 };
 
+/** Localized words used by generated blocks (set once by the Article widget). */
+export const structureLabels = {
+  contents: "Contents",
+  figure: "Figure",
+  links: "Links",
+};
+
+export const setStructureLabels = (
+  labels: Partial<typeof structureLabels>,
+): void => {
+  Object.assign(structureLabels, labels);
+};
+
 export type StructureSettings = {
+  coverPage: boolean;
+  linkFootnotes: boolean;
+  imageCaptions: boolean;
+  codeLineNumbers: boolean;
   headingNumbering: HeadingNumbering;
   chapterBreak: ChapterBreak;
   tocShow: boolean;
@@ -126,8 +143,20 @@ const headingText = (h: HTMLElement): string =>
   (h.textContent ?? "").replace(/¶\s*$/u, "").replace(/\s+/g, " ").trim();
 
 /** Remove everything a previous structure pass left behind. */
+const originalCode = new WeakMap<HTMLElement, string>();
+
 export const clearStructure = (rendered: HTMLElement): void => {
   rendered.querySelectorAll(`.${TOC_CLASS}`).forEach((node) => node.remove());
+  rendered.querySelectorAll<HTMLElement>("[data-kuusi-lines]").forEach((code) => {
+    const html = originalCode.get(code);
+
+    if (html !== undefined) {
+      code.innerHTML = html;
+    }
+
+    code.removeAttribute("data-kuusi-lines");
+    originalCode.delete(code);
+  });
   rendered
     .querySelectorAll(`[${NUMBER_ATTR}]`)
     .forEach((node) => node.removeAttribute(NUMBER_ATTR));
@@ -166,6 +195,7 @@ export const applyStructure = (
   flow: HTMLElement,
   settings: StructureSettings,
   fallbackTitle: string,
+  docTitle = "",
 ): void => {
   clearStructure(rendered);
 
@@ -188,7 +218,26 @@ export const applyStructure = (
     }
   });
 
+  if (settings.imageCaptions) {
+    addImageCaptions(rendered);
+  }
+
+  if (settings.codeLineNumbers) {
+    addCodeLineNumbers(rendered);
+  }
+
+  if (settings.linkFootnotes) {
+    addLinkFootnotes(rendered, flow);
+  }
+
+  const finish = (): void => {
+    if (settings.coverPage) {
+      addCover(flow, docTitle);
+    }
+  };
+
   if (!settings.tocShow || headings.length === 0) {
+    finish();
     return;
   }
 
@@ -202,6 +251,7 @@ export const applyStructure = (
   );
 
   if (entries.length === 0) {
+    finish();
     return;
   }
 
@@ -220,6 +270,142 @@ export const applyStructure = (
   if (after instanceof HTMLElement) {
     after.setAttribute(PAGE_BREAK_ATTR, "1");
   }
+
+  finish();
+};
+
+const generated = (el: HTMLElement, extra: string): HTMLElement => {
+  el.className = `${TOC_CLASS} ${extra}`;
+  return el;
+};
+
+const inGenerated = (el: Element): boolean =>
+  Boolean(el.closest(`.${TOC_CLASS}, h1, h2, h3, h4, h5, h6`));
+
+const addCover = (flow: HTMLElement, docTitle: string): void => {
+  const cover = generated(document.createElement("div"), `${TOC_CLASS}Cover`);
+  const title = document.createElement("div");
+  title.className = `${TOC_CLASS}CoverTitle`;
+  title.textContent = docTitle;
+  const date = document.createElement("div");
+  date.className = `${TOC_CLASS}CoverDate`;
+  date.textContent = new Date().toLocaleDateString();
+  cover.append(title, date);
+  flow.insertBefore(cover, flow.firstElementChild);
+
+  const after = cover.nextElementSibling;
+  if (after instanceof HTMLElement) {
+    after.setAttribute(PAGE_BREAK_ATTR, "1");
+  }
+};
+
+const addImageCaptions = (rendered: HTMLElement): void => {
+  let n = 0;
+
+  rendered.querySelectorAll<HTMLImageElement>("img[alt]").forEach((img) => {
+    const alt = (img.getAttribute("alt") ?? "").trim();
+
+    if (!alt || inGenerated(img) || img.closest("table, pre")) {
+      return;
+    }
+
+    n += 1;
+    const caption = generated(
+      document.createElement("span"),
+      `${TOC_CLASS}Caption`,
+    );
+    caption.textContent = `${structureLabels.figure} ${n}. ${alt}`;
+    (img.closest("a") ?? img).after(caption);
+  });
+};
+
+/** Wrap every line of each code block so a gutter can number it. */
+const addCodeLineNumbers = (rendered: HTMLElement): void => {
+  rendered.querySelectorAll<HTMLElement>("pre").forEach((pre) => {
+    if (inGenerated(pre)) {
+      return;
+    }
+
+    const code = pre.querySelector<HTMLElement>(":scope > code") ?? pre;
+    originalCode.set(code, code.innerHTML);
+    code.setAttribute("data-kuusi-lines", "1");
+
+    const lines: DocumentFragment[] = [];
+    const range = document.createRange();
+
+    for (;;) {
+      const walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
+      let found: { node: Text; index: number } | null = null;
+
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const index = (node.nodeValue ?? "").indexOf("\n");
+
+        if (index >= 0) {
+          found = { node: node as Text, index };
+          break;
+        }
+      }
+
+      if (!found) {
+        break;
+      }
+
+      range.setStart(code, 0);
+      range.setEnd(found.node, found.index + 1);
+      lines.push(range.extractContents());
+    }
+
+    if (code.childNodes.length > 0) {
+      const tail = document.createDocumentFragment();
+      while (code.firstChild) {
+        tail.appendChild(code.firstChild);
+      }
+      lines.push(tail);
+    }
+
+    // A source ending in a newline leaves no content after the last break.
+    lines.forEach((fragment, index) => {
+      const line = document.createElement("span");
+      line.className = "jp-KuusiArticle-codeLine";
+      line.dataset.n = String(index + 1);
+      line.appendChild(fragment);
+      code.appendChild(line);
+    });
+  });
+};
+
+const addLinkFootnotes = (rendered: HTMLElement, flow: HTMLElement): void => {
+  const numbers = new Map<string, number>();
+
+  rendered.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
+    const href = a.getAttribute("href") ?? "";
+
+    if (!/^https?:\/\//i.test(href) || inGenerated(a)) {
+      return;
+    }
+
+    if (!numbers.has(href)) {
+      numbers.set(href, numbers.size + 1);
+    }
+
+    const ref = generated(document.createElement("sup"), `${TOC_CLASS}LinkRef`);
+    ref.textContent = `[${numbers.get(href)}]`;
+    a.after(ref);
+  });
+
+  if (numbers.size === 0) {
+    return;
+  }
+
+  const title = generated(document.createElement("div"), `${TOC_CLASS}Title`);
+  title.textContent = structureLabels.links;
+  flow.appendChild(title);
+
+  numbers.forEach((n, href) => {
+    const item = generated(document.createElement("div"), `${TOC_CLASS}LinkItem`);
+    item.textContent = `[${n}] ${href}`;
+    flow.appendChild(item);
+  });
 };
 
 /** Fill the page column once the sheets exist. */
