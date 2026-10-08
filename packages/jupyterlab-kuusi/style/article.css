@@ -316,6 +316,23 @@ button.jp-KuusiArticle-scrollAxis-btn {
   top: 0;
 }
 
+.jp-KuusiArticle-pageBand.is-ruled::after {
+  border-top: 1px solid currentColor;
+  content: "";
+  left: var(--kuusi-band-pad-l, 0);
+  opacity: 0.5;
+  position: absolute;
+  right: var(--kuusi-band-pad-r, 0);
+}
+
+.jp-KuusiArticle-pageBand--header.is-ruled::after {
+  bottom: 0;
+}
+
+.jp-KuusiArticle-pageBand--footer.is-ruled::after {
+  top: 0;
+}
+
 .jp-KuusiArticle-pageBand--footer {
   bottom: 0;
 }
@@ -1049,4 +1066,72 @@ button.jp-KuusiArticle-scrollAxis-btn {
   overflow: visible;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+[data-kuusi-article-table-repeat-header="0"] thead {
+  display: table-row-group;
+}
+
+/* ---- Document structure: heading numbers, contents page, page breaks ---- */
+.jp-RenderedMarkdown :is(h1, h2, h3, h4, h5, h6)[data-kuusi-num]::before,
+.jp-RenderedMySTMarkdown :is(h1, h2, h3, h4, h5, h6)[data-kuusi-num]::before {
+  content: attr(data-kuusi-num) "\2002";
+  font-variant-numeric: tabular-nums;
+}
+
+[data-kuusi-page-break] {
+  break-before: column;
+}
+
+.jp-KuusiArticle-toc {
+  box-sizing: border-box;
+}
+
+.jp-KuusiArticle-tocTitle {
+  margin: 0 0 1em;
+  font-size: 1.5em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.jp-KuusiArticle-tocRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin: 0.25em 0;
+  padding-left: calc((var(--kuusi-toc-level, 1) - 1) * 1.5em);
+}
+
+.jp-KuusiArticle-tocRow[data-level="1"] {
+  --kuusi-toc-level: 1;
+  font-weight: 600;
+}
+.jp-KuusiArticle-tocRow[data-level="2"] { --kuusi-toc-level: 2; }
+.jp-KuusiArticle-tocRow[data-level="3"] { --kuusi-toc-level: 3; }
+.jp-KuusiArticle-tocRow[data-level="4"] { --kuusi-toc-level: 4; }
+
+.jp-KuusiArticle-tocText {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.jp-KuusiArticle-tocLeader {
+  flex: 1 1 auto;
+  min-width: 1em;
+  border-bottom: 1px dotted currentColor;
+  opacity: 0.45;
+  transform: translateY(-0.25em);
+}
+
+.jp-KuusiArticle-tocPage {
+  flex: 0 0 auto;
+  min-width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.jp-KuusiArticle-tocRow.is-unpaged .jp-KuusiArticle-tocLeader,
+.jp-KuusiArticle-tocRow.is-unpaged .jp-KuusiArticle-tocPage {
+  display: none;
 }

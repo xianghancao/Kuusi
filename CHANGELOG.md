@@ -37,9 +37,18 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 - **Mind Map — View** (Layout → View): zoom range (minimum 5–100%, maximum 100–800%), mouse wheel behavior (pans, or zooms with Shift to pan) and zoom speed, and what happens on open (center selected node, center root, fit whole map, restore last view per file).
 - **Mind Map — touch**: two-finger pinch zoom and pan; a card needs a short press before it drags (a swipe pans the canvas); larger resize and zoom targets on coarse pointers.
 - Mind Map canvas respects **prefers-reduced-motion**, and controls show keyboard focus rings.
+- **Article — contents page**: Page → Contents inserts a table of contents (dot leaders and page numbers that follow the page-number start) before the text; depth H1–H1…H4 and an optional title. The text after it starts on a new page.
+- **Article — heading numbers**: Page → Chapters numbers headings `1`, `1.1`, `1.1.1` or `第一章`, `1.1`; the numbers appear in the contents and the PDF bookmarks.
+- **Article — chapter page break**: start every Heading 1 (or Heading 1–2) on a new page.
+- **Article — PDF bookmarks**: exported PDFs carry a nested outline (one entry per heading, linked to its page) and the document title.
+- **Article — Chinese fonts**: 宋体, 黑体, 楷体 and 仿宋 under a new Chinese group in every font menu.
+- **Article — more paper**: A3, A5, B5 and Legal beside A4 and Letter; the PDF and print page size follow.
+- **Article — header & footer**: `{chapter}` and `{date}` placeholders, a rule line under the header and above the footer, and a different (empty) first page.
+- **Article — table headers**: Page → Layout → **Repeat table headers** turns header repetition on long tables on or off.
 
 ### Changed
 
+- **Body font size is shown and entered in points** (Article, Book, Slides, Mind Map): 12 pt is the same size as Word's 12 pt (16 px). Stored values stay in px, so existing settings look the same; the default 14 px now reads 10.5 pt, and the range is 6–28 pt.
 - **Launcher → Kuusi** shows **Mind Map**, **Article** and **Settings**. **Book** and **Slides** tiles appear only once you turn those views on under **Settings → Default files**.
 - Article image width moved from Page → Images into the **Image** capsule.
 - **Article → Page**: Padding now reaches 8 rem (≈ 34 mm; it stopped at 17 mm) and shows its printed size in mm; leading starts at 0.9 (0.5 made lines overlap); Measure explains that it only applies to the scrolling layout, Paper that it switches to the paged layout, and Header / Footer list their placeholders. The Page menu is taller to fit its grouped tabs.

@@ -1,3 +1,4 @@
+import { paperDimensions } from "./articlePaper";
 import type { JupyterFrontEnd } from "@jupyterlab/application";
 import { Notification, type IToolbarWidgetRegistry } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
@@ -159,7 +160,7 @@ const stripExportChrome = (clone: HTMLElement): void => {
  * reading styles on white paper, no desk/chrome. Complements Lab CSS copied
  * into the window.
  */
-const printExportCss = (pageSize: "A4" | "letter" = "A4"): string => `
+const printExportCss = (pageSize = "A4"): string => `
 @page {
   size: ${pageSize};
   margin: 18mm 16mm;
@@ -395,17 +396,20 @@ html, body {
 }
 `;
 
-const resolvePrintPageSize = (host: HTMLElement): "A4" | "letter" => {
+const resolvePrintPageSize = (host: HTMLElement): string => {
   const paper =
     host.closest(".jp-KuusiArticle-paper") ??
     (host.classList.contains("jp-KuusiArticle-paper") ? host : null) ??
     host.querySelector(".jp-KuusiArticle-paper");
 
-  if (
-    paper instanceof HTMLElement &&
-    paper.dataset.kuusiArticlePaperSize === "letter"
-  ) {
-    return "letter";
+  if (paper instanceof HTMLElement) {
+    const dims = paperDimensions(
+      paper.dataset.kuusiArticlePaperSize,
+      paper.dataset.kuusiArticlePaperOrientation,
+    );
+    return paper.dataset.kuusiArticlePaperOrientation === "landscape"
+      ? `${dims.cssName} landscape`
+      : dims.cssName;
   }
 
   return "A4";

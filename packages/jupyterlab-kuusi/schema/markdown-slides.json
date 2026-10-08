@@ -24,7 +24,11 @@
             "times",
             "palatino",
             "garamond",
-            "cambria"
+            "cambria",
+            "songti",
+            "heiti",
+            "kaiti",
+            "fangsong"
           ]
         },
         "fontSize": {
@@ -143,7 +147,11 @@
         "times",
         "palatino",
         "garamond",
-        "cambria"
+        "cambria",
+        "songti",
+        "heiti",
+        "kaiti",
+        "fangsong"
       ],
       "default": "notebook",
       "title": "Slides body font",

@@ -30,6 +30,7 @@ import {
   normalizeBodyFontSizePx,
   type BodyFontSizePx,
   type MindMapFont,
+  isFontValue,
 } from "./fontToolbar";
 import { DEFAULT_MIND_MAP_THEME, normalizeMindMapTheme, type MindMapTheme } from "./styleToolbar";
 import {
@@ -145,18 +146,7 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   ...DEFAULT_VIEW_BEHAVIOR,
 };
 
-const isFont = (value: unknown): value is MindMapFont =>
-  value === "notebook" ||
-  value === "system-ui" ||
-  value === "arial" ||
-  value === "helvetica" ||
-  value === "segoe-ui" ||
-  value === "verdana" ||
-  value === "georgia" ||
-  value === "times" ||
-  value === "palatino" ||
-  value === "garamond" ||
-  value === "cambria";
+const isFont = (value: unknown): value is MindMapFont => isFontValue(value);
 
 const isLayoutDensity = (value: unknown): value is LayoutDensity =>
   value === "compact" || value === "normal" || value === "loose";

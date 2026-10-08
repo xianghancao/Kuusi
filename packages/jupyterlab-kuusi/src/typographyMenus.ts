@@ -16,7 +16,8 @@ import {
   BODY_FONT_SIZE_STEP,
   FONT_OPTIONS,
   MIND_MAP_FONT_SIZES,
-  bodyFontSizeLabel,
+  ptToPx,
+  pxToPt,
   clampBodyFontSizePx,
   createFontPreview,
   fontSizeLabel,
@@ -143,7 +144,7 @@ const rememberedSection = <Id extends string>(
   };
 };
 
-const FONT_SECTION_ORDER: FontCategory[] = ["default", "sans", "serif"];
+const FONT_SECTION_ORDER: FontCategory[] = ["default", "sans", "serif", "cjk"];
 
 export const buildFontWidgets = (
   font: MindMapFont,
@@ -154,6 +155,7 @@ export const buildFontWidgets = (
     default: t.fontSectionDefault(),
     sans: t.fontSectionSans(),
     serif: t.fontSectionSerif(),
+    cjk: t.fontSectionChinese(),
   };
 
   return FONT_SECTION_ORDER.flatMap((category) => {
@@ -399,15 +401,15 @@ export const createTextToolbar = (
               {
                 kind: "slider",
                 label: t.fontSizeSection(),
-                value: clampBodyFontSizePx(values.fontSize),
+                value: pxToPt(clampBodyFontSizePx(values.fontSize)),
                 min: BODY_FONT_SIZE_RANGE.min,
                 max: BODY_FONT_SIZE_RANGE.max,
                 step: BODY_FONT_SIZE_STEP,
                 editable: true,
                 inputStep: BODY_FONT_SIZE_INPUT_STEP,
-                formatValue: bodyFontSizeLabel,
+                formatValue: (pt: number) => `${pt}pt`,
                 onChange: (size) => {
-                  model.update({ fontSize: clampBodyFontSizePx(size) });
+                  model.update({ fontSize: ptToPx(size) });
                 },
               },
               {
@@ -1266,15 +1268,15 @@ const fillEditTextPanel = (
     {
       kind: "slider",
       label: t.fontSizeSection(),
-      value: clampBodyFontSizePx(edit.getFontSize()),
+      value: pxToPt(clampBodyFontSizePx(edit.getFontSize())),
       min: BODY_FONT_SIZE_RANGE.min,
       max: BODY_FONT_SIZE_RANGE.max,
       step: BODY_FONT_SIZE_STEP,
       editable: true,
       inputStep: BODY_FONT_SIZE_INPUT_STEP,
-      formatValue: bodyFontSizeLabel,
+      formatValue: (pt: number) => `${pt}pt`,
       onChange: (size) => {
-        edit.updateFontSize(clampBodyFontSizePx(size));
+        edit.updateFontSize(ptToPx(size));
       },
     },
     ...buildFontWidgets(

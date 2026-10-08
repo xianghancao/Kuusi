@@ -2,6 +2,13 @@ import { Notification } from "@jupyterlab/apputils";
 import { PathExt } from "@jupyterlab/coreutils";
 import type { IDocumentWidget } from "@jupyterlab/docregistry";
 import type { jsPDF } from "jspdf";
+import { mmToPt, paperDimensions } from "./articlePaper";
+import {
+  buildPdfOutline,
+  headingTitle,
+  outlineParents,
+  type OutlineEntry,
+} from "./pdfOutline";
 
 import { ARTICLE_PAGE_SHEET_CLASS } from "./articlePaged";
 import type { KuusiTranslator } from "./kuusiI18n";
@@ -43,10 +50,6 @@ const MAX_CANVAS_AREA = /^((?!chrome|android).)*safari/i.test(navigator.userAgen
 const PX_TO_PT = 0.75;
 // PDF viewers reject pages larger than 200in (14400pt).
 const MAX_PDF_SIDE_PT = 14400;
-const A4_WIDTH_PT = 595.28;
-const A4_RATIO = 297 / 210;
-const LETTER_WIDTH_PT = 612;
-const LETTER_RATIO = 11 / 8.5;
 
 const resolveArticlePaperMetrics = (
   root: HTMLElement,
@@ -54,15 +57,15 @@ const resolveArticlePaperMetrics = (
   const paper =
     root.closest(".jp-KuusiArticle-paper") ??
     root.querySelector(".jp-KuusiArticle-paper");
+  const dims =
+    paper instanceof HTMLElement
+      ? paperDimensions(
+          paper.dataset.kuusiArticlePaperSize,
+          paper.dataset.kuusiArticlePaperOrientation,
+        )
+      : paperDimensions(null, null);
 
-  if (
-    paper instanceof HTMLElement &&
-    paper.dataset.kuusiArticlePaperSize === "letter"
-  ) {
-    return { widthPt: LETTER_WIDTH_PT, ratio: LETTER_RATIO };
-  }
-
-  return { widthPt: A4_WIDTH_PT, ratio: A4_RATIO };
+  return { widthPt: mmToPt(dims.widthMm), ratio: dims.heightMm / dims.widthMm };
 };
 const MIND_MAP_PADDING_PX = 40;
 const SLIDE_OUTPUT_WIDTH_PX = 1920;
@@ -386,7 +389,7 @@ interface RasterExportTarget {
   pdfPages(
     visit: (canvas: HTMLCanvasElement, page: PdfPage) => void,
     progress: ProgressReporter,
-  ): Promise<void>;
+  ): Promise<OutlineEntry[] | void>;
   imageSuffix: string;
 }
 
@@ -596,6 +599,23 @@ const articleTarget = (root: HTMLElement): RasterExportTarget => {
           visit(sliceCanvas(canvas, page.region, chunk.region, ratio), page);
         }
       }
+
+      const headings = Array.from(
+        root.querySelectorAll<HTMLElement>("h1, h2, h3, h4, h5, h6"),
+      )
+        .filter((h) => !h.closest("nav, .jp-KuusiArticle-toc"))
+        .map((h) => ({
+          level: Number(h.tagName.slice(1)),
+          title: headingTitle(
+            `${h.getAttribute("data-kuusi-num") ?? ""} ${h.textContent ?? ""}`,
+          ),
+          y: regionWithin(h, root, scale).y,
+        }));
+
+      return buildPdfOutline(
+        headings,
+        pages.map((page) => ({ y: page.region.y, height: page.region.height })),
+      );
     },
   };
 };
@@ -822,7 +842,7 @@ export const exportRenderedPdf = async (
     const { jsPDF: JsPDF } = await import("jspdf");
     let doc: jsPDF | null = null;
 
-    await target.pdfPages(
+    const outline = await target.pdfPages(
       (canvas, page) => {
         const orientation =
           page.pageWidth > page.pageHeight ? "landscape" : "portrait";
@@ -863,6 +883,20 @@ export const exportRenderedPdf = async (
 
     if (!finished) {
       throw new Error("empty");
+    }
+
+    finished.setProperties({ title: fileStem(widget) });
+
+    if (outline && outline.length > 0) {
+      const parents = outlineParents(outline);
+      const nodes: unknown[] = [];
+
+      outline.forEach((entry, index) => {
+        const parent = parents[index] >= 0 ? nodes[parents[index]] : null;
+        nodes[index] = finished.outline.add(parent, entry.title, {
+          pageNumber: entry.page,
+        });
+      });
     }
 
     triggerDownload(finished.output("blob"), filename);

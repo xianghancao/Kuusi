@@ -130,9 +130,10 @@ export const LETTER_SPACING_RANGE: NumberRange = {
   max: 3,
   step: 0.05,
 };
+/** Body size in points (menu unit); stored values stay CSS px. */
 export const BODY_FONT_SIZE_RANGE: NumberRange = {
-  min: 8,
-  max: 16,
+  min: 6,
+  max: 28,
   step: 0.5,
 };
 export const PARAGRAPH_SPACING_RANGE: NumberRange = {

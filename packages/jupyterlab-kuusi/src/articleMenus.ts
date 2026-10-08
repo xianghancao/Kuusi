@@ -41,8 +41,11 @@ import {
   type ArticleSettings,
   type ArticleSettingsManager,
   type ArticleTheme,
+  type ChapterBreak,
+  type HeadingNumbering,
   type PageNumberStart,
 } from "./articleSettings";
+import { TOC_DEPTH_RANGE } from "./articleStructure";
 
 type PageSection =
   | "layout"
@@ -53,6 +56,8 @@ type PageSection =
   | "background"
   | "view"
   | "status"
+  | "contents"
+  | "chapters"
   | FurnitureSection;
 type FurnitureSection = "header" | "footer" | "numbers";
 
@@ -243,9 +248,29 @@ const getPaperSizes = (
     title: t.paperSizeA4Title(),
   },
   {
+    value: "a3",
+    label: t.paperSizeA3(),
+    title: t.paperSizeA3Title(),
+  },
+  {
+    value: "a5",
+    label: t.paperSizeA5(),
+    title: t.paperSizeA5Title(),
+  },
+  {
+    value: "b5",
+    label: t.paperSizeB5(),
+    title: t.paperSizeB5Title(),
+  },
+  {
     value: "letter",
     label: t.paperSizeLetter(),
     title: t.paperSizeLetterTitle(),
+  },
+  {
+    value: "legal",
+    label: t.paperSizeLegal(),
+    title: t.paperSizeLegalTitle(),
   },
 ];
 
@@ -362,6 +387,15 @@ const ARTICLE_PAGE_KEYS = [
   "paperBorderWidth",
   "paperShadow",
   "paperShadowWidth",
+  "pageHeaderRule",
+  "pageFooterRule",
+  "pageFirstDifferent",
+  "tableRepeatHeader",
+  "headingNumbering",
+  "chapterBreak",
+  "tocShow",
+  "tocDepth",
+  "tocTitle",
 ] as const satisfies ReadonlyArray<keyof ArticleSettings>;
 
 export const createArticlePageToolbar = (
@@ -398,7 +432,7 @@ export const createArticlePageToolbar = (
     triggerClass: "jp-KuusiArticlePageDropdown-trigger",
     ariaLabel: t.articlePage(),
     triggerLabel: t.page(),
-    // 11 tabs + 4 group captions: taller than the default menu.
+    // 13 tabs + 5 group captions: taller than the default menu.
     menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiSecondaryMenu-host--tall`,
     fillMenu: (menu, rebuild) => {
       const settings = manager.settings;
@@ -415,6 +449,8 @@ export const createArticlePageToolbar = (
           { id: "header", label: t.pageHeader(), group: t.headerFooter() },
           { id: "footer", label: t.pageFooter(), group: t.headerFooter() },
           { id: "numbers", label: t.pageNumbers(), group: t.headerFooter() },
+          { id: "contents", label: t.contentsSection(), group: t.groupStructure() },
+          { id: "chapters", label: t.chaptersSection(), group: t.groupStructure() },
           {
             id: "status",
             label: t.backgroundStatusSection(),
@@ -428,6 +464,11 @@ export const createArticlePageToolbar = (
         fillSection: (id, panel) => {
           if (id === "header" || id === "footer" || id === "numbers") {
             fillFurnitureSection(id, panel, manager, t, rebuild);
+            return;
+          }
+
+          if (id === "contents" || id === "chapters") {
+            fillStructureSection(id, panel, manager, t, rebuild);
             return;
           }
 
@@ -447,6 +488,15 @@ export const createArticlePageToolbar = (
                     pageLayout: value as ArticlePageLayout,
                   });
                   rebuild();
+                },
+              },
+              {
+                kind: "toggle",
+                label: t.tableRepeatHeader(),
+                title: t.tableRepeatHeaderTitle(),
+                value: settings.tableRepeatHeader,
+                onChange: (tableRepeatHeader) => {
+                  void manager.update({ tableRepeatHeader });
                 },
               },
             ]);
@@ -820,6 +870,113 @@ const getPageNumberPositions = (
     preview: () => legendPageNumberPosition(option.value),
   }));
 
+const fillStructureSection = (
+  id: "contents" | "chapters",
+  panel: HTMLElement,
+  manager: ArticleSettingsManager,
+  t: KuusiTranslator,
+  rebuild: () => void,
+): void => {
+  const settings = manager.settings;
+
+  if (id === "contents") {
+    renderPanelWidgets(panel, [
+      {
+        kind: "toggle",
+        label: t.contentsShow(),
+        title: t.contentsShowTitle(),
+        value: settings.tocShow,
+        onChange: (tocShow) => {
+          void manager.update({ tocShow });
+          rebuild();
+        },
+      },
+      {
+        kind: "slider",
+        label: t.contentsDepth(),
+        value: settings.tocDepth,
+        min: TOC_DEPTH_RANGE.min,
+        max: TOC_DEPTH_RANGE.max,
+        step: 1,
+        formatValue: (value: number) => `H1–H${value}`,
+        onChange: (tocDepth) => {
+          void manager.update({ tocDepth });
+        },
+      },
+      {
+        kind: "text",
+        label: t.contentsTitleLabel(),
+        placeholder: t.contentsDefaultTitle(),
+        maxLength: 60,
+        value: settings.tocTitle,
+        onChange: (tocTitle) => {
+          void manager.update({ tocTitle });
+        },
+      },
+    ]);
+    return;
+  }
+
+  if (settings.pageLayout !== "paged") {
+    appendHint(panel, t.structurePagedOnly());
+  }
+
+  renderPanelWidgets(panel, [
+    {
+      kind: "choice",
+      sectionLabel: t.headingNumbering(),
+      value: settings.headingNumbering,
+      options: [
+        {
+          value: "none",
+          label: t.headingNumberingNone(),
+          title: t.headingNumberingNoneTitle(),
+        },
+        {
+          value: "decimal",
+          label: t.headingNumberingDecimal(),
+          title: t.headingNumberingDecimalTitle(),
+        },
+        {
+          value: "chinese",
+          label: t.headingNumberingChinese(),
+          title: t.headingNumberingChineseTitle(),
+        },
+      ],
+      onChange: (value) => {
+        void manager.update({ headingNumbering: value as HeadingNumbering });
+        rebuild();
+      },
+    },
+    {
+      kind: "choice",
+      sectionLabel: t.chapterBreak(),
+      value: settings.chapterBreak,
+      options: [
+        {
+          value: "none",
+          label: t.chapterBreakNone(),
+          title: t.chapterBreakNoneTitle(),
+        },
+        {
+          value: "h1",
+          label: t.chapterBreakH1(),
+          title: t.chapterBreakH1Title(),
+        },
+        {
+          value: "h2",
+          label: t.chapterBreakH2(),
+          title: t.chapterBreakH2Title(),
+        },
+      ],
+      onChange: (value) => {
+        void manager.update({ chapterBreak: value as ChapterBreak });
+        rebuild();
+      },
+    },
+  ]);
+};
+
 const appendPagedOnlyHint = (panel: HTMLElement, t: KuusiTranslator): void => {
   const hint = document.createElement("div");
   hint.className = "jp-KuusiPanelWidget-hint";
@@ -875,6 +1032,28 @@ const fillFurnitureSection = (
               : { pageFooterAlign: align },
           );
           rebuild();
+        },
+      },
+    ]);
+    renderPanelWidgets(panel, [
+      {
+        kind: "toggle",
+        label: t.pageRule(),
+        title: t.pageRuleTitle(),
+        value: isHeader ? settings.pageHeaderRule : settings.pageFooterRule,
+        onChange: (value) => {
+          void manager.update(
+            isHeader ? { pageHeaderRule: value } : { pageFooterRule: value },
+          );
+        },
+      },
+      {
+        kind: "toggle",
+        label: t.pageFirstDifferent(),
+        title: t.pageFirstDifferentTitle(),
+        value: settings.pageFirstDifferent,
+        onChange: (pageFirstDifferent) => {
+          void manager.update({ pageFirstDifferent });
         },
       },
     ]);

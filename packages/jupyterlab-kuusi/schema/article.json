@@ -24,7 +24,11 @@
             "times",
             "palatino",
             "garamond",
-            "cambria"
+            "cambria",
+            "songti",
+            "heiti",
+            "kaiti",
+            "fangsong"
           ]
         },
         "fontSize": {
@@ -123,11 +127,15 @@
     },
     "paperSize": {
       "title": "Article paper size",
-      "description": "Paper size used when page layout is paged (A4 or US Letter).",
+      "description": "Paper size used when page layout is paged.",
       "type": "string",
       "enum": [
         "a4",
-        "letter"
+        "a3",
+        "a5",
+        "b5",
+        "letter",
+        "legal"
       ],
       "default": "a4"
     },
@@ -299,7 +307,11 @@
         "times",
         "palatino",
         "garamond",
-        "cambria"
+        "cambria",
+        "songti",
+        "heiti",
+        "kaiti",
+        "fangsong"
       ],
       "default": "notebook",
       "title": "Article body font",
@@ -688,6 +700,72 @@
       "description": "Display the document file size beside zoom.",
       "type": "boolean",
       "default": false
+    },
+    "pageHeaderRule": {
+      "title": "Header rule",
+      "description": "Draw a thin line under the running header.",
+      "type": "boolean",
+      "default": false
+    },
+    "pageFooterRule": {
+      "title": "Footer rule",
+      "description": "Draw a thin line above the running footer.",
+      "type": "boolean",
+      "default": false
+    },
+    "pageFirstDifferent": {
+      "title": "Different first page",
+      "description": "Leave header and footer text empty on the first page.",
+      "type": "boolean",
+      "default": false
+    },
+    "tableRepeatHeader": {
+      "title": "Repeat table headers",
+      "description": "Repeat table header rows on every page a table spans.",
+      "type": "boolean",
+      "default": true
+    },
+    "headingNumbering": {
+      "title": "Heading numbering",
+      "description": "Number headings 1 / 1.1, or 第一章 / 1.1.",
+      "type": "string",
+      "enum": [
+        "none",
+        "decimal",
+        "chinese"
+      ],
+      "default": "none"
+    },
+    "chapterBreak": {
+      "title": "Chapter page break",
+      "description": "Start every H1 (or H1 and H2) on a new page.",
+      "type": "string",
+      "enum": [
+        "none",
+        "h1",
+        "h2"
+      ],
+      "default": "none"
+    },
+    "tocShow": {
+      "title": "Contents page",
+      "description": "Insert a table of contents at the start of the document.",
+      "type": "boolean",
+      "default": false
+    },
+    "tocDepth": {
+      "title": "Contents depth",
+      "description": "Heading levels listed in the contents.",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 4,
+      "default": 3
+    },
+    "tocTitle": {
+      "title": "Contents title",
+      "description": "Heading of the contents page; empty uses the localized default.",
+      "type": "string",
+      "default": ""
     },
     "strongColor": {
       "type": "string",

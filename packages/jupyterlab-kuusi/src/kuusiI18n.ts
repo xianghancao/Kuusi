@@ -193,6 +193,33 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   defaultFiles: () => t.__("Default files"),
   groupSurface: () => t.__("Surface"),
   groupFurniture: () => t.__("Header & footer"),
+  groupStructure: () => t.__("Structure"),
+  contentsSection: () => t.__("Contents"),
+  chaptersSection: () => t.__("Chapters"),
+  contentsShow: () => t.__("Contents page"),
+  contentsShowTitle: () =>
+    t.__("Insert a table of contents with page numbers at the start"),
+  contentsDepth: () => t.__("Heading levels"),
+  contentsTitleLabel: () => t.__("Title"),
+  contentsDefaultTitle: () => t.__("Contents"),
+  headingNumbering: () => t.__("Heading numbers"),
+  headingNumberingNone: () => t.__("None"),
+  headingNumberingNoneTitle: () => t.__("Headings keep their written text"),
+  headingNumberingDecimal: () => t.__("1, 1.1"),
+  headingNumberingDecimalTitle: () => t.__("Number headings 1, 1.1, 1.1.1"),
+  headingNumberingChinese: () => t.__("第一章, 1.1"),
+  headingNumberingChineseTitle: () =>
+    t.__("Chapters as 第一章, sections as 1.1"),
+  chapterBreak: () => t.__("New page before"),
+  chapterBreakNone: () => t.__("None"),
+  chapterBreakNoneTitle: () => t.__("Headings flow on without a page break"),
+  chapterBreakH1: () => t.__("Heading 1"),
+  chapterBreakH1Title: () => t.__("Every Heading 1 starts a new page"),
+  chapterBreakH2: () => t.__("Heading 1–2"),
+  chapterBreakH2Title: () =>
+    t.__("Every Heading 1 and Heading 2 starts a new page"),
+  structurePagedOnly: () =>
+    t.__("Page breaks and page numbers show in Paged layout"),
   groupDisplay: () => t.__("Display"),
   resetPageSettings: () => t.__("Reset page settings"),
   resetPageSettingsTitle: () =>
@@ -216,6 +243,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   fontSectionDefault: () => t.__("Default"),
   fontSectionSans: () => t.__("Sans-serif"),
   fontSectionSerif: () => t.__("Serif"),
+  fontSectionChinese: () => t.__("Chinese"),
   fontSizeSection: () => t.__("Size"),
   fontSizeEdit: () => t.__("Edit"),
   fontSizeDisplay: () => t.__("Display"),
@@ -260,7 +288,15 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   paddingHint: () =>
     t.__("Left and right margin. The top margin is 1.125× and the bottom 2× this value."),
   pageTokensHint: () =>
-    t.__("Placeholders: {title} document name, {page} page number, {pages} page count."),
+    t.__("Placeholders: {title} document name, {chapter} current chapter, {date} today, {page} page number, {pages} page count."),
+  tableRepeatHeader: () => t.__("Repeat table headers"),
+  tableRepeatHeaderTitle: () =>
+    t.__("Repeat the header row on every page a long table spans"),
+  pageRule: () => t.__("Rule line"),
+  pageRuleTitle: () => t.__("Draw a thin line between this band and the text"),
+  pageFirstDifferent: () => t.__("Different first page"),
+  pageFirstDifferentTitle: () =>
+    t.__("Leave header and footer text empty on the first page"),
   editTextHint: () =>
     t.__("Font used while a node's source is open for editing."),
   viewBehavior: () => t.__("View"),
@@ -537,6 +573,14 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   paperSize: () => t.__("Paper"),
   paperSizeA4: () => t.__("A4"),
   paperSizeA4Title: () => t.__("210 × 297 mm"),
+  paperSizeA3: () => t.__("A3"),
+  paperSizeA3Title: () => t.__("297 × 420 mm"),
+  paperSizeA5: () => t.__("A5"),
+  paperSizeA5Title: () => t.__("148 × 210 mm"),
+  paperSizeB5: () => t.__("B5"),
+  paperSizeB5Title: () => t.__("176 × 250 mm"),
+  paperSizeLegal: () => t.__("Legal"),
+  paperSizeLegalTitle: () => t.__("8.5 × 14 in"),
   paperSizeLetter: () => t.__("Letter"),
   paperSizeLetterTitle: () => t.__("8.5 × 11 in"),
   paperOrientationPortrait: () => t.__("Portrait"),

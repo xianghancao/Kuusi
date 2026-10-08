@@ -11,6 +11,7 @@ import {
   type BodyFontSizePx,
   type MindMapFont,
   type MindMapFontSize,
+  isFontValue,
 } from "./fontToolbar";
 import {
   CODE_BORDER_RANGE,
@@ -71,6 +72,16 @@ import {
   isPageNumberStart,
   type PageNumberStart,
 } from "./pageNumberStart";
+import { isPaperSize, paperDimensions } from "./articlePaper";
+import type { ArticlePaperOrientation, ArticlePaperSize } from "./articlePaper";
+import {
+  TOC_DEPTH_RANGE,
+  isChapterBreak,
+  isHeadingNumbering,
+  type ChapterBreak,
+  type HeadingNumbering,
+} from "./articleStructure";
+export type { ChapterBreak, HeadingNumbering } from "./articleStructure";
 
 export type { PageNumberStart } from "./pageNumberStart";
 
@@ -90,8 +101,7 @@ export type ArticleColumnAlign = "left" | "center";
 /** CSS multi-column flow inside the reading pane (1 = single column). */
 export type ArticleColumns = 1 | 2;
 export type ArticlePageLayout = "scroll" | "paged";
-export type ArticlePaperSize = "a4" | "letter";
-export type ArticlePaperOrientation = "portrait" | "landscape";
+export type { ArticlePaperSize, ArticlePaperOrientation } from "./articlePaper";
 export type ArticleLinkStyle = LinkStyle;
 export type ArticleCodeStyle = CodeStyle;
 export type ArticleImageWidth = ImageWidth;
@@ -229,6 +239,13 @@ export type ArticleSettings = {
   /** Running header text for paged layout; supports {title}, {page}, {pages}. */
   pageHeaderText: string;
   pageHeaderAlign: ArticleHeaderAlign;
+  /** Thin rule between the header and the text block. */
+  pageHeaderRule: boolean;
+  pageFooterRule: boolean;
+  /** Leave the first sheet's header and footer text empty (cover / title page). */
+  pageFirstDifferent: boolean;
+  /** Repeat table header rows on every page a table spans (paged layout). */
+  tableRepeatHeader: boolean;
   /** Running footer text for paged layout; supports {title}, {page}, {pages}. */
   pageFooterText: string;
   pageFooterAlign: ArticleHeaderAlign;
@@ -240,6 +257,16 @@ export type ArticleSettings = {
   showTextCount: boolean;
   showPageCount: boolean;
   showFileSize: boolean;
+  /** Prefix headings with 1 / 1.1 or 第一章 / 1.1 (shared by contents + PDF bookmarks). */
+  headingNumbering: HeadingNumbering;
+  /** Start every H1 (or H1/H2) on a new page. */
+  chapterBreak: ChapterBreak;
+  /** Contents page at the start of the document. */
+  tocShow: boolean;
+  /** Heading levels listed in the contents (1–4, counted from the top level). */
+  tocDepth: number;
+  /** Contents page heading; empty uses the localized “Contents”. */
+  tocTitle: string;
 };
 
 /** Page furniture and code chrome are per-user, not part of a theme preset. */
@@ -267,6 +294,10 @@ type ArticleUserOnlyKey =
   | "imageRadius"
   | "pageHeaderText"
   | "pageHeaderAlign"
+  | "pageHeaderRule"
+  | "pageFooterRule"
+  | "pageFirstDifferent"
+  | "tableRepeatHeader"
   | "pageFooterText"
   | "pageFooterAlign"
   | "pageNumber"
@@ -280,7 +311,12 @@ type ArticleUserOnlyKey =
   | "paperShadowWidth"
   | "showTextCount"
   | "showPageCount"
-  | "showFileSize";
+  | "showFileSize"
+  | "headingNumbering"
+  | "chapterBreak"
+  | "tocShow"
+  | "tocDepth"
+  | "tocTitle";
 
 export const ARTICLE_HEADER_LEVELS: ArticleHeaderLevel[] = [1, 2, 3, 4, 5, 6];
 
@@ -391,6 +427,10 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   }),
   pageHeaderText: "",
   pageHeaderAlign: "center",
+  pageHeaderRule: false,
+  pageFooterRule: false,
+  pageFirstDifferent: false,
+  tableRepeatHeader: true,
   pageFooterText: "",
   pageFooterAlign: "left",
   pageNumber: "none",
@@ -400,6 +440,11 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   showTextCount: false,
   showPageCount: false,
   showFileSize: false,
+  headingNumbering: "none",
+  chapterBreak: "none",
+  tocShow: false,
+  tocDepth: 3,
+  tocTitle: "",
 };
 
 const headersFromLegacyTitle = (raw: {
@@ -669,23 +714,7 @@ export const articleThemeChrome = (
   };
 };
 
-const ARTICLE_FONTS: readonly ArticleFont[] = [
-  "notebook",
-  "system-ui",
-  "arial",
-  "helvetica",
-  "segoe-ui",
-  "verdana",
-  "georgia",
-  "times",
-  "palatino",
-  "garamond",
-  "cambria",
-];
-
-const isFont = (value: unknown): value is ArticleFont =>
-  typeof value === "string" &&
-  (ARTICLE_FONTS as readonly string[]).includes(value);
+const isFont = (value: unknown): value is ArticleFont => isFontValue(value);
 
 const clampArticleNumber = (
   value: number,
@@ -783,8 +812,6 @@ const isColumns = (value: unknown): value is ArticleColumns =>
 const isPageLayout = (value: unknown): value is ArticlePageLayout =>
   value === "scroll" || value === "paged";
 
-const isPaperSize = (value: unknown): value is ArticlePaperSize =>
-  value === "a4" || value === "letter";
 
 const isPaperOrientation = (
   value: unknown,
@@ -1084,6 +1111,22 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       raw.pageHeaderText,
       defaults.pageHeaderText,
     ),
+    pageHeaderRule:
+      typeof raw.pageHeaderRule === "boolean"
+        ? raw.pageHeaderRule
+        : defaults.pageHeaderRule,
+    pageFooterRule:
+      typeof raw.pageFooterRule === "boolean"
+        ? raw.pageFooterRule
+        : defaults.pageFooterRule,
+    tableRepeatHeader:
+      typeof raw.tableRepeatHeader === "boolean"
+        ? raw.tableRepeatHeader
+        : defaults.tableRepeatHeader,
+    pageFirstDifferent:
+      typeof raw.pageFirstDifferent === "boolean"
+        ? raw.pageFirstDifferent
+        : defaults.pageFirstDifferent,
     pageHeaderAlign: isHeaderAlign(raw.pageHeaderAlign)
       ? raw.pageHeaderAlign
       : defaults.pageHeaderAlign,
@@ -1118,6 +1161,22 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       typeof raw.showFileSize === "boolean"
         ? raw.showFileSize
         : defaults.showFileSize,
+    headingNumbering: isHeadingNumbering(raw.headingNumbering)
+      ? raw.headingNumbering
+      : defaults.headingNumbering,
+    chapterBreak: isChapterBreak(raw.chapterBreak)
+      ? raw.chapterBreak
+      : defaults.chapterBreak,
+    tocShow:
+      typeof raw.tocShow === "boolean" ? raw.tocShow : defaults.tocShow,
+    tocDepth:
+      typeof raw.tocDepth === "number" && Number.isFinite(raw.tocDepth)
+        ? Math.min(
+            TOC_DEPTH_RANGE.max,
+            Math.max(TOC_DEPTH_RANGE.min, Math.round(raw.tocDepth)),
+          )
+        : defaults.tocDepth,
+    tocTitle: normalizePageText(raw.tocTitle, defaults.tocTitle),
   };
 };
 
@@ -1154,6 +1213,15 @@ export const applyArticleAppearance = (
   host.dataset.kuusiArticleColumns = String(settings.columns);
   host.dataset.kuusiArticlePageLayout = settings.pageLayout;
   host.dataset.kuusiArticlePaperSize = settings.paperSize;
+  host.dataset.kuusiArticleTableRepeatHeader = settings.tableRepeatHeader ? "1" : "0";
+  {
+    const paper = paperDimensions(settings.paperSize, settings.paperOrientation);
+    host.style.setProperty("--kuusi-article-paper-max-width", `${paper.widthMm}mm`);
+    host.style.setProperty(
+      "--kuusi-article-paper-ratio",
+      `${paper.widthMm} / ${paper.heightMm}`,
+    );
+  }
   host.dataset.kuusiArticlePaperOrientation = settings.paperOrientation;
   host.dataset.kuusiArticlePaperShadow = settings.paperShadow ? "1" : "0";
   host.style.setProperty(
@@ -1551,6 +1619,10 @@ export class ArticleSettingsManager {
         "imageRadius",
         "pageHeaderText",
         "pageHeaderAlign",
+        "pageHeaderRule",
+        "pageFooterRule",
+        "pageFirstDifferent",
+        "tableRepeatHeader",
         "pageFooterText",
         "pageFooterAlign",
         "pageNumber",
@@ -1565,6 +1637,11 @@ export class ArticleSettingsManager {
         "showTextCount",
         "showPageCount",
         "showFileSize",
+        "headingNumbering",
+        "chapterBreak",
+        "tocShow",
+        "tocDepth",
+        "tocTitle",
       ] as const
     ).forEach((key) => {
       enqueue(key, next[key] !== previous[key], next[key]);

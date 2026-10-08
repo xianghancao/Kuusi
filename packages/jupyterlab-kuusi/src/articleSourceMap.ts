@@ -1,3 +1,4 @@
+import { TOC_CLASS } from "./articleStructure";
 import { marked, type Token, type Tokens } from "marked";
 
 import {
@@ -272,7 +273,8 @@ export const scanMarkdownBlocksHeuristic = (source: string): SourceBlock[] => {
 
 const isPagedChrome = (el: Element): boolean =>
   el.classList.contains(ARTICLE_PAGE_SHEET_CLASS) ||
-  el.classList.contains(ARTICLE_PAGE_BREAK_CLASS);
+  el.classList.contains(ARTICLE_PAGE_BREAK_CLASS) ||
+  el.classList.contains(TOC_CLASS);
 
 const isFlowElement = (child: Element): child is HTMLElement =>
   child instanceof HTMLElement &&

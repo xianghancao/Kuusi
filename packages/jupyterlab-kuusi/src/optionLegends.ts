@@ -4,6 +4,8 @@
  * follow light / dark themes without extra CSS.
  */
 
+import { paperDimensions } from "./articlePaper";
+
 const NS = "http://www.w3.org/2000/svg";
 
 const INK = "currentColor";
@@ -132,10 +134,11 @@ export const legendPageLayout = (layout: string): HTMLElement =>
         }),
       ]);
 
-/** A4 and Letter differ only in proportion, so draw it to scale. */
+/** Paper sizes differ only in proportion, so draw each to scale. */
 export const legendPaperSize = (size: string): HTMLElement => {
   const height = 22;
-  const width = size === "letter" ? (height * 8.5) / 11 : (height * 210) / 297;
+  const paper = paperDimensions(size, null);
+  const width = (height * paper.widthMm) / paper.heightMm;
   const x = (LEGEND_W - width) / 2;
 
   return legendSvg([

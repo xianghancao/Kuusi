@@ -248,7 +248,11 @@
         "times",
         "palatino",
         "garamond",
-        "cambria"
+        "cambria",
+        "songti",
+        "heiti",
+        "kaiti",
+        "fangsong"
       ],
       "default": "notebook",
       "title": "Mind map body font",
@@ -269,7 +273,11 @@
         "times",
         "palatino",
         "garamond",
-        "cambria"
+        "cambria",
+        "songti",
+        "heiti",
+        "kaiti",
+        "fangsong"
       ],
       "default": "notebook"
     },
@@ -288,7 +296,11 @@
         "times",
         "palatino",
         "garamond",
-        "cambria"
+        "cambria",
+        "songti",
+        "heiti",
+        "kaiti",
+        "fangsong"
       ],
       "default": "notebook"
     },
@@ -297,7 +309,7 @@
       "description": "Body size while editing cell source, in CSS px (8–16).",
       "type": "number",
       "minimum": 8,
-      "maximum": 16,
+      "maximum": 37.5,
       "default": 14
     },
     "displayFontSize": {
@@ -305,7 +317,7 @@
       "description": "Body size for rendered markdown/HTML output, in CSS px (8–16).",
       "type": "number",
       "minimum": 8,
-      "maximum": 16,
+      "maximum": 37.5,
       "default": 14
     },
     "unifyEditDisplayFont": {
@@ -1123,7 +1135,11 @@
             "times",
             "palatino",
             "garamond",
-            "cambria"
+            "cambria",
+            "songti",
+            "heiti",
+            "kaiti",
+            "fangsong"
           ]
         },
         "fontSize": {

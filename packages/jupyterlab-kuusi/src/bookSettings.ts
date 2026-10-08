@@ -35,6 +35,7 @@ import {
   normalizeBodyFontSizePx,
   normalizeMindMapFontSize,
   type MindMapFont,
+  isFontValue,
 } from "./fontToolbar";
 import {
   CODE_BORDER_RANGE,
@@ -142,21 +143,7 @@ const isLinkStyle = (value: unknown): value is LinkStyle =>
 const isCodeStyle = (value: unknown): value is CodeStyle =>
   value === "plain" || value === "muted" || value === "contrast";
 
-const isFont = (value: unknown): value is MindMapFont =>
-  typeof value === "string" &&
-  [
-    "notebook",
-    "system-ui",
-    "arial",
-    "helvetica",
-    "segoe-ui",
-    "verdana",
-    "georgia",
-    "times",
-    "palatino",
-    "garamond",
-    "cambria",
-  ].includes(value);
+const isFont = (value: unknown): value is MindMapFont => isFontValue(value);
 
 const BOOK_THEMES: BookTheme[] = [
   "notebook",

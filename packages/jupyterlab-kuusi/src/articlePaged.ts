@@ -10,7 +10,16 @@ import type {
   ArticleSettings,
   ArticleSettingsManager,
 } from "./articleSettings";
+import { paperDimensions } from "./articlePaper";
 import { resolvePageNumberDisplay } from "./pageNumberStart";
+import {
+  PAGE_BREAK_ATTR,
+  TOC_CLASS,
+  applyStructure,
+  clearStructure,
+  fillChapterTokens,
+  fillTocPages,
+} from "./articleStructure";
 
 export const ARTICLE_PAGE_SHEET_CLASS = "jp-KuusiArticle-pageSheet";
 export const ARTICLE_PAGE_BREAK_CLASS = "jp-KuusiArticle-pageBreak";
@@ -30,6 +39,7 @@ const LAYOUT_ATTRIBUTES = [
   "data-kuusi-article-page-layout",
   "data-kuusi-article-paper-size",
   "data-kuusi-article-paper-orientation",
+  "data-kuusi-article-table-repeat-header",
   "data-kuusi-article-columns",
   "data-kuusi-article-padding",
   "data-kuusi-article-font",
@@ -117,6 +127,7 @@ const isPagedChrome = (node: Node): boolean => {
   }
 
   return (
+    node.classList.contains(TOC_CLASS) ||
     node.classList.contains(ARTICLE_PAGE_SHEET_CLASS) ||
     node.classList.contains(ARTICLE_PAGE_BREAK_CLASS) ||
     node.dataset.kuusiColumnsClone === "1" ||
@@ -258,17 +269,12 @@ const measurePaperHeight = (rendered: HTMLElement): number => {
   const host = rendered.closest(
     ".jp-KuusiArticle-paper, .jp-KuusiMarkdownArticle",
   ) as HTMLElement | null;
-  const letter = host?.getAttribute("data-kuusi-article-paper-size") === "letter";
-  const landscape =
-    host?.getAttribute("data-kuusi-article-paper-orientation") === "landscape";
+  const paper = paperDimensions(
+    host?.getAttribute("data-kuusi-article-paper-size"),
+    host?.getAttribute("data-kuusi-article-paper-orientation"),
+  );
   // height / width for the selected paper.
-  const heightOverWidth = letter
-    ? landscape
-      ? 8.5 / 11
-      : 11 / 8.5
-    : landscape
-      ? 210 / 297
-      : 297 / 210;
+  const heightOverWidth = paper.heightMm / paper.widthMm;
 
   // Fixed physical width (mm/in via CSS). clientWidth is the mm→px conversion
   // and does not track the pane — only DPI / zoom of the browser chrome.
@@ -287,13 +293,7 @@ const measurePaperHeight = (rendered: HTMLElement): number => {
   const probe = document.createElement("div");
   probe.style.visibility = "hidden";
   probe.style.position = "absolute";
-  probe.style.width = letter
-    ? landscape
-      ? "11in"
-      : "8.5in"
-    : landscape
-      ? "297mm"
-      : "210mm";
+  probe.style.width = `${paper.widthMm}mm`;
   document.body.appendChild(probe);
   const probeWidth = probe.offsetWidth;
   probe.remove();
@@ -446,6 +446,7 @@ const fillPageTokens = (
 ): string =>
   text
     .replace(/\{title\}/g, title)
+    .replace(/\{date\}/g, new Date().toLocaleDateString())
     .replace(/\{pages\}/g, pages)
     .replace(/\{page\}/g, page);
 
@@ -455,8 +456,9 @@ const createBand = (
   height: number,
   padLeft: number,
   padRight: number,
+  ruled = false,
 ): HTMLElement | null => {
-  if (SLOT_ALIGNS.every((align) => slots[align].length === 0)) {
+  if (SLOT_ALIGNS.every((align) => slots[align].length === 0) && !ruled) {
     return null;
   }
 
@@ -465,6 +467,12 @@ const createBand = (
   band.style.height = `${height}px`;
   band.style.paddingLeft = `${padLeft}px`;
   band.style.paddingRight = `${padRight}px`;
+
+  if (ruled) {
+    band.classList.add("is-ruled");
+    band.style.setProperty("--kuusi-band-pad-l", `${padLeft}px`);
+    band.style.setProperty("--kuusi-band-pad-r", `${padRight}px`);
+  }
 
   SLOT_ALIGNS.forEach((align) => {
     const slot = document.createElement("span");
@@ -505,7 +513,9 @@ const decorateSheet = (
     pageToken,
     pagesToken,
   ).trim();
-  if (headerText) {
+  const showText = !(settings.pageFirstDifferent && physicalIndex === 0);
+
+  if (headerText && showText) {
     header[settings.pageHeaderAlign].push(headerText);
   }
 
@@ -515,7 +525,7 @@ const decorateSheet = (
     pageToken,
     pagesToken,
   ).trim();
-  if (footerText) {
+  if (footerText && showText) {
     footer[settings.pageFooterAlign].push(footerText);
   }
 
@@ -530,8 +540,22 @@ const decorateSheet = (
   }
 
   const bands = [
-    createBand("header", header, margins.top, margins.left, margins.right),
-    createBand("footer", footer, margins.bottom, margins.left, margins.right),
+    createBand(
+      "header",
+      header,
+      margins.top,
+      margins.left,
+      margins.right,
+      settings.pageHeaderRule && showText,
+    ),
+    createBand(
+      "footer",
+      footer,
+      margins.bottom,
+      margins.left,
+      margins.right,
+      settings.pageFooterRule && showText,
+    ),
   ].filter((band): band is HTMLElement => band !== null);
 
   sheet.append(...bands);
@@ -850,6 +874,15 @@ const splitTable = (
 
   const contHeaders = headerRowsOf(contTable);
   const contHeaderSet = new Set(contHeaders);
+
+  if (
+    metrics.rendered
+      .closest(".jp-KuusiArticle-paper")
+      ?.getAttribute("data-kuusi-article-table-repeat-header") === "0"
+  ) {
+    contHeaders.forEach((row) => row.remove());
+  }
+
   Array.from(contTable.rows)
     .filter((row) => !contHeaderSet.has(row))
     .slice(0, keep)
@@ -1041,6 +1074,16 @@ const placeBlock = (
   const page = pageIndex(top, metrics);
   const limit = pageContentBottom(page, metrics);
   const remaining = limit - top;
+
+  // Forced break (chapter start, content after the contents page): move to
+  // the next sheet unless the block already opens one.
+  if (
+    child.hasAttribute(PAGE_BREAK_ATTR) &&
+    !atPageStart(top, page, metrics) &&
+    pushToNextPage(child, metrics)
+  ) {
+    return "retry";
+  }
 
   if (isHeading(child)) {
     const need = keepWithNextNeed(child, metrics);
@@ -1382,6 +1425,17 @@ export const paginateArticle = (
 ): void => {
   clearPagedLayout(rendered);
 
+  if (settings) {
+    applyStructure(
+      rendered,
+      resolveFlowContainer(rendered),
+      settings,
+      tocDefaultTitle,
+    );
+  } else {
+    clearStructure(rendered);
+  }
+
   // Layout attrs live on `.jp-KuusiArticle-paper` (MarkdownViewer), not the
   // DocumentWidget shell — gating on root.dataset never saw "paged".
   const paper =
@@ -1395,6 +1449,25 @@ export const paginateArticle = (
   if (pageLayout === "paged" && rendered.offsetHeight > 0) {
     layoutPages(rendered, settings, title);
   }
+
+  if (settings?.tocShow) {
+    fillTocPages(rendered, ARTICLE_PAGE_SHEET_CLASS, settings.pageNumberStart);
+  }
+
+  if (
+    settings &&
+    (settings.pageHeaderText.includes("{chapter}") ||
+      settings.pageFooterText.includes("{chapter}"))
+  ) {
+    fillChapterTokens(rendered, ARTICLE_PAGE_SHEET_CLASS);
+  }
+};
+
+let tocDefaultTitle = "Contents";
+
+/** Localized heading used when the user leaves the contents title empty. */
+export const setTocDefaultTitle = (title: string): void => {
+  tocDefaultTitle = title;
 };
 
 /**

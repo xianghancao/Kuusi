@@ -9,7 +9,11 @@ export type MindMapFont =
   | "times"
   | "palatino"
   | "garamond"
-  | "cambria";
+  | "cambria"
+  | "songti"
+  | "heiti"
+  | "kaiti"
+  | "fangsong";
 
 /** Named size steps for headings / code (not body). */
 export type MindMapFontSize =
@@ -25,7 +29,8 @@ export type MindMapFontSize =
 export type BodyFontSizePx = number;
 
 export const BODY_FONT_SIZE_MIN = 8;
-export const BODY_FONT_SIZE_MAX = 16;
+/** 28pt — Word's size menu goes higher, but body text rarely does. */
+export const BODY_FONT_SIZE_MAX = 37.5;
 export const BODY_FONT_SIZE_STEP = 0.5;
 export const BODY_FONT_SIZE_INPUT_STEP = 0.1;
 /** Match prior “xs” (~Lab content body). */
@@ -142,8 +147,24 @@ export const normalizeBodyFontSizePx = (
 export const bodyFontSizeCss = (size: BodyFontSizePx): string =>
   `${clampBodyFontSizePx(size)}px`;
 
+/** CSS px per typographic point (96dpi), so 12pt = 16px as in Word. */
+export const PX_PER_PT = 4 / 3;
+
+export const pxToPt = (px: number): number =>
+  Math.round((px / PX_PER_PT) * 10) / 10;
+
+export const ptToPx = (pt: number): BodyFontSizePx =>
+  clampBodyFontSizePx(pt * PX_PER_PT);
+
+/** Slider range/step in points (the unit shown in the menu). */
+export const BODY_FONT_SIZE_PT_RANGE = {
+  min: 6,
+  max: 28,
+  step: 0.5,
+} as const;
+
 export const bodyFontSizeLabel = (size: BodyFontSizePx): string =>
-  `${clampBodyFontSizePx(size)}px`;
+  `${pxToPt(clampBodyFontSizePx(size))}pt`;
 
 export const normalizeMindMapFontSize = (
   value: unknown,
@@ -172,7 +193,7 @@ export const fontSizeLabel = (size: MindMapFontSize): string =>
 export const fontSizeShortLabel = (size: MindMapFontSize): string =>
   FONT_SIZE_LABELS[size];
 
-export type FontCategory = "default" | "sans" | "serif";
+export type FontCategory = "default" | "sans" | "serif" | "cjk";
 
 export type FontOption = {
   value: MindMapFont;
@@ -262,7 +283,45 @@ export const FONT_OPTIONS: FontOption[] = [
     category: "serif",
     previewFamily: "Cambria, Georgia, serif",
   },
+  {
+    value: "songti",
+    label: "宋体 Songti",
+    title: "Songti / SimSun serif (Chinese body text)",
+    category: "cjk",
+    previewFamily:
+      '"Songti SC", STSong, SimSun, "Noto Serif CJK SC", "Source Han Serif SC", serif',
+  },
+  {
+    value: "heiti",
+    label: "黑体 Heiti",
+    title: "PingFang / YaHei sans-serif (Chinese)",
+    category: "cjk",
+    previewFamily:
+      '"PingFang SC", "Heiti SC", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif',
+  },
+  {
+    value: "kaiti",
+    label: "楷体 Kaiti",
+    title: "Kaiti regular-script serif (Chinese)",
+    category: "cjk",
+    previewFamily: '"Kaiti SC", STKaiti, KaiTi, 楷体, serif',
+  },
+  {
+    value: "fangsong",
+    label: "仿宋 Fangsong",
+    title: "Fangsong serif (Chinese official documents)",
+    category: "cjk",
+    previewFamily: 'STFangsong, FangSong, 仿宋, "Songti SC", serif',
+  },
 ];
+
+/** Every font value, in menu order (settings validators share this). */
+export const FONT_VALUES: readonly MindMapFont[] = FONT_OPTIONS.map(
+  (option) => option.value,
+);
+
+export const isFontValue = (value: unknown): value is MindMapFont =>
+  typeof value === "string" && (FONT_VALUES as readonly string[]).includes(value);
 
 const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = Object.fromEntries(
   FONT_OPTIONS.map((option) => [option.value, option.previewFamily]),
