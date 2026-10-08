@@ -1718,6 +1718,11 @@ body[data-jp-theme-light="false"] .jp-KuusiBackgroundDropdown-preview {
   transform-origin: top center;
 }
 
+/* Set only while the sash is driving the zoom (see markZoomInMotion). */
+.jp-KuusiRenderZoomTarget--moving {
+  will-change: transform;
+}
+
 /* Markdown — Editor / Mind Map / Slides view switcher (segmented toolbar). */
 .jp-KuusiMarkdownViewSwitcher {
   align-items: center;
@@ -2396,4 +2401,28 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
   border-top: 1px solid var(--jp-border-color2);
   margin-top: 4px;
   width: 100%;
+}
+
+/* Inline-SVG option legends (optionLegends.ts). */
+.jp-KuusiLegend {
+  color: var(--jp-ui-font-color2);
+  display: block;
+  flex: 0 0 auto;
+  height: 26px;
+  width: 40px;
+}
+
+.jp-KuusiLegend > svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.jp-KuusiPanelWidget-choice.is-active .jp-KuusiLegend {
+  color: var(--jp-ui-font-color0);
+}
+
+/* Menus with many tabs (Article → Page) need more room than the default 380px. */
+.jp-KuusiSecondaryMenu-host.jp-KuusiSecondaryMenu-host--tall {
+  height: min(72vh, 520px);
 }

@@ -253,6 +253,16 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
       "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)",
     ),
   nodeWidth: () => t.__("Node width"),
+  measurePagedHint: () =>
+    t.__("Line width applies to the scrolling layout; paged sheets use the paper width."),
+  paperSwitchesToPaged: () =>
+    t.__("Paper options use the paged layout and switch to it."),
+  paddingHint: () =>
+    t.__("Left and right margin. The top margin is 1.125× and the bottom 2× this value."),
+  pageTokensHint: () =>
+    t.__("Placeholders: {title} document name, {page} page number, {pages} page count."),
+  editTextHint: () =>
+    t.__("Font used while a node's source is open for editing."),
   viewBehavior: () => t.__("View"),
   zoomRange: () => t.__("Zoom range"),
   zoomMinimum: () => t.__("Minimum zoom"),

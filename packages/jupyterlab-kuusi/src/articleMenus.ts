@@ -1,5 +1,14 @@
 import { APPEARANCE_COLOR_SWATCHES, BACKGROUND_COLOR_SWATCHES } from "./colorPicker";
 import { createThemeCapsule } from "./themeCapsule";
+import {
+  legendColumns,
+  legendPageLayout,
+  legendPageNumberFormat,
+  legendPageNumberPosition,
+  legendPageNumberStart,
+  legendPaperOrientation,
+  legendPaperSize,
+} from "./optionLegends";
 import { appendMenuFooterAction, createKeyedReset } from "./menuFooter";
 import type { KuusiTranslator } from "./kuusiI18n";
 import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown";
@@ -66,7 +75,18 @@ export const createArticleTypographyModel = (
   },
 });
 
-const formatPaddingRem = (value: number): string => `${value.toFixed(2)}rem`;
+/** 1 rem = 16 CSS px = 4.233 mm: show the printed size next to the CSS unit. */
+const MM_PER_REM = 25.4 / 6;
+
+const formatPaddingRem = (value: number): string =>
+  `${value.toFixed(2)}rem · ${(value * MM_PER_REM).toFixed(1)} mm`;
+
+const appendHint = (panel: HTMLElement, text: string): void => {
+  const hint = document.createElement("div");
+  hint.className = "jp-KuusiPanelWidget-hint";
+  hint.textContent = text;
+  panel.appendChild(hint);
+};
 
 const getMeasures = (
   t: KuusiTranslator,
@@ -378,7 +398,8 @@ export const createArticlePageToolbar = (
     triggerClass: "jp-KuusiArticlePageDropdown-trigger",
     ariaLabel: t.articlePage(),
     triggerLabel: t.page(),
-    menuClassName: CAPSULE_MENU_SECONDARY,
+    // 11 tabs + 4 group captions: taller than the default menu.
+    menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiSecondaryMenu-host--tall`,
     fillMenu: (menu, rebuild) => {
       const settings = manager.settings;
       mountSecondaryMenu(menu, {
@@ -419,6 +440,7 @@ export const createArticlePageToolbar = (
                   value,
                   label,
                   title,
+                  preview: () => legendPageLayout(value),
                 })),
                 onChange: (value) => {
                   void manager.update({
@@ -432,6 +454,10 @@ export const createArticlePageToolbar = (
           }
 
           if (id === "paper") {
+            if (settings.pageLayout !== "paged") {
+              appendHint(panel, t.paperSwitchesToPaged());
+            }
+
             renderPanelWidgets(panel, [
               {
                 kind: "choice",
@@ -440,6 +466,7 @@ export const createArticlePageToolbar = (
                   value,
                   label,
                   title,
+                  preview: () => legendPaperSize(value),
                 })),
                 onChange: (value) => {
                   void manager.update({
@@ -458,6 +485,7 @@ export const createArticlePageToolbar = (
                     value,
                     label,
                     title,
+                    preview: () => legendPaperOrientation(value),
                   }),
                 ),
                 onChange: (value) => {
@@ -538,11 +566,13 @@ export const createArticlePageToolbar = (
                     value: "1",
                     label: t.columnsOne(),
                     title: t.columnsOneTitle(),
+                    preview: () => legendColumns("1"),
                   },
                   {
                     value: "2",
                     label: t.columnsTwo(),
                     title: t.columnsTwoTitle(),
+                    preview: () => legendColumns("2"),
                   },
                 ],
                 onChange: (value) => {
@@ -573,6 +603,11 @@ export const createArticlePageToolbar = (
                 },
               },
             ]);
+
+            if (settings.pageLayout === "paged") {
+              appendHint(panel, t.measurePagedHint());
+            }
+
             return;
           }
 
@@ -591,6 +626,7 @@ export const createArticlePageToolbar = (
                 },
               },
             ]);
+            appendHint(panel, t.paddingHint());
             return;
           }
 
@@ -703,45 +739,86 @@ export const createArticlePageToolbar = (
 
 const getPageNumberFormats = (
   t: KuusiTranslator,
-): Array<{ value: ArticlePageNumber; label: string; title: string }> => [
-  { value: "none", label: t.pageNumberNone(), title: t.pageNumberNoneTitle() },
-  { value: "page", label: t.pageNumberPage(), title: t.pageNumberPageTitle() },
-  {
-    value: "page-of-total",
-    label: t.pageNumberPageOfTotal(),
-    title: t.pageNumberPageOfTotalTitle(),
-  },
-];
+): Array<{
+  value: ArticlePageNumber;
+  label: string;
+  title: string;
+  preview: () => HTMLElement;
+}> =>
+  (
+    [
+      {
+        value: "none",
+        label: t.pageNumberNone(),
+        title: t.pageNumberNoneTitle(),
+      },
+      {
+        value: "page",
+        label: t.pageNumberPage(),
+        title: t.pageNumberPageTitle(),
+      },
+      {
+        value: "page-of-total",
+        label: t.pageNumberPageOfTotal(),
+        title: t.pageNumberPageOfTotalTitle(),
+      },
+    ] as const
+  ).map((option) => ({
+    ...option,
+    preview: () => legendPageNumberFormat(option.value),
+  }));
 
 const getPageNumberStarts = (
   t: KuusiTranslator,
-): Array<{ value: PageNumberStart; label: string; title: string }> => [
-  {
-    value: "first",
-    label: t.pageNumberStartFirst(),
-    title: t.pageNumberStartFirstTitle(),
-  },
-  {
-    value: "second",
-    label: t.pageNumberStartSecond(),
-    title: t.pageNumberStartSecondTitle(),
-  },
-];
+): Array<{
+  value: PageNumberStart;
+  label: string;
+  title: string;
+  preview: () => HTMLElement;
+}> =>
+  (
+    [
+      {
+        value: "first",
+        label: t.pageNumberStartFirst(),
+        title: t.pageNumberStartFirstTitle(),
+      },
+      {
+        value: "second",
+        label: t.pageNumberStartSecond(),
+        title: t.pageNumberStartSecondTitle(),
+      },
+    ] as const
+  ).map((option) => ({
+    ...option,
+    preview: () => legendPageNumberStart(option.value),
+  }));
 
 const getPageNumberPositions = (
   t: KuusiTranslator,
-): Array<{ value: ArticlePageNumberPosition; label: string; title: string }> => [
-  {
-    value: "header",
-    label: t.pageNumberInHeader(),
-    title: t.pageNumberInHeaderTitle(),
-  },
-  {
-    value: "footer",
-    label: t.pageNumberInFooter(),
-    title: t.pageNumberInFooterTitle(),
-  },
-];
+): Array<{
+  value: ArticlePageNumberPosition;
+  label: string;
+  title: string;
+  preview: () => HTMLElement;
+}> =>
+  (
+    [
+      {
+        value: "header",
+        label: t.pageNumberInHeader(),
+        title: t.pageNumberInHeaderTitle(),
+      },
+      {
+        value: "footer",
+        label: t.pageNumberInFooter(),
+        title: t.pageNumberInFooterTitle(),
+      },
+    ] as const
+  ).map((option) => ({
+    ...option,
+    preview: () => legendPageNumberPosition(option.value),
+  }));
 
 const appendPagedOnlyHint = (panel: HTMLElement, t: KuusiTranslator): void => {
   const hint = document.createElement("div");
@@ -801,6 +878,7 @@ const fillFurnitureSection = (
         },
       },
     ]);
+    appendHint(panel, t.pageTokensHint());
     return;
   }
 

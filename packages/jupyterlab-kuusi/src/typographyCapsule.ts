@@ -2,7 +2,6 @@ import type { KuusiTranslator } from "./kuusiI18n";
 import type { PageToolbarItem } from "./pageToolbar";
 import {
   createElementsToolbar,
-  createHeadingsToolbar,
   createParagraphToolbar,
   createTextToolbar,
   type TypographyModel,
@@ -11,13 +10,13 @@ import {
 export type TypographyCapsuleOptions = {
   /** First appearance order for Text. Default 30. */
   orderStart?: number;
-  /** Gap between Text / Paragraph / Headings / Elements. Default 10. */
+  /** Gap between Text / Paragraph / Elements. Default 10. */
   orderStep?: number;
 };
 
 /**
- * Shared Text / Paragraph / Headings / Elements capsule slots for Article,
- * Slides, and Mind Map. Theme / Page / Brand stay view-specific.
+ * Shared Text (body + headings) / Paragraph / Elements capsule slots for
+ * Article, Slides, and Mind Map. Theme / Page / Brand stay view-specific.
  */
 export const createTypographyCapsuleItems = (
   host: HTMLElement,
@@ -42,15 +41,9 @@ export const createTypographyCapsuleItems = (
       create: () => createParagraphToolbar(host, model, t),
     },
     {
-      id: "headings",
-      group: "appearance",
-      order: orderStart + orderStep * 2,
-      create: () => createHeadingsToolbar(host, model, t),
-    },
-    {
       id: "elements",
       group: "appearance",
-      order: orderStart + orderStep * 3,
+      order: orderStart + orderStep * 2,
       create: () => createElementsToolbar(host, model, t),
     },
   ];

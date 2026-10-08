@@ -18,6 +18,8 @@ import {
 } from "./kuusiIcon";
 import { kuusiLauncherMindMapIcon } from "./launcherIcons";
 import { createKuusiMindMapMarkdown } from "./mindMapMarkdown";
+import type { KuusiRenderViewId } from "./kuusiRenderViews";
+import { isRenderViewEnabled, onEnabledRenderViewsChanged } from "./renderViewOrder";
 import { createKuusiMindMapNotebook } from "./mindMapNotebook";
 
 const PLUGIN_ID = "jupyterlab-kuusi:launcher";
@@ -175,30 +177,75 @@ const launcherPlugin: JupyterFrontEndPlugin<void> = {
       }
       mounted = true;
 
-      // Visible tiles: Mind Map · Article · Book · Slides · Settings
-      // (section command is CSS-collapsed; provides the Kuusi header icon).
-      const items = [
+      // Always shown: the section header icon and Settings. The four view tiles
+      // follow Settings → Default files → views: Book and Slides are off by
+      // default, so they only appear once the user turns them on.
+      const fixed = [
         { command: LAUNCHER_SECTION_COMMAND, rank: -100 },
-        { command: LAUNCHER_MINDMAP_COMMAND, rank: 10 },
-        { command: LAUNCHER_ARTICLE_COMMAND, rank: 20 },
-        { command: LAUNCHER_BOOK_COMMAND, rank: 21 },
-        { command: LAUNCHER_SLIDES_COMMAND, rank: 22 },
         { command: OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND, rank: 34 },
       ] as const;
+      const viewTiles: ReadonlyArray<{
+        command: string;
+        rank: number;
+        view: KuusiRenderViewId;
+      }> = [
+        { command: LAUNCHER_MINDMAP_COMMAND, rank: 10, view: "mindmap" },
+        { command: LAUNCHER_ARTICLE_COMMAND, rank: 20, view: "article" },
+        { command: LAUNCHER_BOOK_COMMAND, rank: 21, view: "book" },
+        { command: LAUNCHER_SLIDES_COMMAND, rank: 22, view: "slides" },
+      ];
+      const shown = new Map<string, IDisposable>();
 
-      for (const item of items) {
-        if (!VISIBLE_LAUNCHER_COMMANDS.has(item.command)) {
-          continue;
+      const addTile = (command: string, rank: number): IDisposable =>
+        launcher.add({
+          command,
+          category: LAUNCHER_CATEGORY,
+          categoryRank: LAUNCHER_CATEGORY_RANK,
+          rank,
+        });
+
+      for (const item of fixed) {
+        if (VISIBLE_LAUNCHER_COMMANDS.has(item.command)) {
+          disposables.push(addTile(item.command, item.rank));
         }
-        disposables.push(
-          launcher.add({
-            command: item.command,
-            category: LAUNCHER_CATEGORY,
-            categoryRank: LAUNCHER_CATEGORY_RANK,
-            rank: item.rank,
-          }),
-        );
       }
+
+      const syncViewTiles = (): void => {
+        for (const tile of viewTiles) {
+          const show =
+            VISIBLE_LAUNCHER_COMMANDS.has(tile.command) &&
+            isRenderViewEnabled(tile.view);
+          const current = shown.get(tile.command);
+
+          if (show && !current) {
+            shown.set(tile.command, addTile(tile.command, tile.rank));
+          } else if (!show && current) {
+            current.dispose();
+            shown.delete(tile.command);
+          }
+        }
+
+        requestAnimationFrame(() => {
+          placeKuusiLauncherAfterNotebook();
+        });
+      };
+
+      syncViewTiles();
+      const enabledSubscription = onEnabledRenderViewsChanged(syncViewTiles);
+      disposables.push(
+        {
+          dispose: () => enabledSubscription.disconnect(),
+          get isDisposed() {
+            return false;
+          },
+        },
+        {
+          dispose: () => shown.forEach((tile) => tile.dispose()),
+          get isDisposed() {
+            return false;
+          },
+        },
+      );
 
       requestAnimationFrame(() => {
         placeKuusiLauncherAfterNotebook();

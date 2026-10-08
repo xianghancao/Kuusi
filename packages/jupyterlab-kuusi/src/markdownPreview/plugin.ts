@@ -150,7 +150,7 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
     settingRegistry: ISettingRegistry,
     toolbarRegistry: IToolbarWidgetRegistry,
   ) => {
-    const articleSettings = new ArticleSettingsManager(settingRegistry);
+    const articleSettings = ArticleSettingsManager.shared(settingRegistry);
 
     const applyArticleChrome = (widget: MarkdownDocument): void => {
       ensureKuusiArticleChrome(widget, articleSettings);

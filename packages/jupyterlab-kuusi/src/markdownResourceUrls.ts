@@ -8,6 +8,18 @@ export type DocumentContextResolver = IRenderMime.IResolver & {
   isMalformed?: (url: string) => boolean;
 };
 
+/**
+ * `decodeURIComponent` throws on a literal `%` that is not an escape
+ * (`50%.png`). Fall back to the original text so the file can still resolve.
+ */
+export const safeDecodeURIComponent = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 /** Normalize path segments (macOS NFD filenames vs NFC in markdown). */
 export const normalizeUnicodePath = (path: string): string =>
   path
@@ -45,7 +57,7 @@ const resolveDocumentRelativePath = (
   contents: Contents.IManager,
 ): string => {
   const parent = PathExt.dirname(resolver.path);
-  const decoded = decodeURIComponent(url);
+  const decoded = safeDecodeURIComponent(url);
   const resolved = contents.resolvePath(parent, decoded);
 
   return normalizeUnicodePath(contents.normalize(resolved));
@@ -77,7 +89,7 @@ export const wrapDocumentUrlResolver = (
     return resolver.resolveUrl(url, context);
   },
   getDownloadUrl: async (urlPath) => {
-    const normalized = normalizeUnicodePath(decodeURIComponent(urlPath));
+    const normalized = normalizeUnicodePath(safeDecodeURIComponent(urlPath));
 
     return resolver.getDownloadUrl(normalized);
   },

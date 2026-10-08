@@ -10,7 +10,6 @@
 export const PANE_ZOOM_MIN = 40;
 /** Highest zoom the sash may drive (manual + can go higher). */
 export const PANE_ZOOM_MAX = 100;
-const PANE_ZOOM_STEP = 10;
 
 type PaneFitPair = {
   viewport: HTMLElement;
@@ -22,10 +21,12 @@ type PaneFitPair = {
   widthOnly?: boolean;
 };
 
-const snapPaneZoomPercent = (percent: number): number => {
-  const snapped = Math.round(percent / PANE_ZOOM_STEP) * PANE_ZOOM_STEP;
-  return Math.min(PANE_ZOOM_MAX, Math.max(PANE_ZOOM_MIN, snapped));
-};
+/**
+ * Fit zoom is continuous (0.1% precision): snapping to 10% made the page jump
+ * in steps while the sash moved smoothly under the pointer.
+ */
+const clampPaneZoomPercent = (percent: number): number =>
+  Math.min(PANE_ZOOM_MAX, Math.max(PANE_ZOOM_MIN, Math.round(percent * 10) / 10));
 
 const resolvePaneFitPair = (host: HTMLElement): PaneFitPair | null => {
   const slidesStage = host.querySelector<HTMLElement>(
@@ -96,7 +97,7 @@ const contentBox = (
   };
 };
 
-/** Fit scale as a zoom percent, snapped and clamped to the sash band. */
+/** Fit scale as a zoom percent, clamped to the sash band. */
 export const computePaneFitZoomPercent = (host: HTMLElement): number | null => {
   const pair = resolvePaneFitPair(host);
   if (!pair) {
@@ -116,7 +117,7 @@ export const computePaneFitZoomPercent = (host: HTMLElement): number | null => {
     return null;
   }
 
-  return snapPaneZoomPercent(fit * 100);
+  return clampPaneZoomPercent(fit * 100);
 };
 
 export const isPaneAutoZoomActive = (percent: number): boolean =>
@@ -171,7 +172,8 @@ export const bindPaneAutoZoom = (
     }
 
     const next = computePaneFitZoomPercent(host);
-    if (next == null || next === current) {
+    // Ignore sub-pixel noise so a still sash does not keep rewriting the zoom.
+    if (next == null || Math.abs(next - current) < 0.2) {
       return;
     }
 

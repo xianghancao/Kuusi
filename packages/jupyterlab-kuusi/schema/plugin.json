@@ -332,7 +332,7 @@
       "maximum": 3,
       "default": 0,
       "title": "Mind map letter spacing",
-      "description": "Tracking for Body nodes, in em (0–0.15)."
+      "description": "Tracking for Body nodes, in pt (0–3)."
     },
     "lineHeight": {
       "type": "number",
@@ -348,7 +348,7 @@
       "maximum": 48,
       "default": 0.5,
       "title": "Mind map paragraph spacing",
-      "description": "Vertical space between paragraphs inside a node, in em (0–3)."
+      "description": "Vertical space between paragraphs inside a node, in pt (0–48)."
     },
     "paragraphIndent": {
       "type": "number",
@@ -356,7 +356,7 @@
       "maximum": 72,
       "default": 0,
       "title": "Mind map paragraph indent",
-      "description": "First-line indent inside Body nodes, in em (0–3)."
+      "description": "First-line indent inside Body nodes, in pt (0–72)."
     },
     "paragraphAlign": {
       "type": "string",
@@ -496,7 +496,7 @@
         "xl",
         "xxl"
       ],
-      "default": "sm",
+      "default": "xs",
       "title": "Mind map code font size",
       "description": "Size step for code text."
     },

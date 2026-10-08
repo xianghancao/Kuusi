@@ -20,7 +20,7 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 - **Export** on every render view: PDF, PNG, JPEG, WebP, print / vector PDF, HTML, and download of the source file.
 - **Editor ↔ view position sync**: moving the caret or active cell scrolls or pages an open Article / Slides / Mind Map; clicking the view (or changing slide) moves the editor without stealing focus.
 - Markdown **mind map**: drop an image onto a node; the file is saved next to the document.
-- Mind Map uses the same **Text / Paragraph / Headings / Code / Image** capsules as Article and Slides. Body cards take Text; H1–H3 tree frames take Headings; H4–H6 style titles inside a card. Text still has **Edit** / **Link** for the source-edit font.
+- Mind Map uses the same **Text / Paragraph / Elements** capsules as Article and Slides. Body cards take **Text → Body**; H1–H3 tree frames take **Text → H1–H3**; H4–H6 style titles inside a card. The source-edit font is under **Elements → Text**.
 - **Simplified Chinese UI**: domain `jupyterlab_kuusi` with zh_CN gettext catalogs. The chrome follows the JupyterLab language; a frontend map fills strings if the official locale loader misses the pack.
 - Theme menu: **Restore theme defaults** — reapplies this theme’s page, background, and appearance. Text and Headings stay as you left them.
 - **View menu settings** (Settings → Default files): choose which views appear in the view menu — Article, Book, Mind Map, Slides — and their left-to-right order. Article and Mind Map are on by default; the first enabled view opens by default.
@@ -29,6 +29,7 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 - **Customized dot** on the Theme, Page, and (Mind Map) Layout buttons when settings differ from the theme defaults, plus **Reset page settings** at the bottom of those menus.
 - **Theme hover preview**: rest on a theme to see it on the canvas; moving away restores it, clicking applies it. Previews are never saved.
 - **Text → Apply text style to all views** copies font, colors, tracking, paragraph spacing / indent / alignment, link style, and heading font / color / alignment to the other views (sizes and line height stay per view).
+- **Option legends**: small diagrams on menu choices that are hard to picture from a label — page layout, paper size and orientation, columns, page-number format / start / position, text and paragraph alignment, image alignment / wrap / size / border, link style, list spacing, table style, quote and rule weight. The Text, Paragraph and Elements menus are shared, so Slides and Mind Map get them too.
 - **Mind Map — node levels**: Node → **Levels** sets fill, border color / width, and corner radius separately for the root, level 1, level 2, and deeper nodes. A node's own fill still wins; text contrast follows the level fill.
 - **Mind Map — lines**: Line → **Taper** makes connectors thinner with depth (minimum width configurable); **Branch colors** (rainbow / pastel / mono) colors each first-level branch, and arrows follow the branch color.
 - **Mind Map — node padding**: Node → **Padding** sets horizontal and vertical card insets.
@@ -39,8 +40,9 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 
 ### Changed
 
-- **Launcher → Kuusi** currently shows **Settings** only; other tiles stay registered but hidden.
+- **Launcher → Kuusi** shows **Mind Map**, **Article** and **Settings**. **Book** and **Slides** tiles appear only once you turn those views on under **Settings → Default files**.
 - Article image width moved from Page → Images into the **Image** capsule.
+- **Article → Page**: Padding now reaches 8 rem (≈ 34 mm; it stopped at 17 mm) and shows its printed size in mm; leading starts at 0.9 (0.5 made lines overlap); Measure explains that it only applies to the scrolling layout, Paper that it switches to the paged layout, and Header / Footer list their placeholders. The Page menu is taller to fit its grouped tabs.
 - Export trigger matches the view-switcher pill (fully rounded).
 - Dark / light Jupyter themes: Article and Slides page colors follow the Lab theme so body text stays readable.
 - Slides settings (theme, type, page chrome) update CSS and header/footer in place. The deck rebuilds only when **split mode** changes.
@@ -48,6 +50,9 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 - Theme menus have **Restore theme defaults**. Picking a theme does not change fonts or heading styles.
 - Release tier gating (`core` / `full`) is no longer applied to plugins; there is no 0.3.0 switch to wait for.
 - Article, Book, and Slides share one capsule-header implementation and one Theme menu implementation.
+- **Article paged layout** (single column) now lets the browser break pages natively (`column-height`, Chromium 145+) — about 5× faster on a 300-page document and the same page packing — and falls back to the JS paginator elsewhere. Set `localStorage["jupyterlab-kuusi:article-pagination"]` to `"js"` to force the fallback. Code blocks wrap in paged Article (a scrolling block cannot be split across pages).
+- Article source ↔ view position sync reads block boundaries from the `marked` lexer instead of a hand-written scanner (exact line ranges; front matter, setext headings and HTML blocks line up).
+- **Text** and **Headings** are one capsule on every view: the **Text** menu has **Body** (font, size, colors, tracking, leading) and **H1–H6**. On Mind Map, the node-editing font moved from Text to **Elements → Text**, so each view has one capsule fewer.
 - Kuusi Settings strings, the Mind Map cut / copy / paste tooltips, and the view-order panel are translated (zh_CN).
 - Mind Map: Cut moves focus to the neighbouring topic and re-seeds the root if the map empties; pasting code cells into a Markdown mind map keeps them as fenced Markdown instead of dropping them on save; **Ctrl/⌘+C** copies selected text inside a card instead of the whole subtree; clicking empty space in the capsule closes open menus.
 
@@ -57,6 +62,11 @@ Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Boo
 - Mind Map drag: a cancelled pointer (touch takeover, window blur) no longer drops the node; **Esc** cancels a drag; right / middle click no longer starts one; multi-selections from different parents all close their gaps; a failed drop re-syncs the canvas.
 - Markdown mind map: opening a file no longer rewrites it (blank-line runs, CRLF, missing final newline) or marks it modified; saving from a hidden mind map can no longer overwrite edits made in the source editor; every edit no longer triggers an extra full reload.
 - Mind Map opened in a background tab now centers when it is first shown.
+- Article paged layout: code blocks no longer run up to 8 px into the bottom margin when split; a heading is no longer left alone at the bottom of a page when its paragraph or table moves on; the JS paginator no longer rebuilds the block list on every step (a 300-page document took ~1.5 s, now ~0.5 s) and cannot loop on a block that will not settle; a very long article is no longer silently left unpaged after 4000 steps.
+- Article stays smooth while you drag the split divider: the pane-fit zoom follows the pane continuously instead of jumping in 10% steps, and moving the divider (or changing only the zoom) no longer re-paginates the whole article every frame (a 78-page document dropped from ~56 ms to ~17 ms per frame).
+- Settings schemas documented the wrong units for letter spacing, paragraph spacing and first-line indent (they are pt, not em). Article's schema defaults (background pattern, leading, paragraph spacing, code size) now equal the code defaults, so a fresh install no longer shows the Theme / Page "customized" dot. `npm run bench:article:defaults` guards this.
+- Article images and files with a literal `%` in the path (`50%.png`) resolve instead of failing.
+- Article source map no longer drifts: on a 1100-block document the old scanner lost 7 blocks and misaligned 413.
 - Mind Map Markdown toolbar paste no longer drops pasted code cells.
 
 ### Removed

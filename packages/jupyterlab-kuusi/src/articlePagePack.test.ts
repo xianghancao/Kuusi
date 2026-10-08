@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { linesToKeepOnPage, resolvePageSplit } from "./articlePagePack";
+import {
+  ARTICLE_LAYOUT_MIN_STEPS,
+  articleLayoutStepLimit,
+  linesToKeepOnPage,
+  resolvePageSplit,
+} from "./articlePagePack";
 
 describe("linesToKeepOnPage", () => {
   it("keeps a block that already fits", () => {
@@ -34,5 +39,18 @@ describe("resolvePageSplit", () => {
 
   it("still pushes when there is room on the next page", () => {
     assert.equal(resolvePageSplit(8, 1, false), "push");
+  });
+});
+
+describe("articleLayoutStepLimit", () => {
+  it("never drops below the floor for short documents", () => {
+    assert.equal(articleLayoutStepLimit(0), ARTICLE_LAYOUT_MIN_STEPS);
+    assert.equal(articleLayoutStepLimit(100), ARTICLE_LAYOUT_MIN_STEPS);
+  });
+
+  it("scales with long documents instead of cutting them short", () => {
+    const blocks = 3000;
+    assert.ok(articleLayoutStepLimit(blocks) > blocks * 6);
+    assert.ok(articleLayoutStepLimit(blocks) > ARTICLE_LAYOUT_MIN_STEPS);
   });
 });

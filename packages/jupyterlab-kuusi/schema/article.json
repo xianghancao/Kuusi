@@ -84,10 +84,10 @@
     },
     "padding": {
       "title": "Article padding",
-      "description": "Horizontal page inset of the Article column in rem (top/bottom scale with it).",
+      "description": "Horizontal page inset of the Article column in rem (1 rem ≈ 4.2 mm); the top margin is 1.125× and the bottom 2× this value.",
       "type": "number",
       "minimum": 0.5,
-      "maximum": 4,
+      "maximum": 8,
       "multipleOf": 0.25,
       "default": 2
     },
@@ -263,7 +263,7 @@
         "lines",
         "notebook"
       ],
-      "default": "none"
+      "default": "notebook"
     },
     "viewBackground": {
       "title": "Article view background",
@@ -325,23 +325,23 @@
       "maximum": 3,
       "default": 0,
       "title": "Article letter spacing",
-      "description": "Tracking for body text, in em (0–0.15)."
+      "description": "Tracking for body text, in pt (0–3)."
     },
     "lineHeight": {
       "type": "number",
-      "minimum": 0.5,
+      "minimum": 0.9,
       "maximum": 3,
-      "default": 1.6,
+      "default": 1.55,
       "title": "Article leading",
-      "description": "Line-height multiplier for Article body paragraphs (0.5–3)."
+      "description": "Line-height multiplier for Article body paragraphs (0.9–3)."
     },
     "paragraphSpacing": {
       "type": "number",
       "minimum": 0,
       "maximum": 48,
-      "default": 12,
+      "default": 10,
       "title": "Article paragraph spacing",
-      "description": "Vertical space between body paragraphs, in em (0–3)."
+      "description": "Vertical space between body paragraphs, in pt (0–48)."
     },
     "paragraphIndent": {
       "type": "number",
@@ -349,7 +349,7 @@
       "maximum": 72,
       "default": 0,
       "title": "Article paragraph indent",
-      "description": "First-line indent for body paragraphs, in em (0–3)."
+      "description": "First-line indent for body paragraphs, in pt (0–72)."
     },
     "paragraphAlign": {
       "type": "string",
@@ -427,7 +427,7 @@
         "xl",
         "xxl"
       ],
-      "default": "sm",
+      "default": "xs",
       "title": "Article code font size",
       "description": "Size step for code text."
     },

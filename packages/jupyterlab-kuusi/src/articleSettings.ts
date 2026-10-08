@@ -103,7 +103,8 @@ export type ArticleMeasure = "narrow" | "reading" | "wide" | "full";
 export type ArticlePadding = number;
 
 export const ARTICLE_PADDING_MIN = 0.5;
-export const ARTICLE_PADDING_MAX = 4;
+/** 8 rem ≈ 34 mm: enough for ordinary printed margins (it used to stop at 17 mm). */
+export const ARTICLE_PADDING_MAX = 8;
 export const ARTICLE_PADDING_STEP = 0.25;
 export const ARTICLE_PADDING_DEFAULT = 2;
 export type ArticleBackground =
@@ -134,7 +135,8 @@ export type ArticleTheme =
   | "academic"
   | "minimal";
 
-export const ARTICLE_LINE_HEIGHT_MIN = 0.5;
+/** Below ~0.9 lines overlap; Slides and Mind Map already start at 0.9. */
+export const ARTICLE_LINE_HEIGHT_MIN = 0.9;
 export const ARTICLE_LINE_HEIGHT_MAX = 3;
 export const ARTICLE_LINE_HEIGHT_STEP = 0.05;
 export const ARTICLE_PARAGRAPH_SPACING_MIN = 0;
@@ -1312,6 +1314,8 @@ export const applyArticleAppearance = (
   });
 };
 
+const sharedArticleManagers = new WeakMap<ISettingRegistry, ArticleSettingsManager>();
+
 export class ArticleSettingsManager {
   private _settings: ArticleSettings = { ...DEFAULT_ARTICLE_SETTINGS };
 
@@ -1335,13 +1339,37 @@ export class ArticleSettingsManager {
     },
   };
 
+  private _ready: Promise<void> | null = null;
+
   constructor(private _registry: ISettingRegistry) {}
+
+  /**
+   * The one manager per setting registry. Notebook Article and Markdown
+   * Article are created by different plugins but share these settings, so
+   * they share this instance (one copy of the state, one hover preview).
+   */
+  static shared(registry: ISettingRegistry): ArticleSettingsManager {
+    let manager = sharedArticleManagers.get(registry);
+
+    if (!manager) {
+      manager = new ArticleSettingsManager(registry);
+      sharedArticleManagers.set(registry, manager);
+    }
+
+    return manager;
+  }
 
   get settings(): ArticleSettings {
     return this._preview ?? this._settings;
   }
 
-  async ready(): Promise<void> {
+  /** Loads the settings once; later calls return the same promise. */
+  ready(): Promise<void> {
+    this._ready ??= this._load();
+    return this._ready;
+  }
+
+  private async _load(): Promise<void> {
     try {
       const plugin = await this._registry.load(ARTICLE_SETTINGS_PLUGIN_ID);
       this._plugin = plugin;

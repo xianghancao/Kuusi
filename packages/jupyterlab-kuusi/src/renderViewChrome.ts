@@ -25,18 +25,52 @@ export const snapRenderZoomPercent = (
   return Math.min(max, Math.max(min, snapped));
 };
 
+/** Whole-percent clamp for display; unlike {@link snapRenderZoomPercent} it keeps in-between values. */
+export const clampRenderZoomPercent = (
+  percent: number,
+  min = RENDER_ZOOM_MIN,
+  max = RENDER_ZOOM_MAX,
+): number => Math.min(max, Math.max(min, Math.round(percent)));
+
+const zoomSettleTimers = new WeakMap<HTMLElement, number>();
+
+/**
+ * While the zoom is being driven continuously (sash drag), promote the target
+ * to its own layer so each step only rescales a texture; drop the hint a
+ * moment after the last step so the page is re-rasterized sharp.
+ */
+const markZoomInMotion = (target: HTMLElement): void => {
+  target.classList.add("jp-KuusiRenderZoomTarget--moving");
+  window.clearTimeout(zoomSettleTimers.get(target));
+  zoomSettleTimers.set(
+    target,
+    window.setTimeout(() => {
+      target.classList.remove("jp-KuusiRenderZoomTarget--moving");
+      zoomSettleTimers.delete(target);
+    }, 200),
+  );
+};
+
 export const applyRenderViewCssZoom = (
   target: HTMLElement,
   percent: number,
   previous?: HTMLElement | null,
+  options: { inMotion?: boolean } = {},
 ): void => {
+  if (options.inMotion) {
+    markZoomInMotion(target);
+  }
+
   if (previous && previous !== target) {
     previous.classList.remove("jp-KuusiRenderZoomTarget");
     previous.style.removeProperty("--kuusi-render-zoom");
   }
-  const snapped = snapRenderZoomPercent(percent);
+  // 0.1% precision: manual steps are multiples of 10, the sash fit is not.
+  const exact =
+    Math.round(Math.min(RENDER_ZOOM_MAX, Math.max(RENDER_ZOOM_MIN, percent)) * 10) /
+    10;
   target.classList.add("jp-KuusiRenderZoomTarget");
-  target.style.setProperty("--kuusi-render-zoom", String(snapped / 100));
+  target.style.setProperty("--kuusi-render-zoom", String(exact / 100));
 };
 
 const resolveCssZoomTarget = (host: HTMLElement): HTMLElement =>
@@ -72,11 +106,15 @@ export const mountCssZoomRenderChrome = (
   const showZoom = extra?.showZoom !== false;
   const { onZoomChange, ...chromeExtra } = extra ?? {};
 
-  const applyZoom = (next: number, notify: boolean): void => {
-    percent = snapRenderZoomPercent(next);
+  const applyZoom = (next: number, notify: boolean, exact = false): void => {
+    percent = exact
+      ? Math.round(
+          Math.min(RENDER_ZOOM_MAX, Math.max(RENDER_ZOOM_MIN, next)) * 10,
+        ) / 10
+      : snapRenderZoomPercent(next);
     if (showZoom) {
       const target = resolveCssZoomTarget(host);
-      applyRenderViewCssZoom(target, percent, zoomTarget);
+      applyRenderViewCssZoom(target, percent, zoomTarget, { inMotion: exact });
       zoomTarget = target;
     }
     if (notify) {
@@ -105,7 +143,8 @@ export const mountCssZoomRenderChrome = (
         host,
         () => percent,
         (next) => {
-          applyZoom(next, true);
+          // Sash-driven fit: continuous, not snapped to 10% steps.
+          applyZoom(next, true, true);
           handle.setZoomPercent(percent);
         },
       )
@@ -216,7 +255,7 @@ const percentToTrackBottom = (
   min: number,
   max: number,
 ): number => {
-  const snapped = snapRenderZoomPercent(percent, min, max);
+  const snapped = Math.min(max, Math.max(min, percent));
   return ((snapped - min) / (max - min)) * ZOOM_TRACK_PX;
 };
 
@@ -352,7 +391,7 @@ export const mountRenderViewChrome = (
   };
 
   const syncZoomThumb = (percent: number): void => {
-    const snapped = snapRenderZoomPercent(percent, min, max);
+    const snapped = clampRenderZoomPercent(percent, min, max);
 
     if (zoomThumb) {
       zoomThumb.style.bottom = `${percentToTrackBottom(snapped, min, max)}px`;
@@ -371,7 +410,7 @@ export const mountRenderViewChrome = (
       return;
     }
 
-    const snapped = snapRenderZoomPercent(percent, min, max);
+    const snapped = clampRenderZoomPercent(percent, min, max);
     const label = formatZoomLabel(t, snapped);
 
     if (zoomTrigger) {

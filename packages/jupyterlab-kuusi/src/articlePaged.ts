@@ -1,6 +1,10 @@
 import type { Widget } from "@lumino/widgets";
 
-import { resolvePageSplit } from "./articlePagePack";
+import {
+  articleLayoutStepLimit,
+  linesToKeepOnPage,
+  resolvePageSplit,
+} from "./articlePagePack";
 import type {
   ArticleHeaderAlign,
   ArticleSettings,
@@ -17,8 +21,9 @@ export const ARTICLE_COLUMNS_FLOW_CLASS = "jp-KuusiArticle-columnsFlow";
 export const ARTICLE_COLUMNS_FALLBACK_CLASS = "is-kuusi-article-columns-fallback";
 
 const PAGE_GAP_PX = 28;
+/** Pushes allowed for one block before the layout loop gives up on it. */
+const MAX_RETRIES_PER_BLOCK = 4;
 const MIN_CONTENT_HEIGHT_PX = 48;
-const LAYOUT_GUARD = 4000;
 const SNAP_PX = 1.5;
 const RENDERED_SELECTOR = ":is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)";
 const LAYOUT_ATTRIBUTES = [
@@ -54,6 +59,12 @@ const ATOMIC_CHILD_SELECTOR = ATOMIC_SELECTORS.map(
 ).join(", ");
 
 const bound = new WeakSet<Widget>();
+
+const RENDER_ZOOM_VAR = /--kuusi-render-zoom\s*:[^;]*;?/g;
+
+/** An inline `style` with the view-zoom variable removed. */
+const styleWithoutZoom = (style: string | null): string =>
+  (style ?? "").replace(RENDER_ZOOM_VAR, "").replace(/\s+/g, "");
 const splitHtml = new WeakMap<HTMLElement, string>();
 const splitStart = new WeakMap<HTMLElement, string | null>();
 
@@ -61,6 +72,34 @@ const supportsColumnHeight = (): boolean =>
   typeof CSS !== "undefined" &&
   typeof CSS.supports === "function" &&
   CSS.supports("column-height", "100px");
+
+const PAGINATION_OVERRIDE_KEY = "jupyterlab-kuusi:article-pagination";
+
+/**
+ * Single-column pages can be broken by the browser itself (the same
+ * `column-height` path as dual-column) or by the JS paginator. Native is used
+ * whenever the browser supports it; set `localStorage[
+ * "jupyterlab-kuusi:article-pagination"]` to `"js"` to force the JS paginator
+ * (or `"native"` to force native), e.g. for comparison.
+ */
+const useNativeSinglePages = (): boolean => {
+  let override: unknown = (globalThis as { __KUUSI_ARTICLE_PAGINATION?: unknown })
+    .__KUUSI_ARTICLE_PAGINATION;
+
+  if (override === undefined) {
+    try {
+      override = window.localStorage.getItem(PAGINATION_OVERRIDE_KEY);
+    } catch {
+      override = null;
+    }
+  }
+
+  if (override === "js") {
+    return false;
+  }
+
+  return supportsColumnHeight();
+};
 
 type PageMetrics = {
   rendered: HTMLElement;
@@ -89,17 +128,40 @@ const isPagedChrome = (node: Node): boolean => {
   );
 };
 
+/**
+ * Chrome test for a *direct child* of the flow container. Unlike
+ * {@link isPagedChrome} it never walks ancestors (`closest`), which made the
+ * layout loop quadratic: it ran for every child on every step.
+ */
+const isChromeChild = (node: Element): boolean =>
+  node.classList.contains(ARTICLE_PAGE_SHEET_CLASS) ||
+  node.classList.contains(ARTICLE_PAGE_BREAK_CLASS) ||
+  (node as HTMLElement).dataset?.kuusiColumnsClone === "1";
+
 const contentChildren = (container: HTMLElement): HTMLElement[] =>
   Array.from(container.children).filter(
     (child): child is HTMLElement =>
-      child instanceof HTMLElement && !isPagedChrome(child),
+      child instanceof HTMLElement && !isChromeChild(child),
   );
+
+const firstFlow = (container: HTMLElement): HTMLElement | null => {
+  let current = container.firstElementChild;
+
+  while (current) {
+    if (current instanceof HTMLElement && !isChromeChild(current)) {
+      return current;
+    }
+    current = current.nextElementSibling;
+  }
+
+  return null;
+};
 
 const nextFlow = (node: HTMLElement): HTMLElement | null => {
   let current = node.nextElementSibling;
 
   while (current) {
-    if (current instanceof HTMLElement && !isPagedChrome(current)) {
+    if (current instanceof HTMLElement && !isChromeChild(current)) {
       return current;
     }
     current = current.nextElementSibling;
@@ -180,6 +242,7 @@ const clearPagedLayout = (rendered: HTMLElement): void => {
   rendered.style.removeProperty("column-width");
   rendered.style.removeProperty("column-gap");
   rendered.style.removeProperty("column-fill");
+  delete rendered.dataset.kuusiNativePages;
   rendered.style.removeProperty("--kuusi-article-page-content-h");
   rendered.style.removeProperty("--kuusi-article-page-row-gap");
   rendered.classList.remove(ARTICLE_COLUMNS_FALLBACK_CLASS);
@@ -284,6 +347,44 @@ const insertSpacerBefore = (
   }
 };
 
+const prevFlow = (node: HTMLElement): HTMLElement | null => {
+  let current = node.previousElementSibling;
+
+  while (current) {
+    if (current instanceof HTMLElement && !isChromeChild(current)) {
+      return current;
+    }
+    current = current.previousElementSibling;
+  }
+
+  return null;
+};
+
+/**
+ * Earliest heading in the run of headings directly above `child` that sits on
+ * the same page (and not at its very top). Moving the child to the next page
+ * must take these along, or they end up stranded at the bottom.
+ */
+const headingsToKeepWith = (
+  child: HTMLElement,
+  page: number,
+  metrics: PageMetrics,
+): HTMLElement => {
+  let anchor = child;
+  let previous = prevFlow(anchor);
+
+  while (previous && isHeading(previous)) {
+    if (atPageStart(topOf(previous, metrics), page, metrics)) {
+      break;
+    }
+
+    anchor = previous;
+    previous = prevFlow(anchor);
+  }
+
+  return anchor;
+};
+
 const pushToNextPage = (child: HTMLElement, metrics: PageMetrics): boolean => {
   const top = topOf(child, metrics);
   const page = pageIndex(top, metrics);
@@ -292,7 +393,11 @@ const pushToNextPage = (child: HTMLElement, metrics: PageMetrics): boolean => {
     return false;
   }
 
-  insertSpacerBefore(child, pageContentTop(page + 1, metrics), metrics);
+  insertSpacerBefore(
+    isHeading(child) ? child : headingsToKeepWith(child, page, metrics),
+    pageContentTop(page + 1, metrics),
+    metrics,
+  );
   return true;
 };
 
@@ -802,6 +907,17 @@ const splitList = (el: HTMLElement, metrics: PageMetrics): "next" | "retry" => {
   return "next";
 };
 
+/** Padding + border below the last line of a boxed block, in layout px. */
+const bottomChrome = (el: HTMLElement): number => {
+  const box = el.tagName === "PRE" ? el : el.querySelector(":scope > pre") ?? el;
+  const style = getComputedStyle(box as HTMLElement);
+
+  return (
+    (parseFloat(style.paddingBottom) || 0) +
+    (parseFloat(style.borderBottomWidth) || 0)
+  );
+};
+
 const splitByLines = (
   el: HTMLElement,
   metrics: PageMetrics,
@@ -810,7 +926,9 @@ const splitByLines = (
   const page = pageIndex(top, metrics);
   const limit = pageContentBottom(page, metrics);
   const lines = lineBoxes(el);
-  const fitting = fittingLines(el, limit, metrics);
+  // A boxed block (code) keeps its bottom padding and border on the head
+  // fragment, so the last line must end that far above the page limit.
+  const fitting = fittingLines(el, limit - bottomChrome(el), metrics);
   const keep = resolvePageSplit(
     lines.length,
     fitting,
@@ -877,10 +995,37 @@ const keepWithNextNeed = (
       0,
       topOf(following, metrics) - (topOf(current, metrics) + heightOf(current, metrics)),
     );
-    need += gap + minKeepWith(following, metrics);
+    need += gap + keepWithNextBlockNeed(heading, following, metrics);
   }
 
   return need;
+};
+
+/**
+ * How much of the block after a heading must share the heading's page. For
+ * plain text the orphan/widow rule may push the *whole* paragraph to the next
+ * page (e.g. 3 lines with room for 2); the heading must then move with it, or
+ * it is left stranded at the bottom of the page.
+ */
+const keepWithNextBlockNeed = (
+  heading: HTMLElement,
+  following: HTMLElement,
+  metrics: PageMetrics,
+): number => {
+  const minimum = minKeepWith(following, metrics);
+
+  if (isAtomic(following) || isTable(following) || isList(following)) {
+    return minimum;
+  }
+
+  const page = pageIndex(topOf(heading, metrics), metrics);
+  const limit = pageContentBottom(page, metrics);
+  const lines = lineBoxes(following).length;
+  const fitting = fittingLines(following, limit, metrics);
+
+  return linesToKeepOnPage(lines, fitting) === "push"
+    ? heightOf(following, metrics)
+    : minimum;
 };
 
 const placeBlock = (
@@ -1172,24 +1317,47 @@ const layoutPages = (
     return;
   }
 
+  if (useNativeSinglePages()) {
+    // One column per page, wrapped into rows: the browser does the breaking
+    // (orphans / widows, keep-with-next, table rows) and no JS measuring runs.
+    rendered.dataset.kuusiNativePages = "1";
+    layoutDualColumnPages(rendered, metrics, settings, title, style);
+    return;
+  }
+
   const container = resolveFlowContainer(rendered);
-  let index = 0;
+  const stepLimit = articleLayoutStepLimit(contentChildren(container).length);
   let steps = 0;
+  // Walk the live sibling chain: a retry stays on the same block, "next" moves
+  // on (past any spacer or continuation fragment inserted meanwhile).
+  let child = firstFlow(container);
+  let retries = 0;
 
-  while (steps < LAYOUT_GUARD) {
-    const children = contentChildren(container);
-    const child = children[index];
-
-    if (!child) {
-      break;
-    }
-
+  while (child && steps < stepLimit) {
     steps += 1;
-    const result = placeBlock(child, metrics);
 
-    if (result === "next") {
-      index += 1;
+    if (placeBlock(child, metrics) === "next") {
+      child = nextFlow(child);
+      retries = 0;
+      continue;
     }
+
+    // Every retry moves the block down a page, so a block that still does not
+    // settle after a few tries cannot be placed (e.g. sub-pixel drift at a
+    // page edge). Move on instead of looping until the step limit.
+    retries += 1;
+
+    if (retries > MAX_RETRIES_PER_BLOCK) {
+      child = nextFlow(child);
+      retries = 0;
+    }
+  }
+
+  if (steps >= stepLimit) {
+    // Better to say so than to leave the tail of a long article unpaged.
+    console.warn(
+      `jupyterlab-kuusi: Article pagination stopped after ${stepLimit} steps; later blocks may not be paged.`,
+    );
   }
 
   const contentEnd = rendered.offsetHeight - padBottom;
@@ -1199,6 +1367,34 @@ const layoutPages = (
   );
   rendered.style.minHeight = `${pages * metrics.stride - pageGap}px`;
   appendPageSheets(rendered, pages, metrics, settings, title, style);
+};
+
+/**
+ * One full pagination pass: undo any previous layout, then page the rendered
+ * flow when the article is in paged layout. `bindArticlePagedLayout` calls
+ * this on every change; the benchmark calls it directly.
+ */
+export const paginateArticle = (
+  rendered: HTMLElement,
+  settings: ArticleSettings | null,
+  title: string,
+  root: HTMLElement = rendered,
+): void => {
+  clearPagedLayout(rendered);
+
+  // Layout attrs live on `.jp-KuusiArticle-paper` (MarkdownViewer), not the
+  // DocumentWidget shell — gating on root.dataset never saw "paged".
+  const paper =
+    rendered.closest(".jp-KuusiArticle-paper") ??
+    root.querySelector(".jp-KuusiArticle-paper");
+  const pageLayout =
+    paper instanceof HTMLElement
+      ? paper.dataset.kuusiArticlePageLayout
+      : root.dataset.kuusiArticlePageLayout;
+
+  if (pageLayout === "paged" && rendered.offsetHeight > 0) {
+    layoutPages(rendered, settings, title);
+  }
 };
 
 /**
@@ -1230,21 +1426,8 @@ export const bindArticlePagedLayout = (
       applying = true;
 
       try {
-        clearPagedLayout(rendered);
-
-        // Layout attrs live on `.jp-KuusiArticle-paper` (MarkdownViewer), not
-        // the DocumentWidget shell — gating on root.dataset never saw "paged".
-        const paper =
-          rendered.closest(".jp-KuusiArticle-paper") ??
-          root.querySelector(".jp-KuusiArticle-paper");
-        const pageLayout =
-          paper instanceof HTMLElement
-            ? paper.dataset.kuusiArticlePageLayout
-            : root.dataset.kuusiArticlePageLayout;
-
-        if (pageLayout === "paged" && rendered.offsetHeight > 0) {
-          layoutPages(rendered, manager?.settings ?? null, getTitle());
-        }
+        paginateArticle(rendered, manager?.settings ?? null, getTitle(), root);
+        pagedWidth = rendered.clientWidth;
       } finally {
         applying = false;
         mutations.takeRecords();
@@ -1269,6 +1452,22 @@ export const bindArticlePagedLayout = (
       }
 
       if (record.type === "attributes") {
+        if (record.attributeName === "style" && record.target instanceof Element) {
+          // Lumino rewrites the widget node's own inline geometry (left / top /
+          // width / height) on every sash move; that never changes the paper.
+          if (record.target === root) {
+            return false;
+          }
+
+          // View zoom is a CSS transform: it moves nothing in layout, so a
+          // style change that only touched the zoom variable needs no re-page.
+          // (The sash drags this variable every frame.)
+          return (
+            styleWithoutZoom(record.oldValue) !==
+            styleWithoutZoom(record.target.getAttribute("style"))
+          );
+        }
+
         return record.attributeName !== ARTICLE_PAGE_SPLIT_ATTR;
       }
 
@@ -1285,14 +1484,28 @@ export const bindArticlePagedLayout = (
 
   mutations.observe(root, {
     attributes: true,
+    attributeOldValue: true,
     attributeFilter: LAYOUT_ATTRIBUTES,
     childList: true,
     characterData: true,
     subtree: true,
   });
 
+  // Pages have a fixed physical width, so moving the split sash only changes
+  // the desk around them. Re-page when the paper itself changed (or the view
+  // just became visible); ignore pure pane resizes.
+  let pagedWidth = -1;
+  const onResize = (): void => {
+    const rendered = root.querySelector(RENDERED_SELECTOR) as HTMLElement | null;
+
+    if (rendered && pagedWidth > 0 && rendered.clientWidth === pagedWidth) {
+      return;
+    }
+
+    schedule();
+  };
   const resize =
-    typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
+    typeof ResizeObserver !== "undefined" ? new ResizeObserver(onResize) : null;
   resize?.observe(root);
 
   root.addEventListener("load", schedule, true);

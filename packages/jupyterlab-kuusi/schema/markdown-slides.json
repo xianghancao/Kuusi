@@ -177,14 +177,14 @@
       "maximum": 3,
       "default": 0,
       "title": "Slides letter spacing",
-      "description": "Tracking for body text, in em (0–0.15)."
+      "description": "Tracking for body text, in pt (0–3)."
     },
     "paragraphSpacing": {
       "type": "number",
       "minimum": 0,
       "maximum": 48,
       "title": "Slides paragraph spacing",
-      "description": "Vertical space between body paragraphs, in em (0–3)."
+      "description": "Vertical space between body paragraphs, in pt (0–48)."
     },
     "paragraphIndent": {
       "type": "number",
@@ -192,7 +192,7 @@
       "maximum": 72,
       "default": 0,
       "title": "Slides paragraph indent",
-      "description": "First-line indent for body paragraphs, in em (0–3)."
+      "description": "First-line indent for body paragraphs, in pt (0–72)."
     },
     "paragraphAlign": {
       "type": "string",
@@ -296,7 +296,7 @@
         "xl",
         "xxl"
       ],
-      "default": "sm",
+      "default": "xs",
       "title": "Slides code font size",
       "description": "Size step for code text."
     },

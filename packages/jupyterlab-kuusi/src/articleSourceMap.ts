@@ -1,3 +1,5 @@
+import { marked, type Token, type Tokens } from "marked";
+
 import {
   ARTICLE_PAGE_BREAK_CLASS,
   ARTICLE_PAGE_SHEET_CLASS,
@@ -17,7 +19,12 @@ export type ArticleBlockEntry = {
   end: number;
 };
 
-type BlockKind = "heading" | "list" | "quote" | "fence" | "other";
+type BlockKind = "heading" | "list" | "quote" | "fence" | "hr" | "other";
+
+/** `===` / `---` under a paragraph makes it a setext heading (CommonMark). */
+const SETEXT_UNDERLINE = /^\s{0,3}(?:=+|-+)\s*$/;
+/** Thematic break: three or more of the same `-`, `*`, `_` (spaces allowed). */
+const THEMATIC_BREAK = /^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/;
 
 const FENCE_OPEN = /^\s{0,3}(`{3,}|~{3,})/;
 const ATX_HEADING = /^\s{0,3}(#{1,6})(?:\s+(.*?))?\s*#*\s*$/;
@@ -34,14 +41,86 @@ const normalizeHeading = (text: string): string =>
     .replace(/[^\p{L}\p{N}]+/gu, "")
     .slice(0, 48);
 
+/** Block tokens that render nothing, so no element pairs with them. */
+const NO_OUTPUT_TOKENS = new Set(["space", "def"]);
+const HTML_COMMENT_ONLY = /^\s*(?:<!--[\s\S]*?-->\s*)+$/;
+
+/** Plain text of inline tokens, the way the renderer would show it. */
+const inlineText = (tokens: Token[] | undefined): string =>
+  (tokens ?? [])
+    .map((token) => {
+      if (token.type === "image" || token.type === "html") {
+        return "";
+      }
+
+      const nested = (token as { tokens?: Token[] }).tokens;
+
+      if (nested && nested.length > 0) {
+        return inlineText(nested);
+      }
+
+      return typeof (token as { text?: unknown }).text === "string"
+        ? (token as { text: string }).text
+        : "";
+    })
+    .join("");
+
 /**
- * Approximate CommonMark block boundaries without a full parser: enough to
- * pair source lines with the renderer's top-level elements.
+ * Top-level Markdown blocks with their source line ranges, from the same
+ * `marked` lexer family the renderer is built on. Tokens' `raw` text adds back
+ * up to the source, so line numbers are exact instead of guessed, and heading
+ * text is the rendered text (emphasis, links and code stripped).
  */
 export const scanMarkdownBlocks = (source: string): SourceBlock[] => {
+  let tokens: Token[];
+
+  try {
+    tokens = marked.lexer(source);
+  } catch {
+    return scanMarkdownBlocksHeuristic(source);
+  }
+
+  const blocks: SourceBlock[] = [];
+  let line = 0;
+
+  for (const token of tokens) {
+    const raw = token.raw;
+    const leading = /^\n*/.exec(raw)?.[0].length ?? 0;
+    const body = raw.slice(leading).replace(/\n+$/, "");
+    const start = line + leading;
+
+    line += raw.split("\n").length - 1;
+
+    if (
+      NO_OUTPUT_TOKENS.has(token.type) ||
+      body === "" ||
+      (token.type === "html" && HTML_COMMENT_ONLY.test(body))
+    ) {
+      continue;
+    }
+
+    blocks.push({
+      start,
+      end: start + body.split("\n").length,
+      heading:
+        token.type === "heading"
+          ? inlineText((token as Tokens.Heading).tokens).trim()
+          : null,
+    });
+  }
+
+  return blocks;
+};
+
+/**
+ * Approximate CommonMark block boundaries without a full parser. Only used if
+ * the real lexer throws; {@link scanMarkdownBlocks} is the primary path.
+ */
+export const scanMarkdownBlocksHeuristic = (source: string): SourceBlock[] => {
   const lines = source.replace(/\r\n/g, "\n").split("\n");
   const blocks: SourceBlock[] = [];
-  let current: (SourceBlock & { kind: BlockKind }) | null = null;
+  let current: (SourceBlock & { kind: BlockKind; text: string[] }) | null =
+    null;
   let fence: string | null = null;
   let inMath = false;
   let directiveDepth = 0;
@@ -60,7 +139,13 @@ export const scanMarkdownBlocks = (source: string): SourceBlock[] => {
 
   const open = (index: number, kind: BlockKind, heading: string | null) => {
     close();
-    current = { start: index, end: index + 1, heading, kind };
+    current = {
+      start: index,
+      end: index + 1,
+      heading,
+      kind,
+      text: kind === "other" ? [(lines[index] ?? "").trim()] : [],
+    };
   };
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -111,13 +196,35 @@ export const scanMarkdownBlocks = (source: string): SourceBlock[] => {
       continue;
     }
 
+    // Setext heading: an underline directly below a paragraph. It must be
+    // checked before lists and thematic breaks (`---` is both).
+    const open_ = current as
+      | (SourceBlock & { kind: BlockKind; text: string[] })
+      | null;
+
+    if (
+      open_ &&
+      open_.kind === "other" &&
+      !sawBlank &&
+      open_.text.length > 0 &&
+      SETEXT_UNDERLINE.test(line)
+    ) {
+      open_.kind = "heading";
+      open_.heading = open_.text.join(" ").trim();
+      extend();
+      continue;
+    }
+
     const headingMatch = line.match(ATX_HEADING);
     const fenceMatch = line.match(FENCE_OPEN);
-    const isList = LIST_ITEM.test(line);
+    const isRule = !headingMatch && THEMATIC_BREAK.test(line);
+    const isList = !isRule && LIST_ITEM.test(line);
     const isQuote = /^\s{0,3}>/.test(line);
     const kind: BlockKind = headingMatch
       ? "heading"
-      : fenceMatch
+      : isRule
+        ? "hr"
+        : fenceMatch
         ? "fence"
         : isList
           ? "list"
@@ -131,8 +238,10 @@ export const scanMarkdownBlocks = (source: string): SourceBlock[] => {
       !prev ||
       kind === "heading" ||
       kind === "fence" ||
+      kind === "hr" ||
       prev.kind === "heading" ||
       prev.kind === "fence" ||
+      prev.kind === "hr" ||
       (sawBlank && !continuesList) ||
       (!sawBlank && kind === "list" && prev.kind !== "list") ||
       (!sawBlank && kind === "quote" && prev.kind !== "quote");
@@ -141,6 +250,9 @@ export const scanMarkdownBlocks = (source: string): SourceBlock[] => {
       open(index, kind, headingMatch ? (headingMatch[2] ?? "") : null);
     } else {
       extend();
+      (current as { kind: BlockKind; text: string[] } | null)?.text.push(
+        line.trim(),
+      );
     }
 
     sawBlank = false;

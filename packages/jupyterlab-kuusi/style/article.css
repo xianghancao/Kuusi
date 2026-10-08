@@ -527,9 +527,18 @@ button.jp-KuusiArticle-scrollAxis-btn {
 
 .jp-KuusiArticle-paper[data-kuusi-article-columns="2"]
   :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
-  :is(h1, h2, h3),
-.jp-KuusiArticle-columnsFlow :is(h1, h2, h3) {
+  :is(h1, h2, h3, h4, h5, h6),
+.jp-KuusiArticle-columnsFlow :is(h1, h2, h3, h4, h5, h6) {
   break-after: avoid;
+}
+
+/* Same orphan / widow rule the single-column paginator applies in JS. */
+.jp-KuusiArticle-paper[data-kuusi-article-columns="2"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(p, li, dd),
+.jp-KuusiArticle-columnsFlow :is(p, li, dd) {
+  orphans: 2;
+  widows: 2;
 }
 
 @media (max-width: 720px) {
@@ -1000,4 +1009,44 @@ button.jp-KuusiArticle-scrollAxis-btn {
       rgb(0 0 0 / 16%) 6px
     );
   background-position: 8px 0, 0 0;
+}
+
+/* Single-column pages broken natively (articlePaged.ts sets the attribute when
+   the browser supports `column-height`; see useNativeSinglePages). */
+@supports (column-height: 100px) {
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"]
+    :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)[data-kuusi-native-pages="1"] {
+    column-count: 1;
+    column-fill: auto;
+    column-height: var(--kuusi-article-page-content-h);
+    column-wrap: wrap;
+    row-gap: var(--kuusi-article-page-row-gap, 0px);
+  }
+
+  /* Keep a heading with what follows; keep figures, display math, and table
+     rows whole; same orphan / widow rule the JS paginator applies. */
+  [data-kuusi-native-pages="1"] :is(h1, h2, h3, h4, h5, h6) {
+    break-after: avoid;
+  }
+
+  [data-kuusi-native-pages="1"]
+    :is(img, figure, svg, canvas, video, mjx-container, .katex-display, .MathJax_Display, tr) {
+    break-inside: avoid;
+  }
+
+  [data-kuusi-native-pages="1"] :is(p, li, pre, dd) {
+    orphans: 2;
+    widows: 2;
+  }
+}
+
+/* Paged output is a fixed sheet, like print: code wraps instead of scrolling.
+   A scrolling <pre> is also unbreakable for the browser's page breaking, which
+   would push every code block to a fresh page. */
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  pre {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }

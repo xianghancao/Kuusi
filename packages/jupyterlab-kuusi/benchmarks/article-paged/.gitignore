@@ -1,0 +1,3 @@
+.build/
+results/latest.json
+results/*.png

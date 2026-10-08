@@ -366,7 +366,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     app.docRegistry.addWidgetFactory(notebookArticleFactory);
 
     // Same capsule menus and appearance as the Markdown Article.
-    const articleSettings = new ArticleSettingsManager(settingRegistry);
+    const articleSettings = ArticleSettingsManager.shared(settingRegistry);
     registerViewTypography(
       "article",
       createArticleTypographyModel(articleSettings),

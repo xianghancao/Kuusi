@@ -53,3 +53,4 @@ coverage/
 .yarn/
 yarn.lock
 
+e2e/screenshots/

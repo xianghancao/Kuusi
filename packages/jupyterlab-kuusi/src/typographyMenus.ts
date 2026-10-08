@@ -28,6 +28,17 @@ import {
 } from "./fontToolbar";
 import { appendMenuFooterAction } from "./menuFooter";
 import {
+  legendAlign,
+  legendImageAlign,
+  legendImageBorder,
+  legendImageWidth,
+  legendImageWrap,
+  legendLinkStyle,
+  legendListStyle,
+  legendRuleWeight,
+  legendTableStyle,
+} from "./optionLegends";
+import {
   applyTypographyToOtherViews,
   type KuusiViewId,
 } from "./viewTypographySync";
@@ -38,6 +49,12 @@ import {
   type PanelWidget,
 } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
+import {
+  resolveElementsSection,
+  resolveTextMenuSection,
+  type ElementsMenuSection,
+  type TextMenuSection,
+} from "./textMenuSections";
 import {
   BODY_FONT_SIZE_RANGE,
   CODE_BORDER_RANGE,
@@ -90,14 +107,6 @@ export type TypographyModel = {
   editMode?: TypographyEditMode;
 };
 
-type TextSection =
-  | "family"
-  | "size"
-  | "color"
-  | "tracking"
-  | "leading"
-  | "edit"
-  | "link";
 type ParagraphSection = "spacing" | "indent" | "align";
 type CodeSection =
   | "theme"
@@ -110,6 +119,13 @@ type CodeSection =
   | "width";
 type ImageSection = "layout" | "size" | "border";
 type TableSection = "style" | "border" | "headers";
+
+/** Give every option a small legend drawn from its value. */
+const withLegend = (
+  options: ChoiceOption[],
+  legend: (value: string) => HTMLElement,
+): ChoiceOption[] =>
+  options.map((option) => ({ ...option, preview: () => legend(option.value) }));
 
 const lastSections = new Map<string, string>();
 
@@ -166,13 +182,16 @@ export const buildFontWidgets = (
   });
 };
 
-export const getTextAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getTextAlignOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   { value: "left", label: t.alignLeft(), title: t.alignLeftTitle() },
   { value: "center", label: t.alignCenter(), title: t.alignCenterTitle() },
   { value: "right", label: t.alignRight(), title: t.alignRightTitle() },
 ];
 
-const getParagraphAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
+export const getTextAlignOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getTextAlignOptionsRaw(t), legendAlign);
+
+const getParagraphAlignOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   { value: "left", label: t.alignLeft(), title: t.paragraphAlignLeftTitle() },
   {
     value: "justify",
@@ -181,7 +200,10 @@ const getParagraphAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
   },
 ];
 
-const getLinkStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getParagraphAlignOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getParagraphAlignOptionsRaw(t), legendAlign);
+
+const getLinkStyleOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "default",
     label: t.linkStyleDefault(),
@@ -198,6 +220,9 @@ const getLinkStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
     title: t.linkStyleAccentTitle(),
   },
 ];
+
+const getLinkStyleOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getLinkStyleOptionsRaw(t), legendLinkStyle);
 
 const getCodeStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
   { value: "plain", label: t.codeStylePlain(), title: t.codeStylePlainTitle() },
@@ -313,13 +338,16 @@ const slider = (
   onChange,
 });
 
-/** Text: font · size · color · tracking · leading. */
+/**
+ * Text: Body (font · size · color · tracking · leading) and H1–H6 (font · size
+ * · color · alignment) in one menu. The node-editing font lives in Elements.
+ */
 export const createTextToolbar = (
   root: HTMLElement,
   model: TypographyModel,
   t: KuusiTranslator,
 ): HTMLElement => {
-  const section = rememberedSection<TextSection>(model, "text", "family");
+  const section = rememberedSection<string>(model, "text", "body");
 
   return createCapsuleDropdown(root, {
     ...dropdownClasses(model, "text"),
@@ -337,32 +365,30 @@ export const createTextToolbar = (
     },
     fillMenu: (menu, rebuild) => {
       const values = model.get();
-      const edit = model.editMode;
-      const sections: Array<{ id: TextSection; label: string }> = [
-        { id: "family", label: t.font() },
-        { id: "size", label: t.fontSizeSection() },
-        { id: "color", label: t.color() },
-        { id: "tracking", label: t.tracking() },
-        { id: "leading", label: t.leading() },
-      ];
+      const updateHeading = (
+        id: HeadingId,
+        partial: Partial<TypographyValues["headers"][HeadingId]>,
+      ): void => {
+        model.update({
+          headers: updateHeadingStyle(model.get().headers, id, partial),
+        });
+      };
 
-      if (edit) {
-        sections.push(
-          { id: "edit", label: t.fontSizeEdit() },
-          { id: "link", label: t.fontLink() },
-        );
-      }
-
-      mountSecondaryMenu<TextSection>(menu, {
+      mountSecondaryMenu<TextMenuSection>(menu, {
         ariaLabel: t.textStyle(),
-        sections,
-        getActive: section.get,
+        sections: [
+          { id: "body", label: t.body() },
+          ...HEADING_LEVELS.map((level) => ({
+            id: headingId(level) as TextMenuSection,
+            label: `H${level}`,
+          })),
+        ],
+        getActive: () => resolveTextMenuSection(section.get()),
         setActive: section.set,
         fillSection: (id, panel) => {
-          if (id === "family") {
-            renderPanelWidgets(
-              panel,
-              buildFontWidgets(
+          if (id === "body") {
+            renderPanelWidgets(panel, [
+              ...buildFontWidgets(
                 values.font,
                 (font) => {
                   model.update({ font });
@@ -370,12 +396,6 @@ export const createTextToolbar = (
                 },
                 t,
               ),
-            );
-            return;
-          }
-
-          if (id === "size") {
-            renderPanelWidgets(panel, [
               {
                 kind: "slider",
                 label: t.fontSizeSection(),
@@ -390,12 +410,6 @@ export const createTextToolbar = (
                   model.update({ fontSize: clampBodyFontSizePx(size) });
                 },
               },
-            ]);
-            return;
-          }
-
-          if (id === "color") {
-            renderPanelWidgets(panel, [
               {
                 kind: "color",
                 sectionLabel: t.color(),
@@ -417,12 +431,6 @@ export const createTextToolbar = (
                   model.update({ strongColor });
                 },
               },
-            ]);
-            return;
-          }
-
-          if (id === "tracking") {
-            renderPanelWidgets(panel, [
               slider(
                 t.tracking(),
                 values.letterSpacing,
@@ -430,76 +438,68 @@ export const createTextToolbar = (
                 formatPt,
                 (letterSpacing) => model.update({ letterSpacing }),
               ),
-            ]);
-            return;
-          }
-
-          if (id === "edit" && edit) {
-            renderPanelWidgets(panel, [
-              {
-                kind: "slider",
-                label: t.fontSizeSection(),
-                value: clampBodyFontSizePx(edit.getFontSize()),
-                min: BODY_FONT_SIZE_RANGE.min,
-                max: BODY_FONT_SIZE_RANGE.max,
-                step: BODY_FONT_SIZE_STEP,
-                editable: true,
-                inputStep: BODY_FONT_SIZE_INPUT_STEP,
-                formatValue: bodyFontSizeLabel,
-                onChange: (size) => {
-                  edit.updateFontSize(clampBodyFontSizePx(size));
-                },
-              },
-              ...buildFontWidgets(
-                edit.getFont(),
-                (font) => {
-                  edit.updateFont(font);
-                  rebuild();
-                },
-                t,
+              slider(
+                t.leading(),
+                values.lineHeight,
+                model.lineHeightRange,
+                (value) => `${value.toFixed(2)}×`,
+                (lineHeight) => model.update({ lineHeight }),
               ),
             ]);
             return;
           }
 
-          if (id === "link" && edit) {
-            renderPanelWidgets(panel, [
-              {
-                kind: "toggle",
-                label: t.unifyEditDisplayFont(),
-                value: edit.getUnify(),
-                onChange: (value) => {
-                  edit.setUnify(value);
-                  rebuild();
-                },
-              },
-              {
-                kind: "toggle",
-                label: t.matchNotebookFont(),
-                value: edit.getMatchNotebook(),
-                onChange: (value) => {
-                  edit.setMatchNotebook(value);
-                  rebuild();
-                },
-              },
-            ]);
-            return;
-          }
-
+          const style = values.headers[id as HeadingId];
           renderPanelWidgets(panel, [
-            slider(
-              t.leading(),
-              values.lineHeight,
-              model.lineHeightRange,
-              (value) => `${value.toFixed(2)}×`,
-              (lineHeight) => model.update({ lineHeight }),
+            ...buildFontWidgets(
+              style.font,
+              (font) => {
+                updateHeading(id as HeadingId, { font });
+                rebuild();
+              },
+              t,
             ),
+            {
+              kind: "slider",
+              label: t.fontSizeSection(),
+              value: fontSizeToSliderIndex(style.fontSize),
+              min: 0,
+              max: MIND_MAP_FONT_SIZES.length - 1,
+              formatValue: (index) =>
+                fontSizeLabel(sliderIndexToFontSize(index)),
+              onChange: (index) => {
+                updateHeading(id as HeadingId, {
+                  fontSize: sliderIndexToFontSize(index),
+                });
+              },
+            },
+            {
+              kind: "color",
+              sectionLabel: t.color(),
+              value: style.color,
+              swatches: APPEARANCE_COLOR_SWATCHES,
+              includeDefaultSwatch: true,
+              onChange: (color) => {
+                updateHeading(id as HeadingId, { color });
+              },
+            },
+            {
+              kind: "choice",
+              sectionLabel: t.alignment(),
+              value: style.align,
+              options: getTextAlignOptions(t),
+              onChange: (value) => {
+                updateHeading(id as HeadingId, { align: value as TextAlign });
+                rebuild();
+              },
+            },
           ]);
         },
       });
     },
   });
 };
+
 
 /** Paragraph: spacing · indent · alignment. */
 export const createParagraphToolbar = (
@@ -566,88 +566,6 @@ export const createParagraphToolbar = (
               options: getParagraphAlignOptions(t),
               onChange: (value) => {
                 model.update({ paragraphAlign: value as ParagraphAlign });
-                rebuild();
-              },
-            },
-          ]);
-        },
-      });
-    },
-  });
-};
-
-/** Headings: H1–H6, each with font · size · color · alignment. */
-export const createHeadingsToolbar = (
-  root: HTMLElement,
-  model: TypographyModel,
-  t: KuusiTranslator,
-): HTMLElement => {
-  const section = rememberedSection<HeadingId>(model, "headings", "h1");
-
-  return createCapsuleDropdown(root, {
-    ...dropdownClasses(model, "headings"),
-    ariaLabel: t.headingStyles(),
-    triggerLabel: t.headings(),
-    menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiFontDropdown-menu`,
-    fillMenu: (menu, rebuild) => {
-      const values = model.get();
-      const updateHeading = (
-        id: HeadingId,
-        partial: Partial<TypographyValues["headers"][HeadingId]>,
-      ): void => {
-        model.update({
-          headers: updateHeadingStyle(model.get().headers, id, partial),
-        });
-      };
-
-      mountSecondaryMenu<HeadingId>(menu, {
-        ariaLabel: t.headingStyles(),
-        sections: HEADING_LEVELS.map((level) => ({
-          id: headingId(level),
-          label: `H${level}`,
-        })),
-        getActive: section.get,
-        setActive: section.set,
-        fillSection: (id, panel) => {
-          const style = values.headers[id];
-          renderPanelWidgets(panel, [
-            ...buildFontWidgets(
-              style.font,
-              (font) => {
-                updateHeading(id, { font });
-                rebuild();
-              },
-              t,
-            ),
-            {
-              kind: "slider",
-              label: t.fontSizeSection(),
-              value: fontSizeToSliderIndex(style.fontSize),
-              min: 0,
-              max: MIND_MAP_FONT_SIZES.length - 1,
-              formatValue: (index) =>
-                fontSizeLabel(sliderIndexToFontSize(index)),
-              onChange: (index) => {
-                updateHeading(id, { fontSize: sliderIndexToFontSize(index) });
-              },
-            },
-            {
-              kind: "color",
-              sectionLabel: t.color(),
-              value: style.color,
-              swatches: APPEARANCE_COLOR_SWATCHES,
-              includeDefaultSwatch: true,
-              onChange: (color) => {
-                updateHeading(id, { color });
-              },
-            },
-            {
-              kind: "choice",
-              sectionLabel: t.alignment(),
-              value: style.align,
-              options: getTextAlignOptions(t),
-              onChange: (value) => {
-                updateHeading(id, { align: value as TextAlign });
                 rebuild();
               },
             },
@@ -855,7 +773,7 @@ export const createCodeToolbar = (
   });
 };
 
-const getImageWidthOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getImageWidthOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "natural",
     label: t.imageWidthNatural(),
@@ -873,7 +791,10 @@ const getImageWidthOptions = (t: KuusiTranslator): ChoiceOption[] => [
   },
 ];
 
-const getImageAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getImageWidthOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getImageWidthOptionsRaw(t), legendImageWidth);
+
+const getImageAlignOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "left",
     label: t.alignLeft(),
@@ -891,7 +812,10 @@ const getImageAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
   },
 ];
 
-const getImageWrapOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getImageAlignOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getImageAlignOptionsRaw(t), legendImageAlign);
+
+const getImageWrapOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "none",
     label: t.imageWrapNone(),
@@ -909,7 +833,10 @@ const getImageWrapOptions = (t: KuusiTranslator): ChoiceOption[] => [
   },
 ];
 
-const getImageBorderStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getImageWrapOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getImageWrapOptionsRaw(t), legendImageWrap);
+
+const getImageBorderStyleOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "none",
     label: t.imageBorderNone(),
@@ -936,6 +863,9 @@ const getImageBorderStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
     title: t.imageBorderDoubleTitle(),
   },
 ];
+
+const getImageBorderStyleOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getImageBorderStyleOptionsRaw(t), legendImageBorder);
 
 const fillImageSection = (
   id: ImageSection,
@@ -1074,7 +1004,7 @@ export const createImageToolbar = (
   });
 };
 
-const getTableStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getTableStyleOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "plain",
     label: t.tableStylePlain(),
@@ -1106,6 +1036,9 @@ const getTableStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
     title: t.tableStyleRuledTitle(),
   },
 ];
+
+const getTableStyleOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getTableStyleOptionsRaw(t), legendTableStyle);
 
 const fillTableSection = (
   id: TableSection,
@@ -1184,9 +1117,9 @@ const fillTablePanel = (
   });
 };
 
-type ElementsSection = "code" | "image" | "table" | "list" | "quote" | "links";
+type ElementsSection = ElementsMenuSection;
 
-const getListStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getListStyleOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "compact",
     label: t.listStyleCompact(),
@@ -1204,7 +1137,10 @@ const getListStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
   },
 ];
 
-const getRuleWeightOptions = (t: KuusiTranslator): ChoiceOption[] => [
+const getListStyleOptions = (t: KuusiTranslator): ChoiceOption[] =>
+  withLegend(getListStyleOptionsRaw(t), legendListStyle);
+
+const getRuleWeightOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   {
     value: "light",
     label: t.ruleWeightLight(),
@@ -1221,6 +1157,14 @@ const getRuleWeightOptions = (t: KuusiTranslator): ChoiceOption[] => [
     title: t.ruleWeightStrongTitle(),
   },
 ];
+
+const getRuleWeightOptions = (
+  t: KuusiTranslator,
+  kind: "quote" | "rule",
+): ChoiceOption[] =>
+  withLegend(getRuleWeightOptionsRaw(t), (value) =>
+    legendRuleWeight(kind, value),
+  );
 
 const fillListPanel = (
   panel: HTMLElement,
@@ -1255,7 +1199,7 @@ const fillQuotePanel = (
       kind: "choice",
       sectionLabel: t.blockquoteWeight(),
       value: values.blockquoteWeight,
-      options: getRuleWeightOptions(t),
+      options: getRuleWeightOptions(t, "quote"),
       onChange: (value) => {
         model.update({ blockquoteWeight: value as RuleWeight });
         rebuild();
@@ -1265,7 +1209,7 @@ const fillQuotePanel = (
       kind: "choice",
       sectionLabel: t.hrWeight(),
       value: values.hrWeight,
-      options: getRuleWeightOptions(t),
+      options: getRuleWeightOptions(t, "rule"),
       onChange: (value) => {
         model.update({ hrWeight: value as RuleWeight });
         rebuild();
@@ -1294,7 +1238,78 @@ const fillLinksPanel = (
   ]);
 };
 
-/** Elements: code, image, table, list, quote/divider, and links. */
+/**
+ * Node-editing font (Mind Map only): the font used while a node's source is
+ * open, and whether it follows the display font / the notebook font.
+ */
+const fillEditTextPanel = (
+  panel: HTMLElement,
+  model: TypographyModel,
+  t: KuusiTranslator,
+  rebuild: () => void,
+): void => {
+  const edit = model.editMode;
+
+  if (!edit) {
+    return;
+  }
+
+  const hint = document.createElement("div");
+  hint.className = "jp-KuusiAppearanceDropdown-hint";
+  hint.textContent = t.editTextHint();
+  panel.appendChild(hint);
+
+  const body = document.createElement("div");
+  panel.appendChild(body);
+
+  renderPanelWidgets(body, [
+    {
+      kind: "slider",
+      label: t.fontSizeSection(),
+      value: clampBodyFontSizePx(edit.getFontSize()),
+      min: BODY_FONT_SIZE_RANGE.min,
+      max: BODY_FONT_SIZE_RANGE.max,
+      step: BODY_FONT_SIZE_STEP,
+      editable: true,
+      inputStep: BODY_FONT_SIZE_INPUT_STEP,
+      formatValue: bodyFontSizeLabel,
+      onChange: (size) => {
+        edit.updateFontSize(clampBodyFontSizePx(size));
+      },
+    },
+    ...buildFontWidgets(
+      edit.getFont(),
+      (font) => {
+        edit.updateFont(font);
+        rebuild();
+      },
+      t,
+    ),
+    {
+      kind: "toggle",
+      label: t.unifyEditDisplayFont(),
+      value: edit.getUnify(),
+      onChange: (value) => {
+        edit.setUnify(value);
+        rebuild();
+      },
+    },
+    {
+      kind: "toggle",
+      label: t.matchNotebookFont(),
+      value: edit.getMatchNotebook(),
+      onChange: (value) => {
+        edit.setMatchNotebook(value);
+        rebuild();
+      },
+    },
+  ]);
+};
+
+/**
+ * Elements: code, image, table, list, quote/divider, and links — plus Text
+ * (the node-editing font) on views that have an edit mode.
+ */
 export const createElementsToolbar = (
   root: HTMLElement,
   model: TypographyModel,
@@ -1311,6 +1326,9 @@ export const createElementsToolbar = (
       mountSecondaryMenu<ElementsSection>(menu, {
         ariaLabel: t.articleElements(),
         sections: [
+          ...(model.editMode
+            ? [{ id: "text" as const, label: t.text() }]
+            : []),
           { id: "code", label: t.articleCode() },
           { id: "image", label: t.articleImage() },
           { id: "table", label: t.articleTable() },
@@ -1318,28 +1336,17 @@ export const createElementsToolbar = (
           { id: "quote", label: t.articleQuote() },
           { id: "links", label: t.linkStyle() },
         ],
-        getActive: () => {
-          const raw =
-            lastSections.get(`${model.scope}:elements`) ?? section.get();
-          if (raw === "image" || raw.startsWith("image-")) {
-            return "image";
-          }
-          if (raw === "table" || raw.startsWith("table-")) {
-            return "table";
-          }
-          if (raw === "list") {
-            return "list";
-          }
-          if (raw === "quote") {
-            return "quote";
-          }
-          if (raw === "links") {
-            return "links";
-          }
-          return "code";
-        },
+        getActive: () =>
+          resolveElementsSection(
+            lastSections.get(`${model.scope}:elements`) ?? section.get(),
+            Boolean(model.editMode),
+          ),
         setActive: section.set,
         fillSection: (id, panel) => {
+          if (id === "text") {
+            fillEditTextPanel(panel, model, t, rebuild);
+            return;
+          }
           if (id === "code") {
             fillCodePanel(panel, model, t, rebuild);
             return;

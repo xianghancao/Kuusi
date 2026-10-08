@@ -1,0 +1,81 @@
+/* Minimal stand-in for JupyterLab's theme + rendered-markdown styles, so the
+   benchmark does not depend on webpack-only `~` CSS imports. Keep stable:
+   changing it changes every measured layout. */
+body {
+  --jp-ui-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --jp-content-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --jp-code-font-family: ui-monospace, Menlo, Consolas, monospace;
+  --jp-content-font-size1: 14px;
+  --jp-content-line-height: 1.6;
+  --jp-code-font-size: 13px;
+  --jp-ui-font-size1: 13px;
+  --jp-content-font-color1: #212121;
+  --jp-ui-font-color1: #212121;
+  --jp-ui-font-color2: #616161;
+  --jp-layout-color0: #ffffff;
+  --jp-layout-color1: #ffffff;
+  --jp-layout-color2: #eeeeee;
+  --jp-border-color1: #bdbdbd;
+  --jp-border-color2: #e0e0e0;
+  --jp-brand-color1: #1976d2;
+  --jp-cell-padding: 5px;
+  margin: 0;
+  font-family: var(--jp-content-font-family);
+}
+
+.jp-RenderedHTMLCommon {
+  color: var(--jp-content-font-color1);
+  font-size: var(--jp-content-font-size1);
+  line-height: var(--jp-content-line-height);
+  padding-right: 20px;
+}
+
+.jp-RenderedHTMLCommon h1,
+.jp-RenderedHTMLCommon h2,
+.jp-RenderedHTMLCommon h3 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.2em 0 0.5em;
+}
+
+.jp-RenderedHTMLCommon h1 { font-size: 2em; }
+.jp-RenderedHTMLCommon h2 { font-size: 1.5em; }
+.jp-RenderedHTMLCommon h3 { font-size: 1.25em; }
+
+.jp-RenderedHTMLCommon p,
+.jp-RenderedHTMLCommon ul,
+.jp-RenderedHTMLCommon ol,
+.jp-RenderedHTMLCommon blockquote,
+.jp-RenderedHTMLCommon pre,
+.jp-RenderedHTMLCommon table {
+  margin: 0 0 1em;
+}
+
+.jp-RenderedHTMLCommon pre {
+  background: #f5f5f5;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  line-height: 1.4;
+  overflow: auto;
+  padding: 0.6em 0.8em;
+}
+
+.jp-RenderedHTMLCommon table {
+  border-collapse: collapse;
+}
+
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td {
+  border: 1px solid var(--jp-border-color2);
+  padding: 4px 10px;
+}
+
+.jp-RenderedHTMLCommon blockquote {
+  border-left: 4px solid var(--jp-border-color2);
+  padding: 0 1em;
+}
+
+.jp-RenderedHTMLCommon img {
+  display: block;
+  max-width: 100%;
+}

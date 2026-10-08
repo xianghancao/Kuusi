@@ -37,7 +37,10 @@
     "clean": "npm run clean:lib && rimraf jupyterlab_kuusi/labextension",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "watch": "tsc -w -p tsconfig.json",
-    "watch:labextension": "jupyter labextension watch ."
+    "watch:labextension": "jupyter labextension watch .",
+    "bench:article": "node benchmarks/article-paged/run.mjs",
+    "bench:article:check": "node benchmarks/article-paged/run.mjs --check --repeats 1",
+    "bench:article:defaults": "node benchmarks/article-paged/run.mjs --defaults 1"
   },
   "dependencies": {
     "@jupyterlab/application": "^4.3.5",
@@ -64,6 +67,7 @@
     "html-to-image": "^1.11.13",
     "jspdf": "^3.0.4",
     "kuusi-kernel": "0.2.7",
+    "marked": "^17.0.6",
     "style-mod": "^4.1.2"
   },
   "devDependencies": {

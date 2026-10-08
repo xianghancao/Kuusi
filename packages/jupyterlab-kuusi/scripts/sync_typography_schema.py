@@ -82,19 +82,25 @@ VIEW_META: dict[str, dict[str, Any]] = {
             },
             "letterSpacing": {
                 "title": "Article letter spacing",
-                "description": "Tracking for body text, in em (0–0.15).",
+                "description": "Tracking for body text, in pt (0–3).",
             },
             "lineHeight": {
                 "title": "Article leading",
-                "description": "Line-height multiplier for Article body paragraphs (0.5–3).",
+                "description": "Line-height multiplier for Article body paragraphs (0.9–3).",
+                "minimum": 0.9,
+                "maximum": 3,
+                # Must equal DEFAULT_ARTICLE_SETTINGS (the Notebook theme preset),
+                # or a fresh install looks "customized".
+                "default": 1.55,
             },
             "paragraphSpacing": {
                 "title": "Article paragraph spacing",
-                "description": "Vertical space between body paragraphs, in em (0–3).",
+                "description": "Vertical space between body paragraphs, in pt (0–48).",
+                "default": 10,
             },
             "paragraphIndent": {
                 "title": "Article paragraph indent",
-                "description": "First-line indent for body paragraphs, in em (0–3).",
+                "description": "First-line indent for body paragraphs, in pt (0–72).",
             },
             "paragraphAlign": {
                 "title": "Article paragraph alignment",
@@ -186,7 +192,7 @@ VIEW_META: dict[str, dict[str, Any]] = {
             },
             "letterSpacing": {
                 "title": "Slides letter spacing",
-                "description": "Tracking for body text, in em (0–0.15).",
+                "description": "Tracking for body text, in pt (0–3).",
             },
             "lineHeight": {
                 "title": "Slides leading",
@@ -197,12 +203,12 @@ VIEW_META: dict[str, dict[str, Any]] = {
             },
             "paragraphSpacing": {
                 "title": "Slides paragraph spacing",
-                "description": "Vertical space between body paragraphs, in em (0–3).",
+                "description": "Vertical space between body paragraphs, in pt (0–48).",
                 "omit_default": True,
             },
             "paragraphIndent": {
                 "title": "Slides paragraph indent",
-                "description": "First-line indent for body paragraphs, in em (0–3).",
+                "description": "First-line indent for body paragraphs, in pt (0–72).",
             },
             "paragraphAlign": {
                 "title": "Slides paragraph alignment",
@@ -292,7 +298,7 @@ VIEW_META: dict[str, dict[str, Any]] = {
             },
             "letterSpacing": {
                 "title": "Mind map letter spacing",
-                "description": "Tracking for Body nodes, in em (0–0.15).",
+                "description": "Tracking for Body nodes, in pt (0–3).",
             },
             "lineHeight": {
                 "title": "Mind map leading",
@@ -303,12 +309,12 @@ VIEW_META: dict[str, dict[str, Any]] = {
             },
             "paragraphSpacing": {
                 "title": "Mind map paragraph spacing",
-                "description": "Vertical space between paragraphs inside a node, in em (0–3).",
+                "description": "Vertical space between paragraphs inside a node, in pt (0–48).",
                 "default": 0.5,
             },
             "paragraphIndent": {
                 "title": "Mind map paragraph indent",
-                "description": "First-line indent inside Body nodes, in em (0–3).",
+                "description": "First-line indent inside Body nodes, in pt (0–72).",
             },
             "paragraphAlign": {
                 "title": "Mind map paragraph alignment",
