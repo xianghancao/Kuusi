@@ -1,0 +1,2065 @@
+/* Mind Map canvas, nodes, viewport backgrounds, interactions. */
+
+.jp-KuusiNotebookMindMapDocument {
+  /* Do not set display:flex here — DocumentWidget uses Lumino BoxLayout
+     (absolute children). Overriding display lets the content pane cover the
+     toolbar and hides the Article / Mind Map / Slides switcher. */
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.jp-KuusiNotebookMindMapDocument > .jp-Toolbar {
+  background: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+}
+
+.jp-KuusiNotebookMindMapDocument > .jp-KuusiNotebookMindMap {
+  /* Keep the canvas below the document toolbar in the stacking order. */
+  z-index: 0;
+}
+
+.jp-KuusiNotebookMindMap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+  width: 100%;
+}
+
+.jp-KuusiNotebookMindMap-header {
+  align-items: flex-start;
+  background: transparent;
+  border-bottom: none;
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  flex-wrap: nowrap;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  gap: 10px;
+  justify-content: space-between;
+  left: 0;
+  overflow: visible;
+  padding: 12px 14px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 30;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-header {
+  border-bottom: none;
+}
+
+.jp-KuusiNotebookMindMap-header--formatVertical .jp-KuusiNotebookMindMap-header-left {
+  margin-right: 44px;
+}
+
+.jp-KuusiNotebookMindMap-header--formatVertical .jp-KuusiNotebookMindMap-header-right {
+  margin-left: 0;
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  z-index: 31;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiNotebookMindMap-format-toolbar {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.jp-KuusiNotebookMindMap-header-title {
+  background: transparent;
+  border: none;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-family: var(--jp-ui-font-family);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  line-height: 100%;
+  padding: 4px 0;
+}
+
+.jp-KuusiNotebookMindMap-header-brand {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 0 4px 0 2px;
+  pointer-events: auto;
+}
+
+.jp-KuusiNotebookMindMap-header-title:hover {
+  color: var(--jp-brand-color1);
+}
+
+.jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo {
+  font-weight: 800;
+  overflow: visible;
+  position: relative;
+}
+
+.jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover .jp-KuusiLogo-mark {
+  color: #244a2e;
+  filter: none;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover .jp-KuusiLogo-mark {
+  color: #b8d8b6;
+}
+
+.jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover .jp-KuusiLogo-label {
+  color: #000000;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-header-title.jp-KuusiLogo:hover
+  .jp-KuusiLogo-label {
+  color: #f5f5f5;
+}
+
+.jp-KuusiNotebookMindMap-header-left {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.jp-KuusiNotebookMindMap-header-right {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  margin-left: 10px;
+  pointer-events: none;
+  position: static;
+}
+
+.jp-KuusiNotebookMindMap-format-toolbar {
+  align-items: center;
+  display: inline-flex;
+  gap: 0;
+}
+
+.jp-KuusiNotebookMindMap-format-btn {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-family: var(
+    --kuusi-chrome-font-family,
+    var(--kuusi-mindmap-chrome-font-family, var(--jp-ui-font-family))
+  );
+  font-size: var(
+    --kuusi-chrome-font-size,
+    var(--kuusi-mindmap-chrome-font-size, 11px)
+  );
+  font-weight: var(
+    --kuusi-chrome-font-weight,
+    var(--kuusi-mindmap-chrome-font-weight, 550)
+  );
+  line-height: 100%;
+  min-width: 32px;
+  padding: 5px 9px;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+/* `button.` beats JupyterLab's `.jp-ThemedContainer button` font-size reset. */
+button.jp-KuusiNotebookMindMap-format-btn {
+  font-family: var(
+    --kuusi-chrome-font-family,
+    var(--kuusi-mindmap-chrome-font-family, var(--jp-ui-font-family))
+  );
+  font-size: var(
+    --kuusi-chrome-font-size,
+    var(--kuusi-mindmap-chrome-font-size, 11px)
+  );
+  font-weight: var(
+    --kuusi-chrome-font-weight,
+    var(--kuusi-mindmap-chrome-font-weight, 550)
+  );
+}
+
+.jp-KuusiNotebookMindMap-format-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
+}
+
+.jp-KuusiNotebookMindMap-format-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.jp-KuusiNotebookMindMap-history-toolbar {
+  align-items: center;
+  display: inline-flex;
+  gap: 0;
+}
+
+.jp-KuusiNotebookMindMap-history-btn {
+  align-items: center;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 4px 6px;
+}
+
+.jp-KuusiNotebookMindMap-history-btn svg {
+  height: 16px;
+  width: 16px;
+}
+
+.jp-KuusiNotebookMindMap-appearance-toolbar {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
+.jp-KuusiNotebookMindMap-style-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebookMindMap-layout-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebookMindMap-font-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebookMindMap-background-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="default"] {
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="none"] {
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="plain"] {
+  background: var(--jp-layout-color0);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="plain"] {
+  background: #090b0f;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="grid"] {
+  background-color: var(--jp-layout-color1);
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 7px 7px;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="grid-dense"] {
+  background-color: var(--jp-layout-color1);
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="dots"] {
+  background-color: var(--jp-layout-color1);
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 1px,
+    transparent 1px
+  );
+  background-size: 5px 5px;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="dots-dense"] {
+  background-color: var(--jp-layout-color1);
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 0.75px,
+    transparent 0.75px
+  );
+  background-size: 3px 3px;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-pattern-preview="gradient"] {
+  background:
+    radial-gradient(
+      ellipse at top left,
+      var(--jp-layout-color2) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      var(--jp-layout-color2) 0%,
+      transparent 55%
+    ),
+    var(--jp-layout-color1);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="business-blue"] {
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(255 255 255 / 45%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #e8f0fa 0%, #dce8f5 100%);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="business-blue"] {
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(120 160 220 / 12%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #1c2a3d 0%, #152030 100%);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="tech-blue"] {
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgb(0 188 212 / 22%) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #e1f5fe 0%, #c5e4ff 100%);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="tech-blue"] {
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgb(0 188 212 / 18%) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #0a1929 0%, #102a44 100%);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="eye-care"] {
+  background-color: #e6efe3;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="eye-care"] {
+  background-color: #1c261f;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="newspaper"] {
+  background-color: #f3ecdf;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(0 0 0 / 2%) 0,
+      transparent 1px,
+      transparent 6px,
+      rgb(0 0 0 / 2%) 7px
+    ),
+    radial-gradient(
+      ellipse at 20% 30%,
+      rgb(255 255 255 / 35%) 0,
+      transparent 55%
+    );
+  background-size:
+    100% 7px,
+    100% 100%;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="newspaper"] {
+  background-color: #2a241c;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 3%) 0,
+      transparent 1px,
+      transparent 6px,
+      rgb(255 255 255 / 3%) 7px
+    ),
+    radial-gradient(
+      ellipse at 20% 30%,
+      rgb(255 255 255 / 4%) 0,
+      transparent 55%
+    );
+  background-size:
+    100% 7px,
+    100% 100%;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="sea-blue"] {
+  background:
+    radial-gradient(
+      ellipse at bottom left,
+      rgb(255 255 255 / 40%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #c5dff0 0%, #a8cce6 100%);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="sea-blue"] {
+  background:
+    radial-gradient(
+      ellipse at bottom left,
+      rgb(100 160 210 / 10%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #1a3550 0%, #122840 100%);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="grass-green"] {
+  background-color: #c8e6b0;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="grass-green"] {
+  background-color: #1e3020;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="avocado"] {
+  background-color: #e2e8c4;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="avocado"] {
+  background-color: #2c3224;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="stone-gray"] {
+  background-color: #e0deda;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="stone-gray"] {
+  background-color: #2e2e30;
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="red-wall"] {
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(255 255 255 / 25%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #f0d4cc 0%, #e8c4bc 100%);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="red-wall"] {
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(220 120 100 / 8%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #4a2828 0%, #3a2020 100%);
+}
+
+.jp-KuusiBackgroundDropdown-preview[data-kuusi-background-preview="ink"] {
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(90 100 120 / 16%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #161616 0%, #0a0a0a 100%);
+}
+
+.jp-KuusiNotebookMindMap-direction-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebookMindMap-guide-toolbar {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.jp-KuusiToolbarCluster .jp-ToolbarButtonComponent {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  min-height: 26px;
+  padding: 4px 8px;
+}
+
+.jp-KuusiNotebookMindMap-viewport:focus {
+  outline: none;
+}
+
+.jp-KuusiNotebookMindMap-viewport:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--jp-brand-color1);
+}
+
+.jp-KuusiNotebookMindMap-direction-btn {
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  line-height: 100%;
+  min-width: 30px;
+  padding: 6px 10px;
+  transition: background-color 0.12s ease;
+}
+
+.jp-KuusiNotebookMindMap-direction-btn:hover {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
+}
+
+.jp-KuusiMindMapNotebook-mount {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  width: 1px;
+}
+
+.jp-KuusiMindMap-measure-host {
+  left: -10000px;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+  width: 520px;
+}
+
+.jp-KuusiNotebookMindMap-viewport {
+  --kuusi-bg-pattern-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color1) 14%,
+    transparent
+  );
+  --kuusi-background-solid: var(--jp-layout-color1);
+  background: var(--jp-layout-color1);
+  cursor: grab;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  /* Pan / pinch / drag are handled with pointer events; stop the browser from
+     claiming touch gestures (which fires pointercancel mid-drag). */
+  touch-action: none;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-viewport {
+  --kuusi-bg-pattern-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color1) 28%,
+    transparent
+  );
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="default"] {
+  --kuusi-background-solid: var(--jp-layout-color1);
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="business-blue"] {
+  --kuusi-background-solid: #dce8f5;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(255 255 255 / 45%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #e8f0fa 0%, #dce8f5 100%);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="business-blue"] {
+  --kuusi-background-solid: #152030;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(120 160 220 / 12%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #1c2a3d 0%, #152030 100%);
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="tech-blue"] {
+  --kuusi-background-solid: #c5e4ff;
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgb(0 188 212 / 22%) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 100%,
+      rgb(33 150 243 / 14%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #e1f5fe 0%, #d0ebff 45%, #c5e4ff 100%);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="tech-blue"] {
+  --kuusi-background-solid: #102a44;
+  background:
+    radial-gradient(
+      ellipse at 20% 0%,
+      rgb(0 188 212 / 18%) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 100%,
+      rgb(33 150 243 / 10%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #0a1929 0%, #102a44 100%);
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="custom"] {
+  --kuusi-background-solid: var(--kuusi-background-custom-color, #d6ecff);
+  background-color: var(--kuusi-background-custom-color, #d6ecff);
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="eye-care"] {
+  --kuusi-background-solid: #e6efe3;
+  background-color: #e6efe3;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="eye-care"] {
+  --kuusi-background-solid: #1c261f;
+  background-color: #1c261f;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="newspaper"] {
+  --kuusi-background-solid: #f3ecdf;
+  background-color: #f3ecdf;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(0 0 0 / 2%) 0,
+      transparent 2px,
+      transparent 28px,
+      rgb(0 0 0 / 2%) 29px
+    ),
+    radial-gradient(
+      ellipse at 20% 30%,
+      rgb(255 255 255 / 35%) 0,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 80% 70%,
+      rgb(0 0 0 / 3%) 0,
+      transparent 50%
+    );
+  background-size:
+    100% 30px,
+    100% 100%,
+    100% 100%;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="newspaper"] {
+  --kuusi-background-solid: #2a241c;
+  background-color: #2a241c;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 3%) 0,
+      transparent 2px,
+      transparent 28px,
+      rgb(255 255 255 / 3%) 29px
+    ),
+    radial-gradient(
+      ellipse at 20% 30%,
+      rgb(255 255 255 / 4%) 0,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 80% 70%,
+      rgb(0 0 0 / 12%) 0,
+      transparent 50%
+    );
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="sea-blue"] {
+  --kuusi-background-solid: #a8cce6;
+  background:
+    radial-gradient(
+      ellipse at bottom left,
+      rgb(255 255 255 / 40%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #c5dff0 0%, #a8cce6 100%);
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="sea-blue"] {
+  --kuusi-background-solid: #122840;
+  background:
+    radial-gradient(
+      ellipse at bottom left,
+      rgb(100 160 210 / 10%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #1a3550 0%, #122840 100%);
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="grass-green"] {
+  --kuusi-background-solid: #c8e6b0;
+  background-color: #c8e6b0;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="grass-green"] {
+  --kuusi-background-solid: #1e3020;
+  background-color: #1e3020;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="avocado"] {
+  --kuusi-background-solid: #e2e8c4;
+  background-color: #e2e8c4;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="avocado"] {
+  --kuusi-background-solid: #2c3224;
+  background-color: #2c3224;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="stone-gray"] {
+  --kuusi-background-solid: #e0deda;
+  background-color: #e0deda;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="stone-gray"] {
+  --kuusi-background-solid: #2e2e30;
+  background-color: #2e2e30;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="red-wall"] {
+  --kuusi-background-solid: #e8c4bc;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(255 255 255 / 25%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #f0d4cc 0%, #e8c4bc 100%);
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="red-wall"] {
+  --kuusi-background-solid: #3a2020;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(220 120 100 / 8%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #4a2828 0%, #3a2020 100%);
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="ink"] {
+  --kuusi-background-solid: #0a0a0a;
+  --kuusi-bg-pattern-color: rgb(255 255 255 / 12%);
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgb(90 100 120 / 16%) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #161616 0%, #0a0a0a 100%);
+}
+
+/* Pattern overlays — independent of color theme */
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="plain"] {
+  background: var(--kuusi-background-solid);
+  background-image: none;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background="default"][data-kuusi-background-pattern="plain"] {
+  --kuusi-background-solid: var(--jp-layout-color0);
+  background: var(--jp-layout-color0);
+}
+
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-viewport[data-kuusi-background="default"][data-kuusi-background-pattern="plain"] {
+  --kuusi-background-solid: #090b0f;
+  background: #090b0f;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid-dense"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots-dense"]::before,
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="gradient"]::before {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid"]::before {
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="grid-dense"]::before {
+  background-image:
+    linear-gradient(var(--kuusi-bg-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-bg-pattern-color) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots"]::before {
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 1.25px,
+    transparent 1.25px
+  );
+  background-size: 20px 20px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="dots-dense"]::before {
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-bg-pattern-color) 1px,
+    transparent 1px
+  );
+  background-size: 10px 10px;
+}
+
+.jp-KuusiNotebookMindMap-viewport[data-kuusi-background-pattern="gradient"]::before {
+  background:
+    radial-gradient(
+      ellipse at top left,
+      color-mix(in srgb, var(--jp-layout-color2) 80%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      color-mix(in srgb, var(--jp-layout-color2) 80%, transparent) 0%,
+      transparent 55%
+    );
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-panning,
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-edges {
+  opacity: 0.2;
+  transition: opacity 0.15s ease;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-cellNode:not(.is-drag-source) {
+  transition: transform 0.18s ease;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-cellNode.is-drag-source {
+  transition: transform 0.18s ease, opacity 0.15s ease;
+  z-index: 2;
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-dragging
+  .jp-KuusiNotebookMindMap-cellNode.is-slot-neighbor {
+  box-shadow: var(--jp-elevation-z2);
+}
+
+.jp-KuusiNotebookMindMapDocument:fullscreen,
+.jp-KuusiNotebookMindMapDocument:-webkit-full-screen {
+  background: var(--jp-layout-color0);
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+  width: 100vw;
+  width: 100dvw;
+}
+
+.jp-KuusiNotebookMindMapDocument:fullscreen .jp-Toolbar,
+.jp-KuusiNotebookMindMapDocument:-webkit-full-screen .jp-Toolbar {
+  background: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebookMindMapDocument:fullscreen .jp-KuusiNotebookMindMap,
+.jp-KuusiNotebookMindMapDocument:-webkit-full-screen .jp-KuusiNotebookMindMap {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiNotebookMindMapDocument:fullscreen .jp-KuusiNotebookMindMap-header,
+.jp-KuusiNotebookMindMapDocument:-webkit-full-screen .jp-KuusiNotebookMindMap-header {
+  position: absolute;
+}
+
+.jp-KuusiNotebookMindMapDocument:fullscreen .jp-KuusiNotebookMindMap-viewport,
+.jp-KuusiNotebookMindMapDocument:-webkit-full-screen .jp-KuusiNotebookMindMap-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.jp-KuusiNotebookMindMap:fullscreen {
+  background: var(--jp-layout-color0);
+  color: var(--jp-ui-font-color1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* Bottom status pills + corner control share one chrome height. */
+.jp-KuusiNotebookMindMap-status-updated,
+.jp-KuusiRenderChrome-node,
+.jp-KuusiRenderChrome-stats,
+.jp-KuusiNotebookMindMap-status,
+.jp-KuusiRenderChrome-view {
+  align-items: center;
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  box-shadow: var(--jp-elevation-z2);
+  color: var(--jp-ui-font-color1);
+  display: flex;
+  font-family: var(--kuusi-mindmap-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-mindmap-chrome-font-size, 11px);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight, 550);
+  gap: 12px;
+  height: var(--kuusi-status-chrome-height, 32px);
+  line-height: 1;
+  padding: 0 10px;
+  pointer-events: none;
+  position: relative;
+}
+
+.jp-KuusiNotebookMindMap-status-updated {
+  --kuusi-status-chrome-height: 32px;
+  bottom: 12px;
+  left: 12px;
+  max-width: min(42vw, 420px);
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.jp-KuusiNotebookMindMap-status-updated[hidden] {
+  display: none;
+}
+
+.jp-KuusiNotebookMindMap-status-node,
+.jp-KuusiRenderChrome-node,
+.jp-KuusiRenderChrome-stats,
+.jp-KuusiNotebookMindMap-status-zoom-btn,
+.jp-KuusiNotebookMindMap-status-zoom-step {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1;
+}
+
+.jp-KuusiNotebookMindMap-status-node,
+.jp-KuusiRenderChrome-node,
+.jp-KuusiRenderChrome-stats {
+  max-width: min(56vw, 560px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-KuusiRenderChrome-stats {
+  gap: 0;
+}
+
+.jp-KuusiRenderChrome-stat {
+  display: inline;
+}
+
+.jp-KuusiRenderChrome-stat[hidden] {
+  display: none !important;
+}
+
+.jp-KuusiRenderChrome-stat:not([hidden]) + .jp-KuusiRenderChrome-stat:not([hidden])::before {
+  content: "·";
+  margin: 0 0.45em;
+  opacity: 0.55;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom {
+  pointer-events: auto;
+  position: relative;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-controls {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5em;
+  padding: 0 2px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-btn:hover {
+  color: var(--jp-brand-color2);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-step {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  width: 22px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-step:hover:not(:disabled) {
+  color: var(--jp-brand-color2);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-step:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-slider-wrap {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  bottom: calc(100% + 8px);
+  box-shadow: var(--jp-elevation-z2);
+  display: none;
+  left: 50%;
+  padding: 10px 10px 10px 8px;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 30;
+  --kuusi-zoom-track: 186px;
+  --kuusi-zoom-thumb: 12px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-slider-wrap.is-open {
+  display: block;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-rail {
+  align-items: stretch;
+  display: flex;
+  gap: 8px;
+  height: var(--kuusi-zoom-track);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-ticks {
+  flex: 0 0 auto;
+  height: 100%;
+  position: relative;
+  width: 2.75em;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-tick {
+  background: transparent;
+  border: none;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--jp-ui-font-size0);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  white-space: nowrap;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-tick:hover {
+  color: var(--jp-brand-color2);
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-track {
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 100%;
+  outline: none;
+  position: relative;
+  touch-action: none;
+  width: 18px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-track:focus-visible {
+  outline: 1px solid var(--jp-brand-color1);
+  outline-offset: 2px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-track-line {
+  background: var(--jp-border-color1);
+  border-radius: 999px;
+  bottom: 0;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 4px;
+}
+
+.jp-KuusiNotebookMindMap-status-zoom-thumb {
+  background: var(--jp-brand-color1);
+  border-radius: 50%;
+  height: var(--kuusi-zoom-thumb);
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, 50%);
+  width: var(--kuusi-zoom-thumb);
+}
+
+/* Dark theme: white track + brand-green thumb for contrast. */
+body[data-jp-theme-light="false"]
+  .jp-KuusiNotebookMindMap-status-zoom-track-line {
+  background: #fff;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
+  background: var(--kuusi-brand-green, #9bc49a);
+  box-shadow: none;
+}
+
+/* Corner fullscreen / play styles live in fullscreen.css (jp-KuusiCornerBtn). */
+
+.jp-KuusiNotebookMindMap-scene {
+  left: 0;
+  position: absolute;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  z-index: 1;
+}
+
+.jp-KuusiMindMapNotebook-scene.jp-Notebook {
+  --kuusi-edge-color: var(--jp-border-color2);
+  --kuusi-edge-width: 3pt;
+  --kuusi-mindmap-font-family-edit: var(
+    --jp-content-font-family,
+    var(--jp-ui-font-family)
+  );
+  --kuusi-mindmap-font-family-display: var(
+    --jp-content-font-family,
+    var(--jp-ui-font-family)
+  );
+  --kuusi-mindmap-font-size-edit: 14px;
+  --kuusi-mindmap-font-size-display: 14px;
+  /* Drive Jupyter/CodeMirror sizes so every node follows Display. */
+  --jp-content-font-size0: calc(var(--kuusi-mindmap-font-size-display) * 0.875);
+  --jp-content-font-size1: var(--kuusi-mindmap-font-size-display);
+  --jp-content-font-size2: calc(var(--kuusi-mindmap-font-size-display) * 1.125);
+  --jp-content-font-size3: calc(var(--kuusi-mindmap-font-size-display) * 1.25);
+  --jp-content-font-size4: calc(var(--kuusi-mindmap-font-size-display) * 1.5);
+  --jp-content-font-size5: calc(var(--kuusi-mindmap-font-size-display) * 1.75);
+  --jp-code-font-size: var(--kuusi-mindmap-font-size-display);
+  --kuusi-node-background: var(--jp-layout-color0);
+  --kuusi-node-border-color: var(--jp-border-color2);
+  --kuusi-node-border-radius: 8px;
+  --kuusi-node-border-width: 1px;
+  --kuusi-hover-glow-fallback: #1976d2;
+  --kuusi-hover-glow-width: 1px;
+  --kuusi-selection-glow-color: var(--jp-brand-color1);
+  --kuusi-selection-glow-width: 2px;
+  --kuusi-node-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+  background: transparent;
+  overflow: visible;
+}
+
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode {
+  color: var(--kuusi-mindmap-body-color, inherit);
+  font-family: var(--kuusi-mindmap-font-family-display);
+  font-size: var(--kuusi-mindmap-font-size-display);
+  letter-spacing: var(--kuusi-mindmap-letter-spacing, 0);
+  line-height: var(--kuusi-mindmap-line-height, 1.5);
+}
+
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(strong, b) {
+  color: var(--kuusi-mindmap-strong-color, inherit);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-Cell,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-RenderedHTMLCommon,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-MarkdownOutput,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-OutputArea,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-editor,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .cm-editor
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .cm-scroller {
+  font-family: var(--kuusi-mindmap-font-family-display);
+  font-size: var(--kuusi-mindmap-font-size-display);
+}
+
+/* Active cell while editing uses Edit font + size instead of Display. */
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered)) {
+  --jp-content-font-size0: calc(var(--kuusi-mindmap-font-size-edit) * 0.875);
+  --jp-content-font-size1: var(--kuusi-mindmap-font-size-edit);
+  --jp-content-font-size2: calc(var(--kuusi-mindmap-font-size-edit) * 1.125);
+  --jp-content-font-size3: calc(var(--kuusi-mindmap-font-size-edit) * 1.25);
+  --jp-content-font-size4: calc(var(--kuusi-mindmap-font-size-edit) * 1.5);
+  --jp-content-font-size5: calc(var(--kuusi-mindmap-font-size-edit) * 1.75);
+  --jp-code-font-size: var(--kuusi-mindmap-font-size-edit);
+  cursor: text;
+  font-family: var(--kuusi-mindmap-font-family-edit);
+  font-size: var(--kuusi-mindmap-font-size-edit);
+}
+
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .cm-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .cm-editor
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .cm-scroller {
+  font-family: var(--kuusi-mindmap-font-family-edit);
+  font-size: var(--kuusi-mindmap-font-size-edit);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(.jp-RenderedHTMLCommon, .jp-MarkdownOutput, .jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  p {
+  margin-block: var(--kuusi-mindmap-paragraph-spacing, 6pt);
+  text-align: var(--kuusi-mindmap-paragraph-align, left);
+  text-indent: var(--kuusi-mindmap-paragraph-indent, 0);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(.jp-RenderedHTMLCommon, .jp-MarkdownOutput, .jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  p:first-child {
+  margin-block-start: 0;
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-heading-level="1"],
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(h1) {
+  color: var(--kuusi-mindmap-h1-color, inherit);
+  font-family: var(--kuusi-mindmap-h1-font-family);
+  font-size: var(--kuusi-mindmap-h1-font-size);
+  text-align: var(--kuusi-mindmap-h1-align, left);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-heading-level="2"],
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(h2) {
+  color: var(--kuusi-mindmap-h2-color, inherit);
+  font-family: var(--kuusi-mindmap-h2-font-family);
+  font-size: var(--kuusi-mindmap-h2-font-size);
+  text-align: var(--kuusi-mindmap-h2-align, left);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-heading-level="3"],
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(h3) {
+  color: var(--kuusi-mindmap-h3-color, inherit);
+  font-family: var(--kuusi-mindmap-h3-font-family);
+  font-size: var(--kuusi-mindmap-h3-font-size);
+  text-align: var(--kuusi-mindmap-h3-align, left);
+}
+
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(h4) {
+  color: var(--kuusi-mindmap-h4-color, inherit);
+  font-family: var(--kuusi-mindmap-h4-font-family);
+  font-size: var(--kuusi-mindmap-h4-font-size);
+  text-align: var(--kuusi-mindmap-h4-align, left);
+}
+
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(h5) {
+  color: var(--kuusi-mindmap-h5-color, inherit);
+  font-family: var(--kuusi-mindmap-h5-font-family);
+  font-size: var(--kuusi-mindmap-h5-font-size);
+  text-align: var(--kuusi-mindmap-h5-align, left);
+}
+
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(h6) {
+  color: var(--kuusi-mindmap-h6-color, inherit);
+  font-family: var(--kuusi-mindmap-h6-font-family);
+  font-size: var(--kuusi-mindmap-h6-font-size);
+  text-align: var(--kuusi-mindmap-h6-align, left);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-link-style="underline"]
+  .jp-KuusiNotebookMindMap-cellNode
+  a {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-link-style="accent"]
+  .jp-KuusiNotebookMindMap-cellNode
+  a {
+  color: var(--jp-brand-color1, #2f5d3a);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-style="plain"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(code, .jp-InputArea-editor) {
+  background: transparent;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-style="muted"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(code, pre) {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-style="contrast"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(code, pre) {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  pre {
+  border: none;
+  border-radius: var(--kuusi-mindmap-code-radius, 6px);
+  box-sizing: border-box;
+  max-width: var(--kuusi-mindmap-code-width, 100%);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-frame="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  pre,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-frame="1"]
+  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-frame="code"] {
+  border: var(--kuusi-mindmap-code-border-width, 1px) solid
+    var(
+      --kuusi-mindmap-code-border-color,
+      color-mix(in srgb, currentColor 16%, transparent)
+    );
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  img {
+  border: var(--kuusi-mindmap-image-border-width, 0)
+    var(--kuusi-mindmap-image-border-style, none)
+    var(
+      --kuusi-mindmap-image-border-color,
+      color-mix(in srgb, currentColor 35%, transparent)
+    );
+  border-radius: var(--kuusi-mindmap-image-radius, 0);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-width="natural"]
+  .jp-KuusiNotebookMindMap-cellNode
+  img {
+  max-width: min(100%, 16rem);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-width="full"]
+  .jp-KuusiNotebookMindMap-cellNode
+  img {
+  display: block;
+  max-width: none;
+  width: 100%;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-wrap="none"][data-kuusi-image-align="left"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: 0 auto;
+  text-indent: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-wrap="none"][data-kuusi-image-align="center"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: auto;
+  text-indent: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-wrap="none"][data-kuusi-image-align="right"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: auto 0;
+  text-indent: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-wrap="left"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img), img:not(figure img)) {
+  float: left;
+  margin: 0.35em 0.85em 0.55em 0;
+  max-width: min(100%, 46%);
+  text-indent: 0;
+  width: fit-content;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-image-wrap="right"]
+  .jp-KuusiNotebookMindMap-cellNode
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img), img:not(figure img)) {
+  float: right;
+  margin: 0.35em 0 0.55em 0.85em;
+  max-width: min(100%, 46%);
+  text-indent: 0;
+  width: fit-content;
+}
+
+.jp-KuusiNotebookMindMap-edges {
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  z-index: 0;
+}
+
+.jp-KuusiNotebookMindMap-edge {
+  fill: none;
+  stroke: var(--kuusi-edge-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* stroke-width is set as an SVG attribute in user units so arrow
+     markers stay aligned under canvas zoom/pan. */
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dashed"]
+  .jp-KuusiNotebookMindMap-edge {
+  /* Wider gaps so round linecaps do not visually close into a solid stroke. */
+  stroke-dasharray: 14 12;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dotted"]
+  .jp-KuusiNotebookMindMap-edge {
+  stroke-dasharray: 0.01 10;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="long-dash"]
+  .jp-KuusiNotebookMindMap-edge {
+  stroke-dasharray: 20 14;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dash-dot"]
+  .jp-KuusiNotebookMindMap-edge {
+  stroke-dasharray: 12 8 0.01 8;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="dense-dot"]
+  .jp-KuusiNotebookMindMap-edge {
+  stroke-dasharray: 0.01 6;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-edge-style="sparse-dash"]
+  .jp-KuusiNotebookMindMap-edge {
+  stroke-dasharray: 22 18;
+}
+
+.jp-KuusiNotebookMindMap-cellNode {
+  background: var(--kuusi-node-background);
+  border-color: var(--kuusi-node-border-color);
+  border-radius: var(--kuusi-node-border-radius);
+  border-style: solid;
+  border-width: var(--kuusi-node-border-width);
+  box-shadow: var(--kuusi-node-shadow);
+  box-sizing: border-box;
+  cursor: grab;
+  overflow: hidden;
+  padding-left: var(--kuusi-node-padding-x, 20px);
+  z-index: 1;
+}
+
+/* Vertical inset only when the user set it; otherwise keep JupyterLab's cell padding. */
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-padding-y]
+  .jp-KuusiNotebookMindMap-cellNode {
+  padding-bottom: var(--kuusi-node-padding-y);
+  padding-top: var(--kuusi-node-padding-y);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-drag-source {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Explicit fills (e.g. Board white cards under Jupyter Dark) need contrast.
+   Code cells keep Lab syntax tokens — do not remap mirror editor colors. */
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode:not(.jp-CodeCell) {
+  --jp-content-font-color0: var(--kuusi-node-foreground);
+  --jp-content-font-color1: var(--kuusi-node-foreground);
+  --jp-content-font-color2: var(--kuusi-node-foreground);
+  --jp-content-font-color3: var(--kuusi-node-foreground);
+  --jp-ui-font-color0: var(--kuusi-node-foreground);
+  --jp-ui-font-color1: var(--kuusi-node-foreground);
+  --jp-mirror-editor-variable-color: var(--kuusi-node-foreground);
+  color: var(--kuusi-node-foreground);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell {
+  --jp-content-font-color0: var(--kuusi-node-foreground);
+  --jp-content-font-color1: var(--kuusi-node-foreground);
+  --jp-content-font-color2: var(--kuusi-node-foreground);
+  --jp-content-font-color3: var(--kuusi-node-foreground);
+  --jp-ui-font-color0: var(--kuusi-node-foreground);
+  --jp-ui-font-color1: var(--kuusi-node-foreground);
+  color: var(--kuusi-node-foreground);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-RenderedHTMLCommon,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-contrast="1"]
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-MarkdownOutput {
+  color: var(--kuusi-node-foreground);
+}
+
+/* JupyterLab sets active+selected cells to transparent; keep map cards opaque. */
+.jp-KuusiMindMapNotebook-scene.jp-Notebook
+  .jp-Cell.jp-KuusiNotebookMindMap-cellNode,
+.jp-KuusiMindMapNotebook-scene.jp-Notebook.jp-mod-commandMode
+  .jp-Cell.jp-KuusiNotebookMindMap-cellNode.jp-mod-active.jp-mod-selected:not(
+    .jp-mod-multiSelected
+  ),
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.is-selected,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active {
+  background: var(--kuusi-node-background);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.has-children {
+  /* Room for the collapse chip stays 22px beyond the left inset. */
+  padding-right: calc(var(--kuusi-node-padding-x, 20px) + 22px);
+}
+
+.jp-KuusiNotebookMindMap-collapse {
+  align-items: center;
+  /* Fill = node border color at 30% opacity; stroke matches the card. */
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-border-color) 30%,
+    transparent
+  );
+  border: 1px solid var(--kuusi-node-border-color);
+  /* Match Node → Corner (overridden per-corner below / via inline sync). */
+  border-radius: var(--kuusi-node-border-radius, 8px);
+  color: var(--kuusi-node-border-color);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--jp-ui-font-family);
+  font-size: 16px;
+  font-weight: 700;
+  gap: 0.15em;
+  height: 30px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 30px;
+  padding: 0 9px;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  /* Above the right-edge resize strip (z-index 3) so trackpad presses hit
+     collapse/expand instead of starting a width drag on the overlap. */
+  z-index: 4;
+  box-shadow: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.jp-KuusiNotebookMindMap-collapse-arrow {
+  color: var(--kuusi-node-border-color);
+}
+
+/* Hidden-branch count: border color darkened 2× (halfway toward black). */
+.jp-KuusiNotebookMindMap-collapse-count {
+  color: color-mix(in srgb, var(--kuusi-node-border-color), black 50%);
+  font-variant-numeric: tabular-nums;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-corner="sharp"]
+  .jp-KuusiNotebookMindMap-collapse {
+  border-radius: 0;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-corner="ellipse"]
+  .jp-KuusiNotebookMindMap-collapse {
+  /* Pill chip — same “fully round” language as ellipse cards (50% on a
+     large node looks oval; on a 30px control use a stadium). */
+  border-radius: 999px;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-corner="rounded"]
+  .jp-KuusiNotebookMindMap-collapse {
+  border-radius: var(--kuusi-node-border-radius, 8px);
+}
+
+.jp-KuusiNotebookMindMap-collapse:hover {
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-border-color) 45%,
+    transparent
+  );
+  border-color: var(--kuusi-node-border-color);
+  box-shadow:
+    0 0 0 1px var(--kuusi-node-border-color),
+    0 0 8px 2px
+      color-mix(in srgb, var(--kuusi-node-border-color) 55%, transparent);
+}
+
+.jp-KuusiNotebookMindMap-collapse:hover .jp-KuusiNotebookMindMap-collapse-arrow {
+  color: var(--kuusi-node-border-color);
+}
+
+.jp-KuusiNotebookMindMap-collapse:hover .jp-KuusiNotebookMindMap-collapse-count {
+  color: color-mix(in srgb, var(--kuusi-node-border-color), black 62%);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-collapsed > .jp-KuusiNotebookMindMap-collapse {
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-border-color) 30%,
+    transparent
+  );
+  border-color: var(--kuusi-node-border-color);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-collapsed
+  > .jp-KuusiNotebookMindMap-collapse
+  .jp-KuusiNotebookMindMap-collapse-count {
+  color: color-mix(in srgb, var(--kuusi-node-border-color), black 50%);
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-style="dashed"]
+  .jp-KuusiNotebookMindMap-cellNode {
+  border-style: dashed;
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-node-border-style="dotted"]
+  .jp-KuusiNotebookMindMap-cellNode {
+  border-style: dotted;
+}
+
+.jp-KuusiNotebookMindMap-cellNode[data-kuusi-heading-level="1"] {
+  --kuusi-node-shadow: var(--jp-elevation-z2);
+  font-weight: 600;
+}
+
+.jp-KuusiNotebookMindMap-cellNode[data-kuusi-frame="code"] {
+  --kuusi-node-background: var(--jp-layout-color1);
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-selected {
+  border-color: var(--kuusi-selection-glow-color);
+  box-shadow:
+    0 0 0 var(--kuusi-selection-glow-width) var(--kuusi-selection-glow-color),
+    0 0 calc(var(--kuusi-selection-glow-width) * 5)
+      calc(var(--kuusi-selection-glow-width) * 1.5)
+      color-mix(in srgb, var(--kuusi-selection-glow-color) 55%, transparent),
+    var(--kuusi-node-shadow, var(--jp-elevation-z1));
+}
+
+.jp-KuusiNotebookMindMap-cellNode:hover:not(.is-selected):not(.is-drop-before):not(
+    .is-drop-inside
+  ):not(.is-drop-after) {
+  border-color: var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback));
+  box-shadow:
+    0 0 0 var(--kuusi-hover-glow-width)
+      var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback)),
+    0 0 calc(var(--kuusi-hover-glow-width) * 5)
+      calc(var(--kuusi-hover-glow-width) * 1.5)
+      color-mix(
+        in srgb,
+        var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback)) 55%,
+        transparent
+      ),
+    var(--kuusi-node-shadow, var(--jp-elevation-z1));
+}
+
+.jp-KuusiNotebookMindMap-resizeHandle {
+  bottom: 0;
+  cursor: ew-resize;
+  position: absolute;
+  right: 0;
+  top: 0;
+  user-select: none;
+  width: 10px;
+  z-index: 3;
+}
+
+.jp-KuusiNotebookMindMap-resizeHandle::after {
+  background: transparent;
+  border-radius: 2px;
+  content: "";
+  height: 28px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.12s ease;
+  width: 3px;
+}
+
+.jp-KuusiNotebookMindMap-cellNode:hover > .jp-KuusiNotebookMindMap-resizeHandle::after {
+  background: var(--kuusi-hover-glow-color, var(--kuusi-hover-glow-fallback));
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-selected > .jp-KuusiNotebookMindMap-resizeHandle::after,
+.jp-KuusiNotebookMindMap-cellNode.is-resizing > .jp-KuusiNotebookMindMap-resizeHandle::after {
+  background: var(--kuusi-selection-glow-color, var(--jp-brand-color1));
+}
+
+.jp-KuusiNotebookMindMap-viewport.is-node-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-drop-before {
+  /* Sibling slots use live gap animation instead of inset bars. */
+  box-shadow: var(--kuusi-node-shadow, var(--jp-elevation-z1));
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-image-drop {
+  outline: 2px dashed var(--kuusi-selection-glow-color, var(--jp-brand-color1));
+  outline-offset: 4px;
+}
+
+.jp-KuusiNotebookMindMap-cellNode .jp-RenderedHTMLCommon img {
+  height: auto;
+  max-width: 100%;
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-drop-inside {
+  border-color: var(--kuusi-selection-glow-color);
+  box-shadow:
+    0 0 0 var(--kuusi-selection-glow-width) var(--kuusi-selection-glow-color),
+    0 0 calc(var(--kuusi-selection-glow-width) * 5)
+      calc(var(--kuusi-selection-glow-width) * 1.5)
+      color-mix(in srgb, var(--kuusi-selection-glow-color) 55%, transparent),
+    var(--kuusi-node-shadow, var(--jp-elevation-z1));
+}
+
+.jp-KuusiNotebookMindMap-cellNode.is-drop-after {
+  box-shadow: var(--kuusi-node-shadow, var(--jp-elevation-z1));
+}
+
+.jp-KuusiNotebookMindMap-drag-ghost {
+  /* Cloned cell card — keep rendered node chrome; only pin above the canvas. */
+  box-sizing: border-box;
+  cursor: grabbing;
+  margin: 0;
+  max-width: none;
+  opacity: 0.94;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 10000;
+}
+
+.jp-KuusiNotebookMindMap-drag-ghost .jp-Cell {
+  margin: 0;
+  overflow: visible;
+}
+
+.jp-KuusiNotebookMindMap-drag-ghost .jp-Collapser,
+.jp-KuusiNotebookMindMap-drag-ghost .jp-InputArea-prompt,
+.jp-KuusiNotebookMindMap-drag-ghost .jp-OutputArea-prompt {
+  display: none;
+}
+
+.jp-KuusiNotebookMindMap-cellNode .jp-Cell {
+  margin: 0;
+  overflow: visible;
+}
+
+.jp-KuusiNotebookMindMap-cellNode .jp-Collapser,
+.jp-KuusiNotebookMindMap-cellNode .jp-InputArea-prompt,
+.jp-KuusiNotebookMindMap-cellNode .jp-OutputArea-prompt {
+  display: none;
+}
+
+.jp-KuusiNotebookMindMap-cellNode .jp-Cell-inputWrapper,
+.jp-KuusiNotebookMindMap-cellNode .jp-InputArea {
+  margin-left: 0;
+  min-height: 3rem;
+  padding-left: 0;
+}
+
+.jp-KuusiNotebookMindMap-cellNode .jp-CodeMirrorEditor,
+.jp-KuusiNotebookMindMap-cellNode .cm-editor,
+.jp-KuusiNotebookMindMap-cellNode .cm-scroller {
+  cursor: default;
+  min-height: 3rem;
+}
+
+/* Command mode (and inactive cells): never place a caret on single-click. */
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  .jp-CodeMirrorEditor,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-editor,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-content,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode .cm-scroller {
+  caret-color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Double-click edit mode: only the active cell editor accepts the caret. */
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .jp-InputArea-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .jp-CodeMirrorEditor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .cm-editor,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene.jp-mod-editMode
+  .jp-KuusiNotebookMindMap-cellNode.jp-mod-active:not(:has(.jp-mod-rendered))
+  .cm-scroller {
+  caret-color: auto;
+  cursor: text;
+  pointer-events: auto;
+  user-select: text;
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode:has(.jp-mod-rendered) {
+  cursor: grab;
+}
+
+.jp-KuusiNotebookMindMap-cellNode.jp-mod-rendered .jp-MarkdownOutput,
+.jp-KuusiNotebookMindMap-cellNode .jp-mod-rendered .jp-MarkdownOutput {
+  cursor: pointer;
+  padding: 2px 6px 2px 0;
+}
+
+/* JupyterLab ¶ heading anchors — not useful on the mind-map canvas. */
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h1:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h2:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h3:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h4:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h5:hover
+  a.jp-InternalAnchorLink,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode
+  h6:hover
+  a.jp-InternalAnchorLink {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+}
+
+/* --- Keyboard focus rings for canvas controls --- */
+.jp-KuusiNotebookMindMap-collapse:focus-visible,
+.jp-KuusiNotebookMindMap-direction-btn:focus-visible,
+.jp-KuusiNotebookMindMap-status-zoom-btn:focus-visible,
+.jp-KuusiNotebookMindMap-status-zoom-step:focus-visible,
+.jp-KuusiNotebookMindMap-status-zoom-tick:focus-visible,
+button.jp-KuusiNotebookMindMap-format-btn:focus-visible {
+  outline: 2px solid var(--jp-brand-color1);
+  outline-offset: 1px;
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  .jp-KuusiNotebookMindMap-viewport,
+  .jp-KuusiNotebookMindMap-viewport * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- Touch / coarse pointers --- */
+.jp-KuusiNotebookMindMap-viewport {
+  -webkit-touch-callout: none;
+}
+
+@media (pointer: coarse) {
+  /* 10px is not a finger-sized target. */
+  .jp-KuusiNotebookMindMap-resizeHandle {
+    width: 24px;
+  }
+
+  .jp-KuusiNotebookMindMap-status-zoom-btn,
+  .jp-KuusiNotebookMindMap-status-zoom-step {
+    min-height: 32px;
+    min-width: 32px;
+  }
+
+  .jp-KuusiNotebookMindMap-status-zoom-track {
+    width: 32px;
+  }
+}
+
+/* --- Branch color preview chips in the Line menu --- */
+.jp-KuusiAppearancePreview-branches {
+  align-items: center;
+  display: inline-flex;
+  gap: 2px;
+  height: 14px;
+}
+
+.jp-KuusiAppearancePreview-branches > span {
+  border-radius: 2px;
+  display: inline-block;
+  height: 10px;
+  width: 12px;
+}
+
+.jp-KuusiAppearancePreview-branches.is-off {
+  border: 1px dashed var(--jp-border-color2);
+  border-radius: 3px;
+  height: 10px;
+  width: 24px;
+}
+
+/* A level fill needs readable text even when no map-wide fill is set. */
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-level-contrast="1"]:not(
+    .jp-CodeCell
+  ) {
+  --jp-content-font-color0: var(--kuusi-node-foreground);
+  --jp-content-font-color1: var(--kuusi-node-foreground);
+  --jp-content-font-color2: var(--kuusi-node-foreground);
+  --jp-content-font-color3: var(--kuusi-node-foreground);
+  --jp-ui-font-color0: var(--kuusi-node-foreground);
+  --jp-ui-font-color1: var(--kuusi-node-foreground);
+  color: var(--kuusi-node-foreground);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode[data-kuusi-level-contrast="1"]
+  :is(.cm-content, .jp-RenderedHTMLCommon, .jp-MarkdownOutput) {
+  color: var(--kuusi-node-foreground);
+}

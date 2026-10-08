@@ -1,12 +1,14 @@
 {
   "title": "jupyterlab-kuusi",
   "description": "jupyterlab-kuusi settings.",
+  "jupyter.lab.internationalization": {
+    "domain": "jupyterlab_kuusi"
+  },
   "jupyter.lab.toolbars": {
     "Notebook": [
       {
         "name": "open-mindmap",
-        "command": "jupyterlab-kuusi:open-notebook-mindmap",
-        "label": "Kuusi",
+        "label": "Kuusi View",
         "rank": 41
       },
       {
@@ -14,30 +16,196 @@
         "rank": 42
       }
     ],
+    "Kuusi Markdown Mind Map": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      },
+      {
+        "name": "save",
+        "rank": 10
+      },
+      {
+        "name": "insert",
+        "rank": 20
+      },
+      {
+        "name": "cut",
+        "rank": 21
+      },
+      {
+        "name": "copy",
+        "rank": 22
+      },
+      {
+        "name": "paste",
+        "rank": 23
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      }
+    ],
+    "Kuusi Markdown Slides": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      },
+      {
+        "name": "save",
+        "rank": 10
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      }
+    ],
+    "Kuusi Notebook Slides": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      }
+    ],
     "Kuusi Mind Map": [
-      { "name": "save", "rank": 10 },
-      { "name": "insert", "rank": 20 },
-      { "name": "cut", "rank": 21 },
-      { "name": "copy", "rank": 22 },
-      { "name": "paste", "rank": 23 },
-      { "name": "run", "rank": 30 },
-      { "name": "interrupt", "rank": 31 },
-      { "name": "restart", "rank": 32 },
-      { "name": "restart-and-run", "rank": 33 },
-      { "name": "cellType", "rank": 40 },
       {
-        "name": "open-notebook",
-        "command": "jupyterlab-kuusi:open-notebook-view",
-        "label": "Notebook",
-        "rank": 41
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
       },
       {
-        "name": "kuusi-notebook-auto-reload",
-        "rank": 42
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
       },
-      { "name": "spacer", "type": "spacer", "rank": 100 },
-      { "name": "kernelName", "rank": 1000 },
-      { "name": "executionProgress", "rank": 1002 }
+      {
+        "name": "save",
+        "rank": 10
+      },
+      {
+        "name": "insert",
+        "rank": 20
+      },
+      {
+        "name": "cut",
+        "rank": 21
+      },
+      {
+        "name": "copy",
+        "rank": 22
+      },
+      {
+        "name": "paste",
+        "rank": 23
+      },
+      {
+        "name": "run",
+        "rank": 30
+      },
+      {
+        "name": "interrupt",
+        "rank": 31
+      },
+      {
+        "name": "restart",
+        "rank": 32
+      },
+      {
+        "name": "restart-and-run",
+        "rank": 33
+      },
+      {
+        "name": "cellType",
+        "rank": 40
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      },
+      {
+        "name": "kernelName",
+        "rank": 1000
+      },
+      {
+        "name": "executionProgress",
+        "rank": 1002
+      }
+    ],
+    "Kuusi Notebook Article": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      }
+    ],
+    "Kuusi Notebook Book": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      }
+    ],
+    "Kuusi Markdown Book": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      },
+      {
+        "name": "spacer",
+        "type": "spacer",
+        "rank": 100
+      }
+    ],
+    "Editor": [
+      {
+        "name": "kuusi-open-render",
+        "label": "Kuusi View",
+        "rank": 40
+      }
     ]
   },
   "jupyter.lab.transform": true,
@@ -68,8 +236,6 @@
       "default": "notebook"
     },
     "font": {
-      "title": "Mind map font (legacy)",
-      "description": "Deprecated. Migrates to editFont and displayFont.",
       "type": "string",
       "enum": [
         "notebook",
@@ -84,7 +250,9 @@
         "garamond",
         "cambria"
       ],
-      "default": "notebook"
+      "default": "notebook",
+      "title": "Mind map body font",
+      "description": "Font family for Body nodes."
     },
     "editFont": {
       "title": "Mind map edit font",
@@ -126,17 +294,19 @@
     },
     "editFontSize": {
       "title": "Mind map edit font size",
-      "description": "Font size while editing cell source (before render).",
-      "type": "string",
-      "enum": ["xxs", "xs", "sm", "md", "lg", "xl", "xxl"],
-      "default": "md"
+      "description": "Body size while editing cell source, in CSS px (8–16).",
+      "type": "number",
+      "minimum": 8,
+      "maximum": 16,
+      "default": 14
     },
     "displayFontSize": {
       "title": "Mind map display font size",
-      "description": "Font size for rendered markdown/HTML output.",
-      "type": "string",
-      "enum": ["xxs", "xs", "sm", "md", "lg", "xl", "xxl"],
-      "default": "md"
+      "description": "Body size for rendered markdown/HTML output, in CSS px (8–16).",
+      "type": "number",
+      "minimum": 8,
+      "maximum": 16,
+      "default": 14
     },
     "unifyEditDisplayFont": {
       "title": "Unify edit and display fonts",
@@ -150,10 +320,362 @@
       "type": "boolean",
       "default": false
     },
+    "color": {
+      "type": "string",
+      "default": "",
+      "title": "Mind map body color",
+      "description": "Body text color. Empty follows the node foreground."
+    },
+    "letterSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0,
+      "title": "Mind map letter spacing",
+      "description": "Tracking for Body nodes, in em (0–0.15)."
+    },
+    "lineHeight": {
+      "type": "number",
+      "minimum": 0.9,
+      "maximum": 2.4,
+      "default": 1.5,
+      "title": "Mind map leading",
+      "description": "Line-height multiplier for Body nodes (0.9–2.4)."
+    },
+    "paragraphSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 48,
+      "default": 0.5,
+      "title": "Mind map paragraph spacing",
+      "description": "Vertical space between paragraphs inside a node, in em (0–3)."
+    },
+    "paragraphIndent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 72,
+      "default": 0,
+      "title": "Mind map paragraph indent",
+      "description": "First-line indent inside Body nodes, in em (0–3)."
+    },
+    "paragraphAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "justify"
+      ],
+      "default": "left",
+      "title": "Mind map paragraph alignment"
+    },
+    "linkStyle": {
+      "type": "string",
+      "enum": [
+        "default",
+        "underline",
+        "accent"
+      ],
+      "default": "default",
+      "title": "Mind map link style"
+    },
+    "headers": {
+      "type": "object",
+      "properties": {
+        "h1": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h2": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h3": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h4": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h5": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h6": {
+          "$ref": "#/definitions/headerStyle"
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "h1": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h2": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h3": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h4": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h5": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h6": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        }
+      },
+      "title": "Mind map headings",
+      "description": "H1–H3 style tree frames. H4–H6 style titles inside a card. Defaults match Body so existing maps do not jump."
+    },
+    "codeStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "muted",
+        "contrast"
+      ],
+      "default": "muted",
+      "title": "Mind map code style",
+      "description": "Appearance of inline code and fenced code blocks inside nodes."
+    },
+    "codeTheme": {
+      "type": "string",
+      "enum": [
+        "notebook",
+        "python",
+        "javascript",
+        "r",
+        "julia",
+        "sql",
+        "rust",
+        "matlab",
+        "shell"
+      ],
+      "default": "notebook",
+      "title": "Mind map code palette",
+      "description": "Syntax colors for highlighted code. Notebook follows JupyterLab theme colors."
+    },
+    "codeFont": {
+      "type": "string",
+      "enum": [
+        "mono",
+        "menlo",
+        "consolas",
+        "monaco",
+        "source-code-pro",
+        "fira-code",
+        "jetbrains-mono",
+        "cascadia"
+      ],
+      "default": "mono",
+      "title": "Mind map code font",
+      "description": "Monospace face for code inside nodes."
+    },
+    "codeFontSize": {
+      "type": "string",
+      "enum": [
+        "xxs",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "xxl"
+      ],
+      "default": "sm",
+      "title": "Mind map code font size",
+      "description": "Size step for code text."
+    },
+    "codeFrame": {
+      "type": "boolean",
+      "title": "Mind map code frame",
+      "description": "Draw a border around fenced code blocks inside nodes.",
+      "default": false
+    },
+    "codeFrameColor": {
+      "type": "string",
+      "default": "",
+      "title": "Mind map code frame color",
+      "description": "CSS hex color, or empty to follow the node foreground."
+    },
+    "codeFrameRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "default": 6,
+      "title": "Mind map code corner radius",
+      "description": "Corner radius of code blocks, in px (0–24)."
+    },
+    "codeFrameBorder": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 1,
+      "title": "Mind map code frame stroke",
+      "description": "Border width of the code frame, in px (0–8)."
+    },
+    "codeFrameWidth": {
+      "type": "number",
+      "minimum": 40,
+      "maximum": 100,
+      "default": 100,
+      "title": "Mind map code block width",
+      "description": "Maximum width of code blocks, as percent of the node (40–100)."
+    },
+    "tableStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "grid",
+        "lines",
+        "banded",
+        "booktabs",
+        "ruled"
+      ],
+      "default": "booktabs",
+      "title": "Table style",
+      "description": "Word- and LaTeX-inspired table presets (default Booktabs)."
+    },
+    "tableBorderWidth": {
+      "type": "number",
+      "minimum": 0.25,
+      "maximum": 3,
+      "default": 0.75,
+      "title": "Table border width",
+      "description": "Rule / grid stroke thickness in pt (0.25–3)."
+    },
+    "tableHeaderRowBold": {
+      "type": "boolean",
+      "default": true,
+      "title": "Bold table header row",
+      "description": "Make the first row (column headers) bold."
+    },
+    "tableHeaderColumnBold": {
+      "type": "boolean",
+      "default": false,
+      "title": "Bold table first column",
+      "description": "Make the first column (row headers) bold."
+    },
+    "listStyle": {
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "relaxed"
+      ],
+      "default": "normal",
+      "title": "List style",
+      "description": "Vertical density for unordered and ordered lists."
+    },
+    "blockquoteWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Blockquote weight",
+      "description": "Border and emphasis weight for blockquotes."
+    },
+    "hrWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Divider weight",
+      "description": "Stroke weight for horizontal rules."
+    },
+    "imageWidth": {
+      "type": "string",
+      "enum": [
+        "natural",
+        "wide",
+        "full"
+      ],
+      "default": "wide",
+      "title": "Mind map image width",
+      "description": "How wide images may grow inside a node."
+    },
+    "imageAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center",
+      "title": "Mind map image alignment"
+    },
+    "imageWrap": {
+      "type": "string",
+      "enum": [
+        "none",
+        "left",
+        "right"
+      ],
+      "default": "none",
+      "title": "Mind map image wrap"
+    },
+    "imageBorderStyle": {
+      "type": "string",
+      "enum": [
+        "none",
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "none",
+      "title": "Mind map image border style"
+    },
+    "imageBorderWidth": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 1,
+      "title": "Mind map image border width",
+      "description": "Image border thickness in px (0–12)."
+    },
+    "imageBorderColor": {
+      "type": "string",
+      "default": "",
+      "title": "Mind map image border color",
+      "description": "CSS hex color, or empty to follow the node foreground."
+    },
+    "imageRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 32,
+      "default": 0,
+      "title": "Mind map image corner radius",
+      "description": "Image corner radius in px (0–32)."
+    },
     "layoutDensity": {
       "title": "Node layout spacing",
       "type": "string",
-      "enum": ["compact", "normal", "loose"],
+      "enum": [
+        "compact",
+        "normal",
+        "loose"
+      ],
       "default": "normal"
     },
     "siblingGap": {
@@ -195,7 +717,12 @@
     "treeDirection": {
       "title": "Tree direction",
       "type": "string",
-      "enum": ["TB", "BT", "LR", "RL"],
+      "enum": [
+        "TB",
+        "BT",
+        "LR",
+        "RL"
+      ],
       "default": "LR"
     },
     "background": {
@@ -220,7 +747,15 @@
     "backgroundPattern": {
       "title": "Canvas background pattern",
       "type": "string",
-      "enum": ["none", "plain", "grid", "grid-dense", "dots", "dots-dense", "gradient"],
+      "enum": [
+        "none",
+        "plain",
+        "grid",
+        "grid-dense",
+        "dots",
+        "dots-dense",
+        "gradient"
+      ],
       "default": "none"
     },
     "backgroundColor": {
@@ -233,6 +768,30 @@
       "description": "Display the notebook file last-modified time in the bottom-left corner of the mind map.",
       "type": "boolean",
       "default": true
+    },
+    "showNodeCount": {
+      "title": "Show mind map node count",
+      "description": "Display the node count beside zoom in the bottom-right corner.",
+      "type": "boolean",
+      "default": true
+    },
+    "showTextCount": {
+      "title": "Show character / word count",
+      "description": "Display character and word counts beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "showPageCount": {
+      "title": "Show page count",
+      "description": "Display page count beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "showFileSize": {
+      "title": "Show file size",
+      "description": "Display the notebook file size beside zoom.",
+      "type": "boolean",
+      "default": false
     },
     "appearance": {
       "title": "Line and node appearance",
@@ -267,12 +826,23 @@
         },
         "edgeArrowDirection": {
           "type": "string",
-          "enum": ["none", "end", "start", "both"],
+          "enum": [
+            "none",
+            "end",
+            "start",
+            "both"
+          ],
           "default": "none"
         },
         "edgeArrowStyle": {
           "type": "string",
-          "enum": ["triangle", "stealth", "diamond", "circle", "open"],
+          "enum": [
+            "triangle",
+            "stealth",
+            "diamond",
+            "circle",
+            "open"
+          ],
           "default": "triangle"
         },
         "edgeWidth": {
@@ -283,6 +853,30 @@
           "type": "string",
           "default": ""
         },
+        "edgeTaper": {
+          "type": "boolean",
+          "title": "Taper lines with depth",
+          "description": "Connector lines get thinner toward the leaves.",
+          "default": false
+        },
+        "edgeMinWidth": {
+          "type": "string",
+          "title": "Minimum line width",
+          "description": "Lower bound for tapered connector lines.",
+          "default": "1pt"
+        },
+        "edgeBranchColors": {
+          "type": "string",
+          "title": "Branch colors",
+          "description": "Color each first-level branch's connectors differently.",
+          "enum": [
+            "off",
+            "rainbow",
+            "pastel",
+            "mono"
+          ],
+          "default": "off"
+        },
         "nodeFillColor": {
           "type": "string",
           "title": "Map node fill",
@@ -291,7 +885,11 @@
         },
         "nodeBorderStyle": {
           "type": "string",
-          "enum": ["solid", "dashed", "dotted"],
+          "enum": [
+            "solid",
+            "dashed",
+            "dotted"
+          ],
           "default": "solid"
         },
         "nodeBorderWidth": {
@@ -304,7 +902,11 @@
         },
         "nodeBorderCorner": {
           "type": "string",
-          "enum": ["sharp", "rounded", "ellipse"],
+          "enum": [
+            "sharp",
+            "rounded",
+            "ellipse"
+          ],
           "default": "rounded"
         },
         "nodeBorderRadius": {
@@ -334,12 +936,223 @@
           "title": "Hover glow width",
           "description": "Glow ring and soft halo size when hovering a mind map node (same presets as node border width).",
           "default": "1px"
+        },
+        "levelStyles": {
+          "type": "object",
+          "title": "Per-level node style",
+          "description": "Fill and border overrides for the map root, level 1, level 2, and deeper nodes. Empty fields follow the map-wide setting.",
+          "additionalProperties": false,
+          "properties": {
+            "root": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "fill": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderColor": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderWidth": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderRadius": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "default": {}
+            },
+            "l1": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "fill": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderColor": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderWidth": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderRadius": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "default": {}
+            },
+            "l2": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "fill": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderColor": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderWidth": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderRadius": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "default": {}
+            },
+            "deep": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "fill": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderColor": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderWidth": {
+                  "type": "string",
+                  "default": ""
+                },
+                "borderRadius": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "default": {}
+            }
+          },
+          "default": {}
+        },
+        "nodePaddingX": {
+          "type": "string",
+          "title": "Node padding (horizontal)",
+          "description": "Left inset of mind map cards. Empty uses the theme.",
+          "default": ""
+        },
+        "nodePaddingY": {
+          "type": "string",
+          "title": "Node padding (vertical)",
+          "description": "Top and bottom inset of mind map cards. Empty uses the theme.",
+          "default": ""
         }
       }
+    },
+    "strongColor": {
+      "type": "string",
+      "default": "",
+      "title": "Mind map bold color",
+      "description": "Color for bold (**strong**) body text. Empty inherits the body color."
+    },
+    "zoomMinPercent": {
+      "type": "number",
+      "title": "Minimum zoom (%)",
+      "description": "Lowest zoom percentage the canvas allows.",
+      "minimum": 5,
+      "maximum": 100,
+      "default": 20
+    },
+    "zoomMaxPercent": {
+      "type": "number",
+      "title": "Maximum zoom (%)",
+      "description": "Highest zoom percentage the canvas allows.",
+      "minimum": 100,
+      "maximum": 800,
+      "default": 200
+    },
+    "wheelZoomSpeed": {
+      "type": "number",
+      "title": "Wheel zoom speed",
+      "description": "Multiplier for wheel and pinch zoom intensity.",
+      "minimum": 0.25,
+      "maximum": 3,
+      "default": 1
+    },
+    "wheelBehavior": {
+      "type": "string",
+      "title": "Mouse wheel",
+      "description": "Whether the plain mouse wheel pans or zooms the canvas.",
+      "enum": [
+        "pan",
+        "zoom"
+      ],
+      "default": "pan"
+    },
+    "openView": {
+      "type": "string",
+      "title": "On open",
+      "description": "Where the camera goes when a mind map opens.",
+      "enum": [
+        "selected",
+        "root",
+        "fit",
+        "last"
+      ],
+      "default": "selected"
     }
   },
   "additionalProperties": false,
   "definitions": {
+    "headerStyle": {
+      "type": "object",
+      "properties": {
+        "font": {
+          "type": "string",
+          "enum": [
+            "notebook",
+            "system-ui",
+            "arial",
+            "helvetica",
+            "segoe-ui",
+            "verdana",
+            "georgia",
+            "times",
+            "palatino",
+            "garamond",
+            "cambria"
+          ]
+        },
+        "fontSize": {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "CSS hex color, or empty to follow the node foreground."
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "toolbarItem": {
       "properties": {
         "name": {
@@ -378,7 +1191,10 @@
         "type": {
           "title": "Item type",
           "type": "string",
-          "enum": ["command", "spacer"]
+          "enum": [
+            "command",
+            "spacer"
+          ]
         },
         "rank": {
           "title": "Item rank",
@@ -387,7 +1203,9 @@
           "default": 50
         }
       },
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "type": "object"
     }

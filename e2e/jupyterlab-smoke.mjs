@@ -42,11 +42,11 @@ try {
   await page.waitForSelector(".jp-NotebookPanel", { timeout: 30000 });
 
   const kuusiButton = page.locator(
-    '.jp-NotebookPanel-toolbar [data-command="jupyterlab-kuusi:open-notebook-mindmap"]',
-  );
+    '.jp-NotebookPanel-toolbar .jp-KuusiNotebookOpenButton',
+  ).filter({ hasText: "Kuusi View" });
 
   if ((await kuusiButton.count()) === 0) {
-    fail("Kuusi toolbar button not found on notebook panel");
+    fail("Kuusi View toolbar button not found on notebook panel");
   } else {
     await kuusiButton.first().click({ timeout: 10000 });
   }

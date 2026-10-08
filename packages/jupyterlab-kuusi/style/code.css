@@ -1,0 +1,120 @@
+/* Shared code font + language palette hooks (Article / Book / Slides / Mind Map).
+ *
+ * Do NOT set `color` on pre/code/cm-content — that flattens syntax tokens.
+ * Token colors come from CM6 highlight spans + `--jp-mirror-editor-*` vars.
+ * Unstyled text falls back via `--kuusi-code-fg` on the host only when needed.
+ */
+
+.jp-KuusiArticle-paper :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) :is(code, pre),
+.jp-KuusiBook-paper :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) :is(code, pre),
+.jp-KuusiMarkdownSlides :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown, .jp-KuusiMarkdownSlides-slide) :is(code, pre),
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode :is(code, pre) {
+  font-family: var(
+    --kuusi-code-font-family,
+    var(--jp-code-font-family, ui-monospace, monospace)
+  );
+  font-size: var(--kuusi-code-font-size, var(--jp-code-font-size, inherit));
+}
+
+/* Base text only — highlight spans keep their own token colors. */
+.jp-KuusiArticle-paper :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre,
+.jp-KuusiBook-paper :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre,
+.jp-KuusiMarkdownSlides :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown, .jp-KuusiMarkdownSlides-slide) pre,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode pre {
+  color: var(--kuusi-code-fg, var(--jp-content-font-color1));
+}
+
+.jp-KuusiArticle-paper :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre code,
+.jp-KuusiBook-paper :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre code,
+.jp-KuusiMarkdownSlides :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre code,
+.jp-KuusiMindMapNotebook-scene .jp-KuusiNotebookMindMap-cellNode pre code {
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+/*
+ * Notebook palette = match ipynb code cells:
+ * --jp-cell-editor-background / border + Lab --jp-mirror-editor-* tokens.
+ * Beat code-style washes and slides default tints (same or higher specificity).
+ */
+.jp-KuusiArticle-paper[data-kuusi-article-code-theme="notebook"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  pre,
+.jp-KuusiBook-paper[data-kuusi-article-code-theme="notebook"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  pre,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-theme="notebook"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown, .jp-KuusiMarkdownSlides-slide)
+  pre,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-theme="notebook"]
+  .jp-KuusiNotebookMindMap-cellNode
+  pre {
+  background: var(--jp-cell-editor-background, var(--md-grey-100, #f5f5f5));
+  border: var(--jp-border-width, 1px) solid
+    var(--jp-cell-editor-border-color, var(--md-grey-300, #e0e0e0));
+  border-radius: var(--jp-border-radius, 2px);
+  color: var(--jp-content-font-color1);
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: var(--jp-code-font-size, 13px);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-theme="notebook"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :not(pre)
+  > code,
+.jp-KuusiBook-paper[data-kuusi-article-code-theme="notebook"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :not(pre)
+  > code,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-theme="notebook"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown, .jp-KuusiMarkdownSlides-slide)
+  :not(pre)
+  > code {
+  background: var(--jp-layout-color2);
+  border-radius: var(--jp-border-radius, 2px);
+  color: var(--jp-content-font-color1);
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: 0.9em;
+}
+
+/* Mind Map code cells: same editor chrome as the Notebook view. */
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-theme="notebook"]
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .jp-InputArea-editor {
+  background: var(--jp-cell-editor-background, var(--md-grey-100, #f5f5f5));
+  border: var(--jp-border-width, 1px) solid
+    var(--jp-cell-editor-border-color, var(--md-grey-300, #e0e0e0));
+  border-radius: var(--jp-border-radius, 2px);
+}
+
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .cm-editor,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .cm-scroller {
+  font-family: var(
+    --kuusi-code-font-family,
+    var(--jp-code-font-family, ui-monospace, monospace)
+  );
+  font-size: var(--kuusi-code-font-size, var(--jp-code-font-size, 13px));
+}
+
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-theme="notebook"]
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .cm-editor,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-theme="notebook"]
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .cm-content,
+.jp-KuusiMindMapNotebook-scene[data-kuusi-code-theme="notebook"]
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  .cm-scroller {
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: var(--jp-code-font-size, 13px);
+}

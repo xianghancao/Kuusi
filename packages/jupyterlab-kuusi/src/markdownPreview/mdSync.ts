@@ -38,7 +38,11 @@ const findScrollHost = (node: HTMLElement): HTMLElement => {
 };
 
 const getRenderedRoot = (viewer: MarkdownViewer): HTMLElement | null => {
-  const root = viewer.renderer.node.querySelector(".jp-RenderedMarkdown");
+  const node = viewer.renderer.node;
+  // jupyterlab-myst makes the renderer node itself the rendered root.
+  const root = node.matches(".jp-RenderedMarkdown, .jp-RenderedMySTMarkdown")
+    ? node
+    : node.querySelector(".jp-RenderedMarkdown, .jp-RenderedMySTMarkdown");
 
   return root instanceof HTMLElement ? root : null;
 };

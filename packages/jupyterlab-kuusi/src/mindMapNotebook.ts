@@ -2,7 +2,7 @@ import type { IDocumentManager } from "@jupyterlab/docmanager";
 import type { PartialJSONValue } from "@lumino/coreutils";
 
 /** Default H1 root for new Kuusi mind maps. */
-export const MIND_MAP_ROOT_CELL_SOURCE = "# Root Node\n";
+export const MIND_MAP_ROOT_CELL_SOURCE = "# Title\n";
 
 export const buildNewMindMapNotebookContent = (): PartialJSONValue => ({
   cells: [

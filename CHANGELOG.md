@@ -6,6 +6,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-10-08
+
+Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Book** and **Slides** ship in the package but are switched off by default (turn them on under **Settings → Default files**). Release-tier gating is no longer applied to plugins, and the Live PDF, TeX, voice recorder, image hub, channel monitor, and ZIP tools are gone from this package (see **Removed**).
+
+### Added
+
+- **Kuusi View** for notebooks and Markdown: editor plus a render pane, switched with **Article / Mind Map / Slides**.
+- **Article** reading view: Theme, Page (scroll or paged paper), Header & footer, Text, Paragraph, Headings, Code, and **Image** capsules.
+- **Article paged layout**: paper sheets with a desk gap; headings stay with the next block; orphan/widow lines; tall code, tables, and lists split across pages (tables repeat the header; numbered lists keep counting). Images and display math stay intact. Running header, footer, and page numbers on each sheet.
+- **Slides** view (Markdown and notebook): the same typography capsules as Article, plus page ratio / split / header & footer.
+- **Image** capsule (Article and Slides): alignment (left / center / right), wrap (block, left + wrap, right + wrap), size (natural / wide / full), and border (style, color, weight, corner).
+- **Export** on every render view: PDF, PNG, JPEG, WebP, print / vector PDF, HTML, and download of the source file.
+- **Editor ↔ view position sync**: moving the caret or active cell scrolls or pages an open Article / Slides / Mind Map; clicking the view (or changing slide) moves the editor without stealing focus.
+- Markdown **mind map**: drop an image onto a node; the file is saved next to the document.
+- Mind Map uses the same **Text / Paragraph / Headings / Code / Image** capsules as Article and Slides. Body cards take Text; H1–H3 tree frames take Headings; H4–H6 style titles inside a card. Text still has **Edit** / **Link** for the source-edit font.
+- **Simplified Chinese UI**: domain `jupyterlab_kuusi` with zh_CN gettext catalogs. The chrome follows the JupyterLab language; a frontend map fills strings if the official locale loader misses the pack.
+- Theme menu: **Restore theme defaults** — reapplies this theme’s page, background, and appearance. Text and Headings stay as you left them.
+- **View menu settings** (Settings → Default files): choose which views appear in the view menu — Article, Book, Mind Map, Slides — and their left-to-right order. Article and Mind Map are on by default; the first enabled view opens by default.
+- **Capsule menus**: Esc closes an open menu and returns focus to its button; Up / Down / Home / End move between tabs; opening a menu moves focus into it; hover waits a moment before switching tabs; menu scroll position and focus survive a rebuild; open menus follow their button when the panel is resized and scroll when taller than the window.
+- **Page menus** group their long tab list (Layout · Surface · Header & footer · Display).
+- **Customized dot** on the Theme, Page, and (Mind Map) Layout buttons when settings differ from the theme defaults, plus **Reset page settings** at the bottom of those menus.
+- **Theme hover preview**: rest on a theme to see it on the canvas; moving away restores it, clicking applies it. Previews are never saved.
+- **Text → Apply text style to all views** copies font, colors, tracking, paragraph spacing / indent / alignment, link style, and heading font / color / alignment to the other views (sizes and line height stay per view).
+- **Mind Map — node levels**: Node → **Levels** sets fill, border color / width, and corner radius separately for the root, level 1, level 2, and deeper nodes. A node's own fill still wins; text contrast follows the level fill.
+- **Mind Map — lines**: Line → **Taper** makes connectors thinner with depth (minimum width configurable); **Branch colors** (rainbow / pastel / mono) colors each first-level branch, and arrows follow the branch color.
+- **Mind Map — node padding**: Node → **Padding** sets horizontal and vertical card insets.
+- **Mind Map — fit to window**: ⤢ button beside the zoom controls and **Shift+1** fit the whole map in view.
+- **Mind Map — View** (Layout → View): zoom range (minimum 5–100%, maximum 100–800%), mouse wheel behavior (pans, or zooms with Shift to pan) and zoom speed, and what happens on open (center selected node, center root, fit whole map, restore last view per file).
+- **Mind Map — touch**: two-finger pinch zoom and pan; a card needs a short press before it drags (a swipe pans the canvas); larger resize and zoom targets on coarse pointers.
+- Mind Map canvas respects **prefers-reduced-motion**, and controls show keyboard focus rings.
+
+### Changed
+
+- **Launcher → Kuusi** currently shows **Settings** only; other tiles stay registered but hidden.
+- Article image width moved from Page → Images into the **Image** capsule.
+- Export trigger matches the view-switcher pill (fully rounded).
+- Dark / light Jupyter themes: Article and Slides page colors follow the Lab theme so body text stays readable.
+- Slides settings (theme, type, page chrome) update CSS and header/footer in place. The deck rebuilds only when **split mode** changes.
+- Kuusi UI strings no longer stay forced to English; they use the `jupyterlab_kuusi` catalog (and the zh_CN fallback).
+- Theme menus have **Restore theme defaults**. Picking a theme does not change fonts or heading styles.
+- Release tier gating (`core` / `full`) is no longer applied to plugins; there is no 0.3.0 switch to wait for.
+- Article, Book, and Slides share one capsule-header implementation and one Theme menu implementation.
+- Kuusi Settings strings, the Mind Map cut / copy / paste tooltips, and the view-order panel are translated (zh_CN).
+- Mind Map: Cut moves focus to the neighbouring topic and re-seeds the root if the map empties; pasting code cells into a Markdown mind map keeps them as fenced Markdown instead of dropping them on save; **Ctrl/⌘+C** copies selected text inside a card instead of the whole subtree; clicking empty space in the capsule closes open menus.
+
+### Fixed
+
+- Close-tab leaks: Markdown mind-map model-sync handlers, default-opener toolbar subscriptions, and portaled format / Article / Slides menus now disconnect or restore on dispose.
+- Mind Map drag: a cancelled pointer (touch takeover, window blur) no longer drops the node; **Esc** cancels a drag; right / middle click no longer starts one; multi-selections from different parents all close their gaps; a failed drop re-syncs the canvas.
+- Markdown mind map: opening a file no longer rewrites it (blank-line runs, CRLF, missing final newline) or marks it modified; saving from a hidden mind map can no longer overwrite edits made in the source editor; every edit no longer triggers an extra full reload.
+- Mind Map opened in a background tab now centers when it is first shown.
+- Mind Map Markdown toolbar paste no longer drops pasted code cells.
+
+### Removed
+
+- **Live PDF** (SyncTeX) and the **TeX compile** workspace (TeX / Live PDF now live in academic-toolkit), the **voice recorder**, the **image hub** viewer, the Jupyter **channel monitor**, and workspace **Compress / extract ZIP**, along with their server endpoints and settings schemas. They shipped inactive in 0.2.6.
+
 ## [0.2.6] - 2026-09-17
 
 ### Added
@@ -228,7 +285,8 @@ First public release of the Jupyter-native mind map stack (`kuusi-kernel` + `jup
 
 Pre-0.2.0 prototypes are not part of this changelog.
 
-[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/xianghancao/kuusi/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/xianghancao/kuusi/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/xianghancao/kuusi/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/xianghancao/kuusi/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/xianghancao/kuusi/compare/v0.2.3...v0.2.4

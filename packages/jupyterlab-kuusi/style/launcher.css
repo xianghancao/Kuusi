@@ -1,0 +1,183 @@
+/* Launcher Kuusi section + logo. */
+
+.jp-KuusiLogo,
+.jp-KuusiNotebookOpenButton .jp-ToolbarButtonComponent-label {
+  color: #2f5d3a;
+  font-family: var(--jp-ui-font-family);
+  font-size: var(--jp-ui-font-size1);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 100%;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiLogo,
+body[data-jp-theme-light="false"] .jp-KuusiNotebookOpenButton .jp-ToolbarButtonComponent-label {
+  color: #9bc49a;
+}
+
+.jp-KuusiLogo--header {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  padding: 0 2px;
+}
+
+.jp-KuusiLogo--header.jp-KuusiLogo--iconOnly {
+  gap: 0;
+  padding: 2px;
+}
+
+.jp-KuusiLogo-mark {
+  align-items: center;
+  color: #2f5d3a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  line-height: 0;
+}
+
+.jp-KuusiLogo-mark svg {
+  display: block;
+  height: 18px;
+  width: 18px;
+}
+
+.jp-KuusiLogo-label {
+  color: #000000;
+  flex: 0 0 auto;
+  line-height: 100%;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiLogo-mark {
+  color: #9bc49a;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiLogo-label {
+  color: #f5f5f5;
+}
+
+/*
+ * JupyterLab 4.x: cwd first, then Notebook (unchanged habit), Kuusi on the next
+ * row, then Console and other extension categories.
+ */
+.jp-Launcher-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-Launcher-cwd {
+  order: -100;
+}
+
+.jp-Launcher-section {
+  order: 50;
+}
+
+/* JupyterLab 4.5+ launcher cards expose data-category only (no data-command). */
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Notebook"]) {
+  order: 10;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"]) {
+  order: 11;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Console"]) {
+  order: 12;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Other"]) {
+  order: 13;
+}
+
+.jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon {
+  color: #2f5d3a;
+}
+
+/*
+ * Tint via currentColor only — do NOT force fill on paths/rects.
+ * Article / Book / Slides / Mind Map marks are the same stroke-first SVGs as
+ * the view capsule logos; a blanket `fill: currentColor` painted them solid
+ * on launcher tiles while view logos stayed outlined.
+ */
+.jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon svg {
+  color: #2f5d3a;
+}
+
+body[data-jp-theme-light="false"] .jp-LauncherCard[data-category="Kuusi"] .jp-LauncherCard-icon {
+  color: #9bc49a;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-LauncherCard[data-category="Kuusi"]
+  .jp-LauncherCard-icon
+  svg {
+  color: #9bc49a;
+}
+
+/* Kuusi section header — brand spruce in brand green (not theme blue). */
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  .jp-Icon,
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  svg {
+  color: #2f5d3a;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  .jp-Icon,
+body[data-jp-theme-light="false"]
+  .jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionHeader
+  svg {
+  color: #9bc49a;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionTitle {
+  color: #2f5d3a;
+}
+
+body[data-jp-theme-light="false"]
+  .jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  .jp-Launcher-sectionTitle {
+  color: #9bc49a;
+}
+
+/*
+ * Section-only brand tile (rank -100) — keep in DOM for the header icon.
+ * Absolute so it does not consume a grid cell in the three-row layout.
+ */
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  > .jp-Launcher-cardContainer {
+  display: grid;
+  /* Mind Map · Article · Book / Slides · Settings (+ collapsed section tile). */
+  grid-template-columns: repeat(3, max-content);
+  column-gap: 8px;
+  row-gap: 12px;
+  justify-content: start;
+  position: relative;
+}
+
+.jp-Launcher-section:has(.jp-LauncherCard[data-category="Kuusi"])
+  > .jp-Launcher-cardContainer
+  > .jp-LauncherCard:first-child {
+  block-size: 0;
+  border: none;
+  box-shadow: none;
+  inline-size: 0;
+  left: 0;
+  margin: 0;
+  min-block-size: 0;
+  min-inline-size: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+}

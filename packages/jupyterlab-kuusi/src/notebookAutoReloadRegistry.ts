@@ -2,6 +2,7 @@ import { Signal } from "@lumino/signaling";
 
 type AutoReloadListener = {
   syncPolling: () => void;
+  refreshLastModified: () => void;
 };
 
 const enabledByPath = new Map<string, boolean>();
@@ -32,6 +33,13 @@ export const setNotebookAutoReloadEnabled = (
   }
 
   notebookAutoReloadChanged.emit({ path, enabled });
+};
+
+/** After a local save, every open view for the path must bump its disk clock. */
+export const syncNotebookAutoReloadLastModified = (path: string): void => {
+  for (const listener of listenersByPath.get(path) ?? []) {
+    listener.refreshLastModified();
+  }
 };
 
 export const registerNotebookAutoReloadListener = (

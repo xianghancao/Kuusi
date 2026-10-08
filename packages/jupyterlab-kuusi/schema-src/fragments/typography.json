@@ -1,0 +1,343 @@
+{
+  "$comment": "Shared typography structure for Article / Slides / Mind Map. Synced into view schemas by scripts/sync_typography_schema.py — edit this file, then run the script (or build:lib).",
+  "definitions": {
+    "headerStyle": {
+      "type": "object",
+      "properties": {
+        "font": {
+          "type": "string",
+          "enum": [
+            "notebook",
+            "system-ui",
+            "arial",
+            "helvetica",
+            "segoe-ui",
+            "verdana",
+            "georgia",
+            "times",
+            "palatino",
+            "garamond",
+            "cambria"
+          ]
+        },
+        "fontSize": {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        "color": {
+          "type": "string"
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "font": {
+      "type": "string",
+      "enum": [
+        "notebook",
+        "system-ui",
+        "arial",
+        "helvetica",
+        "segoe-ui",
+        "verdana",
+        "georgia",
+        "times",
+        "palatino",
+        "garamond",
+        "cambria"
+      ],
+      "default": "notebook"
+    },
+    "fontSize": {
+      "type": "number",
+      "minimum": 8,
+      "maximum": 16,
+      "default": 14
+    },
+    "color": {
+      "type": "string",
+      "default": ""
+    },
+    "strongColor": {
+      "type": "string",
+      "default": "",
+      "title": "Bold color",
+      "description": "Color for bold (**strong**) body text. Empty inherits the body color."
+    },
+    "letterSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0
+    },
+    "lineHeight": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 3,
+      "default": 1.6
+    },
+    "paragraphSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 48,
+      "default": 12
+    },
+    "paragraphIndent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 72,
+      "default": 0
+    },
+    "paragraphAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "justify"
+      ],
+      "default": "left"
+    },
+    "linkStyle": {
+      "type": "string",
+      "enum": [
+        "default",
+        "underline",
+        "accent"
+      ],
+      "default": "default"
+    },
+    "headers": {
+      "type": "object",
+      "properties": {
+        "h1": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h2": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h3": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h4": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h5": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h6": {
+          "$ref": "#/definitions/headerStyle"
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "h1": {
+          "font": "notebook",
+          "fontSize": "xxl",
+          "color": "",
+          "align": "left"
+        },
+        "h2": {
+          "font": "notebook",
+          "fontSize": "xl",
+          "color": "",
+          "align": "left"
+        },
+        "h3": {
+          "font": "notebook",
+          "fontSize": "lg",
+          "color": "",
+          "align": "left"
+        },
+        "h4": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h5": {
+          "font": "notebook",
+          "fontSize": "sm",
+          "color": "",
+          "align": "left"
+        },
+        "h6": {
+          "font": "notebook",
+          "fontSize": "xs",
+          "color": "",
+          "align": "left"
+        }
+      }
+    },
+    "codeStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "muted",
+        "contrast"
+      ],
+      "default": "muted"
+    },
+    "codeFrame": {
+      "type": "boolean"
+    },
+    "codeFrameColor": {
+      "type": "string",
+      "default": ""
+    },
+    "codeFrameRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "default": 6
+    },
+    "codeFrameBorder": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 1
+    },
+    "codeFrameWidth": {
+      "type": "number",
+      "minimum": 40,
+      "maximum": 100,
+      "default": 100
+    },
+    "tableStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "grid",
+        "lines",
+        "banded",
+        "booktabs",
+        "ruled"
+      ],
+      "default": "booktabs",
+      "title": "Table style",
+      "description": "Word- and LaTeX-inspired table presets (default Booktabs)."
+    },
+    "tableBorderWidth": {
+      "type": "number",
+      "minimum": 0.25,
+      "maximum": 3,
+      "default": 0.75,
+      "title": "Table border width",
+      "description": "Rule / grid stroke thickness in pt (0.25–3)."
+    },
+    "tableHeaderRowBold": {
+      "type": "boolean",
+      "default": true,
+      "title": "Bold table header row",
+      "description": "Make the first row (column headers) bold."
+    },
+    "tableHeaderColumnBold": {
+      "type": "boolean",
+      "default": false,
+      "title": "Bold table first column",
+      "description": "Make the first column (row headers) bold."
+    },
+    "listStyle": {
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "relaxed"
+      ],
+      "default": "normal",
+      "title": "List style",
+      "description": "Vertical density for unordered and ordered lists."
+    },
+    "blockquoteWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Blockquote weight",
+      "description": "Border and emphasis weight for blockquotes."
+    },
+    "hrWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Divider weight",
+      "description": "Stroke weight for horizontal rules."
+    },
+    "imageWidth": {
+      "type": "string",
+      "enum": [
+        "natural",
+        "wide",
+        "full"
+      ],
+      "default": "wide"
+    },
+    "imageAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center"
+    },
+    "imageWrap": {
+      "type": "string",
+      "enum": [
+        "none",
+        "left",
+        "right"
+      ],
+      "default": "none"
+    },
+    "imageBorderStyle": {
+      "type": "string",
+      "enum": [
+        "none",
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "none"
+    },
+    "imageBorderWidth": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 1
+    },
+    "imageBorderColor": {
+      "type": "string",
+      "default": ""
+    },
+    "imageRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 32,
+      "default": 0
+    }
+  }
+}

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jupyterlab-kuusi"
-description = "Jupyter-native notebook mind map view for JupyterLab"
+description = "Jupyter-native Article, Slides, and Mind Map views for JupyterLab"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
@@ -25,11 +25,14 @@ dynamic = ["version"]
 [tool.hatch.version]
 path = "jupyterlab_kuusi/_version.py"
 
+[project.entry-points."jupyterlab.locale"]
+jupyterlab_kuusi = "jupyterlab_kuusi"
+
 [project.optional-dependencies]
 test = ["pytest>=7.0", "pytest-asyncio>=0.21"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"jupyterlab_kuusi/channel_monitor/static/index.html" = "jupyterlab_kuusi/channel_monitor/static/index.html"
+"jupyterlab_kuusi/locale" = "jupyterlab_kuusi/locale"
 
 [tool.hatch.build.targets.wheel.shared-data]
 "jupyterlab_kuusi/labextension" = "share/jupyter/labextensions/jupyterlab-kuusi"

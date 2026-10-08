@@ -4,12 +4,14 @@ import type {
   MindMapBackground,
   MindMapBackgroundPattern,
 } from "./backgroundToolbar";
-import type { MindMapFont, MindMapFontSize } from "./fontToolbar";
 import type { KuusiTranslator } from "./kuusiI18n";
 import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
+import { rebuildMenuPreservingState } from "./menuRebuild";
+import { bindThemeRowPreview } from "./themeCapsule";
+import { appendThemeRestoreButton } from "./themeRestore";
 
 /**
- * Theme presets stamp Line / Node / Background / Font menu parameters.
+ * Theme presets stamp Line / Node / Background. Text and Headings stay as set.
  * Ids are stable for settings persistence.
  */
 export type MindMapTheme =
@@ -27,10 +29,6 @@ export type ThemePresetSettings = {
   appearance: AppearanceSettings;
   background: MindMapBackground;
   backgroundPattern: MindMapBackgroundPattern;
-  editFont: MindMapFont;
-  displayFont: MindMapFont;
-  editFontSize: MindMapFontSize;
-  displayFontSize: MindMapFontSize;
 };
 
 type ThemeOption = {
@@ -39,40 +37,40 @@ type ThemeOption = {
   title: string;
 };
 
-const MIND_MAP_THEMES: ThemeOption[] = [
+const getMindMapThemes = (t: KuusiTranslator): ThemeOption[] => [
   {
     value: "notebook",
-    label: "Notebook",
+    label: t.articleThemeNotebook(),
     title: "Follow Jupyter defaults — clean cards and connectors",
   },
   {
     value: "soft",
-    label: "Soft",
+    label: t.mindMapThemeSoft(),
     title: "Rounded cards, light borders, eye-care canvas with dots",
   },
   {
     value: "outline",
-    label: "Outline",
+    label: t.mindMapThemeOutline(),
     title: "Strong blue borders and arrows on a grid for clarity",
   },
   {
     value: "paper",
-    label: "Paper",
+    label: t.mindMapThemePaper(),
     title: "Newspaper canvas with serif type for reading",
   },
   {
     value: "board",
-    label: "Board",
+    label: t.mindMapThemeBoard(),
     title: "Presentation board — blue canvas, white cards, child arrows",
   },
   {
     value: "black",
-    label: "Black",
+    label: t.mindMapThemeBlack(),
     title: "Dark stage — ink canvas, charcoal cards, soft light edges",
   },
   {
     value: "minimal",
-    label: "Minimal",
+    label: t.articleThemeMinimal(),
     title: "Thin lines, sharp corners, plain canvas",
   },
 ];
@@ -89,10 +87,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     appearance: appearance({}),
     background: "default",
     backgroundPattern: "none",
-    editFont: "notebook",
-    displayFont: "notebook",
-    editFontSize: "md",
-    displayFontSize: "md",
   },
   soft: {
     appearance: appearance({
@@ -106,10 +100,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     }),
     background: "eye-care",
     backgroundPattern: "dots",
-    editFont: "system-ui",
-    displayFont: "system-ui",
-    editFontSize: "md",
-    displayFontSize: "md",
   },
   outline: {
     appearance: appearance({
@@ -127,10 +117,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     }),
     background: "default",
     backgroundPattern: "grid",
-    editFont: "system-ui",
-    displayFont: "system-ui",
-    editFontSize: "md",
-    displayFontSize: "md",
   },
   paper: {
     appearance: appearance({
@@ -144,10 +130,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     }),
     background: "newspaper",
     backgroundPattern: "none",
-    editFont: "georgia",
-    displayFont: "georgia",
-    editFontSize: "md",
-    displayFontSize: "md",
   },
   board: {
     appearance: appearance({
@@ -164,10 +146,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     }),
     background: "business-blue",
     backgroundPattern: "grid",
-    editFont: "segoe-ui",
-    displayFont: "segoe-ui",
-    editFontSize: "md",
-    displayFontSize: "md",
   },
   black: {
     appearance: appearance({
@@ -184,10 +162,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     }),
     background: "ink",
     backgroundPattern: "dots",
-    editFont: "system-ui",
-    displayFont: "system-ui",
-    editFontSize: "md",
-    displayFontSize: "md",
   },
   minimal: {
     appearance: appearance({
@@ -203,10 +177,6 @@ const THEME_PRESETS: Record<MindMapTheme, ThemePresetSettings> = {
     }),
     background: "default",
     backgroundPattern: "plain",
-    editFont: "helvetica",
-    displayFont: "helvetica",
-    editFontSize: "sm",
-    displayFontSize: "sm",
   },
 };
 
@@ -242,7 +212,7 @@ export const buildThemeSettingsUpdate = (
   ...THEME_PRESETS[theme],
 });
 
-/** Kept for scene dataset bookkeeping; look comes from appearance/background/font. */
+/** Kept for scene dataset bookkeeping; look comes from appearance/background. */
 export const applyThemeToScene = (
   scene: HTMLElement,
   theme: MindMapTheme,
@@ -312,11 +282,15 @@ export const fillThemeMenu = (
   getTheme: () => MindMapTheme,
   onChange: (theme: MindMapTheme) => void,
   onRebuild: () => void,
+  t: KuusiTranslator,
+  isCustomized?: () => boolean,
+  preview?: (theme: MindMapTheme | null) => void,
 ): void => {
   const list = document.createElement("div");
   list.className = "jp-KuusiStyleDropdown-list";
+  const current = getTheme();
 
-  MIND_MAP_THEMES.forEach(({ value, label, title }) => {
+  getMindMapThemes(t).forEach(({ value, label, title }) => {
     const item = document.createElement("button");
     item.type = "button";
     item.className =
@@ -324,7 +298,7 @@ export const fillThemeMenu = (
     item.setAttribute("role", "menuitem");
     item.setAttribute("aria-label", title);
     item.title = title;
-    item.classList.toggle("is-active", getTheme() === value);
+    item.classList.toggle("is-active", current === value);
 
     const labelEl = document.createElement("span");
     labelEl.className = "jp-KuusiStyleDropdown-label";
@@ -333,13 +307,30 @@ export const fillThemeMenu = (
     item.append(labelEl, createThemeThumbnail(value));
     item.addEventListener("click", (event) => {
       event.stopPropagation();
-      onChange(value);
+      if (current !== value) {
+        onChange(value);
+      } else {
+        preview?.(null);
+      }
       onRebuild();
     });
+    if (preview) {
+      bindThemeRowPreview(menu, item, value, (next) =>
+        preview(next as MindMapTheme | null),
+      );
+    }
     list.appendChild(item);
   });
 
   menu.appendChild(list);
+  appendThemeRestoreButton(menu, {
+    t,
+    disabled: isCustomized ? !isCustomized() : false,
+    onRestore: () => {
+      onChange(getTheme());
+      onRebuild();
+    },
+  });
 };
 
 export const createStyleToolbar = (
@@ -347,6 +338,13 @@ export const createStyleToolbar = (
   getTheme: () => MindMapTheme,
   onChange: (theme: MindMapTheme) => void,
   t: KuusiTranslator,
+  options: {
+    isCustomized?: () => boolean;
+    /** Unsaved hover preview; null drops it. */
+    preview?: (theme: MindMapTheme | null) => void;
+    /** Settings change feed that keeps the "customized" dot current. */
+    connect?: (listener: () => void) => { disconnect: () => void };
+  } = {},
 ): HTMLElement => {
   const toolbar = document.createElement("div");
   toolbar.className = "jp-KuusiNotebookMindMap-style-toolbar";
@@ -363,17 +361,51 @@ export const createStyleToolbar = (
   trigger.title = t.mindMapTheme();
   trigger.textContent = t.theme();
 
+  const syncCustomized = (): void => {
+    trigger.classList.toggle(
+      "is-customized",
+      Boolean(options.isCustomized?.()),
+    );
+  };
+  syncCustomized();
+
+  if (options.connect) {
+    let connection: { disconnect: () => void } | null = null;
+    let wasConnected = false;
+    connection = options.connect(() => {
+      if (!toolbar.isConnected) {
+        if (wasConnected) {
+          connection?.disconnect();
+        }
+        return;
+      }
+      wasConnected = true;
+      syncCustomized();
+    });
+  }
+
   const menu = document.createElement("div");
   menu.className = "jp-KuusiFormatDropdown-menu jp-KuusiStyleDropdown-menu";
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.mindMapTheme());
 
-  const rebuildMenu = () => {
+  const buildMenu = () => {
     menu.replaceChildren();
-    fillThemeMenu(menu, getTheme, onChange, rebuildMenu);
+    fillThemeMenu(
+      menu,
+      getTheme,
+      onChange,
+      rebuildMenu,
+      t,
+      options.isCustomized,
+      options.preview,
+    );
+  };
+  const rebuildMenu = (): void => {
+    rebuildMenuPreservingState(menu, buildMenu);
   };
 
-  rebuildMenu();
+  buildMenu();
 
   trigger.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -381,7 +413,7 @@ export const createStyleToolbar = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
-      rebuildMenu();
+      buildMenu();
       openKuusiDropdownMenu(menu, root);
     }
   });

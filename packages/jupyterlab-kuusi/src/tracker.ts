@@ -1,7 +1,12 @@
 import { WidgetTracker } from "@jupyterlab/apputils";
-import type { NotebookMindMapDocumentWidget } from "./notebookMindMapWidget";
+import type { MarkdownMindMapDocumentWidget } from "./markdownMindMapWidget";
+import type { NotebookMindMapDocumentWidget } from "./notebookMindMapDocument";
 
-export class NotebookMindMapTracker extends WidgetTracker<NotebookMindMapDocumentWidget> {
+export type KuusiMindMapDocumentWidget =
+  | NotebookMindMapDocumentWidget
+  | MarkdownMindMapDocumentWidget;
+
+export class NotebookMindMapTracker extends WidgetTracker<KuusiMindMapDocumentWidget> {
   constructor() {
     super({
       namespace: "notebook-mindmap",

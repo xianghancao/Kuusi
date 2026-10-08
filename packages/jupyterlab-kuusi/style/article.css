@@ -1,0 +1,1003 @@
+/* Article reading view + paper. */
+
+.jp-KuusiNotebookArticle {
+  /* Do not set display:flex here — same Lumino BoxLayout constraint as Slides /
+     Mind Map documents; flex on the shell lets content cover the toolbar. */
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.jp-KuusiMarkdownArticle > .jp-Toolbar,
+.jp-KuusiNotebookArticle > .jp-Toolbar {
+  background: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+}
+
+.jp-KuusiMarkdownArticle > .jp-MarkdownViewer,
+.jp-KuusiNotebookArticle > .jp-MarkdownViewer {
+  /* Keep the reading pane below the document toolbar / capsule chrome. */
+  z-index: 0;
+}
+
+/* Markdown Article — DocumentWidget shell (toolbar + content). Paper styles
+   live on .jp-KuusiArticle-paper (the MarkdownViewer), not this shell. */
+.jp-KuusiMarkdownArticle {
+  position: relative;
+  /* Same Lumino BoxLayout constraint as Mind Map / Slides: overflow visible
+     on the document shell lets the reading pane cover Jupyter's toolbar. */
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiArticle-paper {
+  --kuusi-article-desk: var(--jp-layout-color1);
+  --kuusi-article-page-bg: var(--jp-layout-color0);
+  --kuusi-article-page-fg: var(--jp-content-font-color1);
+  --kuusi-article-measure: 52rem;
+  /* Horizontal inset; top/bottom keep the previous reading proportions. */
+  --kuusi-article-padding-x: 2rem;
+  --kuusi-article-padding-top: calc(var(--kuusi-article-padding-x) * 1.125);
+  --kuusi-article-padding-bottom: calc(var(--kuusi-article-padding-x) * 2);
+  --kuusi-article-padding: var(--kuusi-article-padding-top)
+    var(--kuusi-article-padding-x) var(--kuusi-article-padding-bottom);
+  --kuusi-article-line-height: 1.6;
+  /* Match JupyterLab body (~14px); Text default token is xs. */
+  --kuusi-article-font-size: 14px;
+  --kuusi-article-h1-font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  --kuusi-article-h1-font-size: 2.25rem;
+  --kuusi-article-h1-color: inherit;
+  --kuusi-article-h1-align: left;
+  --kuusi-article-h2-font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  --kuusi-article-h2-font-size: 1.85rem;
+  --kuusi-article-h2-color: inherit;
+  --kuusi-article-h2-align: left;
+  --kuusi-article-h3-font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  --kuusi-article-h3-font-size: 1.5rem;
+  --kuusi-article-h3-color: inherit;
+  --kuusi-article-h3-align: left;
+  --kuusi-article-h4-font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  --kuusi-article-h4-font-size: 1.25rem;
+  --kuusi-article-h4-color: inherit;
+  --kuusi-article-h4-align: left;
+  --kuusi-article-h5-font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  --kuusi-article-h5-font-size: 1.1rem;
+  --kuusi-article-h5-color: inherit;
+  --kuusi-article-h5-align: left;
+  --kuusi-article-h6-font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  --kuusi-article-h6-font-size: 0.95rem;
+  --kuusi-article-h6-color: inherit;
+  --kuusi-article-h6-align: left;
+  --kuusi-article-pattern-color: rgb(0 0 0 / 8%);
+  --jp-content-font-size0: calc(var(--kuusi-article-font-size) * 0.875);
+  --jp-content-font-size1: var(--kuusi-article-font-size);
+  --jp-content-font-size2: calc(var(--kuusi-article-font-size) * 1.125);
+  --jp-content-font-size3: calc(var(--kuusi-article-font-size) * 1.25);
+  --jp-content-font-size4: calc(var(--kuusi-article-font-size) * 1.5);
+  --jp-content-font-size5: var(--kuusi-article-h1-font-size);
+}
+
+.jp-KuusiMarkdownArticle > .jp-MarkdownViewer,
+.jp-KuusiMarkdownArticle .jp-MarkdownViewer {
+  min-height: 0;
+  overflow: auto;
+}
+
+.jp-KuusiArticle-header {
+  align-items: flex-start;
+  background: transparent;
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  flex-wrap: nowrap;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  gap: 10px;
+  justify-content: space-between;
+  left: 0;
+  overflow: visible;
+  padding: 12px 14px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: var(--jp-private-toolbar-height, 28px);
+  /* Above the absolute Lumino content pane (z-index: 0) and toolbar (20). */
+  z-index: 40;
+}
+
+.jp-KuusiArticle-header-left {
+  overflow: visible;
+  pointer-events: none;
+}
+
+.jp-KuusiArticle-header-left .jp-KuusiToolbarCluster {
+  pointer-events: auto;
+}
+
+/* Body size is applied via --kuusi-article-font-size (px) from settings. */
+
+.jp-KuusiArticle-paper[data-kuusi-article-paragraph-align="left"] {
+  --kuusi-article-paragraph-align: left;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-paragraph-align="justify"] {
+  --kuusi-article-paragraph-align: justify;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-measure="narrow"] {
+  --kuusi-article-measure: 42rem;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-measure="reading"] {
+  --kuusi-article-measure: 52rem;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-measure="wide"] {
+  --kuusi-article-measure: 68rem;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-measure="full"] {
+  --kuusi-article-measure: none;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="paper"] {
+  --kuusi-article-page-bg: #f7f3ea;
+  --kuusi-article-page-fg: #1a1916;
+  --kuusi-article-pattern-color: rgb(80 50 20 / 10%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="newspaper"] {
+  --kuusi-article-page-bg: #f3ead6;
+  --kuusi-article-page-fg: #1c1914;
+  --kuusi-article-pattern-color: rgb(70 50 20 / 12%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="eye-care"] {
+  --kuusi-article-page-bg: #eef3e6;
+  --kuusi-article-page-fg: #1b2418;
+  --kuusi-article-pattern-color: rgb(40 70 30 / 10%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="ink"] {
+  --kuusi-article-page-bg: #1a1c1e;
+  --kuusi-article-page-fg: #e8e6e1;
+  --kuusi-article-pattern-color: rgb(255 255 255 / 10%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-view-background="paper"] {
+  --kuusi-article-desk: #ebe4d6;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-view-background="newspaper"] {
+  --kuusi-article-desk: #e4d8bc;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-view-background="eye-care"] {
+  --kuusi-article-desk: #dfe8d6;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-view-background="ink"] {
+  --kuusi-article-desk: #121314;
+}
+
+.jp-KuusiMarkdownArticle .jp-MarkdownViewer,
+.jp-KuusiArticle-paper {
+  background: var(--kuusi-article-desk);
+  position: relative;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] {
+  /* Fixed physical paper (A4 / Letter). Pane resize only changes the desk. */
+  --kuusi-article-paper-ratio: 210 / 297;
+  --kuusi-article-paper-max-width: 210mm;
+  --kuusi-article-measure: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-paper-size="letter"] {
+  --kuusi-article-paper-ratio: 8.5 / 11;
+  --kuusi-article-paper-max-width: 8.5in;
+}
+
+/* Landscape flips the long edge to width — must beat the portrait size rules. */
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-paper-orientation="landscape"] {
+  --kuusi-article-paper-ratio: 297 / 210;
+  --kuusi-article-paper-max-width: 297mm;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-paper-size="letter"][data-kuusi-article-paper-orientation="landscape"] {
+  --kuusi-article-paper-ratio: 11 / 8.5;
+  --kuusi-article-paper-max-width: 11in;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] {
+  align-items: flex-start;
+  display: flex;
+  justify-content: center;
+  /* Desk scrolls when the fixed sheet is larger than the pane (or zoomed). */
+  overflow: auto;
+  /* Extra inset so the sheet's edge + surround shadow are not clipped. */
+  padding: max(
+      36px,
+      calc(var(--kuusi-article-paper-shadow-width, 28px) + 8px)
+    )
+    max(36px, calc(var(--kuusi-article-paper-shadow-width, 28px) + 8px))
+    max(56px, calc(var(--kuusi-article-paper-shadow-width, 28px) + 28px));
+}
+
+/* Sheets are drawn by articlePaged.ts behind the flow, one per page. */
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  background: transparent;
+  flex: 0 0 auto;
+  margin-left: 0;
+  margin-right: 0;
+  max-width: var(--kuusi-article-paper-max-width);
+  min-height: 0;
+  /* Always full A4/Letter — never track the pane width. */
+  width: var(--kuusi-article-paper-max-width);
+}
+
+.jp-KuusiArticle-pageSheet {
+  /* Height is set by articlePaged from size × orientation (aspect-ratio alone is
+     unreliable on absolute sheets). */
+  aspect-ratio: auto;
+  background: var(--kuusi-article-page-bg);
+  /* Zero-offset ring = edge; soft layers = surround shadow (not just below). */
+  box-shadow:
+    0 0 0 var(--kuusi-article-paper-border-width, 1px)
+      var(--kuusi-article-paper-border-color, rgb(0 0 0 / 6%)),
+    0 0 calc(var(--kuusi-article-paper-shadow-width, 28px) * 0.36)
+      rgb(0 0 0 / 10%),
+    0 0 var(--kuusi-article-paper-shadow-width, 28px) rgb(0 0 0 / 16%);
+  height: var(--kuusi-article-paper-height, auto);
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-paper-shadow="0"] .jp-KuusiArticle-pageSheet {
+  box-shadow: 0 0 0 var(--kuusi-article-paper-border-width, 1px)
+    var(--kuusi-article-paper-border-color, rgb(0 0 0 / 6%));
+}
+
+/* Fullscreen horizontal page strip — desk scrolls on X. */
+.is-kuusi-view-fullscreen
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-fullscreen="1"]:not([data-kuusi-article-page-scroll="vertical"]) {
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+}
+
+.is-kuusi-view-fullscreen
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-fullscreen="1"]:not([data-kuusi-article-page-scroll="vertical"])
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown).is-kuusi-article-page-scroll-x {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.is-kuusi-view-fullscreen
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-fullscreen="1"]:not([data-kuusi-article-page-scroll="vertical"])
+  .jp-KuusiArticle-pageSheet {
+  scroll-snap-align: start;
+}
+
+button.jp-KuusiArticle-scrollAxis-btn {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.jp-KuusiArticle-pageBand {
+  align-items: center;
+  box-sizing: border-box;
+  color: color-mix(in srgb, var(--kuusi-article-page-fg) 55%, transparent);
+  display: grid;
+  font-family: var(--kuusi-article-font-family, var(--jp-content-font-family));
+  font-size: 0.72rem;
+  gap: 12px;
+  grid-template-columns: 1fr auto 1fr;
+  left: 0;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  position: absolute;
+  right: 0;
+}
+
+.jp-KuusiArticle-pageBand--header {
+  top: 0;
+}
+
+.jp-KuusiArticle-pageBand--footer {
+  bottom: 0;
+}
+
+.jp-KuusiArticle-pageSlot {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-KuusiArticle-pageSlot--left {
+  text-align: left;
+}
+
+.jp-KuusiArticle-pageSlot--center {
+  text-align: center;
+}
+
+.jp-KuusiArticle-pageSlot--right {
+  text-align: right;
+}
+
+.jp-KuusiArticle-pageBreak {
+  border: 0;
+  clear: both;
+  display: block;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] [data-kuusi-split="head"] {
+  margin-bottom: 0;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] [data-kuusi-split="cont"] {
+  margin-top: 0;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] [data-kuusi-split="head"] :is(pre, table),
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] :is(pre, table)[data-kuusi-split="head"] {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] [data-kuusi-split="cont"] :is(pre, table),
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"] :is(pre, table)[data-kuusi-split="cont"] {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="grid"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="dots"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="grid"] .jp-KuusiArticle-pageSheet::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="dots"] .jp-KuusiArticle-pageSheet::before {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="grid"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="grid"] .jp-KuusiArticle-pageSheet::before {
+  background-image:
+    linear-gradient(var(--kuusi-article-pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kuusi-article-pattern-color) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="dots"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="dots"] .jp-KuusiArticle-pageSheet::before {
+  background-image: radial-gradient(
+    circle,
+    var(--kuusi-article-pattern-color) 1.25px,
+    transparent 1.25px
+  );
+  background-size: 20px 20px;
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  background: var(--kuusi-article-page-bg);
+  box-sizing: border-box;
+  color: var(--kuusi-article-body-color, var(--kuusi-article-page-fg));
+  font-family: var(
+    --kuusi-article-font-family,
+    var(--jp-content-font-family)
+  );
+  font-size: var(--kuusi-article-font-size);
+  letter-spacing: var(--kuusi-article-letter-spacing, 0);
+  line-height: var(--kuusi-article-line-height);
+  margin: 0 auto;
+  max-width: var(--kuusi-article-measure);
+  min-height: 100%;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(strong, b) {
+  color: var(--kuusi-article-strong-color, inherit);
+}
+
+/* Beat Lab `.jp-Document .jp-MarkdownViewer .jp-RenderedMarkdown` (32px) so
+   Page → Padding actually moves the text inset. Use longhands to override. */
+.jp-Document.jp-KuusiMarkdownArticle .jp-MarkdownViewer :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+.jp-KuusiMarkdownArticle.jp-KuusiNotebookArticle .jp-MarkdownViewer :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  padding-top: var(--kuusi-article-padding-top);
+  padding-right: var(--kuusi-article-padding-x);
+  padding-bottom: var(--kuusi-article-padding-bottom);
+  padding-left: var(--kuusi-article-padding-x);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-column-align="left"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-column-align="center"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Dual-column flow — scroll balances the full pane; paged uses per-page columns. */
+.jp-KuusiArticle-paper[data-kuusi-article-columns="2"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  column-count: 2;
+  column-fill: balance;
+  column-gap: 2.25rem;
+  column-rule: 1px solid
+    color-mix(in srgb, var(--kuusi-article-page-fg, #222) 14%, transparent);
+}
+
+/* Paged + dual: no continuous CSS column-rule (it runs through desk gaps).
+   Each page sheet draws its own gutter line — see pageSheet::after below. */
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-columns="2"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  column-rule: none;
+}
+
+/* One column rule per paper sheet (content band only). */
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-columns="2"]
+  .jp-KuusiArticle-pageSheet::after {
+  background: color-mix(
+    in srgb,
+    var(--kuusi-article-page-fg, #222) 14%,
+    transparent
+  );
+  bottom: var(--kuusi-article-padding-bottom, 2rem);
+  content: "";
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  top: var(--kuusi-article-padding-top, 1.75rem);
+  transform: translateX(-50%);
+  width: 1px;
+  z-index: 0;
+}
+
+/* Paged + dual: newspaper columns per page (Chrome 145+ / Edge). */
+@supports (column-height: 100px) {
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-columns="2"]
+    :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+    column-fill: auto;
+    column-height: var(--kuusi-article-page-content-h);
+    column-wrap: wrap;
+    row-gap: var(--kuusi-article-page-row-gap, 0px);
+  }
+}
+
+/* Fallback stack: columns live on the flow, not the outer rendered host. */
+.jp-KuusiArticle-paper.is-kuusi-article-columns-fallback
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  column-count: auto;
+  column-fill: auto;
+  column-gap: normal;
+  column-rule: none;
+}
+
+.jp-KuusiArticle-columnStack {
+  position: relative;
+  width: 100%;
+}
+
+.jp-KuusiArticle-columnPage {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.jp-KuusiArticle-columnsFlow {
+  box-sizing: border-box;
+  column-count: 2;
+  column-fill: auto;
+  column-gap: 2.25rem;
+  column-rule: 1px solid
+    color-mix(in srgb, var(--kuusi-article-page-fg, #222) 14%, transparent);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-columns="2"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(h1, h2, h3, h4, h5, h6, pre, table, blockquote, figure, img),
+.jp-KuusiArticle-columnsFlow
+  :is(h1, h2, h3, h4, h5, h6, pre, table, blockquote, figure, img) {
+  break-inside: avoid;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-columns="2"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(h1, h2, h3),
+.jp-KuusiArticle-columnsFlow :is(h1, h2, h3) {
+  break-after: avoid;
+}
+
+@media (max-width: 720px) {
+  .jp-KuusiArticle-paper[data-kuusi-article-columns="2"]
+    :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+  .jp-KuusiArticle-columnsFlow {
+    column-count: 1;
+    column-rule: none;
+  }
+
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-columns="2"]
+    .jp-KuusiArticle-pageSheet::after {
+    content: none;
+  }
+
+  .jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-columns="2"]
+    :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+    column-height: auto;
+    column-wrap: nowrap;
+    row-gap: 0;
+  }
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) > p,
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) p {
+  margin-block: var(--kuusi-article-paragraph-spacing, 12pt);
+  text-align: var(--kuusi-article-paragraph-align, left);
+  text-indent: var(--kuusi-article-paragraph-indent, 0);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) > p:first-child {
+  margin-block-start: 0;
+}
+
+/* jupyterlab-myst swaps in its own renderer and pins it with absolute
+   positioning + fixed pixel size; let it flow like the stock renderer so the
+   page / paged / measure rules below apply. */
+.jp-KuusiMarkdownArticle .jp-RenderedMySTMarkdown {
+  contain: none !important;
+  height: auto !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* Reading view: hide the "¶ link to section" heading anchors (JupyterLab core
+   and jupyterlab-myst both inject one). */
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) .jp-InternalAnchorLink,
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) a[aria-label="Link to this Section"] {
+  display: none !important;
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) h1 {
+  font-family: var(--kuusi-article-h1-font-family);
+  font-size: var(--kuusi-article-h1-font-size);
+  color: var(--kuusi-article-h1-color);
+  text-align: var(--kuusi-article-h1-align);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) h2 {
+  font-family: var(--kuusi-article-h2-font-family);
+  font-size: var(--kuusi-article-h2-font-size);
+  color: var(--kuusi-article-h2-color);
+  text-align: var(--kuusi-article-h2-align);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) h3 {
+  font-family: var(--kuusi-article-h3-font-family);
+  font-size: var(--kuusi-article-h3-font-size);
+  color: var(--kuusi-article-h3-color);
+  text-align: var(--kuusi-article-h3-align);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) h4 {
+  font-family: var(--kuusi-article-h4-font-family);
+  font-size: var(--kuusi-article-h4-font-size);
+  color: var(--kuusi-article-h4-color);
+  text-align: var(--kuusi-article-h4-align);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) h5 {
+  font-family: var(--kuusi-article-h5-font-family);
+  font-size: var(--kuusi-article-h5-font-size);
+  color: var(--kuusi-article-h5-color);
+  text-align: var(--kuusi-article-h5-align);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) h6 {
+  font-family: var(--kuusi-article-h6-font-family);
+  font-size: var(--kuusi-article-h6-font-size);
+  color: var(--kuusi-article-h6-color);
+  text-align: var(--kuusi-article-h6-align);
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) img {
+  border: var(--kuusi-article-image-border-width, 0)
+    var(--kuusi-article-image-border-style, none)
+    var(
+      --kuusi-article-image-border-color,
+      color-mix(in srgb, var(--kuusi-article-page-fg) 35%, transparent)
+    );
+  border-radius: var(--kuusi-article-image-radius, 0);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-width="natural"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) img {
+  max-width: min(100%, 28rem);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-width="wide"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) img {
+  max-width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-width="full"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) img {
+  display: block;
+  max-width: none;
+  width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="none"][data-kuusi-article-image-align="left"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: 0 auto;
+  text-indent: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="none"][data-kuusi-article-image-align="center"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: auto;
+  text-indent: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="none"][data-kuusi-article-image-align="right"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: auto 0;
+  text-indent: 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="left"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img), img:not(figure img)) {
+  float: left;
+  margin: 0.35em 1.15em 0.75em 0;
+  text-indent: 0;
+  width: fit-content;
+  max-width: min(100%, 46%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="right"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img), img:not(figure img)) {
+  float: right;
+  margin: 0.35em 0 0.75em 1.15em;
+  text-indent: 0;
+  width: fit-content;
+  max-width: min(100%, 46%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="left"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img))
+  img,
+.jp-KuusiArticle-paper[data-kuusi-article-image-wrap="right"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img))
+  img {
+  float: none;
+  margin: 0;
+  max-width: 100%;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-link-style="underline"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) a {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-link-style="accent"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) a {
+  color: var(--jp-brand-color1, #2f5d3a);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-link-style="accent"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) a:hover {
+  text-decoration: underline;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style="plain"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style="muted"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) code {
+  background: color-mix(in srgb, var(--kuusi-article-page-fg) 8%, transparent);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style="contrast"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) code {
+  background: color-mix(in srgb, var(--kuusi-article-page-fg) 14%, transparent);
+  border-radius: 4px;
+  padding: 0.12em 0.4em;
+}
+
+.jp-KuusiMarkdownArticle :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre {
+  border: none;
+  border-radius: var(--kuusi-article-code-radius, 6px);
+  box-sizing: border-box;
+  max-width: var(--kuusi-article-code-width, 100%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-frame="1"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre {
+  border: var(--kuusi-article-code-border-width, 1px) solid
+    var(
+      --kuusi-article-code-border-color,
+      color-mix(in srgb, var(--kuusi-article-page-fg) 16%, transparent)
+    );
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style="plain"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre {
+  background: transparent;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style="muted"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre {
+  background: color-mix(in srgb, var(--kuusi-article-page-fg) 5%, transparent);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style="contrast"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre {
+  background: color-mix(in srgb, var(--kuusi-article-page-fg) 10%, transparent);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-code-style] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="sepia"] {
+  --kuusi-article-page-bg: #f4e8d4;
+  --kuusi-article-page-fg: #3a2f22;
+  --kuusi-article-pattern-color: rgb(90 60 30 / 12%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="mist"] {
+  --kuusi-article-page-bg: #f3f6f9;
+  --kuusi-article-page-fg: #1c2430;
+  --kuusi-article-pattern-color: rgb(40 60 90 / 10%);
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-view-background="sepia"] {
+  --kuusi-article-desk: #e8d9c0;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-view-background="mist"] {
+  --kuusi-article-desk: #dce3ea;
+}
+
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="lines"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="notebook"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="lines"] .jp-KuusiArticle-pageSheet::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="notebook"] .jp-KuusiArticle-pageSheet::before {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="lines"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="lines"] .jp-KuusiArticle-pageSheet::before {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 27px,
+    var(--kuusi-article-pattern-color) 27px,
+    var(--kuusi-article-pattern-color) 28px
+  );
+}
+
+.jp-KuusiArticle-paper:not([data-kuusi-article-page-layout="paged"])[data-kuusi-article-background-pattern="notebook"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)::before,
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"][data-kuusi-article-background-pattern="notebook"] .jp-KuusiArticle-pageSheet::before {
+  background-image:
+    linear-gradient(90deg, rgb(220 80 80 / 35%) 1px, transparent 1px),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 27px,
+      var(--kuusi-article-pattern-color) 27px,
+      var(--kuusi-article-pattern-color) 28px
+    );
+  background-position: 2.5rem 0, 0 0;
+  background-size: 100% 100%, 100% 28px;
+}
+
+.jp-KuusiArticle-paper[data-kuusi-article-background="paper"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+.jp-KuusiArticle-paper[data-kuusi-article-background="newspaper"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+.jp-KuusiArticle-paper[data-kuusi-article-background="eye-care"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+.jp-KuusiArticle-paper[data-kuusi-article-background="ink"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+.jp-KuusiArticle-paper[data-kuusi-article-background="sepia"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown),
+.jp-KuusiArticle-paper[data-kuusi-article-background="mist"] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 4%);
+}
+
+.jp-KuusiArticleMeasure-preview {
+  align-items: center;
+  background: color-mix(in srgb, var(--jp-layout-color2) 80%, transparent);
+  border-radius: 3px;
+  display: flex;
+  height: 22px;
+  justify-content: center;
+  width: 36px;
+}
+
+.jp-KuusiArticleMeasure-previewBar {
+  background: var(--jp-brand-color1, var(--kuusi-brand-green, #2f5d3a));
+  border-radius: 1px;
+  display: block;
+  height: 10px;
+}
+
+.jp-KuusiArticleMeasure-preview--narrow .jp-KuusiArticleMeasure-previewBar {
+  width: 10px;
+}
+
+.jp-KuusiArticleMeasure-preview--reading .jp-KuusiArticleMeasure-previewBar {
+  width: 16px;
+}
+
+.jp-KuusiArticleMeasure-preview--wide .jp-KuusiArticleMeasure-previewBar {
+  width: 24px;
+}
+
+.jp-KuusiArticleMeasure-preview--full .jp-KuusiArticleMeasure-previewBar {
+  width: 30px;
+}
+
+.jp-KuusiArticlePage-preview,
+.jp-KuusiArticleView-preview,
+.jp-KuusiArticlePattern-preview,
+.jp-KuusiArticleTheme-preview {
+  border: 1px solid color-mix(in srgb, var(--jp-ui-font-color1) 18%, transparent);
+  border-radius: 4px;
+  display: block;
+  height: 22px;
+  width: 36px;
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="theme"],
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="notebook"],
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="magazine"] {
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="paper"],
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="essay"] {
+  background: #f7f3ea;
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="newspaper"] {
+  background: #f3ead6;
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="eye-care"] {
+  background: #eef3e6;
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="ink"],
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="night"] {
+  background: #1a1c1e;
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="sepia"],
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="academic"] {
+  background: #f4e8d4;
+}
+
+.jp-KuusiArticlePage-preview[data-kuusi-article-page-preview="mist"] {
+  background: #f3f6f9;
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="theme"] {
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="paper"] {
+  background: #ebe4d6;
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="newspaper"] {
+  background: #e4d8bc;
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="eye-care"] {
+  background: #dfe8d6;
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="ink"] {
+  background: #121314;
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="sepia"] {
+  background: #e8d9c0;
+}
+
+.jp-KuusiArticleView-preview[data-kuusi-article-view-preview="mist"] {
+  background: #dce3ea;
+}
+
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="minimal"] {
+  background: #f7f7f5;
+}
+
+.jp-KuusiArticleTheme-previewTitle {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 35%, transparent);
+  display: block;
+  height: 3px;
+  margin: 6px 6px 0;
+}
+
+.jp-KuusiArticleTheme-preview[data-kuusi-article-theme-preview="night"]
+  .jp-KuusiArticleTheme-previewTitle {
+  background: rgb(255 255 255 / 45%);
+}
+
+.jp-KuusiArticlePattern-preview[data-kuusi-article-pattern-preview="none"],
+.jp-KuusiArticlePattern-preview[data-kuusi-article-pattern-preview="plain"] {
+  background: var(--jp-layout-color1);
+}
+
+.jp-KuusiArticlePattern-preview[data-kuusi-article-pattern-preview="grid"] {
+  background-image:
+    linear-gradient(rgb(0 0 0 / 18%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 0 0 / 18%) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.jp-KuusiArticlePattern-preview[data-kuusi-article-pattern-preview="dots"] {
+  background-image: radial-gradient(circle, rgb(0 0 0 / 28%) 1px, transparent 1px);
+  background-size: 6px 6px;
+}
+
+.jp-KuusiArticlePattern-preview[data-kuusi-article-pattern-preview="lines"] {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 5px,
+    rgb(0 0 0 / 18%) 5px,
+    rgb(0 0 0 / 18%) 6px
+  );
+}
+
+.jp-KuusiArticlePattern-preview[data-kuusi-article-pattern-preview="notebook"] {
+  background-image:
+    linear-gradient(90deg, rgb(220 80 80 / 45%) 1px, transparent 1px),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 5px,
+      rgb(0 0 0 / 16%) 5px,
+      rgb(0 0 0 / 16%) 6px
+    );
+  background-position: 8px 0, 0 0;
+}

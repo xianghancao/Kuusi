@@ -35,6 +35,9 @@ export type SliderWidget = {
   step?: number;
   valueSuffix?: string;
   formatValue?: (value: number) => string;
+  /** Show an editable number field (honors inputStep, defaults to 0.1). */
+  editable?: boolean;
+  inputStep?: number;
   onChange: (value: number) => void;
 };
 
@@ -57,11 +60,25 @@ export type ColorWidget = {
   includeDefaultSwatch?: boolean;
 };
 
+export type TextWidget = {
+  kind: "text";
+  label: string;
+  value: string;
+  placeholder?: string;
+  title?: string;
+  maxLength?: number;
+  /** Fired (debounced) while typing; does not rebuild the menu. */
+  onChange: (value: string) => void;
+};
+
 export type PanelWidget =
   | ChoiceWidget
   | SliderWidget
   | ToggleWidget
-  | ColorWidget;
+  | ColorWidget
+  | TextWidget;
+
+const TEXT_COMMIT_DELAY_MS = 300;
 
 const DEFAULT_CHOICE_ITEM_CLASS =
   "jp-KuusiFormatDropdown-item jp-KuusiPanelWidget-choice";
@@ -110,6 +127,9 @@ const renderChoice = (panel: HTMLElement, widget: ChoiceWidget): void => {
       item.appendChild(preview);
     }
 
+    item.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
     item.addEventListener("click", (event) => {
       event.stopPropagation();
       widget.onChange(option.value);
@@ -133,10 +153,6 @@ const renderSlider = (panel: HTMLElement, widget: SliderWidget): void => {
   labelEl.className = "jp-KuusiPanelWidget-sliderLabel";
   labelEl.textContent = widget.label;
 
-  const valueEl = document.createElement("span");
-  valueEl.className = "jp-KuusiPanelWidget-sliderValue";
-  valueEl.textContent = format(widget.value);
-
   const slider = document.createElement("input");
   slider.type = "range";
   slider.className = "jp-KuusiPanelWidget-sliderInput";
@@ -147,10 +163,71 @@ const renderSlider = (panel: HTMLElement, widget: SliderWidget): void => {
   slider.setAttribute("aria-label", widget.label);
   slider.title = widget.label;
 
+  let valueEl: HTMLElement;
+  let syncValueDisplay: (value: number) => void;
+
+  if (widget.editable) {
+    const input = document.createElement("input");
+    input.type = "number";
+    input.className = "jp-KuusiPanelWidget-sliderValueInput";
+    input.min = String(widget.min);
+    input.max = String(widget.max);
+    input.step = String(widget.inputStep ?? 0.1);
+    input.value = format(widget.value).replace(/[^\d.-]/g, "") || String(widget.value);
+    input.setAttribute("aria-label", widget.label);
+    input.title = widget.label;
+
+    const commitInput = (): void => {
+      const parsed = Number.parseFloat(input.value);
+      if (!Number.isFinite(parsed)) {
+        input.value = String(widget.value);
+        return;
+      }
+      const next = Math.min(widget.max, Math.max(widget.min, Math.round(parsed * 10) / 10));
+      input.value = String(next);
+      slider.value = String(next);
+      widget.onChange(next);
+    };
+
+    input.addEventListener("change", commitInput);
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitInput();
+        input.blur();
+      }
+    });
+    input.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+    input.addEventListener("mousedown", (event) => {
+      event.stopPropagation();
+    });
+    input.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    valueEl = input;
+    syncValueDisplay = (value: number) => {
+      input.value = String(value);
+    };
+  } else {
+    const span = document.createElement("span");
+    span.className = "jp-KuusiPanelWidget-sliderValue";
+    span.textContent = format(widget.value);
+    valueEl = span;
+    syncValueDisplay = (value: number) => {
+      span.textContent = format(value);
+    };
+  }
+
   slider.addEventListener("input", () => {
     const nextValue = Number(slider.value);
-    valueEl.textContent = format(nextValue);
+    syncValueDisplay(nextValue);
     widget.onChange(nextValue);
+  });
+  slider.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
   });
   slider.addEventListener("mousedown", (event) => {
     event.stopPropagation();
@@ -186,6 +263,9 @@ const renderToggle = (panel: HTMLElement, widget: ToggleWidget): void => {
   thumb.setAttribute("aria-hidden", "true");
   switchBtn.appendChild(thumb);
 
+  switchBtn.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
   switchBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     widget.onChange(!widget.value);
@@ -210,6 +290,58 @@ const renderColor = (panel: HTMLElement, widget: ColorWidget): void => {
   );
 };
 
+const renderText = (panel: HTMLElement, widget: TextWidget): void => {
+  const section = document.createElement("label");
+  section.className = "jp-KuusiPanelWidget-text";
+
+  const labelEl = document.createElement("span");
+  labelEl.className = "jp-KuusiPanelWidget-textLabel";
+  labelEl.textContent = widget.label;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "jp-KuusiPanelWidget-textInput";
+  input.value = widget.value;
+  input.placeholder = widget.placeholder ?? "";
+  input.title = widget.title ?? widget.label;
+  input.spellcheck = false;
+  if (widget.maxLength !== undefined) {
+    input.maxLength = widget.maxLength;
+  }
+
+  let timer = 0;
+  let committed = widget.value;
+  const commit = (): void => {
+    window.clearTimeout(timer);
+    if (input.value !== committed) {
+      committed = input.value;
+      widget.onChange(committed);
+    }
+  };
+
+  input.addEventListener("input", () => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(commit, TEXT_COMMIT_DELAY_MS);
+  });
+  input.addEventListener("change", commit);
+  input.addEventListener("blur", commit);
+  // Keep Lab shortcuts and menu keyboard handling away from typing.
+  input.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      commit();
+    }
+  });
+  ["pointerdown", "mousedown", "click"].forEach((type) => {
+    input.addEventListener(type, (event) => {
+      event.stopPropagation();
+    });
+  });
+
+  section.append(labelEl, input);
+  panel.appendChild(section);
+};
+
 export const renderPanelWidget = (
   panel: HTMLElement,
   widget: PanelWidget,
@@ -226,6 +358,9 @@ export const renderPanelWidget = (
       return;
     case "color":
       renderColor(panel, widget);
+      return;
+    case "text":
+      renderText(panel, widget);
       return;
   }
 };

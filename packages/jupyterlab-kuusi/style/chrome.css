@@ -1,0 +1,2399 @@
+/* Shared chrome: toolbars, capsules, format menus, settings. */
+
+.jp-KuusiToolbarCluster {
+  align-items: center;
+  /* Frosted glass: keep fill translucent so blur reads through. */
+  -webkit-backdrop-filter: saturate(160%) blur(28px);
+  backdrop-filter: saturate(160%) blur(28px);
+  background: color-mix(in srgb, var(--jp-layout-color1) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jp-border-color1) 42%, transparent);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 22%, transparent),
+    0 1px 2px color-mix(in srgb, var(--jp-ui-font-color1) 8%, transparent),
+    0 10px 28px color-mix(in srgb, var(--jp-ui-font-color1) 12%, transparent);
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0;
+  max-width: 100%;
+  min-width: 0;
+  padding: 3px 4px;
+  pointer-events: auto;
+  width: max-content;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
+  background: color-mix(in srgb, var(--jp-layout-color1) 80%, transparent);
+  border-color: color-mix(in srgb, var(--jp-border-color1) 50%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent),
+    0 1px 2px color-mix(in srgb, #000000 35%, transparent),
+    0 12px 32px color-mix(in srgb, #000000 40%, transparent);
+}
+
+.jp-KuusiToolbarCluster--page {
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
+  /* Keep overflow visible so dropdown menus are not clipped. */
+  overflow: visible;
+}
+
+/* Auto reload belongs on the tab's Notebook plugin toolbar, not the page pill. */
+.jp-KuusiToolbarCluster--page .jp-KuusiNotebook-autoReload,
+.jp-KuusiToolbarCluster--page [data-jp-item-name="kuusi-notebook-auto-reload"] {
+  display: none !important;
+}
+
+.jp-KuusiToolbarDivider {
+  align-self: stretch;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 16%, transparent);
+  flex: 0 0 auto;
+  margin: 4px 2px;
+  width: 1px;
+}
+
+.jp-KuusiToolbarCluster--format {
+  flex: 0 0 auto;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical {
+  align-items: stretch;
+  border-radius: 18px;
+  flex-direction: column;
+  padding: 4px 3px;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiFormatDropdown-menu {
+  /* Horizontal offset is computed in positionKuusiDropdownMenu (panel bounds). */
+  left: auto;
+  right: auto;
+  top: 0;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical .jp-KuusiFormatDropdown {
+  position: relative;
+  z-index: 1;
+}
+
+.jp-KuusiToolbarCluster--format.is-vertical
+  .jp-KuusiFormatDropdown:has(.jp-KuusiFormatDropdown-menu.is-open) {
+  z-index: 2;
+}
+
+/* PDF / IMG wordmarks — small path coords; do not reuse TeX stroke-width (26). */
+.jp-KuusiWordmarkIcon-bold path {
+  paint-order: stroke fill;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 0.72;
+}
+
+.jp-KuusiTabIcon {
+  align-items: center;
+  color: #2f5d3a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  min-height: 20px;
+  min-width: 20px;
+}
+
+.jp-KuusiTabIcon svg {
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiTabIcon {
+  color: #9bc49a;
+}
+
+.jp-KuusiProductDropdown-updateBadge {
+  background: #e53935;
+  border: 1.5px solid var(--jp-layout-color1, #fff);
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: none;
+  height: 8px;
+  pointer-events: none;
+  position: absolute;
+  right: -3px;
+  top: -2px;
+  width: 8px;
+  z-index: 2;
+}
+
+.jp-KuusiProductDropdown-updateBadge.is-visible {
+  display: block;
+}
+
+.jp-KuusiNotebookOpenButton:hover .jp-ToolbarButtonComponent-label {
+  color: #5a6b32;
+  filter: none;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiNotebookOpenButton:hover .jp-ToolbarButtonComponent-label {
+  color: #d4e0a8;
+}
+
+.jp-KuusiNotebookOpenButton.jp-ToolbarButtonComponent {
+  min-width: auto;
+  padding-inline: 8px;
+}
+
+.jp-KuusiProductDropdown-menu {
+  box-sizing: border-box;
+  height: min(56vh, 380px);
+  left: 0;
+  overflow: hidden;
+  padding: 0;
+  right: auto;
+  /* Cap to panel via JS; keep a sane CSS fallback under wide viewports. */
+  width: min(460px, calc(100vw - 24px));
+}
+
+.jp-KuusiSecondaryMenu-host {
+  -webkit-backdrop-filter: saturate(160%) blur(28px);
+  backdrop-filter: saturate(160%) blur(28px);
+  background: color-mix(in srgb, var(--jp-layout-color1) 60%, transparent);
+  box-sizing: border-box;
+  height: min(56vh, 380px);
+  left: 0;
+  max-height: none;
+  min-width: unset;
+  overflow: hidden;
+  padding: 0;
+  right: auto;
+  width: min(460px, calc(100vw - 24px));
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiSecondaryMenu-host {
+  background: color-mix(in srgb, var(--jp-layout-color1) 60%, transparent);
+}
+
+.jp-KuusiSecondaryMenu {
+  align-items: stretch;
+  color: var(--jp-ui-font-color1);
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiSecondaryMenu-nav {
+  border-right: 1px solid var(--jp-border-color2);
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  padding: 10px 6px;
+  width: max-content;
+}
+
+.jp-KuusiSecondaryMenu-tab {
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+  gap: 6px;
+  justify-content: space-between;
+  line-height: 1.25;
+  padding: 8px 10px;
+  position: relative;
+  text-align: left;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.jp-KuusiSecondaryMenu-tabLabel {
+  flex: 1 1 auto;
+}
+
+.jp-KuusiProductDropdown-versionNew {
+  background: #e53935;
+  border-radius: 999px;
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 5px;
+  text-transform: uppercase;
+}
+
+.jp-KuusiSecondaryMenu-tab .jp-KuusiProductDropdown-versionNew,
+.jp-KuusiSecondaryMenu-tab:hover .jp-KuusiProductDropdown-versionNew,
+.jp-KuusiSecondaryMenu-tab.is-active .jp-KuusiProductDropdown-versionNew {
+  background: #e53935;
+  color: #fff;
+}
+
+.jp-KuusiSecondaryMenu-tab:hover {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 8%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
+}
+
+.jp-KuusiSecondaryMenu-tab.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  color: var(--jp-ui-font-color0, var(--jp-ui-font-color1));
+}
+
+.jp-KuusiSecondaryMenu-panel {
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  flex: 1 1 auto;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+  height: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+}
+
+.jp-KuusiProductDropdown-aboutText {
+  color: var(--jp-ui-font-color1);
+  font-size: inherit;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiProductDropdown-versionPanel {
+  padding: 2px 0 4px;
+}
+
+.jp-KuusiProductDropdown-versionRow {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.jp-KuusiProductDropdown-versionLabel {
+  color: var(--jp-ui-font-color2);
+  flex: 0 0 auto;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.jp-KuusiProductDropdown-versionValue {
+  color: var(--jp-ui-font-color1);
+  flex: 1 1 auto;
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: right;
+}
+
+.jp-KuusiProductDropdown-versionValue.is-update-available {
+  color: var(--jp-warn-color1);
+}
+
+.jp-KuusiProductDropdown-versionValue.is-up-to-date {
+  color: var(--jp-success-color1);
+}
+
+.jp-KuusiProductDropdown-repositoryPanel,
+.jp-KuusiProductDropdown-communityPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Must beat .jp-KuusiFormatDropdown-item { display: block } so gap works. */
+.jp-KuusiFormatDropdown-item.jp-KuusiProductDropdown-link {
+  align-items: baseline;
+  color: var(--jp-brand-color1);
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: inherit;
+  gap: 12px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.jp-KuusiProductDropdown-linkLabel {
+  flex: 0 0 auto;
+  margin-right: 4px;
+}
+
+.jp-KuusiProductDropdown-linkUrl {
+  color: var(--jp-ui-font-color2);
+  flex: 1 1 auto;
+  font-family: var(--jp-code-font-family);
+  font-size: inherit;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.jp-KuusiProductDropdown-link:hover {
+  background: var(--jp-layout-color2);
+  text-decoration: none;
+}
+
+.jp-KuusiProductDropdown-link:hover .jp-KuusiProductDropdown-linkUrl {
+  text-decoration: underline;
+}
+
+.jp-KuusiProductDropdown-installRow {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.jp-KuusiProductDropdown-installCommand {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+  flex: 1 1 auto;
+  font-family: var(--jp-code-font-family);
+  font-size: inherit;
+  line-height: 1.35;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.jp-KuusiProductDropdown-copyBtn {
+  background: color-mix(in srgb, var(--jp-brand-color1) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-family: var(--jp-ui-font-family);
+  font-size: inherit;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.jp-KuusiProductDropdown-copyBtn:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 22%, transparent);
+}
+
+/* Narrow panes: scroll the page capsule instead of clipping buttons. */
+.jp-KuusiToolbarCluster--page {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.jp-KuusiToolbarCluster--page::-webkit-scrollbar {
+  display: none;
+}
+
+.jp-KuusiToolbarCluster--page > * {
+  flex-shrink: 0;
+}
+
+.jp-KuusiFormatDropdown {
+  position: relative;
+}
+
+.jp-KuusiFormatDropdown-menu {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 12px;
+  box-shadow: var(--jp-elevation-z4);
+  color: var(--jp-ui-font-color1);
+  display: none;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+  min-width: 148px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 1000;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiFormatDropdown-menu {
+  background: var(--jp-layout-color1);
+  border-color: var(--jp-border-color1);
+  box-shadow: var(--jp-elevation-z4);
+}
+
+.jp-KuusiFormatDropdown-menu.is-open {
+  display: block;
+}
+
+.jp-KuusiFormatDropdown-menu-wide {
+  min-width: 180px;
+}
+
+.jp-KuusiFormatDropdown-menu-table {
+  min-width: auto;
+  padding: 8px 10px 10px;
+}
+
+.jp-KuusiFormatTablePicker-label {
+  color: var(--jp-ui-font-color2);
+  font-size: inherit;
+  font-weight: inherit;
+  margin-bottom: 8px;
+  min-height: 1.2em;
+  text-align: center;
+}
+
+.jp-KuusiFormatTablePicker-grid {
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(8, 16px);
+}
+
+.jp-KuusiFormatTablePicker-cell {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 2px;
+  cursor: pointer;
+  height: 16px;
+  padding: 0;
+  width: 16px;
+}
+
+.jp-KuusiFormatTablePicker-cell.is-highlighted {
+  background: var(--jp-brand-color3);
+  border-color: var(--jp-brand-color1);
+}
+
+.jp-KuusiFormatTablePicker-cell:hover {
+  border-color: var(--jp-brand-color1);
+}
+
+.jp-KuusiFormatDropdown-item {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: block;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.35;
+  padding: 6px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.jp-KuusiFormatDropdown-itemKind {
+  color: var(--jp-ui-font-color2);
+  display: block;
+  font-size: inherit;
+  font-weight: inherit;
+  margin-bottom: 2px;
+}
+
+.jp-KuusiFormatDropdown-preview-syntax {
+  display: block;
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.jp-KuusiFormatDropdown-item:hover {
+  background: var(--jp-layout-color2);
+}
+
+.jp-KuusiFormatDropdown-preview {
+  display: inline-block;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.3;
+}
+
+.jp-KuusiFormatDropdown-preview-bold {
+  font-weight: 800;
+}
+
+.jp-KuusiFormatDropdown-preview-italic {
+  font-style: italic;
+}
+
+.jp-KuusiFormatDropdown-preview-underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.jp-KuusiFormatDropdown-preview-strikethrough {
+  text-decoration: line-through;
+}
+
+.jp-KuusiFormatDropdown-preview-blockquote {
+  border-left: 3px solid var(--jp-border-color2);
+  color: var(--jp-ui-font-color2);
+  display: block;
+  font-style: italic;
+  padding-left: 10px;
+}
+
+.jp-KuusiFormatDropdown-preview-heading1 {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatDropdown-preview-heading2 {
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatDropdown-preview-heading3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatDropdown-preview-heading4 {
+  font-size: 1.05em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatDropdown-preview-heading5,
+.jp-KuusiFormatDropdown-preview-heading6 {
+  font-size: 1em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatDropdown-preview-body {
+  color: var(--jp-ui-font-color2);
+  font-size: 1em;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.jp-KuusiFormatDropdown-preview-code {
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  font-weight: 400;
+}
+
+.jp-KuusiFormatDropdown-preview-highlight {
+  background: color-mix(in srgb, var(--jp-warn-color1) 35%, transparent);
+  padding: 0 2px;
+}
+
+.jp-KuusiFormatDropdown-preview-codeblock {
+  display: block;
+  white-space: nowrap;
+}
+
+.jp-KuusiFormatDropdown-preview-clear {
+  color: var(--jp-ui-font-color2);
+  font-weight: 500;
+}
+
+.jp-KuusiFormatDropdown-preview-bulleted::before,
+.jp-KuusiFormatDropdown-preview-dashed::before,
+.jp-KuusiFormatDropdown-preview-numbered::before {
+  margin-right: 0.35em;
+}
+
+.jp-KuusiFormatDropdown-preview-bulleted::before {
+  content: "•";
+}
+
+.jp-KuusiFormatDropdown-preview-dashed::before {
+  content: "–";
+}
+
+.jp-KuusiFormatDropdown-preview-numbered::before {
+  content: "1.";
+}
+
+.jp-KuusiFormatDropdown-preview-checklist::before {
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  content: "";
+  display: inline-block;
+  height: 0.75em;
+  margin-right: 0.45em;
+  vertical-align: -0.08em;
+  width: 0.75em;
+}
+
+.jp-KuusiFormatMath-menu {
+  /* Format cluster sits on the right; keep secondary host from opening off-screen. */
+  height: min(56vh, 400px);
+  left: auto;
+  overflow: hidden;
+  padding: 0;
+  right: 0;
+  width: min(92vw, 460px);
+}
+
+.jp-KuusiFormatMath-panel {
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.jp-KuusiFormatMath-tileRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.jp-KuusiFormatMath-tile {
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 5%, transparent);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 10px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 calc(33.333% - 6px);
+  flex-direction: column;
+  gap: 4px;
+  min-width: 96px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.jp-KuusiFormatMath-tile.is-wide {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 140px;
+}
+
+.jp-KuusiFormatMath-tile:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 14%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 40%, transparent);
+}
+
+.jp-KuusiFormatMath-tileLabel {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.2;
+}
+
+.jp-KuusiFormatMath-tilePreview {
+  color: var(--jp-ui-font-color2);
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.jp-KuusiFormatMath-grid {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  padding: 2px 0 4px;
+}
+
+/* Shared chip control — Aa text-style grid + Math symbol grid. */
+.jp-KuusiFormatChip,
+.jp-KuusiFormatMath-chip {
+  align-items: center;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 6%, transparent);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 0;
+  padding: 0 4px;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.jp-KuusiFormatChip:hover,
+.jp-KuusiFormatMath-chip:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-KuusiFormatChip.is-active,
+.jp-KuusiFormatMath-chip.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: var(--jp-brand-color1);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiFormatChip.is-active,
+body[data-jp-theme-light="false"] .jp-KuusiFormatMath-chip.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 28%, transparent);
+}
+
+.jp-KuusiFormatChip-preview {
+  display: inline-block;
+  font-family: var(--jp-ui-font-family);
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.jp-KuusiFormatChip-preview.jp-KuusiFormatDropdown-preview-code,
+.jp-KuusiFormatChip-preview.jp-KuusiFormatDropdown-preview-codeblock {
+  font-family: var(--jp-code-font-family);
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: 400;
+}
+
+.jp-KuusiFormatChip-preview.jp-KuusiFormatDropdown-preview-clear {
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: 500;
+}
+
+.jp-KuusiFormatAa-menu {
+  min-width: 196px;
+  padding: 6px;
+}
+
+.jp-KuusiFormatAa-grid {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 2px 4px 6px;
+}
+
+.jp-KuusiFormatAa-menu .jp-KuusiFormatDropdown-section {
+  padding: 6px 8px 4px;
+}
+
+.jp-KuusiFormatAa-colorRow {
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  padding: 0 8px 6px;
+}
+
+.jp-KuusiFormatAa-colorRow .jp-KuusiFormatColorSwatch {
+  height: 22px;
+  width: 22px;
+}
+
+.jp-KuusiFormatAa-customColor {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 2px;
+  padding: 8px 8px 4px;
+}
+
+.jp-KuusiFormatMath-chip {
+  border-color: transparent;
+  height: 28px;
+  padding: 0 2px;
+}
+
+.jp-KuusiFormatMath-chip:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 35%, transparent);
+}
+
+.jp-KuusiFormatDropdown-section {
+  color: var(--jp-ui-font-color2);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 8px 10px 4px;
+}
+
+.jp-KuusiFormatDropdown-section:first-child {
+  padding-top: 4px;
+}
+
+.jp-KuusiFormatDropdown-optionRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 8px 8px;
+}
+
+.jp-KuusiFormatDropdown-optionRow > .jp-KuusiFormatDropdown-item {
+  display: inline-flex;
+  width: auto;
+}
+
+.jp-KuusiFormatDropdown-optionRow.jp-KuusiFormatColorSwatches {
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.jp-KuusiFormatColorSwatches {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 10px 8px;
+}
+
+.jp-KuusiFormatColorSwatch {
+  appearance: none;
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 50%;
+  box-sizing: border-box;
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 20px;
+  padding: 0;
+  width: 20px;
+}
+
+.jp-KuusiFormatColorSwatch:hover,
+.jp-KuusiFormatDropdown-optionRow > .jp-KuusiFormatColorSwatch:hover {
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--jp-ui-font-color1) 35%, transparent);
+}
+
+.jp-KuusiFormatColorSwatch.is-active,
+.jp-KuusiFormatDropdown-optionRow > .jp-KuusiFormatColorSwatch.is-active {
+  box-shadow: 0 0 0 2px var(--jp-brand-color1);
+}
+
+.jp-KuusiFormatColorSwatch-default {
+  background:
+    linear-gradient(
+      135deg,
+      var(--jp-layout-color2) 0 46%,
+      var(--jp-warn-color1) 46% 54%,
+      var(--jp-layout-color2) 54% 100%
+    );
+}
+
+.jp-KuusiFormatColorCustom {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 4px 10px 8px;
+}
+
+.jp-KuusiFormatColorCustom-label {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+}
+
+.jp-KuusiFormatColorCustom-input {
+  background: transparent;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  cursor: pointer;
+  height: 28px;
+  padding: 0;
+  width: 40px;
+}
+
+.jp-KuusiFormatDropdown-item.is-active,
+.jp-KuusiFormatChip.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiFormatDropdown-item.is-active,
+body[data-jp-theme-light="false"] .jp-KuusiFormatChip.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 28%, transparent);
+}
+
+.jp-KuusiGuideDropdown-title + .jp-KuusiGuideDropdown-title {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 6px;
+  padding-top: 10px;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-title {
+  font-size: inherit;
+  margin-top: 8px;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-title:first-child {
+  margin-top: 0;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-key,
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-desc {
+  font-size: inherit;
+}
+
+.jp-KuusiProductDropdown-guidePanel .jp-KuusiGuideDropdown-desc {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.jp-KuusiAppearanceDropdown-btn {
+  min-width: 44px;
+}
+
+.jp-KuusiAppearanceDropdown-menu {
+  left: 0;
+  right: auto;
+}
+
+.jp-KuusiAppearanceDropdown-hint {
+  color: inherit;
+  font-size: inherit;
+  line-height: 1.35;
+  padding: 4px 10px 8px;
+}
+
+/* Unified choice tile used by Line / Node / Layout / Font / Background panels. */
+.jp-KuusiPanelWidget-choice,
+.jp-KuusiAppearanceOption-item,
+.jp-KuusiFontDropdown-item,
+.jp-KuusiLayoutDropdown-item,
+.jp-KuusiBackgroundDropdown-item {
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.jp-KuusiPanelWidget-choiceLabel,
+.jp-KuusiAppearanceOption-label,
+.jp-KuusiFontDropdown-label,
+.jp-KuusiLayoutDropdown-label,
+.jp-KuusiBackgroundDropdown-label {
+  flex: 0 0 auto;
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: center;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-section {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 8px 8px 4px;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-section:first-child {
+  padding-top: 2px;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-optionRow {
+  gap: 4px;
+  padding: 0 4px 8px;
+}
+
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatColorCustom-label {
+  color: inherit;
+  font-size: inherit;
+}
+
+.jp-KuusiAppearancePreview {
+  flex: 0 0 auto;
+}
+
+.jp-KuusiAppearancePreview-line-style {
+  border-top: 2px solid var(--jp-ui-font-color1);
+  display: block;
+  height: 0;
+  width: 56px;
+}
+
+.jp-KuusiAppearancePreview-line-style.is-dashed {
+  border-top: none;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 10px,
+    transparent 10px 20px
+  );
+}
+
+.jp-KuusiAppearancePreview-line-style.is-dotted {
+  border-top: none;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 2px,
+    transparent 2px 12px
+  );
+}
+
+.jp-KuusiAppearancePreview-line-style.is-long-dash,
+.jp-KuusiAppearancePreview-line-style.is-dash-dot,
+.jp-KuusiAppearancePreview-line-style.is-dense-dot,
+.jp-KuusiAppearancePreview-line-style.is-sparse-dash {
+  border-top: none;
+  height: 2px;
+}
+
+.jp-KuusiAppearancePreview-line-style.is-long-dash {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 16px,
+    transparent 16px 30px
+  );
+}
+
+.jp-KuusiAppearancePreview-line-style.is-dash-dot {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 10px,
+    transparent 10px 18px,
+    var(--jp-ui-font-color1) 18px 20px,
+    transparent 20px 28px
+  );
+}
+
+.jp-KuusiAppearancePreview-line-style.is-dense-dot {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 2px,
+    transparent 2px 8px
+  );
+}
+
+.jp-KuusiAppearancePreview-line-style.is-sparse-dash {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--jp-ui-font-color1) 0 18px,
+    transparent 18px 36px
+  );
+}
+
+.jp-KuusiAppearancePreview-arrow-direction,
+.jp-KuusiAppearancePreview-arrow-style {
+  color: var(--jp-ui-font-color1);
+  display: block;
+  height: 12px;
+  width: 56px;
+}
+
+.jp-KuusiAppearancePreview-arrow-direction svg,
+.jp-KuusiAppearancePreview-arrow-style svg {
+  display: block;
+  height: 12px;
+  width: 56px;
+}
+
+.jp-KuusiAppearancePreview-line-width {
+  background: var(--jp-ui-font-color1);
+  border-radius: 1px;
+  display: block;
+  height: var(--kuusi-preview-line-width, 3pt);
+  max-height: 10px;
+  min-height: 1px;
+  width: 56px;
+}
+
+.jp-KuusiAppearancePreview-border-style {
+  border: 2px solid var(--jp-ui-font-color1);
+  border-radius: 3px;
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
+.jp-KuusiAppearancePreview-border-style.is-dashed {
+  border-style: dashed;
+}
+
+.jp-KuusiAppearancePreview-border-style.is-dotted {
+  border-style: dotted;
+}
+
+.jp-KuusiAppearancePreview-border-width {
+  border: var(--kuusi-preview-border-width, 1px) solid var(--jp-ui-font-color1);
+  border-radius: 3px;
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
+.jp-KuusiAppearancePreview-border-corner {
+  border: 1.5px solid currentColor;
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
+.jp-KuusiAppearancePreview-border-corner.is-sharp {
+  border-radius: 0;
+}
+
+.jp-KuusiAppearancePreview-border-corner.is-rounded {
+  border-radius: 4px;
+}
+
+.jp-KuusiAppearancePreview-border-corner.is-ellipse {
+  border-radius: 50%;
+}
+
+.jp-KuusiAppearancePreview-border-radius {
+  border: 1.5px solid currentColor;
+  border-radius: var(--kuusi-preview-border-radius, 8px);
+  box-sizing: border-box;
+  display: block;
+  height: 18px;
+  width: 30px;
+}
+
+.jp-KuusiFontDropdown-menu {
+  left: 0;
+  right: auto;
+}
+
+.jp-KuusiFontDropdown-menu.jp-KuusiSecondaryMenu-host {
+  height: min(56vh, 380px);
+  overflow: hidden;
+  padding: 0;
+  width: min(92vw, 460px);
+}
+
+.jp-KuusiFontDropdown-preview {
+  color: inherit;
+  flex: 0 0 auto;
+  font-size: 1.1em;
+  line-height: 1;
+  min-width: 28px;
+  text-align: center;
+}
+
+.jp-KuusiLayoutDropdown-menu {
+  left: 0;
+  right: auto;
+}
+
+.jp-KuusiSecondaryMenu-panel > .jp-KuusiPanelWidget-slider:first-child,
+.jp-KuusiSecondaryMenu-panel > .jp-KuusiPanelWidget-toggle:first-child,
+.jp-KuusiSecondaryMenu-panel > .jp-KuusiLayoutDropdown-gapSection:first-child {
+  border-top: none;
+}
+
+.jp-KuusiPanelWidget-slider,
+.jp-KuusiPanelWidget-toggle,
+.jp-KuusiLayoutDropdown-gapSection {
+  border-top: 1px solid var(--jp-border-color2);
+  padding: 8px 12px 10px;
+}
+
+.jp-KuusiPanelWidget-toggle {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.jp-KuusiPanelWidget-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jp-KuusiPanelWidget-textLabel {
+  color: inherit;
+  font-size: inherit;
+  line-height: 1.25;
+}
+
+.jp-KuusiPanelWidget-textInput {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jp-ui-font-color1) 18%, transparent);
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  font: inherit;
+  min-width: 220px;
+  padding: 5px 8px;
+  width: 100%;
+}
+
+.jp-KuusiPanelWidget-textInput:focus {
+  border-color: var(--jp-brand-color1);
+  outline: none;
+}
+
+.jp-KuusiPanelWidget-hint {
+  color: var(--jp-ui-font-color2);
+  font-size: 0.85em;
+  line-height: 1.35;
+}
+
+.jp-KuusiPanelWidget-toggleLabel {
+  color: inherit;
+  flex: 1 1 auto;
+  font-size: inherit;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+button.jp-KuusiPanelWidget-switch {
+  --kuusi-switch-width: 30px;
+  --kuusi-switch-height: 16px;
+  --kuusi-switch-pad: 2px;
+  --kuusi-switch-thumb: 12px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 22%, transparent);
+  border: none;
+  /* Capsule track — beat Jupyter button radius overrides. */
+  border-radius: 999px;
+  box-sizing: border-box;
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: var(--kuusi-switch-height);
+  margin: 0;
+  overflow: hidden;
+  padding: var(--kuusi-switch-pad);
+  position: relative;
+  transition: background-color 0.16s ease;
+  width: var(--kuusi-switch-width);
+}
+
+button.jp-KuusiPanelWidget-switch.is-on {
+  background: var(--jp-brand-color1);
+}
+
+body[data-jp-theme-light="false"] button.jp-KuusiPanelWidget-switch {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 28%, transparent);
+}
+
+body[data-jp-theme-light="false"] button.jp-KuusiPanelWidget-switch.is-on {
+  background: var(--jp-brand-color1);
+}
+
+button.jp-KuusiPanelWidget-switch .jp-KuusiPanelWidget-switchThumb {
+  background: #fff;
+  border-radius: 999px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 18%),
+    0 1px 3px rgb(0 0 0 / 12%);
+  display: block;
+  flex-shrink: 0;
+  height: var(--kuusi-switch-thumb);
+  transform: translateX(0);
+  transition: transform 0.16s ease;
+  width: var(--kuusi-switch-thumb);
+}
+
+button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
+  transform: translateX(
+    calc(
+      var(--kuusi-switch-width) - var(--kuusi-switch-thumb) -
+        (var(--kuusi-switch-pad) * 2)
+    )
+  );
+}
+
+.jp-KuusiPanelWidget-sliderHeader,
+.jp-KuusiLayoutDropdown-gapHeader {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.jp-KuusiPanelWidget-sliderLabel,
+.jp-KuusiLayoutDropdown-gapLabel {
+  color: inherit;
+  font-size: inherit;
+  line-height: 1.2;
+}
+
+.jp-KuusiPanelWidget-sliderValue,
+.jp-KuusiLayoutDropdown-gapValue {
+  color: inherit;
+  font-size: inherit;
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-align: right;
+}
+
+.jp-KuusiPanelWidget-sliderValueInput {
+  background: var(--jp-layout-color1);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  max-width: 4.75rem;
+  min-width: 3.5rem;
+  padding: 1px 4px;
+  text-align: right;
+  width: 4.75rem;
+}
+
+.jp-KuusiPanelWidget-sliderValueInput:focus {
+  border-color: var(--jp-brand-color1);
+  outline: none;
+}
+
+.jp-KuusiPanelWidget-sliderInput,
+.jp-KuusiLayoutDropdown-gapSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  display: block;
+  height: 24px;
+  margin: 0;
+  width: 100%;
+}
+
+.jp-KuusiPanelWidget-sliderInput::-webkit-slider-runnable-track,
+.jp-KuusiLayoutDropdown-gapSlider::-webkit-slider-runnable-track {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 16%, transparent);
+  border: none;
+  border-radius: 999px;
+  height: 4px;
+  width: 100%;
+}
+
+.jp-KuusiPanelWidget-sliderInput::-webkit-slider-thumb,
+.jp-KuusiLayoutDropdown-gapSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--jp-brand-color1);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 16%),
+    0 1px 3px rgb(0 0 0 / 10%);
+  height: 16px;
+  margin-top: -6px;
+  width: 16px;
+}
+
+.jp-KuusiPanelWidget-sliderInput::-moz-range-track,
+.jp-KuusiLayoutDropdown-gapSlider::-moz-range-track {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 16%, transparent);
+  border: none;
+  border-radius: 999px;
+  height: 4px;
+}
+
+.jp-KuusiPanelWidget-sliderInput::-moz-range-thumb,
+.jp-KuusiLayoutDropdown-gapSlider::-moz-range-thumb {
+  background: var(--jp-brand-color1);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 16%),
+    0 1px 3px rgb(0 0 0 / 10%);
+  height: 16px;
+  width: 16px;
+}
+
+.jp-KuusiPanelWidget-sliderInput:focus-visible,
+.jp-KuusiLayoutDropdown-gapSlider:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--jp-brand-color1) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.jp-KuusiLayoutDropdown-preview {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--kuusi-layout-preview-gap, 4px);
+  height: 28px;
+  justify-content: center;
+  width: 34px;
+}
+
+.jp-KuusiLayoutDropdown-previewBar {
+  background: var(--jp-ui-font-color2);
+  border-radius: 2px;
+  display: block;
+  height: 4px;
+  width: 100%;
+}
+
+.jp-KuusiLayoutDropdown-preview-compact {
+  --kuusi-layout-preview-gap: 2px;
+}
+
+.jp-KuusiLayoutDropdown-preview-normal {
+  --kuusi-layout-preview-gap: 5px;
+}
+
+.jp-KuusiLayoutDropdown-preview-loose {
+  --kuusi-layout-preview-gap: 9px;
+}
+
+.jp-KuusiBackgroundDropdown-menu {
+  left: 0;
+  right: auto;
+}
+
+.jp-KuusiBackgroundDropdown-preview {
+  --kuusi-bg-pattern-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color1) 18%,
+    transparent
+  );
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 3px;
+  box-sizing: border-box;
+  display: block;
+  flex: 0 0 auto;
+  height: 18px;
+  overflow: hidden;
+  width: 44px;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiBackgroundDropdown-preview {
+  --kuusi-bg-pattern-color: color-mix(
+    in srgb,
+    var(--jp-ui-font-color1) 28%,
+    transparent
+  );
+}
+
+.jp-KuusiStyleDropdown-menu {
+  left: 0;
+  min-width: 260px;
+  padding: 6px;
+  right: auto;
+}
+
+.jp-KuusiSlidesThemeDropdown-accent {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 6px;
+  padding-top: 4px;
+}
+
+.jp-KuusiSlidesThemeDropdown-accent .jp-KuusiFormatColorSwatches {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.jp-KuusiStyleDropdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jp-KuusiStyleDropdown-item {
+  align-items: center;
+  display: flex !important;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 6px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.jp-KuusiStyleDropdown-label {
+  flex: 1 1 auto;
+  font-weight: 600;
+  min-width: 0;
+  text-align: left;
+}
+
+.jp-KuusiStyleDropdown-thumb {
+  flex: 0 0 auto;
+  line-height: 0;
+}
+
+.jp-KuusiStyleDropdown-thumbCanvas {
+  align-items: center;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 4px;
+  height: 44px;
+  overflow: hidden;
+  padding: 6px 8px;
+  position: relative;
+  width: 88px;
+}
+
+.jp-KuusiStyleDropdown-thumbBg {
+  border: none !important;
+  border-radius: 0 !important;
+  bottom: 0;
+  height: auto !important;
+  left: 0;
+  position: absolute !important;
+  right: 0;
+  top: 0;
+  width: auto !important;
+  z-index: 0;
+}
+
+.jp-KuusiStyleDropdown-thumbNode,
+.jp-KuusiStyleDropdown-thumbEdge,
+.jp-KuusiStyleDropdown-thumbBranch {
+  position: relative;
+  z-index: 1;
+}
+
+.jp-KuusiStyleDropdown-thumbNode {
+  background: var(--kuusi-theme-thumb-fill, var(--jp-layout-color0));
+  border: var(--kuusi-theme-thumb-border-width, 1px) solid
+    var(--kuusi-theme-thumb-border, var(--jp-border-color2));
+  border-radius: var(--kuusi-theme-thumb-radius, 6px);
+  box-sizing: border-box;
+  display: block;
+  flex: 0 0 auto;
+  height: 12px;
+  width: 18px;
+}
+
+.jp-KuusiStyleDropdown-thumbNode.is-root {
+  height: 16px;
+  width: 20px;
+}
+
+.jp-KuusiStyleDropdown-thumbEdge {
+  background: var(--kuusi-theme-thumb-edge, var(--jp-border-color2));
+  border-radius: 1px;
+  flex: 0 0 auto;
+  height: 2px;
+  width: 10px;
+}
+
+.jp-KuusiStyleDropdown-thumbBranch {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.jp-KuusiDirectionDropdown-trigger {
+  min-width: 44px;
+}
+
+.jp-KuusiDirectionDropdown-item {
+  font-size: inherit;
+  justify-content: center;
+  min-width: 36px;
+  text-align: center;
+}
+
+.jp-KuusiDirectionDropdown-menu {
+  left: 0;
+  min-width: auto;
+  padding: 4px;
+  right: auto;
+}
+
+.jp-KuusiDirectionDropdown-item.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  color: var(--jp-ui-font-color1);
+  font-weight: 600;
+}
+
+.jp-KuusiGuideDropdown-menu {
+  min-width: 320px;
+  padding: 8px;
+  right: 0;
+}
+
+.jp-KuusiGuideDropdown-title {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  margin-bottom: 6px;
+  padding: 2px 6px 6px;
+}
+
+.jp-KuusiGuideDropdown-row {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: max-content minmax(0, 1fr);
+  padding: 4px 6px;
+}
+
+.jp-KuusiGuideDropdown-key {
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  display: inline-block;
+  font-family: var(--jp-ui-font-family);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  line-height: 1.3;
+  max-width: 100%;
+  padding: 2px 6px;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.jp-KuusiGuideDropdown-desc {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+}
+
+.jp-KuusiToolbarCluster .jp-ToolbarButtonComponent:hover {
+  background: color-mix(in srgb, var(--jp-ui-font-color1) 10%, transparent);
+}
+
+.jp-KuusiToolbarCluster
+  .jp-ToolbarButtonComponent
+  .jp-ToolbarButtonComponent-label {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.jp-KuusiBackgroundDropdown-menu .jp-KuusiFormatColorSwatches {
+  padding-inline: 8px;
+}
+
+.jp-KuusiBackgroundDropdown-menu .jp-KuusiFormatColorCustom {
+  margin: 0 8px 8px;
+}
+
+.jp-KuusiFormatColorCustom-input.is-active {
+  outline: 2px solid var(--jp-brand-color1);
+  outline-offset: 1px;
+}
+
+.jp-KuusiRenderChrome {
+  --kuusi-status-chrome-height: 32px;
+  align-items: center;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+  position: absolute;
+  right: 12px;
+  /* Above Lumino content pane (z-index: 0) and toolbar (20); match Article header. */
+  z-index: 40;
+}
+
+.jp-KuusiRenderChrome-node[hidden],
+.jp-KuusiRenderChrome-stats[hidden] {
+  display: none !important;
+}
+
+:root {
+  --kuusi-glass-bg: color-mix(in srgb, var(--jp-layout-color1) 55%, transparent);
+  --kuusi-glass-bg-hover: color-mix(in srgb, var(--jp-layout-color1) 78%, transparent);
+  --kuusi-glass-border: color-mix(in srgb, var(--jp-ui-font-color0) 13%, transparent);
+  --kuusi-glass-blur: blur(14px) saturate(180%);
+  --kuusi-glass-shadow: 0 1px 2px color-mix(in srgb, var(--jp-ui-font-color0) 16%, transparent);
+  --kuusi-glass-sheen: inset 0 1px 0 color-mix(in srgb, white 15%, transparent);
+  --kuusi-glass-segment-hover: color-mix(in srgb, var(--jp-ui-font-color0) 8%, transparent);
+}
+
+/* Camera zoom: scale the whole paper (fonts included) without changing layout
+   metrics. Pane sash may drive zoom in the 40%–100% band (see renderPaneZoom);
+   outside that band only the zoom control changes scale. */
+.jp-KuusiRenderZoomTarget {
+  transform: scale(var(--kuusi-render-zoom, 1));
+  transform-origin: top center;
+}
+
+/* Markdown — Editor / Mind Map / Slides view switcher (segmented toolbar). */
+.jp-KuusiMarkdownViewSwitcher {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  padding: 0 4px;
+}
+
+.jp-KuusiMarkdownViewSwitcher-group,
+.jp-KuusiRenderViewSwitcher-group {
+  align-items: center;
+  background: var(--kuusi-glass-bg, color-mix(in srgb, var(--jp-layout-color1) 55%, transparent));
+  border: 1px solid var(--kuusi-glass-border, var(--jp-border-color2));
+  border-radius: 999px;
+  box-shadow: var(--kuusi-glass-shadow, none);
+  display: inline-flex;
+  gap: 1px;
+  padding: 2px;
+  position: relative;
+}
+
+.jp-KuusiRenderViewSwitcher-thumb {
+  background: var(--kuusi-brand-green, var(--jp-brand-color1));
+  border-radius: 999px;
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--kuusi-brand-green, var(--jp-brand-color1)) 45%, transparent);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transition:
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    width 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.15s ease;
+  z-index: 0;
+}
+
+button.jp-KuusiMarkdownViewSwitcher-button,
+button.jp-KuusiRenderViewSwitcher-button {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: 500;
+  line-height: 1;
+  padding: 6px 12px;
+  position: relative;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.jp-KuusiMarkdownViewSwitcher-button:hover {
+  background: var(--kuusi-glass-segment-hover, color-mix(in srgb, var(--jp-ui-font-color0) 8%, transparent));
+}
+
+.jp-KuusiMarkdownViewSwitcher-button.is-active,
+.jp-KuusiRenderViewSwitcher-button.is-active {
+  background: transparent;
+  box-shadow: none;
+  color: var(--jp-ui-inverse-font-color1, #fff);
+  font-weight: 600;
+}
+
+.jp-KuusiRenderExport {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  padding: 0 2px;
+}
+
+.jp-KuusiRenderExport-dropdown {
+  position: relative;
+}
+
+/* `button.` beats JupyterLab's `.jp-ThemedContainer button` radius reset. */
+button.jp-KuusiRenderExport-trigger {
+  background: var(--kuusi-glass-bg, color-mix(in srgb, var(--jp-layout-color1) 55%, transparent));
+  border: 1px solid var(--kuusi-glass-border, var(--jp-border-color2));
+  border-radius: 999px;
+  box-shadow: var(--kuusi-glass-shadow, none);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: 600;
+  line-height: 1;
+  /* Same outer height as the view switcher pill (2px inset + 6px button padding). */
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.jp-KuusiRenderExport-trigger:hover,
+.jp-KuusiRenderExport-dropdown:has(.jp-KuusiFormatDropdown-menu.is-open) .jp-KuusiRenderExport-trigger {
+  background: var(--kuusi-glass-segment-hover, color-mix(in srgb, var(--jp-ui-font-color0) 8%, transparent));
+  border-color: var(--kuusi-brand-green, var(--jp-brand-color1));
+  color: var(--kuusi-brand-green, var(--jp-brand-color1));
+}
+
+.jp-Toolbar-item[data-jp-item-name="kuusi-render-view-switcher"] +
+.jp-Toolbar-item[data-jp-item-name="kuusi-render-export"] {
+  margin-left: 2px;
+}
+
+.jp-KuusiCapsule-toolbar {
+  align-items: center;
+  display: inline-flex;
+}
+
+.jp-KuusiCapsule-name,
+.jp-KuusiCapsule-value {
+  display: inline;
+}
+
+.jp-KuusiCapsule-value {
+  color: var(--jp-ui-font-color2, var(--jp-ui-font-color1));
+  font-weight: 500;
+}
+
+.jp-KuusiCapsule-value::before {
+  content: "·";
+  margin: 0 0.3em;
+  opacity: 0.55;
+}
+
+.jp-KuusiThemeRestore {
+  border-top: 1px solid var(--jp-border-color2);
+  justify-content: center;
+  margin-top: 6px;
+  padding-top: 8px;
+  width: 100%;
+}
+
+.jp-KuusiThemeRestore:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.jp-KuusiSlidesTheme-preview--metropolis {
+  background: #fff;
+  box-shadow: inset 0 3px 0 #0f6cbd;
+  color: #233044;
+}
+
+.jp-KuusiSlidesTheme-preview--madrid {
+  background: #f7f8fa;
+  box-shadow: inset 0 3px 0 #1f4e79;
+  color: #1d2430;
+}
+
+.jp-KuusiSlidesTheme-preview--berlin {
+  background: #1b222c;
+  box-shadow: inset 3px 0 0 #3d7ea6;
+  color: #e8edf4;
+}
+
+.jp-KuusiSlidesTheme-preview--copenhagen {
+  background: #f5f8fa;
+  box-shadow: inset 0 3px 0 #0b6e6e;
+  color: #1a2b36;
+}
+
+.jp-KuusiSlidesTheme-preview--singapore {
+  background: #fff8f3;
+  box-shadow: inset 0 3px 0 #c2410c;
+  color: #2a1a14;
+}
+
+.jp-KuusiSlidesTheme-preview {
+  align-items: center;
+  border-radius: 4px;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  width: 36px;
+}
+
+.jp-KuusiSlidesTheme-previewTitle {
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.jp-KuusiSlidesTheme-preview--classic {
+  background: #fff;
+  color: #16181d;
+}
+
+.jp-KuusiSlidesTheme-preview--night {
+  background: #14161a;
+  color: #e8eaed;
+}
+
+.jp-KuusiSlidesTheme-preview--forest {
+  background: #173528;
+  color: #e7f2ea;
+}
+
+.jp-KuusiSlidesTheme-preview--ocean {
+  background: #123047;
+  color: #e6f2ff;
+}
+
+.jp-KuusiSlidesTheme-preview--slate {
+  background: #2a2f38;
+  color: #f0f2f5;
+}
+
+.jp-KuusiSlidesTheme-preview--paper {
+  background: #f4efe4;
+  color: #2a241c;
+}
+
+.jp-KuusiFormatDropdown-menu--fixed.is-open,
+.jp-KuusiFormatDropdown-menu--portal.is-open {
+  position: fixed;
+  pointer-events: auto;
+  z-index: 10000;
+}
+
+.jp-FileEditor-Document .jp-KuusiMarkdownEditor-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.jp-FileEditor-Document .jp-KuusiMarkdownEditor-body > .jp-FileEditor {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.jp-FileEditor-Document.jp-KuusiMarkdownEditorDocument .jp-Toolbar,
+.jp-FileEditor-Document.jp-KuusiEditorFormatHost .jp-Toolbar,
+.jp-NotebookPanel.jp-KuusiEditorFormatHost > .jp-Toolbar {
+  flex: 0 0 auto;
+}
+
+.jp-KuusiEditorFormatHost {
+  position: relative;
+}
+
+.jp-KuusiEditorFormatOverlay {
+  align-items: flex-start;
+  box-sizing: border-box;
+  display: flex;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+  height: 0;
+  justify-content: flex-end;
+  left: 0;
+  overflow: visible;
+  padding: 0;
+  pointer-events: none;
+  /* Absolute (not sticky): focusing toolbar buttons must not scroll the pane. */
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: 30;
+}
+
+.jp-KuusiEditorFormatOverlay[hidden] {
+  display: none !important;
+}
+
+.jp-KuusiEditorFormatCluster,
+.jp-KuusiEditorFormatCluster .jp-KuusiEditorFormat-toolbar,
+.jp-KuusiEditorFormatCluster .jp-KuusiNotebookMindMap-format-toolbar {
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+}
+
+/* Portaled format / LaTeX menus leave the capsule; keep chrome 11px on body. */
+.jp-KuusiFormatDropdown-menu.jp-KuusiFormatMath-menu,
+.jp-KuusiFormatDropdown-menu.jp-KuusiFormatAa-menu {
+  font-size: var(--kuusi-chrome-font-size, 11px);
+}
+
+.jp-KuusiEditorFormatCluster {
+  align-items: center;
+  gap: 0;
+  margin: 12px 14px 0 0;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
+  pointer-events: auto;
+  transition:
+    padding 160ms ease,
+    gap 160ms ease,
+    border-radius 160ms ease;
+}
+
+/* Collapsed: circular Kuusi logo pill. */
+.jp-KuusiEditorFormatCluster:not(:hover):not(:focus-within):not(.is-pinned) {
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.jp-KuusiEditorFormatCluster-peek {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: var(--kuusi-brand-green, #2f5d3a);
+  cursor: default;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 28px;
+  justify-content: center;
+  line-height: 0;
+  margin: 0;
+  padding: 0;
+  width: 28px;
+}
+
+.jp-KuusiEditorFormatCluster-peek .jp-KuusiLogo-mark {
+  color: inherit;
+}
+
+.jp-KuusiEditorFormatCluster-peek .jp-KuusiLogo-mark svg {
+  display: block;
+  height: 18px;
+  width: 18px;
+}
+
+.jp-KuusiEditorFormatCluster-body {
+  display: grid;
+  grid-template-columns: 0fr;
+  max-width: 0;
+  min-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition:
+    grid-template-columns 180ms ease,
+    max-width 180ms ease,
+    opacity 140ms ease,
+    margin 180ms ease;
+}
+
+.jp-KuusiEditorFormatCluster-body > * {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiEditorFormatCluster:hover,
+.jp-KuusiEditorFormatCluster:focus-within,
+.jp-KuusiEditorFormatCluster.is-pinned {
+  gap: 2px;
+  overflow: visible;
+}
+
+.jp-KuusiEditorFormatCluster:hover .jp-KuusiEditorFormatCluster-body,
+.jp-KuusiEditorFormatCluster:focus-within .jp-KuusiEditorFormatCluster-body,
+.jp-KuusiEditorFormatCluster.is-pinned .jp-KuusiEditorFormatCluster-body {
+  grid-template-columns: 1fr;
+  max-width: min(92vw, 720px);
+  opacity: 1;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.jp-KuusiEditorFormatCluster:hover .jp-KuusiEditorFormatCluster-body > *,
+.jp-KuusiEditorFormatCluster:focus-within .jp-KuusiEditorFormatCluster-body > *,
+.jp-KuusiEditorFormatCluster.is-pinned .jp-KuusiEditorFormatCluster-body > * {
+  overflow: visible;
+}
+
+.jp-KuusiEditorFormat-toolbar {
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownEditor-header {
+  align-items: center;
+  background: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  min-height: 0;
+  overflow: visible;
+  padding: 8px 12px;
+  width: 100%;
+  z-index: 5;
+}
+
+.jp-KuusiMarkdownEditor-formatCluster {
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownEditor-format-toolbar {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.jp-KuusiOutlineNav-modeSingle {
+  grid-template-columns: 1fr;
+}
+
+.jp-FileEditor-Document .jp-Toolbar {
+  overflow: visible;
+}
+
+.jp-KuusiMdPreview-autoReload {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+}
+
+.jp-KuusiMdPreview-autoReloadLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.jp-KuusiMdPreview-autoReload .jp-KuusiPanelWidget-switch {
+  flex: 0 0 auto;
+}
+
+.jp-KuusiNotebook-autoReload {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+}
+
+.jp-KuusiNotebook-autoReloadLabel {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* The zoom and page-nav clusters are Apple-style segmented controls: a
+   glass pill housing borderless buttons, with only the active/hovered
+   segment picking up its own soft rounded highlight — no hard divider
+   lines between segments. */
+
+
+.jp-KuusiDefaultOpeners-settingsWrap {
+  display: inline-flex;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.jp-KuusiDefaultOpeners-settingsBtn {
+  align-items: center;
+  color: #2f5d3a;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0;
+  position: relative;
+}
+
+/* Kuusi Settings — lock JupyterLab dialog frame (content defaults to shrink-wrap). */
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) {
+  box-sizing: border-box;
+  height: 480px;
+  max-height: min(480px, 90vh);
+  min-height: min(480px, 90vh);
+  max-width: min(568px, calc(100vw - 32px));
+  min-width: min(568px, calc(100vw - 32px));
+  overflow: hidden;
+  resize: none;
+  width: min(568px, calc(100vw - 32px));
+}
+
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) .jp-Dialog-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.jp-KuusiSettings-dialogBody {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.jp-KuusiSettings-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+  max-height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiSettings-secondary.jp-KuusiSecondaryMenu {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-nav {
+  flex: 0 0 132px;
+  min-width: 132px;
+  width: 132px;
+}
+
+.jp-KuusiSettings-panel.jp-KuusiSecondaryMenu-panel {
+  flex: 1 1 auto;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.jp-KuusiSettings-sectionPanel {
+  box-sizing: border-box;
+  height: 100%;
+  left: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.jp-KuusiSettings-sectionPanel[hidden] {
+  display: none !important;
+}
+
+body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
+  color: #9bc49a;
+}
+
+.jp-KuusiDefaultOpeners-settingsBtn:hover {
+  color: var(--jp-brand-color1);
+}
+
+.jp-KuusiDefaultOpeners {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 360px;
+}
+
+.jp-KuusiDefaultOpeners-intro {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.jp-KuusiDefaultOpeners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-KuusiDefaultOpeners-row {
+  align-items: center;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.jp-KuusiDefaultOpeners-rowText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.jp-KuusiDefaultOpeners-rowDescription {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.35;
+}
+
+.jp-KuusiViewOrder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.jp-KuusiViewOrder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jp-KuusiViewOrder-item {
+  align-items: center;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 8px;
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+}
+
+.jp-KuusiViewOrder-label {
+  flex: 1 1 auto;
+}
+
+.jp-KuusiViewOrder-btn {
+  background: transparent;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  height: 24px;
+  width: 28px;
+}
+
+.jp-KuusiViewOrder-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+/* --- Kuusi Image --- */
+
+/* --- "Customized" dot on capsule triggers --- */
+.jp-KuusiNotebookMindMap-format-btn.is-customized {
+  position: relative;
+}
+
+.jp-KuusiNotebookMindMap-format-btn.is-customized::after {
+  background: var(--jp-brand-color1);
+  border-radius: 50%;
+  content: "";
+  height: 6px;
+  pointer-events: none;
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 6px;
+}
+
+/* --- Secondary menu: group captions in a long nav --- */
+.jp-KuusiSecondaryMenu-group {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 12px 2px;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.jp-KuusiSecondaryMenu-group:first-child {
+  padding-top: 2px;
+}
+
+/* --- Menu footer actions (reset / apply to all views) --- */
+.jp-KuusiMenuFooterAction {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 4px;
+  width: 100%;
+}

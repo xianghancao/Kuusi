@@ -1,0 +1,976 @@
+/* Markdown / Notebook Slides deck. */
+
+/* Markdown Slides — live deck from Markdown (--- / H1 splits). */
+.jp-KuusiMarkdownSlidesDocument {
+  /* Do not set display:flex here — DocumentWidget uses Lumino BoxLayout
+     (absolute children). Overriding display lets the content pane cover the
+     toolbar and hides the Article / Mind Map / Slides switcher. */
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.jp-KuusiMarkdownSlidesDocument > .jp-Toolbar {
+  background: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+}
+
+.jp-KuusiMarkdownSlidesDocument > .jp-KuusiMarkdownSlidesViewer {
+  /* Keep the stage below the document toolbar in the stacking order. */
+  z-index: 0;
+}
+
+.jp-KuusiSlides-header {
+  align-items: flex-start;
+  background: transparent;
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  flex-wrap: nowrap;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  gap: 10px;
+  justify-content: space-between;
+  left: 0;
+  overflow: visible;
+  padding: 12px 14px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 40;
+}
+
+.jp-KuusiSlides-header-left {
+  overflow: visible;
+  pointer-events: none;
+}
+
+.jp-KuusiSlides-header-left .jp-KuusiToolbarCluster {
+  pointer-events: auto;
+}
+
+.jp-KuusiMarkdownSlidesViewer {
+  background: var(--kuusi-slides-desk, #2b2d31);
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  outline: none;
+  overflow: hidden;
+  padding: 56px 24px 20px;
+  position: relative;
+  width: 100%;
+}
+
+/* Slideshow play: immersive stage, hide edit chrome.
+   Desk color must fill every pixel outside the slide (letterbox / shell),
+   beating .jp-KuusiViewFullscreen’s --jp-layout-color0 backdrop. */
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing,
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing.jp-KuusiViewFullscreen,
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing:fullscreen,
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing:-webkit-full-screen {
+  background: var(--kuusi-slides-desk, #2b2d31) !important;
+}
+
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing > .jp-Toolbar {
+  display: none !important;
+}
+
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing .jp-KuusiSlides-header,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing .jp-KuusiSlides-header,
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing .jp-KuusiRenderChrome,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing .jp-KuusiRenderChrome {
+  display: none !important;
+}
+
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing .jp-KuusiMarkdownSlidesViewer,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing {
+  background: var(--kuusi-slides-desk, #2b2d31);
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 100%;
+  padding: 0;
+  width: 100%;
+}
+
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing .jp-KuusiMarkdownSlides-deck,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing .jp-KuusiMarkdownSlides-deck {
+  background: var(--kuusi-slides-desk, #2b2d31);
+  gap: 0;
+  height: 100%;
+  justify-content: center;
+  min-height: 100%;
+  width: 100%;
+}
+
+/* Camera zoom applies to the stage only (see resolveCssZoomTarget). */
+.jp-KuusiMarkdownSlides-stage.jp-KuusiRenderZoomTarget {
+  transform-origin: center center;
+}
+
+/* Play keeps the same fixed slide box; camera fit uses transform scale
+   (--kuusi-slides-play-scale) so fonts/layout never track the pane.
+   Multiply with render zoom when both are active. */
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing .jp-KuusiMarkdownSlides-stage {
+  border-radius: 0;
+  box-shadow: none;
+  transform: scale(
+    calc(var(--kuusi-render-zoom, 1) * var(--kuusi-slides-play-scale, 1))
+  );
+  transform-origin: center center;
+}
+
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing
+  .jp-KuusiMarkdownSlides-nav,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing
+  .jp-KuusiMarkdownSlides-nav {
+  bottom: 12px;
+  left: 0;
+  opacity: 0.35;
+  position: absolute;
+  right: 0;
+  transition: opacity 160ms ease;
+  z-index: 10;
+}
+
+.jp-KuusiMarkdownSlidesDocument.is-kuusi-playing
+  .jp-KuusiMarkdownSlides-nav:hover,
+.jp-KuusiMarkdownSlidesViewer.is-kuusi-playing
+  .jp-KuusiMarkdownSlides-nav:hover {
+  opacity: 1;
+}
+
+.jp-KuusiMarkdownSlides-deck {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  overflow: auto;
+  width: 100%;
+}
+
+.jp-KuusiMarkdownSlides-stage {
+  align-items: stretch;
+  /* Canonical 16:9 slide — pane resize must not change content metrics. */
+  aspect-ratio: auto;
+  background: var(--kuusi-slides-page-bg, #fff);
+  border-radius: 10px;
+  box-shadow:
+    0 2px 8px rgb(0 0 0 / 35%),
+    0 16px 48px rgb(0 0 0 / 28%);
+  box-sizing: border-box;
+  color: var(--kuusi-slides-page-fg, #111);
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  height: 540px;
+  justify-content: flex-start;
+  max-height: none;
+  max-width: none;
+  overflow: hidden;
+  position: relative;
+  width: 960px;
+}
+
+.jp-KuusiMarkdownSlides-measureHost {
+  left: -10000px;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+  z-index: -1;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-ratio="4:3"] .jp-KuusiMarkdownSlides-stage {
+  aspect-ratio: auto;
+  height: 720px;
+  width: 960px;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-ratio="1:1"] .jp-KuusiMarkdownSlides-stage {
+  aspect-ratio: auto;
+  height: 720px;
+  width: 720px;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-align="center"] .jp-KuusiMarkdownSlides-stage {
+  justify-content: center;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-align="bottom"] .jp-KuusiMarkdownSlides-stage {
+  justify-content: flex-end;
+}
+
+.jp-KuusiMarkdownSlides-slide {
+  box-sizing: border-box;
+  color: var(--kuusi-slides-page-fg, inherit);
+  flex: 1 1 auto;
+  font-family: var(--kuusi-slides-font-family, var(--jp-content-font-family));
+  font-size: var(
+    --kuusi-slides-font-size,
+    calc(var(--kuusi-slides-font-size-px, 14) * 1px)
+  );
+  letter-spacing: var(--kuusi-slides-letter-spacing, 0);
+  line-height: var(--kuusi-slides-line-height, 1.45);
+  margin: 0;
+  padding: var(--kuusi-slides-padding, 2rem);
+  width: 100%;
+}
+
+.jp-KuusiMarkdownSlides-slide :is(strong, b) {
+  color: var(--kuusi-slides-strong-color, inherit);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-align="center"] .jp-KuusiMarkdownSlides-slide,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-align="bottom"] .jp-KuusiMarkdownSlides-slide {
+  flex: 0 1 auto;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-padding="compact"] {
+  --kuusi-slides-padding: 1.25rem;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-padding="normal"] {
+  --kuusi-slides-padding: 2rem;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-padding="loose"] {
+  --kuusi-slides-padding: 2.75rem;
+}
+
+/* The renderer node is itself .jp-RenderedHTMLCommon (fixed Lab content size);
+   inherit the slide typography so display matches the overflow measure host. */
+.jp-KuusiMarkdownSlides-slide > .jp-RenderedHTMLCommon {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+}
+
+.jp-KuusiMarkdownSlides-slide > :first-child {
+  margin-top: 0;
+}
+
+.jp-KuusiMarkdownSlides-slide img {
+  border: var(--kuusi-slides-image-border-width, 0)
+    var(--kuusi-slides-image-border-style, none)
+    var(
+      --kuusi-slides-image-border-color,
+      color-mix(in srgb, var(--kuusi-slides-page-fg, currentColor) 35%, transparent)
+    );
+  border-radius: var(--kuusi-slides-image-radius, 0);
+  box-sizing: border-box;
+  max-height: 55vh;
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-width="natural"] .jp-KuusiMarkdownSlides-slide img {
+  max-width: min(100%, 22rem);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-width="wide"] .jp-KuusiMarkdownSlides-slide img {
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-width="full"] .jp-KuusiMarkdownSlides-slide img {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="none"][data-kuusi-slides-image-align="left"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: 0 auto;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="none"][data-kuusi-slides-image-align="center"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: auto;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="none"][data-kuusi-slides-image-align="right"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
+  margin-inline: auto 0;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="left"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img), img:not(figure img)) {
+  float: left;
+  margin: 0.25em 1em 0.6em 0;
+  width: fit-content;
+  max-width: min(100%, 46%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="right"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img), img:not(figure img)) {
+  float: right;
+  margin: 0.25em 0 0.6em 1em;
+  width: fit-content;
+  max-width: min(100%, 46%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="left"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img))
+  img,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="right"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img))
+  img {
+  float: none;
+  margin: 0;
+  max-width: 100%;
+}
+
+.jp-KuusiMarkdownSlides-slide .MathJax,
+.jp-KuusiMarkdownSlides-slide mjx-container {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.jp-KuusiMarkdownSlides-slide mjx-container[jax="CHTML"][display="true"] {
+  margin: 0.75em 0;
+}
+
+.jp-KuusiMarkdownSlides-slide a {
+  color: var(--kuusi-slides-link, #1a5fb4);
+}
+
+.jp-KuusiMarkdownSlides-slide code,
+.jp-KuusiMarkdownSlides-slide pre {
+  background: var(--kuusi-slides-code-bg, rgb(0 0 0 / 6%));
+  border-radius: var(--kuusi-slides-code-radius, 8px);
+}
+
+.jp-KuusiMarkdownSlides-slide pre {
+  box-sizing: border-box;
+  margin-inline: auto;
+  max-width: var(--kuusi-slides-code-width, 100%);
+  padding: 0.75em 1em;
+  width: 100%;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-frame="1"]
+  .jp-KuusiMarkdownSlides-slide
+  pre {
+  border: var(--kuusi-slides-code-border-width, 1px) solid
+    var(
+      --kuusi-slides-code-border-color,
+      color-mix(in srgb, var(--kuusi-slides-page-fg, #111) 22%, transparent)
+    );
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-frame="0"]
+  .jp-KuusiMarkdownSlides-slide
+  pre {
+  border: none;
+}
+
+.jp-KuusiMarkdownSlides-slide pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.jp-KuusiMarkdownSlides-slide blockquote {
+  border-left: 4px solid var(--kuusi-slides-accent, #888);
+  color: color-mix(in srgb, var(--kuusi-slides-page-fg) 82%, transparent);
+  margin: 0.8em 0;
+  padding: 0.15em 0 0.15em 0.9em;
+}
+
+.jp-KuusiMarkdownSlides-slide table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/* Default grid only until Kuusi table appearance stamps a preset. */
+.jp-KuusiMarkdownSlides:not([data-kuusi-table-style]) .jp-KuusiMarkdownSlides-slide th,
+.jp-KuusiMarkdownSlides:not([data-kuusi-table-style]) .jp-KuusiMarkdownSlides-slide td {
+  border: 1px solid var(--kuusi-slides-table-border, rgb(0 0 0 / 18%));
+  padding: 0.35em 0.55em;
+}
+
+.jp-KuusiMarkdownSlides:not([data-kuusi-table-style]) .jp-KuusiMarkdownSlides-slide th {
+  background: var(--kuusi-slides-code-bg, rgb(0 0 0 / 6%));
+}
+
+.jp-KuusiMarkdownSlides-nav {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  justify-content: center;
+  padding: 8px 0 0;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-show-nav="0"][data-kuusi-slides-show-counter="0"]
+  .jp-KuusiMarkdownSlides-nav {
+  display: none;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-show-nav="0"] .jp-KuusiMarkdownSlides-navBtn {
+  display: none;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-show-counter="0"]
+  .jp-KuusiMarkdownSlides-counter {
+  display: none;
+}
+
+/* Match zoom / status chrome: fixed 32px, chrome type — never tracks slide zoom. */
+button.jp-KuusiMarkdownSlides-navBtn {
+  align-items: center;
+  background: color-mix(in srgb, var(--kuusi-slides-nav-fg, #fff) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--kuusi-slides-nav-fg, #fff) 28%, transparent);
+  border-radius: 999px;
+  box-sizing: border-box;
+  color: var(--kuusi-slides-nav-fg, #fff);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+  height: var(--kuusi-status-chrome-height, 32px);
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: var(--kuusi-status-chrome-height, 32px);
+}
+
+button.jp-KuusiMarkdownSlides-navBtn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.jp-KuusiMarkdownSlides-counter {
+  color: var(--kuusi-slides-nav-fg, #fff);
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-chrome-font-size, 11px);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--kuusi-chrome-font-weight, 550);
+  line-height: 1;
+  min-width: 4.5em;
+  text-align: center;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="classic"] {
+  --kuusi-slides-desk: #525659;
+  --kuusi-slides-page-bg: #ffffff;
+  --kuusi-slides-page-fg: #16181d;
+  --kuusi-slides-nav-fg: #f2f4f6;
+  --kuusi-slides-link: #1a5fb4;
+  --kuusi-slides-code-bg: #eef1f4;
+  --kuusi-slides-accent: #8a9098;
+  --kuusi-slides-table-border: rgb(22 24 29 / 16%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="night"] {
+  --kuusi-slides-desk: #0b0c0f;
+  --kuusi-slides-page-bg: #14161a;
+  --kuusi-slides-page-fg: #e8eaed;
+  --kuusi-slides-nav-fg: #d7dbe2;
+  --kuusi-slides-link: #8ab4f8;
+  --kuusi-slides-code-bg: #1f232b;
+  --kuusi-slides-accent: #5f6b7a;
+  --kuusi-slides-table-border: rgb(232 234 237 / 18%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="forest"] {
+  --kuusi-slides-desk: #102018;
+  --kuusi-slides-page-bg: #173528;
+  --kuusi-slides-page-fg: #e7f2ea;
+  --kuusi-slides-nav-fg: #d7ebe0;
+  --kuusi-slides-link: #9ad4b0;
+  --kuusi-slides-code-bg: #214434;
+  --kuusi-slides-accent: #6f9a80;
+  --kuusi-slides-table-border: rgb(231 242 234 / 18%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="ocean"] {
+  --kuusi-slides-desk: #0d1b2a;
+  --kuusi-slides-page-bg: #123047;
+  --kuusi-slides-page-fg: #e6f2ff;
+  --kuusi-slides-nav-fg: #d5e7f8;
+  --kuusi-slides-link: #7ec8ff;
+  --kuusi-slides-code-bg: #1a3d57;
+  --kuusi-slides-accent: #6a8fad;
+  --kuusi-slides-table-border: rgb(230 242 255 / 18%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="slate"] {
+  --kuusi-slides-desk: #1c1f24;
+  --kuusi-slides-page-bg: #2a2f38;
+  --kuusi-slides-page-fg: #f0f2f5;
+  --kuusi-slides-nav-fg: #dfe3ea;
+  --kuusi-slides-link: #9db7ff;
+  --kuusi-slides-code-bg: #353b46;
+  --kuusi-slides-accent: #7a8494;
+  --kuusi-slides-table-border: rgb(240 242 245 / 16%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="paper"] {
+  --kuusi-slides-desk: #6b6358;
+  --kuusi-slides-page-bg: #f4efe4;
+  --kuusi-slides-page-fg: #2a241c;
+  --kuusi-slides-nav-fg: #f3ece2;
+  --kuusi-slides-link: #8a4b1f;
+  --kuusi-slides-code-bg: #e8dfd0;
+  --kuusi-slides-accent: #a89880;
+  --kuusi-slides-table-border: rgb(42 36 28 / 16%);
+  --kuusi-slides-block-bg: #ebe3d4;
+  --kuusi-slides-alert-bg: #f0d9c8;
+  --kuusi-slides-example-bg: #dde8d4;
+  --kuusi-slides-footer-fg: #6a5f52;
+  --kuusi-slides-header-bar: #8a4b1f;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="metropolis"] {
+  --kuusi-slides-desk: #1a1d23;
+  --kuusi-slides-page-bg: #ffffff;
+  --kuusi-slides-page-fg: #233044;
+  --kuusi-slides-nav-fg: #dce3ee;
+  --kuusi-slides-link: #0f6cbd;
+  --kuusi-slides-code-bg: #eef2f7;
+  --kuusi-slides-accent: #0f6cbd;
+  --kuusi-slides-table-border: rgb(35 48 68 / 14%);
+  --kuusi-slides-block-bg: #e8f1fb;
+  --kuusi-slides-alert-bg: #fde8e6;
+  --kuusi-slides-example-bg: #e6f5ec;
+  --kuusi-slides-footer-fg: #5a6b7d;
+  --kuusi-slides-header-bar: #0f6cbd;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="madrid"] {
+  --kuusi-slides-desk: #2c3138;
+  --kuusi-slides-page-bg: #f7f8fa;
+  --kuusi-slides-page-fg: #1d2430;
+  --kuusi-slides-nav-fg: #e6e9ee;
+  --kuusi-slides-link: #1f4e79;
+  --kuusi-slides-code-bg: #e7ebf0;
+  --kuusi-slides-accent: #1f4e79;
+  --kuusi-slides-table-border: rgb(29 36 48 / 14%);
+  --kuusi-slides-block-bg: #e4edf7;
+  --kuusi-slides-alert-bg: #f8e5e2;
+  --kuusi-slides-example-bg: #e5f2e8;
+  --kuusi-slides-footer-fg: #5c6573;
+  --kuusi-slides-header-bar: #1f4e79;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="berlin"] {
+  --kuusi-slides-desk: #12151a;
+  --kuusi-slides-page-bg: #1b222c;
+  --kuusi-slides-page-fg: #e8edf4;
+  --kuusi-slides-nav-fg: #cfd7e3;
+  --kuusi-slides-link: #7eb6ff;
+  --kuusi-slides-code-bg: #242c38;
+  --kuusi-slides-accent: #3d7ea6;
+  --kuusi-slides-table-border: rgb(232 237 244 / 16%);
+  --kuusi-slides-block-bg: #243247;
+  --kuusi-slides-alert-bg: #3a2a2e;
+  --kuusi-slides-example-bg: #243a32;
+  --kuusi-slides-footer-fg: #9aa7b8;
+  --kuusi-slides-header-bar: #3d7ea6;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="copenhagen"] {
+  --kuusi-slides-desk: #1e2a32;
+  --kuusi-slides-page-bg: #f5f8fa;
+  --kuusi-slides-page-fg: #1a2b36;
+  --kuusi-slides-nav-fg: #d7e2e8;
+  --kuusi-slides-link: #0b6e6e;
+  --kuusi-slides-code-bg: #e4eef0;
+  --kuusi-slides-accent: #0b6e6e;
+  --kuusi-slides-table-border: rgb(26 43 54 / 14%);
+  --kuusi-slides-block-bg: #dff0f0;
+  --kuusi-slides-alert-bg: #f5e4df;
+  --kuusi-slides-example-bg: #e2f2e6;
+  --kuusi-slides-footer-fg: #5a6f78;
+  --kuusi-slides-header-bar: #0b6e6e;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="singapore"] {
+  --kuusi-slides-desk: #201816;
+  --kuusi-slides-page-bg: #fff8f3;
+  --kuusi-slides-page-fg: #2a1a14;
+  --kuusi-slides-nav-fg: #efe2d8;
+  --kuusi-slides-link: #c2410c;
+  --kuusi-slides-code-bg: #f3e6dc;
+  --kuusi-slides-accent: #c2410c;
+  --kuusi-slides-table-border: rgb(42 26 20 / 14%);
+  --kuusi-slides-block-bg: #ffe8d9;
+  --kuusi-slides-alert-bg: #fde2e2;
+  --kuusi-slides-example-bg: #e8f5e3;
+  --kuusi-slides-footer-fg: #7a5648;
+  --kuusi-slides-header-bar: #c2410c;
+}
+
+/* Beamer-like header accent for structured themes. */
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="metropolis"] .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="madrid"] .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="copenhagen"] .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="singapore"] .jp-KuusiMarkdownSlides-stage {
+  box-shadow:
+    inset 0 4px 0 var(--kuusi-slides-header-bar, var(--kuusi-slides-accent)),
+    0 2px 8px rgb(0 0 0 / 35%),
+    0 16px 48px rgb(0 0 0 / 28%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-theme="berlin"] .jp-KuusiMarkdownSlides-stage {
+  box-shadow:
+    inset 5px 0 0 var(--kuusi-slides-header-bar, var(--kuusi-slides-accent)),
+    0 2px 8px rgb(0 0 0 / 35%),
+    0 16px 48px rgb(0 0 0 / 28%);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-shadow="0"] .jp-KuusiMarkdownSlides-stage {
+  box-shadow: none;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-shadow="0"][data-kuusi-slides-theme="metropolis"] .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-shadow="0"][data-kuusi-slides-theme="madrid"] .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-shadow="0"][data-kuusi-slides-theme="copenhagen"] .jp-KuusiMarkdownSlides-stage,
+.jp-KuusiMarkdownSlides[data-kuusi-slides-shadow="0"][data-kuusi-slides-theme="singapore"] .jp-KuusiMarkdownSlides-stage {
+  box-shadow: inset 0 4px 0 var(--kuusi-slides-header-bar, var(--kuusi-slides-accent));
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-shadow="0"][data-kuusi-slides-theme="berlin"] .jp-KuusiMarkdownSlides-stage {
+  box-shadow: inset 5px 0 0 var(--kuusi-slides-header-bar, var(--kuusi-slides-accent));
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide li,
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide p {
+  margin-block: var(--kuusi-slides-paragraph-spacing, 5pt);
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide p {
+  text-indent: var(--kuusi-slides-paragraph-indent, 0);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-paragraph-align="justify"]
+  .jp-KuusiMarkdownSlides-slide
+  p {
+  text-align: justify;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-link-style="underline"]
+  .jp-KuusiMarkdownSlides-slide
+  a {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-link-style="accent"]
+  .jp-KuusiMarkdownSlides-slide
+  a {
+  color: var(--kuusi-slides-accent, #1a5fb4);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide h1 {
+  color: var(--kuusi-slides-h1-color, inherit);
+  font-family: var(--kuusi-slides-h1-font-family, inherit);
+  font-size: var(--kuusi-slides-h1-font-size, 1.75em);
+  text-align: var(--kuusi-slides-h1-align, left);
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide h2 {
+  color: var(--kuusi-slides-h2-color, inherit);
+  font-family: var(--kuusi-slides-h2-font-family, inherit);
+  font-size: var(--kuusi-slides-h2-font-size, 1.35em);
+  text-align: var(--kuusi-slides-h2-align, left);
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide h3 {
+  color: var(--kuusi-slides-h3-color, inherit);
+  font-family: var(--kuusi-slides-h3-font-family, inherit);
+  font-size: var(--kuusi-slides-h3-font-size, 1.2em);
+  text-align: var(--kuusi-slides-h3-align, left);
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide h4 {
+  color: var(--kuusi-slides-h4-color, inherit);
+  font-family: var(--kuusi-slides-h4-font-family, inherit);
+  font-size: var(--kuusi-slides-h4-font-size, 1.1em);
+  text-align: var(--kuusi-slides-h4-align, left);
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide h5 {
+  color: var(--kuusi-slides-h5-color, inherit);
+  font-family: var(--kuusi-slides-h5-font-family, inherit);
+  font-size: var(--kuusi-slides-h5-font-size, 1em);
+  text-align: var(--kuusi-slides-h5-align, left);
+}
+
+.jp-KuusiMarkdownSlides .jp-KuusiMarkdownSlides-slide h6 {
+  color: var(--kuusi-slides-h6-color, inherit);
+  font-family: var(--kuusi-slides-h6-font-family, inherit);
+  font-size: var(--kuusi-slides-h6-font-size, 0.9em);
+  text-align: var(--kuusi-slides-h6-align, left);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-style="plain"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(code, pre) {
+  background: transparent;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-style="contrast"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(code, pre) {
+  background: color-mix(
+    in srgb,
+    var(--kuusi-slides-page-fg, #111) 14%,
+    var(--kuusi-slides-code-bg, transparent)
+  );
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-code-style]
+  .jp-KuusiMarkdownSlides-slide
+  pre
+  code {
+  background: transparent;
+}
+
+.jp-KuusiSlides-progress {
+  background: var(--kuusi-slides-accent, var(--jp-brand-color1, #2f5d3a));
+  bottom: 0;
+  height: 3px;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: width 160ms ease;
+  z-index: 2;
+}
+
+.jp-KuusiSlides-stageHeader {
+  align-items: center;
+  background: color-mix(
+    in srgb,
+    var(--kuusi-slides-accent, var(--jp-brand-color1, #2f5d3a)) 88%,
+    #000
+  );
+  box-sizing: border-box;
+  color: #fff;
+  display: flex;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: 13px;
+  font-weight: 600;
+  left: 0;
+  min-height: 32px;
+  padding: 7px 16px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+.jp-KuusiSlides-stageHeader[hidden],
+.jp-KuusiSlides-footer[hidden] {
+  display: none;
+}
+
+.jp-KuusiSlides-stageHeaderTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-KuusiMarkdownSlides-stage.has-stage-header .jp-KuusiMarkdownSlides-slide {
+  padding-top: calc(var(--kuusi-slides-padding, 2rem) + 28px);
+}
+
+.jp-KuusiMarkdownSlides-stage.has-stage-footer .jp-KuusiMarkdownSlides-slide {
+  padding-bottom: calc(var(--kuusi-slides-padding, 2rem) + 22px);
+}
+
+.jp-KuusiSlides-footer {
+  align-items: center;
+  border-top: 1px solid color-mix(in srgb, var(--kuusi-slides-page-fg) 14%, transparent);
+  bottom: 0;
+  box-sizing: border-box;
+  color: var(--kuusi-slides-footer-fg, #666);
+  display: grid;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: 11px;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  left: 0;
+  padding: 6px 14px 8px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 2;
+}
+
+.jp-KuusiSlides-footerTitle {
+  grid-column: 1;
+  justify-self: start;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-KuusiSlides-footerTitle[hidden] {
+  display: none;
+}
+
+.jp-KuusiSlides-footerPage {
+  font-variant-numeric: tabular-nums;
+  grid-column: 3;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.jp-KuusiSlides-footerPage[hidden] {
+  display: none;
+}
+
+/* Left: title + page share a leading row. */
+.jp-KuusiSlides-footer[data-kuusi-slides-page-align="left"] {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.jp-KuusiSlides-footer[data-kuusi-slides-page-align="left"] .jp-KuusiSlides-footerTitle,
+.jp-KuusiSlides-footer[data-kuusi-slides-page-align="left"] .jp-KuusiSlides-footerPage {
+  grid-column: auto;
+  justify-self: auto;
+}
+
+.jp-KuusiSlides-footer[data-kuusi-slides-page-align="center"] .jp-KuusiSlides-footerPage {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.jp-KuusiSlides-footer[data-kuusi-slides-page-align="right"] .jp-KuusiSlides-footerPage {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.jp-KuusiSlides-titlePage {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  min-height: 70%;
+  padding-top: 8%;
+}
+
+.jp-KuusiSlides-titleHeading {
+  border-bottom: 3px solid var(--kuusi-slides-accent, #888);
+  font-size: 1.85em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  padding-bottom: 0.35em;
+  width: 100%;
+}
+
+.jp-KuusiSlides-titleAuthor {
+  font-size: 1.05em;
+  margin: 0.4em 0 0;
+  opacity: 0.9;
+}
+
+.jp-KuusiSlides-titleDate {
+  font-size: 0.9em;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.jp-KuusiMarkdownSlides-slide--section {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 70%;
+}
+
+.jp-KuusiMarkdownSlides-slide--section h1 {
+  border-left: 6px solid var(--kuusi-slides-accent, #888);
+  font-size: 1.7em;
+  margin: 0;
+  padding-left: 0.55em;
+}
+
+.jp-KuusiSlides-block {
+  border-left: 4px solid var(--kuusi-slides-accent, #888);
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin: 0.85em 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.jp-KuusiSlides-block--info {
+  background: var(--kuusi-slides-block-bg, rgb(0 0 0 / 5%));
+}
+
+.jp-KuusiSlides-block--alert {
+  background: var(--kuusi-slides-alert-bg, rgb(180 40 40 / 10%));
+  border-left-color: #c23b22;
+}
+
+.jp-KuusiSlides-block--example {
+  background: var(--kuusi-slides-example-bg, rgb(40 140 70 / 10%));
+  border-left-color: #2f7d4a;
+}
+
+.jp-KuusiSlides-block-title {
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.45em 0.8em 0.15em;
+  text-transform: uppercase;
+}
+
+.jp-KuusiSlides-block-body {
+  padding: 0.2em 0.85em 0.7em;
+}
+
+.jp-KuusiSlides-block-body > :first-child {
+  margin-top: 0;
+}
+
+.jp-KuusiSlides-block-body > :last-child {
+  margin-bottom: 0;
+}
+
+.jp-KuusiSlides-columns {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0.5em 0;
+  width: 100%;
+}
+
+.jp-KuusiSlides-column > :first-child {
+  margin-top: 0;
+}

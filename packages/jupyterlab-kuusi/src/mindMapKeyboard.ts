@@ -343,20 +343,20 @@ export const selectMindMapSubtreeCells = (
 };
 
 /**
- * Delete the active mind-map topic and every descendant cell under it.
- * Falls back to deleting the active cell when it is not in the outline.
- * Focus moves to the next sibling, previous sibling, or parent.
+ * Remove the active topic's subtree with `remove`, then move focus to the next
+ * sibling, previous sibling, or parent (and re-seed the root if the map emptied).
  */
-export const deleteMindMapSubtree = (
+const removeMindMapSubtreeWith = (
   notebook: Notebook,
   model: INotebookModel,
-  visibleIds?: ReadonlySet<string>,
-): void => {
+  visibleIds: ReadonlySet<string> | undefined,
+  remove: () => void,
+): boolean => {
   const activeIndex = notebook.activeCellIndex;
   const indices = selectMindMapSubtreeCells(notebook, model);
 
   if (indices.length === 0) {
-    return;
+    return false;
   }
 
   let focusModelId: string | null = null;
@@ -380,23 +380,39 @@ export const deleteMindMapSubtree = (
     }
   }
 
-  NotebookActions.deleteCells(notebook);
+  remove();
 
   if (focusModelId) {
     for (let index = 0; index < model.cells.length; index++) {
       if (model.cells.get(index)?.id === focusModelId) {
         selectMindMapCell(notebook, index);
-        return;
+        return true;
       }
     }
   }
 
   if (model.cells.length === 0) {
     ensureMindMapRoot(notebook, model);
-    return;
+    return true;
   }
 
   selectRootMindMapCell(notebook, model);
+  return true;
+};
+
+/**
+ * Delete the active mind-map topic and every descendant cell under it.
+ * Falls back to deleting the active cell when it is not in the outline.
+ * Focus moves to the next sibling, previous sibling, or parent.
+ */
+export const deleteMindMapSubtree = (
+  notebook: Notebook,
+  model: INotebookModel,
+  visibleIds?: ReadonlySet<string>,
+): void => {
+  removeMindMapSubtreeWith(notebook, model, visibleIds, () => {
+    NotebookActions.deleteCells(notebook);
+  });
 };
 
 /**
@@ -435,12 +451,15 @@ export const copyMindMapSubtree = (
 export const cutMindMapSubtree = (
   notebook: Notebook,
   model: INotebookModel,
+  visibleIds?: ReadonlySet<string>,
 ): void => {
-  if (selectMindMapSubtreeCells(notebook, model).length === 0) {
+  const removed = removeMindMapSubtreeWith(notebook, model, visibleIds, () => {
+    void NotebookActions.cut(notebook);
+  });
+
+  if (!removed) {
     return;
   }
-
-  void NotebookActions.cut(notebook);
 
   const cells = Clipboard.getInstance().getData(JUPYTER_CELL_MIME) as
     | NotebookCell[]
@@ -452,16 +471,38 @@ export const cutMindMapSubtree = (
 };
 
 /**
+ * A `.md` mind map only persists markdown cells, so code / raw cells pasted
+ * into it would vanish on save. Keep their content as fenced markdown instead.
+ */
+const cellsAsMarkdown = (cells: NotebookCell[]): NotebookCell[] =>
+  cells.map((cell) => {
+    if (cell.cell_type === "markdown") {
+      return cell;
+    }
+
+    const source = Array.isArray(cell.source)
+      ? cell.source.join("")
+      : (cell.source ?? "");
+    const fenced =
+      cell.cell_type === "code" ? "```\n" + source + "\n```" : source;
+
+    return { cell_type: "markdown", metadata: {}, source: fenced } as NotebookCell;
+  });
+
+/**
  * Paste notebook cells as a child subtree under the active topic.
  */
 export const pasteMindMapSubtreeFromCells = (
   notebook: Notebook,
   model: INotebookModel,
-  raw: NotebookCell[],
+  rawCells: NotebookCell[],
+  markdownOnly = false,
 ): void => {
-  if (raw.length === 0) {
+  if (rawCells.length === 0) {
     return;
   }
+
+  const raw = markdownOnly ? cellsAsMarkdown(rawCells) : rawCells;
 
   const activeIndex = notebook.activeCellIndex;
   const outline = buildNotebookOutline(getNotebookCells(model));
@@ -508,6 +549,7 @@ export const pasteMindMapSubtreeFromCells = (
 export const pasteMindMapSubtree = (
   notebook: Notebook,
   model: INotebookModel,
+  markdownOnly = false,
 ): void => {
   const clipboard = Clipboard.getInstance();
 
@@ -521,7 +563,7 @@ export const pasteMindMapSubtree = (
     return;
   }
 
-  pasteMindMapSubtreeFromCells(notebook, model, raw);
+  pasteMindMapSubtreeFromCells(notebook, model, raw, markdownOnly);
 };
 
 /** @deprecated Prefer parseClipboardMarkdownOutline for hierarchical paste. */
@@ -599,6 +641,7 @@ export const pasteTextAsMindMapChildren = (
 export const pasteMindMapClipboard = async (
   notebook: Notebook,
   model: INotebookModel,
+  markdownOnly = false,
 ): Promise<"subtree" | "text" | false> => {
   let systemText: string | null = null;
 
@@ -614,7 +657,7 @@ export const pasteMindMapClipboard = async (
     const cells = tryParseNotebookCells(systemText);
 
     if (cells) {
-      pasteMindMapSubtreeFromCells(notebook, model, cells);
+      pasteMindMapSubtreeFromCells(notebook, model, cells, markdownOnly);
       return "subtree";
     }
 
@@ -625,7 +668,7 @@ export const pasteMindMapClipboard = async (
   const clipboard = Clipboard.getInstance();
 
   if (clipboard.hasData(JUPYTER_CELL_MIME)) {
-    pasteMindMapSubtree(notebook, model);
+    pasteMindMapSubtree(notebook, model, markdownOnly);
     return "subtree";
   }
 
@@ -760,13 +803,18 @@ export const handleMindMapShortcut = (
   }
 
   if (mod && event.key.toLowerCase() === "c") {
+    // Let the browser copy when the user selected text inside a card.
+    if (window.getSelection()?.toString().trim()) {
+      return false;
+    }
+
     copyMindMapSubtree(notebook, model);
     event.preventDefault();
     return "default";
   }
 
   if (mod && event.key.toLowerCase() === "x") {
-    cutMindMapSubtree(notebook, model);
+    cutMindMapSubtree(notebook, model, visibleIds);
     event.preventDefault();
     return "default";
   }

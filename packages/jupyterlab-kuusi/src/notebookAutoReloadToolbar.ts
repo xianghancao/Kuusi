@@ -7,10 +7,6 @@ import {
   notebookAutoReloadChanged,
   setNotebookAutoReloadEnabled,
 } from "./notebookAutoReloadRegistry";
-import {
-  NotebookMindMapDocumentWidget,
-  NotebookMindMapWidgetFactory,
-} from "./notebookMindMapWidget";
 
 const NOTEBOOK_AUTO_RELOAD_TITLE =
   "Reload the notebook when the .ipynb file changes on disk (skipped while unsaved)";
@@ -22,7 +18,7 @@ const registerFactory = (
   toolbarRegistry.addFactory(
     factoryName,
     "kuusi-notebook-auto-reload",
-    (widget: NotebookPanel | NotebookMindMapDocumentWidget) => {
+    (widget: NotebookPanel) => {
       const path = widget.context.path;
       const switchWidget = createAutoReloadSwitch(
         getNotebookAutoReloadEnabled(path),
@@ -56,5 +52,4 @@ export const registerNotebookAutoReloadToolbarFactories = (
   toolbarRegistry: IToolbarWidgetRegistry,
 ): void => {
   registerFactory(toolbarRegistry, "Notebook");
-  registerFactory(toolbarRegistry, NotebookMindMapWidgetFactory.NAME);
 };

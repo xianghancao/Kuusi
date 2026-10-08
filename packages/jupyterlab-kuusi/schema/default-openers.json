@@ -7,39 +7,29 @@
   "properties": {
     "useKuusiForNotebook": {
       "title": "Notebooks (.ipynb)",
-      "description": "Open notebooks with Kuusi Mind Map instead of the standard notebook view.",
+      "description": "Enable Kuusi View for notebooks (Article / Mind Map from the toolbar).",
       "type": "boolean",
       "default": true
     },
     "useKuusiForMarkdown": {
       "title": "Markdown (.md)",
-      "description": "Open Markdown files with the Kuusi preview workflow (Markdown Preview by default).",
+      "description": "Enable Kuusi View for Markdown (Article / Slides / Mind Map from the toolbar).",
       "type": "boolean",
       "default": true
     },
-    "useKuusiForTex": {
-      "title": "LaTeX (.tex)",
-      "description": "Enable Kuusi TeX compile, outline, and SyncTeX tools in the editor.",
-      "type": "boolean",
-      "default": true
+    "enabledViews": {
+      "title": "Enabled views",
+      "description": "Views shown in the view menu. Book and Slides are off by default.",
+      "type": "array",
+      "items": { "type": "string", "enum": ["article", "book", "mindmap", "slides"] },
+      "default": ["article", "mindmap"]
     },
-    "useKuusiForPdf": {
-      "title": "PDF (.pdf)",
-      "description": "Open PDF files with Kuusi Live PDF instead of the built-in viewer.",
-      "type": "boolean",
-      "default": true
-    },
-    "useKuusiForImage": {
-      "title": "Images (PNG, JPEG, …)",
-      "description": "Open image files with Kuusi Image instead of the built-in viewer.",
-      "type": "boolean",
-      "default": true
-    },
-    "useKuusiForAudio": {
-      "title": "Audio (WebM, OGG, …)",
-      "description": "Open audio files with Kuusi Voice instead of the generic file handler.",
-      "type": "boolean",
-      "default": true
+    "viewOrder": {
+      "title": "View button order",
+      "description": "Left-to-right order of the Article / Book / Mind Map / Slides buttons in the view menu. The first one opens by default.",
+      "type": "array",
+      "items": { "type": "string", "enum": ["article", "book", "mindmap", "slides"] },
+      "default": ["article", "book", "mindmap", "slides"]
     }
   },
   "additionalProperties": false

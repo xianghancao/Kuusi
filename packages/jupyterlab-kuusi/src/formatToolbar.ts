@@ -1,8 +1,8 @@
 import type { IMarkdownCellModel } from "@jupyterlab/cells";
 import type { CodeEditor } from "@jupyterlab/codeeditor";
 import {
-  applyOutlineBody,
-  applyOutlineHeading,
+  applyBodyInEditor,
+  applyHeadingInEditor,
   buildHtmlImageSnippet,
   buildHtmlLinkSnippet,
   getMetadataOutlineHeadingLevel,
@@ -18,6 +18,7 @@ type FormatToolbarOptions = {
   getActiveMarkdownCell: () => IMarkdownCellModel | null;
   isEnabled: () => boolean;
   getDisabledReason?: () => string | null;
+  toolbarClassName?: string;
 };
 
 export type FormatToolbarHandle = {
@@ -64,17 +65,71 @@ const runOnEditor = (
   onComplete?.();
 };
 
+const kuusiMenuObservers = new WeakMap<HTMLElement, ResizeObserver>();
+const kuusiMenuTriggers = new WeakMap<HTMLElement, HTMLElement>();
+const kuusiMenuRoots = new WeakMap<HTMLElement, HTMLElement>();
+
 const closeAllMenus = (root: HTMLElement): void => {
-  root.querySelectorAll(".jp-KuusiFormatDropdown-menu").forEach((node) => {
+  const closeOne = (node: Element): void => {
     node.classList.remove("is-open");
 
-    if (node instanceof HTMLElement) {
-      clearKuusiDropdownMenuPosition(node);
+    if (!(node instanceof HTMLElement)) {
+      return;
     }
-  });
+
+    kuusiMenuObservers.get(node)?.disconnect();
+    kuusiMenuObservers.delete(node);
+    kuusiMenuTriggers.get(node)?.setAttribute("aria-expanded", "false");
+
+    clearKuusiDropdownMenuPosition(node);
+    restoreKuusiDropdownMenuHome(node);
+  };
+
+  root.querySelectorAll(".jp-KuusiFormatDropdown-menu").forEach(closeOne);
+
+  // Portaled menus live under document.body but still belong to this panel.
+  document.body
+    .querySelectorAll(
+      ".jp-KuusiFormatDropdown-menu.is-open.jp-KuusiFormatDropdown-menu--portal",
+    )
+    .forEach((node) => {
+      if (!(node instanceof HTMLElement)) {
+        return;
+      }
+
+      const home = kuusiDropdownMenuHomes.get(node)?.home;
+      if (home && root.contains(home)) {
+        closeOne(node);
+      }
+    });
+
+  // Editor format bar: cluster wraps the toolbar (ancestor), not a child.
+  root
+    .closest(".jp-KuusiEditorFormatCluster")
+    ?.classList.remove("is-pinned");
 };
 
 export const closeKuusiDropdownMenus = closeAllMenus;
+
+type KuusiDropdownMenuHome = {
+  home: HTMLElement;
+  anchor: HTMLElement;
+};
+
+const kuusiDropdownMenuHomes = new WeakMap<HTMLElement, KuusiDropdownMenuHome>();
+
+const restoreKuusiDropdownMenuHome = (menu: HTMLElement): void => {
+  const entry = kuusiDropdownMenuHomes.get(menu);
+  if (!entry) {
+    return;
+  }
+
+  menu.classList.remove("jp-KuusiFormatDropdown-menu--portal");
+  menu.classList.remove("jp-KuusiFormatDropdown-menu--fixed");
+  if (menu.parentElement === document.body) {
+    entry.home.appendChild(menu);
+  }
+};
 
 const clearKuusiDropdownMenuPosition = (menu: HTMLElement): void => {
   menu.style.left = "";
@@ -82,6 +137,8 @@ const clearKuusiDropdownMenuPosition = (menu: HTMLElement): void => {
   menu.style.top = "";
   menu.style.bottom = "";
   menu.style.maxWidth = "";
+  menu.style.maxHeight = "";
+  menu.style.overflowY = "";
   menu.style.width = "";
 };
 
@@ -97,7 +154,8 @@ export const positionKuusiDropdownMenu = (
     return;
   }
 
-  const trigger = menu.parentElement;
+  const trigger =
+    kuusiDropdownMenuHomes.get(menu)?.anchor ?? menu.parentElement;
 
   if (!(trigger instanceof HTMLElement)) {
     return;
@@ -106,6 +164,13 @@ export const positionKuusiDropdownMenu = (
   const panelRoot =
     root.closest(".jp-KuusiNotebookMindMap") ??
     root.closest(".jp-KuusiNotebookMindMapDocument") ??
+    root.closest(".jp-KuusiMarkdownSlidesViewer") ??
+    root.closest(".jp-KuusiMarkdownSlidesDocument") ??
+    root.closest(".jp-MarkdownViewer-Document") ??
+    root.closest(".jp-KuusiEditorFormatHost") ??
+    root.closest(".jp-NotebookPanel") ??
+    root.closest(".jp-FileEditor-Document") ??
+    root.closest(".jp-DocumentWidget") ??
     root;
   const rootRect = panelRoot.getBoundingClientRect();
   const pad = 8;
@@ -131,8 +196,49 @@ export const positionKuusiDropdownMenu = (
   menu.style.bottom = "";
   void menu.offsetWidth;
 
+  if (menu.classList.contains("jp-KuusiFormatDropdown-menu--fixed")) {
+    // Tall menus scroll inside the panel instead of running off-screen.
+    const available =
+      Math.min(rootRect.bottom, window.innerHeight) -
+      Math.max(rootRect.top, 0) -
+      pad * 2;
+    menu.style.maxHeight = `${Math.max(160, Math.floor(available))}px`;
+    menu.style.overflowY = "auto";
+  }
+
   const triggerRect = trigger.getBoundingClientRect();
   let menuRect = menu.getBoundingClientRect();
+
+  if (menu.classList.contains("jp-KuusiFormatDropdown-menu--fixed")) {
+    let leftPx = triggerRect.left;
+    const minLeft = Math.max(pad, rootRect.left + pad);
+    const maxLeft = Math.min(
+      window.innerWidth - pad - menuRect.width,
+      rootRect.right - pad - menuRect.width,
+    );
+    leftPx = Math.min(Math.max(leftPx, minLeft), Math.max(minLeft, maxLeft));
+
+    const spaceBelow = Math.min(
+      rootRect.bottom,
+      window.innerHeight,
+    ) - triggerRect.bottom - pad;
+    const spaceAbove = triggerRect.top - Math.max(rootRect.top, 0) - pad;
+    const openAbove =
+      menuRect.height > spaceBelow + 1 && spaceAbove > spaceBelow;
+    let topPx = openAbove
+      ? triggerRect.top - menuRect.height - 6
+      : triggerRect.bottom + 6;
+    topPx = Math.min(
+      Math.max(pad, topPx),
+      Math.max(pad, window.innerHeight - pad - menuRect.height),
+    );
+
+    menu.style.left = `${Math.round(leftPx)}px`;
+    menu.style.right = "auto";
+    menu.style.top = `${Math.round(topPx)}px`;
+    menu.style.bottom = "auto";
+    return;
+  }
 
   if (isVerticalRail) {
     // Always open to the left of the vertical format rail; clamp inside the panel.
@@ -186,12 +292,131 @@ export const positionKuusiDropdownMenu = (
   }
 };
 
+let kuusiMenuEscapeArmed = false;
+
+/** One document-level Esc handler shared by every Kuusi dropdown. */
+const armKuusiMenuEscape = (): void => {
+  if (kuusiMenuEscapeArmed) {
+    return;
+  }
+
+  kuusiMenuEscapeArmed = true;
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    const open = document.querySelectorAll<HTMLElement>(
+      ".jp-KuusiFormatDropdown-menu.is-open",
+    );
+
+    if (open.length === 0) {
+      document.removeEventListener("keydown", onKeyDown, true);
+      window.removeEventListener("resize", onResize);
+      kuusiMenuEscapeArmed = false;
+      return;
+    }
+
+    if (event.key !== "Escape" || event.isComposing) {
+      return;
+    }
+
+    const trigger = kuusiMenuTriggers.get(open[0]!);
+    event.preventDefault();
+    event.stopPropagation();
+    closeAllMenus(document.body);
+    trigger?.focus({ preventScroll: true });
+  };
+
+  const onResize = (): void => {
+    document
+      .querySelectorAll<HTMLElement>(".jp-KuusiFormatDropdown-menu.is-open")
+      .forEach((menu) => {
+        positionKuusiDropdownMenu(menu, kuusiMenuRoots.get(menu) ?? menu);
+      });
+  };
+
+  document.addEventListener("keydown", onKeyDown, true);
+  window.addEventListener("resize", onResize);
+};
+
 /** Open a dropdown and fit it inside the Kuusi panel bounds. */
 export const openKuusiDropdownMenu = (
   menu: HTMLElement,
   root: HTMLElement,
 ): void => {
+  const home = menu.parentElement;
+
+  // Glass toolbar pills use backdrop-filter + border-radius, which clips
+  // absolute-positioned menus to the pill (menus open but are invisible /
+  // unclickable). Article already portals; Mind Map / Slides must too.
+  // Export and other toolbars can opt in via data-kuusi-portal.
+  const shouldPortal = Boolean(
+    menu.closest(".jp-KuusiToolbarCluster") ||
+      menu.closest(".jp-KuusiArticle-header") ||
+      menu.closest(".jp-KuusiBook-header") ||
+      menu.closest(".jp-KuusiNotebookMindMap-header") ||
+      menu.closest(".jp-KuusiSlides-header") ||
+      menu.closest(".jp-KuusiEditorFormatOverlay") ||
+      menu.dataset.kuusiPortal === "true",
+  );
+
+  if (shouldPortal && home instanceof HTMLElement) {
+    kuusiDropdownMenuHomes.set(menu, { home, anchor: home });
+    menu.classList.add("jp-KuusiFormatDropdown-menu--fixed");
+    menu.classList.add("jp-KuusiFormatDropdown-menu--portal");
+    document.body.appendChild(menu);
+  }
+
   menu.classList.add("is-open");
+
+  kuusiMenuRoots.set(menu, root);
+
+  const trigger = home?.querySelector<HTMLElement>(
+    ":scope > button[aria-haspopup]",
+  );
+  if (trigger) {
+    kuusiMenuTriggers.set(menu, trigger);
+    trigger.setAttribute("aria-expanded", "true");
+  }
+
+  // Panel resizes / split drags move the trigger; keep the menu attached to it.
+  if (typeof ResizeObserver !== "undefined") {
+    kuusiMenuObservers.get(menu)?.disconnect();
+    const observer = new ResizeObserver(() => {
+      positionKuusiDropdownMenu(menu, root);
+    });
+    observer.observe(root);
+    kuusiMenuObservers.set(menu, observer);
+  }
+
+  armKuusiMenuEscape();
+
+  // Move focus into capsule menus so keyboard users can arrow through them.
+  // Editor format menus (Aa …) keep focus in the editor to preserve its selection.
+  requestAnimationFrame(() => {
+    if (
+      !menu.classList.contains("is-open") ||
+      !menu.matches(".jp-KuusiSecondaryMenu-host, .jp-KuusiStyleDropdown-menu")
+    ) {
+      return;
+    }
+
+    const target =
+      menu.querySelector<HTMLElement>(
+        ".jp-KuusiSecondaryMenu-tab.is-active, .jp-KuusiFormatDropdown-item.is-active",
+      ) ??
+      menu.querySelector<HTMLElement>(
+        ".jp-KuusiSecondaryMenu-tab, .jp-KuusiFormatDropdown-item:not(:disabled)",
+      );
+    target?.focus({ preventScroll: true });
+  });
+
+  // Keep the collapsible editor format pill expanded while a menu is open
+  // (menus portal to body, so :hover on the pill alone would collapse it).
+  const editorCluster = (home ?? menu).closest(
+    ".jp-KuusiEditorFormatCluster",
+  );
+  if (editorCluster instanceof HTMLElement) {
+    editorCluster.classList.add("is-pinned");
+  }
 
   requestAnimationFrame(() => {
     positionKuusiDropdownMenu(menu, root);
@@ -328,7 +553,7 @@ const applyActiveStates = (
   const outlineLevel =
     state.headingLevel !== null &&
     state.headingLevel >= 1 &&
-    state.headingLevel <= 3
+    state.headingLevel <= 6
       ? state.headingLevel
       : null;
 
@@ -1190,17 +1415,11 @@ const headingItem = (
   getActiveMarkdownCell: () => IMarkdownCellModel | null,
   level: number,
 ): MenuItem => ({
-  label: `Heading ${level} (outline)`,
-  title: `Set outline heading level ${level}`,
+  label: `H${level}`,
+  title: `Set heading level H${level}`,
   formatId: `heading${level}`,
   action: (editor) => {
-    const cell = getActiveMarkdownCell();
-
-    if (!cell) {
-      return;
-    }
-
-    applyOutlineHeading(editor, cell, level);
+    applyHeadingInEditor(editor, getActiveMarkdownCell(), level);
   },
   previewClass: `jp-KuusiFormatDropdown-preview-heading${Math.min(level, 6)}`,
 });
@@ -1209,16 +1428,10 @@ const bodyItem = (
   getActiveMarkdownCell: () => IMarkdownCellModel | null,
 ): MenuItem => ({
   label: "Body",
-  title: "Body text — no outline heading (attaches under the nearest heading)",
+  title: "Body text — no ATX heading on this line",
   formatId: "body",
   action: (editor) => {
-    const cell = getActiveMarkdownCell();
-
-    if (!cell) {
-      return;
-    }
-
-    applyOutlineBody(editor, cell);
+    applyBodyInEditor(editor, getActiveMarkdownCell());
   },
   previewClass: "jp-KuusiFormatDropdown-preview-body",
 });
@@ -1228,9 +1441,10 @@ export const createFormatToolbar = ({
   getActiveMarkdownCell,
   isEnabled,
   getDisabledReason,
+  toolbarClassName = "jp-KuusiNotebookMindMap-format-toolbar",
 }: FormatToolbarOptions): FormatToolbarHandle => {
   const toolbar = document.createElement("div");
-  toolbar.className = "jp-KuusiNotebookMindMap-format-toolbar";
+  toolbar.className = toolbarClassName;
   toolbar.setAttribute("role", "toolbar");
   toolbar.setAttribute("aria-label", "Markdown formatting");
 
@@ -1238,7 +1452,17 @@ export const createFormatToolbar = ({
   const stateTargets: StateTarget[] = [];
   let headingTrigger: HTMLButtonElement | null = null;
 
+  // Keep focus (and scroll position) in the editor. Focusing these overlay
+  // buttons otherwise scrolls the sticky/absolute chrome into view and the
+  // whole pane looks like it jumped sideways.
+  const suppressToolbarFocus = (event: Event): void => {
+    event.preventDefault();
+  };
+
   const registerControl = (button: HTMLButtonElement) => {
+    button.tabIndex = -1;
+    button.addEventListener("pointerdown", suppressToolbarFocus);
+    button.addEventListener("mousedown", suppressToolbarFocus);
     controls.push(button);
   };
 
@@ -1278,9 +1502,9 @@ export const createFormatToolbar = ({
   const headingDropdown = createDropdown(
     getEditor,
     "Body",
-    "Outline heading (H1–H3) or Body — nesting to depth 20; deeper levels use Body style",
+    "Heading H1–H6 or Body (plain paragraph)",
     [
-      ...[1, 2, 3].map((level) =>
+      ...[1, 2, 3, 4, 5, 6].map((level) =>
         headingItem(getActiveMarkdownCell, level),
       ),
       bodyItem(getActiveMarkdownCell),

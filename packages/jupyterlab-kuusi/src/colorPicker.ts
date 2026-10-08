@@ -77,6 +77,9 @@ export const appendColorPickerSection = (
       swatch.classList.add("jp-KuusiFormatColorSwatch-default");
     }
 
+    swatch.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
     swatch.addEventListener("click", (event) => {
       event.stopPropagation();
       onSelect(color);
@@ -108,6 +111,9 @@ export const appendColorPickerSection = (
       !isPresetSwatchColor(currentColor, pickerSwatches),
   );
 
+  customInput.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
   customInput.addEventListener("click", (event) => {
     event.stopPropagation();
   });

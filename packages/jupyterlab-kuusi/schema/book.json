@@ -1,0 +1,517 @@
+{
+  "title": "Kuusi Book",
+  "description": "Facing-pages (open-book) reading appearance for Markdown and notebook Book views.",
+  "jupyter.lab.internationalization": {
+    "domain": "jupyterlab_kuusi"
+  },
+  "jupyter.lab.setting-icon": "jupyterlab-kuusi:book",
+  "jupyter.lab.setting-icon-label": "Kuusi Book",
+  "type": "object",
+  "definitions": {
+    "headerStyle": {
+      "type": "object",
+      "properties": {
+        "font": {
+          "type": "string",
+          "enum": [
+            "notebook",
+            "system-ui",
+            "arial",
+            "helvetica",
+            "segoe-ui",
+            "verdana",
+            "georgia",
+            "times",
+            "palatino",
+            "garamond",
+            "cambria"
+          ]
+        },
+        "fontSize": {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "CSS hex color, or empty to follow the page foreground."
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "theme": {
+      "title": "Book theme",
+      "description": "Named look that stamps paper, typography, and headings (column layout stays).",
+      "type": "string",
+      "enum": [
+        "notebook",
+        "essay",
+        "magazine",
+        "night",
+        "academic",
+        "minimal"
+      ],
+      "default": "essay"
+    },
+    "columns": {
+      "title": "Book spread",
+      "description": "Pages visible at once: 1 (single) or 2 (facing pages).",
+      "type": "number",
+      "enum": [
+        1,
+        2
+      ],
+      "default": 2
+    },
+    "columnGap": {
+      "title": "Book spine gap",
+      "description": "Space between facing pages, in rem (1–4).",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 4,
+      "default": 2.5
+    },
+    "columnFill": {
+      "title": "Book column fill",
+      "description": "Legacy setting; facing pages always fill in reading order.",
+      "type": "string",
+      "enum": [
+        "balance",
+        "auto"
+      ],
+      "default": "auto"
+    },
+    "columnRule": {
+      "title": "Book spine rule",
+      "description": "Draw a thin vertical rule in the spine between pages.",
+      "type": "boolean",
+      "default": false
+    },
+    "padding": {
+      "title": "Book padding",
+      "description": "Page inset in rem.",
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 4,
+      "default": 2
+    },
+    "background": {
+      "title": "Book paper background",
+      "type": "string",
+      "enum": [
+        "theme",
+        "paper",
+        "newspaper",
+        "eye-care",
+        "ink",
+        "sepia",
+        "mist"
+      ],
+      "default": "paper"
+    },
+    "backgroundPattern": {
+      "title": "Book paper pattern",
+      "type": "string",
+      "enum": [
+        "none",
+        "plain",
+        "grid",
+        "dots",
+        "lines",
+        "notebook"
+      ],
+      "default": "none"
+    },
+    "viewBackground": {
+      "title": "Book view background",
+      "type": "string",
+      "enum": [
+        "theme",
+        "paper",
+        "newspaper",
+        "eye-care",
+        "ink",
+        "sepia",
+        "mist"
+      ],
+      "default": "theme"
+    },
+    "viewBackgroundColor": {
+      "title": "Book view background color",
+      "type": "string",
+      "default": ""
+    },
+    "font": {
+      "title": "Book body font",
+      "type": "string",
+      "enum": [
+        "notebook",
+        "system-ui",
+        "arial",
+        "helvetica",
+        "segoe-ui",
+        "verdana",
+        "georgia",
+        "times",
+        "palatino",
+        "garamond",
+        "cambria"
+      ],
+      "default": "notebook"
+    },
+    "fontSize": {
+      "title": "Book body font size",
+      "type": "string",
+      "enum": [
+        "xxs",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "xxl"
+      ],
+      "default": "xs"
+    },
+    "color": {
+      "title": "Book body color",
+      "type": "string",
+      "default": ""
+    },
+    "strongColor": {
+      "title": "Book bold color",
+      "description": "Color for bold (**strong**) body text. Empty inherits the body color.",
+      "type": "string",
+      "default": ""
+    },
+    "letterSpacing": {
+      "title": "Book letter spacing",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0
+    },
+    "lineHeight": {
+      "title": "Book leading",
+      "type": "number",
+      "minimum": 0.9,
+      "maximum": 2.4,
+      "default": 1.55
+    },
+    "paragraphSpacing": {
+      "title": "Book paragraph spacing",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 48,
+      "default": 10
+    },
+    "paragraphIndent": {
+      "title": "Book paragraph indent",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 72,
+      "default": 0
+    },
+    "paragraphAlign": {
+      "title": "Book paragraph alignment",
+      "type": "string",
+      "enum": [
+        "left",
+        "justify"
+      ],
+      "default": "justify"
+    },
+    "linkStyle": {
+      "title": "Book link style",
+      "type": "string",
+      "enum": [
+        "default",
+        "underline",
+        "accent"
+      ],
+      "default": "default"
+    },
+    "headers": {
+      "title": "Book headers",
+      "type": "object",
+      "properties": {
+        "h1": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h2": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h3": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h4": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h5": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h6": {
+          "$ref": "#/definitions/headerStyle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "codeStyle": {
+      "title": "Book code style",
+      "type": "string",
+      "enum": [
+        "plain",
+        "muted",
+        "contrast"
+      ],
+      "default": "muted"
+    },
+    "codeTheme": {
+      "title": "Book code palette",
+      "description": "Language-inspired syntax colors (Notebook follows JupyterLab).",
+      "type": "string",
+      "enum": [
+        "notebook",
+        "python",
+        "javascript",
+        "r",
+        "julia",
+        "sql",
+        "rust",
+        "matlab",
+        "shell"
+      ],
+      "default": "notebook"
+    },
+    "codeFont": {
+      "title": "Book code font",
+      "type": "string",
+      "enum": [
+        "mono",
+        "menlo",
+        "consolas",
+        "monaco",
+        "source-code-pro",
+        "fira-code",
+        "jetbrains-mono",
+        "cascadia"
+      ],
+      "default": "mono"
+    },
+    "codeFontSize": {
+      "title": "Book code font size",
+      "type": "string",
+      "enum": [
+        "xxs",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "xxl"
+      ],
+      "default": "sm"
+    },
+    "codeFrame": {
+      "title": "Book code frame",
+      "type": "boolean"
+    },
+    "codeFrameColor": {
+      "title": "Book code frame color",
+      "type": "string",
+      "default": ""
+    },
+    "codeFrameRadius": {
+      "title": "Book code corner radius",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "default": 6
+    },
+    "codeFrameBorder": {
+      "title": "Book code frame stroke",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 1
+    },
+    "codeFrameWidth": {
+      "title": "Book code block width",
+      "type": "number",
+      "minimum": 40,
+      "maximum": 100,
+      "default": 100
+    },
+    "tableStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "grid",
+        "lines",
+        "banded",
+        "booktabs",
+        "ruled"
+      ],
+      "default": "booktabs",
+      "title": "Table style",
+      "description": "Word- and LaTeX-inspired table presets (default Booktabs)."
+    },
+    "tableBorderWidth": {
+      "type": "number",
+      "minimum": 0.25,
+      "maximum": 3,
+      "default": 0.75,
+      "title": "Table border width",
+      "description": "Rule / grid stroke thickness in pt (0.25–3)."
+    },
+    "tableHeaderRowBold": {
+      "type": "boolean",
+      "default": true,
+      "title": "Bold table header row",
+      "description": "Make the first row (column headers) bold."
+    },
+    "tableHeaderColumnBold": {
+      "type": "boolean",
+      "default": false,
+      "title": "Bold table first column",
+      "description": "Make the first column (row headers) bold."
+    },
+    "listStyle": {
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "relaxed"
+      ],
+      "default": "normal",
+      "title": "List style",
+      "description": "Vertical density for unordered and ordered lists."
+    },
+    "blockquoteWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Blockquote weight",
+      "description": "Border and emphasis weight for blockquotes."
+    },
+    "hrWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Divider weight",
+      "description": "Stroke weight for horizontal rules."
+    },
+    "imageWidth": {
+      "title": "Book image width",
+      "type": "string",
+      "enum": [
+        "natural",
+        "wide",
+        "full"
+      ],
+      "default": "wide"
+    },
+    "imageAlign": {
+      "title": "Book image alignment",
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center"
+    },
+    "imageWrap": {
+      "title": "Book image wrap",
+      "type": "string",
+      "enum": [
+        "none",
+        "left",
+        "right"
+      ],
+      "default": "none"
+    },
+    "imageBorderStyle": {
+      "title": "Book image border style",
+      "type": "string",
+      "enum": [
+        "none",
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "none"
+    },
+    "imageBorderWidth": {
+      "title": "Book image border width",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 1
+    },
+    "imageBorderColor": {
+      "title": "Book image border color",
+      "type": "string",
+      "default": ""
+    },
+    "imageRadius": {
+      "title": "Book image corner radius",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 32,
+      "default": 0
+    },
+    "showTextCount": {
+      "title": "Show character / word count",
+      "description": "Display character and word counts beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "showPageCount": {
+      "title": "Show page count",
+      "description": "Display the page count beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "showFileSize": {
+      "title": "Show file size",
+      "description": "Display the document file size beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "pageNumberStart": {
+      "title": "Book page number start",
+      "description": "Number from the first spread, or skip the first and start on spread 2.",
+      "type": "string",
+      "enum": ["first", "second"],
+      "default": "first"
+    }
+  },
+  "additionalProperties": false
+}

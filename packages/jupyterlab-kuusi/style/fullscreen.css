@@ -1,0 +1,94 @@
+/* Fullscreen / immersive chrome. */
+
+/* Kuusi view fullscreen: the document itself fills the screen (top layer when
+   native fullscreen is granted, fixed overlay otherwise). !important beats the
+   inline geometry the dock keeps writing on its widgets. */
+.jp-KuusiViewFullscreen {
+  background: var(--jp-layout-color0);
+  box-sizing: border-box;
+  height: 100vh !important;
+  height: 100dvh !important;
+  inset: 0 !important;
+  max-height: none !important;
+  max-width: none !important;
+  position: fixed !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  z-index: 100000 !important;
+}
+
+.jp-KuusiViewFullscreen:fullscreen,
+.jp-KuusiViewFullscreen:-webkit-full-screen {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.is-kuusi-view-fullscreen .jp-KuusiArticle-header,
+.is-kuusi-view-fullscreen .jp-KuusiBook-header,
+.is-kuusi-view-fullscreen .jp-KuusiNotebookMindMap-header,
+.is-kuusi-view-fullscreen .jp-KuusiSlides-header {
+  display: none !important;
+}
+
+/* Shared bottom-right corner control (fullscreen / slides play). */
+.jp-KuusiCornerControl,
+.jp-KuusiNotebookMindMap-status-fullscreen {
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--kuusi-status-chrome-height, 32px);
+  pointer-events: auto;
+}
+
+/* `button.` beats JupyterLab's `.jp-ThemedContainer button` resets. */
+button.jp-KuusiCornerBtn,
+button.jp-KuusiNotebookMindMap-status-fullscreen-btn {
+  align-items: center;
+  -webkit-backdrop-filter: var(--kuusi-glass-blur, blur(14px) saturate(180%));
+  backdrop-filter: var(--kuusi-glass-blur, blur(14px) saturate(180%));
+  background: var(
+    --kuusi-glass-bg,
+    color-mix(in srgb, var(--jp-layout-color1) 80%, transparent)
+  );
+  border: 1px solid
+    var(--kuusi-glass-border, color-mix(in srgb, var(--jp-ui-font-color0) 13%, transparent));
+  border-radius: 999px;
+  box-sizing: border-box;
+  box-shadow:
+    var(--kuusi-glass-sheen, inset 0 1px 0 color-mix(in srgb, white 15%, transparent)),
+    var(--kuusi-glass-shadow, 0 1px 2px color-mix(in srgb, var(--jp-ui-font-color0) 16%, transparent));
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--kuusi-mindmap-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-mindmap-chrome-font-size, 11px);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight, 550);
+  height: var(--kuusi-status-chrome-height, 32px);
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  width: var(--kuusi-status-chrome-height, 32px);
+}
+
+button.jp-KuusiCornerBtn:hover,
+button.jp-KuusiCornerBtn.is-active,
+button.jp-KuusiNotebookMindMap-status-fullscreen-btn:hover,
+button.jp-KuusiNotebookMindMap-status-fullscreen-btn.is-active {
+  background: var(
+    --kuusi-glass-bg-hover,
+    color-mix(in srgb, var(--jp-layout-color1) 78%, transparent)
+  );
+  border-color: var(--kuusi-brand-green, var(--jp-brand-color1));
+  color: var(--kuusi-brand-green, var(--jp-brand-color1));
+}
+
+button.jp-KuusiCornerBtn .jp-Icon,
+button.jp-KuusiCornerBtn svg,
+button.jp-KuusiNotebookMindMap-status-fullscreen-btn .jp-Icon,
+button.jp-KuusiNotebookMindMap-status-fullscreen-btn svg {
+  height: 16px;
+  width: 16px;
+}

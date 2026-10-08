@@ -1,7 +1,8 @@
 # Kuusi
 
-*Kuusi* (Finnish for spruce) — Jupyter-native **notebook mind map**: rearrange `.ipynb` cells on a spatial canvas by markdown heading hierarchy, using **Jupyter's own cell renderers** (CodeCell / MarkdownCell — not a custom rich-text editor).
+*Kuusi* (Finnish for spruce) — Jupyter-native **Article**, **Slides**, and **Mind Map** for `.ipynb` and `.md`. The mind map rearranges cells on a spatial canvas by heading hierarchy, using **Jupyter's own cell renderers** (CodeCell / MarkdownCell — not a custom rich-text editor). PyPI **0.2.x** still ships **core** (Mind Map); the views below are in this source tree.
 
+  
 <p align="center">
   <img src="docs/assets/0.2.6/kuusi-overview-light.png" alt="Kuusi mind map overview (light)" width="720"/>
 </p>
@@ -18,15 +19,15 @@
   <img src="docs/assets/0.2.6/kuusi-launcher-core.png" alt="Kuusi Launcher (core tier)" width="720"/>
 </p>
 
-<p align="center"><em>Launcher → Kuusi on 0.2.x — Mind Map and Settings (full-tier tiles unlock in 0.3.0)</em></p>
+<p align="center"><em>Launcher → Kuusi on 0.2.6 PyPI (Mind Map + Settings). Current source shows Settings only; extra tiles stay hidden until 0.3.0.</em></p>
 
 ## Version
 
 | Component | Version |
 |-----------|---------|
-| **Kuusi** | `0.2.6` |
-| `kuusi-kernel` | `0.2.6` |
-| `jupyterlab-kuusi` | `0.2.6` |
+| **Kuusi** | `0.2.7` |
+| `kuusi-kernel` | `0.2.7` |
+| `jupyterlab-kuusi` | `0.2.7` |
 
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
@@ -36,11 +37,11 @@ See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
 | Active on core | Description |
 |----------------|-------------|
-| **Mind Map** | Open `.ipynb` files in the Kuusi canvas (toolbar **Kuusi** or **Open With → Kuusi Mind Map**). |
-| **Launcher → Kuusi** | **Mind Map** — create a notebook in the current folder and open it as a map. **Settings** — version, PyPI update check, community links, repository, about, and default openers (notebooks only). |
+| **Mind Map** | Open `.ipynb` files in the Kuusi canvas (**Open With → Kuusi Mind Map**, or toolbar **Kuusi** on the 0.2.6 wheel). |
+| **Launcher → Kuusi** | **0.2.6 wheel:** Mind Map (new notebook) and Settings. **Current source:** Settings only (other tiles stay registered but hidden). Settings: version, PyPI update check, community links, repository, about, and default openers. |
 | **Page header (row 2)** | Left **mind map icon** opens the **keyboard shortcuts** guide; appearance and format toolbars behave as in earlier 0.2 releases. |
 
-The same wheel also **bundles** Live PDF, TeX workspace, Markdown preview, image viewer, voice recorder, transfer-speed monitor, and ZIP compress/extract. Those plugins **do not register** until **0.3.0** (full tier). Jupyter server APIs for TeX, channel monitor, and compress follow the same rule — core installs log that full-tier APIs are disabled.
+The same wheel also **bundles** Article / Slides views, export, and Markdown preview. Those plugins **do not register** on PyPI **0.2.x** until **0.3.0** (full tier). The **source tree already has them** — use the override below. Live PDF, Image hub, TeX compile, Voice, transfer-speed monitor, and ZIP live outside Kuusi in `~/Documents/GoogleDrive/Life_OS/academic-toolkit/`.
 
 **Maintainers / QA (full tier locally):** in the browser console, run `localStorage.setItem('jupyterlab-kuusi:release-tier-override', 'full')` and reload JupyterLab. Remove the key or set `'core'` to return to PyPI behavior.
 
@@ -53,12 +54,16 @@ The same wheel also **bundles** Live PDF, TeX workspace, Markdown preview, image
 
 ## Features
 
-- **Native Jupyter cells** on a pannable, zoomable canvas
+- **Kuusi View** — editor plus a render pane for `.ipynb` and `.md`: **Article**, **Slides**, and **Mind Map** (full tier / source)
+- **Article** — reading page with Theme / Page / Header & footer / Text / Paragraph / Headings / Code / Image capsules; scroll or paged paper; export PDF and images
+- **Slides** — live deck from the same source (headings or `---`); overflow paginates; same typography and Image capsules
+- **Native Jupyter cells** on a pannable, zoomable mind-map canvas
 - **Heading-driven tree** — `#`–`###` roots/branches, nesting to depth 20 (levels 4+ keep Body chrome via metadata), other cells attach as Body under the current frame
-- **Edit & structure** — Tab/Enter insert nodes, drag-and-drop reorder, two-way notebook sync
-- **Appearance** — themes, fonts, line/border style, backgrounds; settings persist across refresh
+- **Edit & structure** — Tab/Enter insert nodes, drag-and-drop reorder; editor ↔ view position sync when both panes are open
+- **Appearance** — shared Text / Paragraph / Headings / Code / Image capsules on all three views; mind map also has Theme / Line / Node / Background
 - **Format toolbar** (edit mode) — headings, inline styles, lists, tables, images, links
 - **Shortcuts, zoom, fullscreen** — XMind-style navigation; shortcuts from the page-header mind map icon; version and community links in **Launcher → Kuusi → Settings**
+- **Language** — Kuusi chrome follows JupyterLab (`jupyterlab_kuusi` catalogs; Simplified Chinese included)
 
 ## Installation
 
@@ -118,12 +123,12 @@ pip uninstall jupyterlab-kuusi
 
 ### Open Kuusi
 
-Open any `.ipynb` (try [`examples/example.ipynb`](examples/example.ipynb)), then either:
+Open any `.ipynb` (try [`examples/example.ipynb`](examples/example.ipynb)) or `.md` (try [`examples/slides-deck.md`](examples/slides-deck.md)), then either:
 
-- Click **Kuusi** in the notebook toolbar, or
-- **Right-click the file → Open With → Kuusi Mind Map**
+- Click **Kuusi View** in the editor toolbar, or
+- **Right-click the file → Open With** a Kuusi factory (Article, Slides, Mind Map)
 
-You can keep the classic notebook view and Kuusi open on the same file side by side.
+The editor stays on the left. The render pane switches with **Article / Mind Map / Slides**. You can keep the classic notebook and a Kuusi view open on the same file side by side.
 
 ### Feedback
 
@@ -171,19 +176,47 @@ If you already installed Kuusi:
 jupyter lab
 ```
 
-Then open `examples/example.ipynb` with **Kuusi Mind Map** as described above.
+Then open `examples/example.ipynb` or `examples/slides-deck.md` and click **Kuusi View** as described above.
 
 ## Using Kuusi
 
-### Header (row 1)
+### Views (Article, Slides, Mind Map)
+
+Full tier / source only. After **Kuusi View**, the switcher picks the render:
+
+| View | Notebook (`.ipynb`) | Markdown (`.md`) |
+|------|---------------------|------------------|
+| **Article** | Cells flattened into one reading page | Markdown preview |
+| **Slides** | Same source as a live deck | Split on headings or `---` |
+| **Mind Map** | Heading tree on the canvas | Heading tree on the canvas |
+
+Moving the editor caret (or the notebook’s active cell) scrolls or pages an open view. Clicking Article, changing slide, or selecting a mind-map node moves the editor to the matching place.
+
+**Shared capsules** (Article / Slides / Mind Map): Text · Paragraph · Headings · Code · Image. Article / Slides also have Theme · Page · Header & footer. Mind Map keeps Tree · Layout · Theme · Line · Node · Background.
+
+| Capsule | What it does |
+|---------|----------------|
+| **Theme** | Reading / deck presets |
+| **Page** | Article: scroll vs paged paper, size, column, padding, background. Slides: ratio, split, align, padding |
+| **Header & footer** | Running title / page numbers (Article paged; Slides stage chrome) |
+| **Text / Paragraph / Headings / Code** | Shared typography |
+| **Image** | Align (left / center / right), wrap (block, left + wrap, right + wrap), size (natural / wide / full), border (style, color, weight, corner) |
+
+**Article paged** (Page → Layout → Paged): paper sheets with a gap. Headings stay with the next block; paragraphs avoid orphan/widow lines; long code, tables, and lists split across pages (tables repeat the header). Images and display math do not split.
+
+**Export** (view toolbar): PDF, PNG, JPEG, WebP, Print / Vector PDF, HTML, or download the source file.
+
+Mind Map appearance and shortcuts follow.
+
+### Mind Map — Header (row 1)
 
 Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, etc.
 
-### Header (row 2)
+### Mind Map — Header (row 2)
 
 | Area | Controls |
 |------|----------|
-| **Left** | **+**, **Mind map icon** (shortcuts), **Tree**, **Layout**, **Theme**, **Font**, **Line**, **Node**, **Background** |
+| **Left** | **+**, **Mind map icon** (shortcuts), **Tree**, **Layout**, **Theme**, **Text**, **Paragraph**, **Headings**, **Code**, **Image**, **Line**, **Node**, **Background** |
 | **Right** | Markdown **format** toolbar (visible in edit mode), see below |
 
 #### Left toolbar
@@ -194,8 +227,11 @@ Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, 
 | **Mind map icon** | Opens the **keyboard shortcuts** guide (navigation, formatting, notes) |
 | **Tree** | Layout direction: ↓ ↑ → ← |
 | **Layout** | Node spacing: Compact / Normal / Loose |
-| **Theme** | Presets that stamp Line / Node / Background / Font: Notebook, Soft, Outline, Paper, Board, Black, Minimal |
-| **Font** | Mind map typeface (notebook default, sans-serif, serif); **Edit** / **Display** size sliders (XXS–XXL) |
+| **Theme** | Presets that stamp Line / Node / Background / Text: Notebook, Soft, Outline, Paper, Board, Black, Minimal |
+| **Text** | Body-node font, size, color, tracking, leading. **Edit** / **Link** tabs keep the source-edit font (unify + match notebook) |
+| **Paragraph** | Spacing, indent, alignment, and links inside a card |
+| **Headings** | H1–H3 tree frames; H4–H6 titles inside a card |
+| **Code / Image** | Same capsules as Article / Slides, applied inside a node |
 | **Line** | Connector line style, width, color |
 | **Node** | Width (equal width switch), fill, border, corner, hover glow, selection glow |
 | **Background** | Canvas pattern and color (including Ink for Black theme) |
@@ -242,22 +278,23 @@ All of the above (except zoom and fullscreen) are **saved automatically** and re
 ## Architecture
 
 ```
-.ipynb (shared INotebookModel)
-    → kuusi-kernel: heading outline tree + dagre layout
-    → jupyterlab-kuusi: canvas with native Jupyter cell widgets
+.ipynb / .md
+    → Kuusi View: Article | Slides | Mind Map
+    → kuusi-kernel: heading outline + dagre (mind map)
+    → jupyterlab-kuusi: Article / Slides render + canvas with native cell widgets
 ```
 
 No Tiptap, React Flow, or separate JSON sidecar in this line.
 
 ## Roadmap
 
-Planned work after `0.2.0`. These items do not block the current release.
+Planned work after `0.2.6`. Source already has the View stack; PyPI still ships core until `0.3.0`.
 
 ### `0.3.0`
 
 #### Full tier
 
-Enable bundled Live PDF, TeX, Markdown preview, Image, Voice, channel monitor, and compress features for all installs (today they ship in the wheel but stay off on 0.2.x — see [What’s in 0.2.x](#whats-in-02x-core-tier)).
+Ship the View stack that is already in source (Article / Slides / Mind Map, export, paged Article) for all PyPI installs (today they stay off on 0.2.x — see [What’s in 0.2.x](#whats-in-02x-core-tier)). Restore the extra **Launcher → Kuusi** tiles. Live PDF / Image / TeX / Voice / channel monitor / ZIP stay outside Kuusi (`Life_OS/academic-toolkit`).
 
 #### Collapse branches
 
@@ -273,15 +310,12 @@ Core mind map capability. Much of the kernel and widget plumbing already exists 
 
 Theme presets now compose Line / Node / Background / Font settings (Notebook, Soft, Outline, Paper, Board, Black, Minimal). Optional next step: preview swatches in the Theme menu.
 
-### `0.3.x` / `0.4.0` — Export image & PDF
+### Later — Mind Map export extras
 
-Presentation and sharing enhancements, not required for day-to-day editing.
+Article and Slides already export PDF / PNG / JPEG / WebP. Optional mind-map-only extras:
 
-- **PNG** — current viewport or entire map (DOM snapshot)
 - **SVG** — structure-only export (titles + connectors from layout data)
-- **PDF** — from PNG or print stylesheet
-
-Likely order: viewport PNG first, then structure SVG, then PDF.
+- Viewport vs entire-map PNG for very large canvases
 
 ## Development
 
@@ -370,7 +404,8 @@ packages/
 docs/
   assets/               # Versioned README screenshots (e.g. 0.2.6/)
 examples/
-  example.ipynb         # hands-on feature tour
+  example.ipynb         # notebook tour (Article / Slides / Mind Map)
+  slides-deck.md        # Markdown slides fixture
 scripts/
 CHANGELOG.md
 CONTRIBUTING.md

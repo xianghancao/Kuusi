@@ -54,44 +54,88 @@ export const mindMapIcon = new LabIcon({
   svgstr: MIND_MAP_ICON_SVG,
 });
 
-/** “PDF” wordmark — fill-only, 16×16 (launcher / tabs; no stroke doubling). */
-export const LIVE_PDF_ICON_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-  <g transform="translate(0.85 1.65) scale(0.98)">
-    <path
-      d="M1.55 12.55V3.75H3.3c1.4 0 2.25.72 2.25 1.82 0 1-.72 1.65-1.82 1.72v.05c1.12.06 1.82.88 1.82 2.02 0 1.28-.9 2.09-2.38 2.09H1.55Zm1.38-6.02h.48c.74 0 1.14-.38 1.14-.95 0-.56-.4-.9-1-.9h-.62v1.85Zm0 3.72h.64c.84 0 1.28-.48 1.28-1.15 0-.72-.44-1.14-1.14-1.14h-.78v2.29z"
-    />
-    <path
-      d="M6.2 12.55V3.75h1.68c2.08 0 3.42 1.58 3.42 4.48 0 2.88-1.34 4.32-3.42 4.32H6.2Zm1.48-1.32h.26c1.3 0 2.08-1.02 2.08-3.08 0-2.02-.78-3.08-2.08-3.08h-.26v6.16z"
-    />
-    <path
-      d="M10.75 12.55V3.75h4.15v1.32h-2.62v2.05h2.38v1.25h-2.38v4.18h-1.53z"
-    />
-  </g>
+/** Stacked slide cards — Markdown Slides tab / launcher. */
+export const SLIDES_ICON_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <rect
+    x="4.2"
+    y="1.6"
+    width="9.2"
+    height="6.4"
+    rx="1.2"
+    stroke="currentColor"
+    stroke-width="1.15"
+  />
+  <rect
+    x="2.6"
+    y="4.2"
+    width="9.2"
+    height="6.4"
+    rx="1.2"
+    stroke="currentColor"
+    stroke-width="1.15"
+    fill="var(--jp-layout-color1, #fff)"
+  />
+  <rect
+    x="2.6"
+    y="7.8"
+    width="9.2"
+    height="6.4"
+    rx="1.2"
+    stroke="currentColor"
+    stroke-width="1.15"
+    fill="currentColor"
+    fill-opacity="0.18"
+  />
 </svg>`;
 
-export const livePdfIcon = new LabIcon({
-  name: "jupyterlab-kuusi:live-pdf",
-  svgstr: LIVE_PDF_ICON_SVG,
+export const slidesIcon = new LabIcon({
+  name: "jupyterlab-kuusi:slides",
+  svgstr: SLIDES_ICON_SVG,
 });
 
-/** “IMG” wordmark — fill-only, 16×16 (launcher / tabs). */
-export const KUUSI_IMAGE_ICON_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-  <g transform="translate(0.55 1.65) scale(0.98)">
-    <path d="M2.2 12.55V3.75h2.95v1.32H3.58v6.16h1.57v1.32H2.2Z" />
-    <path
-      d="M6.05 12.55V3.75h1.52l2.18 4.72 2.18-4.72h1.52v8.8H9.85V8.42L7.62 12.55h-1.02L4.38 8.42v4.13H6.05Z"
-    />
-    <path
-      d="M11.85 12.55V3.75h3.75c1.62 0 2.58.82 2.58 2.08 0 1.05-.68 1.78-1.72 1.92v.05c1.18.12 1.92.92 1.92 2.12 0 1.52-1.05 2.48-2.72 2.48H11.85Zm1.38-1.32h2.22c.88 0 1.38-.48 1.38-1.22 0-.78-.5-1.25-1.38-1.25h-1.82v2.47Zm0-4.42h1.62c.82 0 1.28-.42 1.28-1.12 0-.75-.46-1.18-1.28-1.18h-1.62v2.3Z"
-    />
-  </g>
+/** Article page — tab / capsule mark (16×16). */
+export const ARTICLE_ICON_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <path
+    stroke="currentColor"
+    stroke-width="1.2"
+    stroke-linejoin="round"
+    d="M3.6 1.8h6.8L12.4 3.8v10.4H3.6z"
+  />
+  <path
+    stroke="currentColor"
+    stroke-width="1.1"
+    stroke-linecap="round"
+    d="M5.4 6.4h5.2M5.4 8.8h5.2M5.4 11.2h3.4"
+  />
 </svg>`;
 
-export const kuusiImageIcon = new LabIcon({
-  name: "jupyterlab-kuusi:image",
-  svgstr: KUUSI_IMAGE_ICON_SVG,
+export const articleIcon = new LabIcon({
+  name: "jupyterlab-kuusi:article",
+  svgstr: ARTICLE_ICON_SVG,
+});
+
+/** Open book — dual facing pages (Book view tab / capsule). */
+export const BOOK_ICON_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <path
+    stroke="currentColor"
+    stroke-width="1.15"
+    stroke-linejoin="round"
+    d="M8 3.2C6.6 2.4 5.1 2.1 3.4 2.1v10.2c1.7 0 3.2.3 4.6 1.1 1.4-.8 2.9-1.1 4.6-1.1V2.1C11 2.1 9.4 2.4 8 3.2z"
+  />
+  <path
+    stroke="currentColor"
+    stroke-width="1.1"
+    stroke-linecap="round"
+    d="M8 3.4v9.8"
+  />
+</svg>`;
+
+export const bookIcon = new LabIcon({
+  name: "jupyterlab-kuusi:book",
+  svgstr: BOOK_ICON_SVG,
 });
 
 /** @deprecated Use {@link kuusiBrandIcon} or {@link mindMapIcon} explicitly. */

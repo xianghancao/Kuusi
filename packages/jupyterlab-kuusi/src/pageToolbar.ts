@@ -54,12 +54,13 @@ const sortItems = (items: PageToolbarItem[]): PageToolbarItem[] =>
 export const createPageToolbar = (
   items: PageToolbarItem[],
   t: KuusiTranslator,
+  ariaLabel?: string,
 ): PageToolbarHandle => {
   const cluster = document.createElement("div");
   cluster.className =
     "jp-KuusiToolbarCluster jp-KuusiToolbarCluster--page";
   cluster.setAttribute("role", "toolbar");
-  cluster.setAttribute("aria-label", t.pageControls());
+  cluster.setAttribute("aria-label", ariaLabel ?? t.pageControls());
 
   const render = (nextItems: PageToolbarItem[]) => {
     cluster.replaceChildren();

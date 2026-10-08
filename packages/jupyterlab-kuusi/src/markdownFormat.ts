@@ -347,6 +347,48 @@ const clearMetadataOutlineHeading = (cell: IMarkdownCellModel): void => {
   }
 };
 
+/** Apply H1–H6 in a markdown source editor (notebook cell or `.md` file). */
+export const applyHeadingInEditor = (
+  editor: CodeEditor.IEditor,
+  cell: IMarkdownCellModel | null,
+  level: number,
+): void => {
+  const clamped = Math.min(6, Math.max(1, Math.round(level)));
+
+  if (!cell) {
+    applyHeading(editor, clamped);
+    return;
+  }
+
+  if (clamped <= MAX_OUTLINE_HEADING_LEVEL) {
+    applyOutlineHeading(editor, cell, clamped);
+    return;
+  }
+
+  clearMetadataOutlineHeading(cell);
+  applyHeading(editor, clamped);
+  const kuusi =
+    (cell.getMetadata("kuusi") as Record<string, unknown> | undefined) ?? {};
+
+  cell.setMetadata("kuusi", {
+    ...kuusi,
+    outlineLevel: Math.min(MAX_OUTLINE_DEPTH, clamped),
+  });
+};
+
+/** Clear heading markers in source (Body text). */
+export const applyBodyInEditor = (
+  editor: CodeEditor.IEditor,
+  cell: IMarkdownCellModel | null,
+): void => {
+  if (cell) {
+    applyOutlineBody(editor, cell);
+    return;
+  }
+
+  clearHeadingMarkers(editor);
+};
+
 export const applyOutlineHeading = (
   editor: CodeEditor.IEditor,
   cell: IMarkdownCellModel,

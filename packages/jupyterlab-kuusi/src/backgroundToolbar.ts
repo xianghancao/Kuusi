@@ -1,8 +1,13 @@
 import { BACKGROUND_COLOR_SWATCHES } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
 import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
+import { rebuildMenuPreservingState } from "./menuRebuild";
 import { renderPanelWidgets } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
+import {
+  buildStatusPanelWidgets,
+  type StatusDisplayOptions,
+} from "./statusDisplay";
 
 /** Texture / fill pattern — independent of canvas color. */
 export type MindMapBackgroundPattern =
@@ -51,10 +56,7 @@ export type MindMapBackgroundState = {
 
 type BackgroundSection = "pattern" | "color" | "custom" | "status";
 
-export type MindMapBackgroundDisplayOptions = {
-  getShowUpdatedTimestamp: () => boolean;
-  onShowUpdatedTimestampChange: (show: boolean) => void;
-};
+export type MindMapBackgroundDisplayOptions = StatusDisplayOptions;
 
 let lastBackgroundSection: BackgroundSection = "pattern";
 
@@ -284,18 +286,10 @@ export const fillBackgroundMenu = (
       }
 
       if (id === "status" && displayOptions) {
-        renderPanelWidgets(panel, [
-          {
-            kind: "toggle",
-            label: t.showUpdatedTimestamp(),
-            title: t.showUpdatedTimestampTitle(),
-            value: displayOptions.getShowUpdatedTimestamp(),
-            onChange: (value) => {
-              displayOptions.onShowUpdatedTimestampChange(value);
-              onRebuild();
-            },
-          },
-        ]);
+        renderPanelWidgets(
+          panel,
+          buildStatusPanelWidgets(t, displayOptions, onRebuild),
+        );
         return;
       }
 
@@ -349,7 +343,7 @@ export const createBackgroundToolbar = (
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.canvasBackground());
 
-  const rebuildMenu = () => {
+  const buildMenu = () => {
     menu.replaceChildren();
     fillBackgroundMenu(
       menu,
@@ -360,8 +354,11 @@ export const createBackgroundToolbar = (
       displayOptions,
     );
   };
+  const rebuildMenu = (): void => {
+    rebuildMenuPreservingState(menu, buildMenu);
+  };
 
-  rebuildMenu();
+  buildMenu();
 
   trigger.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -369,7 +366,7 @@ export const createBackgroundToolbar = (
     closeKuusiDropdownMenus(root);
 
     if (!isOpen) {
-      rebuildMenu();
+      buildMenu();
       openKuusiDropdownMenu(menu, root);
     }
   });

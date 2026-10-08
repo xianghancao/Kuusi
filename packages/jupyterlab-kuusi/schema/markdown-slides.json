@@ -1,0 +1,602 @@
+{
+  "title": "Kuusi Markdown Slides",
+  "description": "Live slide deck appearance for Markdown Slides view.",
+  "jupyter.lab.internationalization": {
+    "domain": "jupyterlab_kuusi"
+  },
+  "jupyter.lab.setting-icon": "jupyterlab-kuusi:logo",
+  "jupyter.lab.setting-icon-label": "Kuusi Slides",
+  "type": "object",
+  "definitions": {
+    "headerStyle": {
+      "type": "object",
+      "properties": {
+        "font": {
+          "type": "string",
+          "enum": [
+            "notebook",
+            "system-ui",
+            "arial",
+            "helvetica",
+            "segoe-ui",
+            "verdana",
+            "georgia",
+            "times",
+            "palatino",
+            "garamond",
+            "cambria"
+          ]
+        },
+        "fontSize": {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "CSS hex color, or empty to follow the slide text color."
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "theme": {
+      "title": "Slides theme",
+      "description": "Color theme for the slide stage.",
+      "type": "string",
+      "enum": [
+        "classic",
+        "night",
+        "forest",
+        "ocean",
+        "slate",
+        "paper",
+        "metropolis",
+        "madrid",
+        "berlin",
+        "copenhagen",
+        "singapore"
+      ],
+      "default": "classic"
+    },
+    "ratio": {
+      "title": "Slides aspect ratio",
+      "description": "Stage aspect ratio.",
+      "type": "string",
+      "enum": [
+        "16:9",
+        "4:3",
+        "1:1"
+      ],
+      "default": "16:9"
+    },
+    "splitMode": {
+      "title": "Slide split mode",
+      "description": "How Markdown is split into slides: outline (# / ## / ### each start a slide; --- optional), rules only, or headings only.",
+      "type": "string",
+      "enum": [
+        "auto",
+        "rules",
+        "headings"
+      ],
+      "default": "auto"
+    },
+    "padding": {
+      "title": "Slide padding",
+      "description": "Padding inside the slide stage.",
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "loose"
+      ],
+      "default": "normal"
+    },
+    "contentAlign": {
+      "title": "Content alignment",
+      "description": "Vertical alignment of content inside the slide stage.",
+      "type": "string",
+      "enum": [
+        "top",
+        "center",
+        "bottom"
+      ],
+      "default": "top"
+    },
+    "listDensity": {
+      "title": "List density (deprecated)",
+      "description": "Deprecated: use paragraphSpacing. Read once to seed paragraph spacing.",
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "loose"
+      ],
+      "default": "normal"
+    },
+    "font": {
+      "type": "string",
+      "enum": [
+        "notebook",
+        "system-ui",
+        "arial",
+        "helvetica",
+        "segoe-ui",
+        "verdana",
+        "georgia",
+        "times",
+        "palatino",
+        "garamond",
+        "cambria"
+      ],
+      "default": "notebook",
+      "title": "Slides body font",
+      "description": "Font family for slide body text."
+    },
+    "fontSize": {
+      "type": "number",
+      "minimum": 8,
+      "maximum": 16,
+      "default": 14,
+      "title": "Slides body font size",
+      "description": "Body size for slide text."
+    },
+    "lineHeight": {
+      "type": "number",
+      "minimum": 0.9,
+      "maximum": 2.4,
+      "default": 1.45,
+      "title": "Slides leading",
+      "description": "Line-height multiplier for slide body text (0.9–2.4)."
+    },
+    "textColor": {
+      "type": "string",
+      "default": "",
+      "title": "Slides body color",
+      "description": "Body text color. Empty follows the slide foreground."
+    },
+    "letterSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0,
+      "title": "Slides letter spacing",
+      "description": "Tracking for body text, in em (0–0.15)."
+    },
+    "paragraphSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 48,
+      "title": "Slides paragraph spacing",
+      "description": "Vertical space between body paragraphs, in em (0–3)."
+    },
+    "paragraphIndent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 72,
+      "default": 0,
+      "title": "Slides paragraph indent",
+      "description": "First-line indent for body paragraphs, in em (0–3)."
+    },
+    "paragraphAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "justify"
+      ],
+      "default": "left",
+      "title": "Slides paragraph alignment",
+      "description": "Horizontal alignment for body paragraphs."
+    },
+    "linkStyle": {
+      "type": "string",
+      "enum": [
+        "default",
+        "underline",
+        "accent"
+      ],
+      "default": "default",
+      "title": "Slides link style",
+      "description": "How hyperlinks are emphasized on slides."
+    },
+    "headers": {
+      "type": "object",
+      "properties": {
+        "h1": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h2": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h3": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h4": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h5": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h6": {
+          "$ref": "#/definitions/headerStyle"
+        }
+      },
+      "additionalProperties": false,
+      "title": "Slides headers",
+      "description": "Per-level heading styles (H1–H6): font, size, color, and alignment."
+    },
+    "codeStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "muted",
+        "contrast"
+      ],
+      "default": "muted",
+      "title": "Slides code style",
+      "description": "Appearance of inline code and fenced code blocks."
+    },
+    "codeTheme": {
+      "type": "string",
+      "enum": [
+        "notebook",
+        "python",
+        "javascript",
+        "r",
+        "julia",
+        "sql",
+        "rust",
+        "matlab",
+        "shell"
+      ],
+      "default": "notebook",
+      "title": "Slides code palette",
+      "description": "Syntax colors for highlighted code. Notebook follows JupyterLab theme colors."
+    },
+    "codeFont": {
+      "type": "string",
+      "enum": [
+        "mono",
+        "menlo",
+        "consolas",
+        "monaco",
+        "source-code-pro",
+        "fira-code",
+        "jetbrains-mono",
+        "cascadia"
+      ],
+      "default": "mono",
+      "title": "Slides code font",
+      "description": "Monospace face for code on slides."
+    },
+    "codeFontSize": {
+      "type": "string",
+      "enum": [
+        "xxs",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "xxl"
+      ],
+      "default": "sm",
+      "title": "Slides code font size",
+      "description": "Size step for code text."
+    },
+    "accentColor": {
+      "title": "Slide accent color",
+      "description": "Override accent / chrome color. Empty follows the theme.",
+      "type": "string",
+      "default": ""
+    },
+    "headingScale": {
+      "title": "Heading scale (deprecated)",
+      "description": "Deprecated: use headers. Read once to seed H1/H2 sizes.",
+      "type": "string",
+      "enum": [
+        "sm",
+        "md",
+        "lg"
+      ],
+      "default": "md"
+    },
+    "showNavButtons": {
+      "title": "Show navigation buttons",
+      "description": "Show previous / next buttons under the stage.",
+      "type": "boolean",
+      "default": true
+    },
+    "showPageNumber": {
+      "title": "Show page number",
+      "description": "Show the page number on the slide footer (not the under-stage nav).",
+      "type": "boolean",
+      "default": true
+    },
+    "pageNumberStyle": {
+      "title": "Slide page number style",
+      "description": "Format for the on-slide footer page number.",
+      "type": "string",
+      "enum": [
+        "page",
+        "page-of-total",
+        "dash"
+      ],
+      "default": "page-of-total"
+    },
+    "pageNumberAlign": {
+      "title": "Slide page number alignment",
+      "description": "Horizontal placement of the on-slide footer page number.",
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "right"
+    },
+    "pageNumberStart": {
+      "title": "Slide page number start",
+      "description": "Number from the first slide, or skip the first and start on slide 2.",
+      "type": "string",
+      "enum": [
+        "first",
+        "second"
+      ],
+      "default": "first"
+    },
+    "showHeader": {
+      "title": "Show slide header",
+      "description": "Show the Beamer-style header bar on the stage.",
+      "type": "boolean",
+      "default": true
+    },
+    "headerSource": {
+      "title": "Slide header source",
+      "description": "Header text from a running H1/H2/H3, or a custom string.",
+      "type": "string",
+      "enum": [
+        "h1",
+        "h2",
+        "h3",
+        "custom"
+      ],
+      "default": "h1"
+    },
+    "headerCustomText": {
+      "title": "Custom slide header",
+      "description": "Header text when source is Custom. Empty hides the title.",
+      "type": "string",
+      "default": ""
+    },
+    "showFooter": {
+      "title": "Show footer bar",
+      "description": "Show the Beamer-style footer strip on the stage.",
+      "type": "boolean",
+      "default": true
+    },
+    "showProgress": {
+      "title": "Show progress bar",
+      "description": "Show a thin progress bar along the bottom of the stage.",
+      "type": "boolean",
+      "default": false
+    },
+    "stageShadow": {
+      "title": "Stage shadow",
+      "description": "Cast a drop shadow under the slide stage.",
+      "type": "boolean",
+      "default": true
+    },
+    "codeFrame": {
+      "type": "boolean",
+      "title": "Slides code frame",
+      "description": "Draw a border around fenced code blocks.",
+      "default": true
+    },
+    "codeFrameColor": {
+      "type": "string",
+      "default": "",
+      "title": "Slides code frame color",
+      "description": "CSS hex color, or empty to follow the slide foreground."
+    },
+    "codeFrameRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "default": 8,
+      "title": "Slides code corner radius",
+      "description": "Corner radius of code blocks, in px (0–24)."
+    },
+    "codeFrameBorder": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 1,
+      "title": "Slides code frame stroke",
+      "description": "Border width of the code frame, in px (0–8)."
+    },
+    "codeFrameWidth": {
+      "type": "number",
+      "minimum": 40,
+      "maximum": 100,
+      "default": 100,
+      "title": "Slides code block width",
+      "description": "Maximum width of code blocks, as percent of the slide (40–100)."
+    },
+    "tableStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "grid",
+        "lines",
+        "banded",
+        "booktabs",
+        "ruled"
+      ],
+      "default": "booktabs",
+      "title": "Table style",
+      "description": "Word- and LaTeX-inspired table presets (default Booktabs)."
+    },
+    "tableBorderWidth": {
+      "type": "number",
+      "minimum": 0.25,
+      "maximum": 3,
+      "default": 0.75,
+      "title": "Table border width",
+      "description": "Rule / grid stroke thickness in pt (0.25–3)."
+    },
+    "tableHeaderRowBold": {
+      "type": "boolean",
+      "default": true,
+      "title": "Bold table header row",
+      "description": "Make the first row (column headers) bold."
+    },
+    "tableHeaderColumnBold": {
+      "type": "boolean",
+      "default": false,
+      "title": "Bold table first column",
+      "description": "Make the first column (row headers) bold."
+    },
+    "listStyle": {
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "relaxed"
+      ],
+      "default": "normal",
+      "title": "List style",
+      "description": "Vertical density for unordered and ordered lists."
+    },
+    "blockquoteWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Blockquote weight",
+      "description": "Border and emphasis weight for blockquotes."
+    },
+    "hrWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Divider weight",
+      "description": "Stroke weight for horizontal rules."
+    },
+    "imageWidth": {
+      "type": "string",
+      "enum": [
+        "natural",
+        "wide",
+        "full"
+      ],
+      "default": "wide",
+      "title": "Slides image width",
+      "description": "How wide images may grow on a slide."
+    },
+    "imageAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center",
+      "title": "Slides image alignment",
+      "description": "Horizontal placement when images sit on their own line."
+    },
+    "imageWrap": {
+      "type": "string",
+      "enum": [
+        "none",
+        "left",
+        "right"
+      ],
+      "default": "none",
+      "title": "Slides image wrap",
+      "description": "Whether following text wraps beside the image."
+    },
+    "imageBorderStyle": {
+      "type": "string",
+      "enum": [
+        "none",
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "none",
+      "title": "Slides image border style"
+    },
+    "imageBorderWidth": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 1,
+      "title": "Slides image border width",
+      "description": "Image border thickness in px (0–12)."
+    },
+    "imageBorderColor": {
+      "type": "string",
+      "default": "",
+      "title": "Slides image border color",
+      "description": "CSS hex color, or empty to follow the slide foreground."
+    },
+    "imageRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 32,
+      "default": 0,
+      "title": "Slides image corner radius",
+      "description": "Image corner radius in px (0–32)."
+    },
+    "showTextCount": {
+      "type": "boolean",
+      "default": false,
+      "title": "Show character / word count",
+      "description": "Display character and word counts beside zoom."
+    },
+    "showPageCount": {
+      "type": "boolean",
+      "default": false,
+      "title": "Show page count",
+      "description": "Display the slide count beside zoom."
+    },
+    "showFileSize": {
+      "type": "boolean",
+      "default": false,
+      "title": "Show file size",
+      "description": "Display the document file size beside zoom."
+    },
+    "strongColor": {
+      "type": "string",
+      "default": "",
+      "title": "Slides bold color",
+      "description": "Color for bold (**strong**) body text. Empty inherits the body color."
+    }
+  },
+  "additionalProperties": false
+}

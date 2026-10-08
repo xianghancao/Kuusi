@@ -9,19 +9,20 @@ export const createAutoReloadSwitch = (
   className: string,
   title: string,
   onChange: (enabled: boolean) => void,
+  labelText = "Auto reload",
 ): AutoReloadSwitchWidget => {
   const wrap = new Widget();
   wrap.addClass(className);
 
   const label = document.createElement("span");
   label.className = `${className}Label`;
-  label.textContent = "Auto reload";
+  label.textContent = labelText;
 
   const switchBtn = document.createElement("button");
   switchBtn.type = "button";
   switchBtn.className = "jp-KuusiPanelWidget-switch";
   switchBtn.setAttribute("role", "switch");
-  switchBtn.setAttribute("aria-label", "Auto reload");
+  switchBtn.setAttribute("aria-label", labelText);
   switchBtn.title = title;
 
   const thumb = document.createElement("span");

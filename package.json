@@ -1,8 +1,8 @@
 {
   "name": "kuusi-monorepo",
   "private": true,
-  "version": "0.2.6",
-  "description": "Kuusi: Jupyter-native notebook mind map view",
+  "version": "0.2.7",
+  "description": "Kuusi: Jupyter-native Article, Slides, and Mind Map views",
   "workspaces": [
     "packages/*"
   ],

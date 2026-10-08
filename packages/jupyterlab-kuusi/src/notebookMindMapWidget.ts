@@ -2,24 +2,25 @@ import type { ICellModel } from "@jupyterlab/cells";
 import { Cell, CodeCell, MarkdownCell } from "@jupyterlab/cells";
 import type { IEditorMimeTypeService } from "@jupyterlab/codeeditor";
 import {
-  ABCWidgetFactory,
   DocumentRegistry,
-  DocumentWidget,
 } from "@jupyterlab/docregistry";
 import { CommandRegistry } from "@lumino/commands";
 import type { INotebookModel } from "@jupyterlab/notebook";
 import { Notebook, NotebookActions, NotebookPanel } from "@jupyterlab/notebook";
+import { Notification } from "@jupyterlab/apputils";
 import type { CellList } from "@jupyterlab/notebook/lib/celllist";
 import type { IRenderMimeRegistry } from "@jupyterlab/rendermime";
+import {
+  type DocumentContextResolver,
+  refreshMarkdownImageSources,
+  wrapDocumentUrlResolver,
+} from "./markdownResourceUrls";
 import type { IObservableList } from "@jupyterlab/observables";
 import type { Contents } from "@jupyterlab/services";
-import { Message } from "@lumino/messaging";
-import { PanelLayout, Widget } from "@lumino/widgets";
+import { Message, MessageLoop } from "@lumino/messaging";
+import { Widget } from "@lumino/widgets";
 import {
   CommandToolbarButton,
-  collapseIcon,
-  expandIcon,
-  jupyterIcon,
   redoIcon,
   undoIcon,
 } from "@jupyterlab/ui-components";
@@ -33,24 +34,16 @@ import {
   layoutOutlineTree,
   LAYOUT_NODE_WIDTH,
   collectOutlineSelectionRoots,
-  isOutlineDescendant,
-  moveOutlineNodes,
   resolveDropTarget,
-  getDropZoneFromPointer,
-  resolveSiblingGapDrop,
-  findOutlineNode,
   findSpatialNavigationTarget,
   outlineVisualHeadingLevel,
   applyNodeFrameToElement,
-  type DropZone,
   type LayoutPosition,
   type NotebookCell,
   type OutlineNode,
   type LayoutDensity,
   type TreeDirection,
 } from "kuusi-kernel";
-import { applyOutlineToNotebook } from "./notebookSync";
-import { extendQuietNotebookSync } from "./notebookViewSync";
 import {
   snapshotCellModel,
   snapshotNotebookCells,
@@ -64,25 +57,40 @@ import {
   DEFAULT_APPEARANCE,
   parseEdgeWidthPx,
   resolveNodeBorderRadius,
+  resolveNodeForeground,
   type AppearanceSettings,
   type AppearanceToolbarHandle,
 } from "./appearanceToolbar";
-import { createLayoutToolbar } from "./layoutToolbar";
+import { createMindMapLayoutToolbar } from "./mindMapLayoutCapsule";
+import { createKeyedReset } from "./menuFooter";
+import { getMindMapRootNode } from "kuusi-kernel";
+import { applyLevelStyleToNode, levelIdForDepth } from "./levelStyles";
 import {
+  DEFAULT_VIEW_BEHAVIOR,
+  loadSavedView,
+  saveView,
+  type ViewBehaviorSettings,
+} from "./viewBehavior";
+import {
+  branchEdgeColor,
+  computeEdgeInfo,
+  taperedEdgeWidth,
+} from "./edgeStyling";
+import {
+  readCellFrameStyle,
   readCellNodeFill,
   writeCellNodeFill,
 } from "./nodeFrameStyle";
 import {
-  applyFontToScene,
-  createFontToolbar,
+  DEFAULT_BODY_FONT_SIZE_PX,
   DEFAULT_MIND_MAP_FONT,
-  DEFAULT_MIND_MAP_FONT_SIZE,
+  type BodyFontSizePx,
   type MindMapFont,
-  type MindMapFontSize,
 } from "./fontToolbar";
+import { createMindMapTypographyModel } from "./mindMapMenus";
+import { createTypographyCapsuleItems } from "./typographyCapsule";
 import {
   applyBackgroundToViewport,
-  createBackgroundToolbar,
   DEFAULT_MIND_MAP_BACKGROUND,
   DEFAULT_MIND_MAP_BACKGROUND_COLOR,
   DEFAULT_MIND_MAP_BACKGROUND_PATTERN,
@@ -93,18 +101,19 @@ import {
   buildThemeSettingsUpdate,
   createStyleToolbar,
   DEFAULT_MIND_MAP_THEME,
+  getThemePresetSettings,
   type MindMapTheme,
 } from "./styleToolbar";
+import { presetMatches } from "./themeRestore";
 import { formatContentsModified } from "./formatModifiedTime";
 import { attachNotebookAutoReload } from "./notebookAutoReload";
-import { ensureNotebookAutoReloadOnPluginToolbar } from "./notebookAutoReloadPlacement";
 import {
   getNotebookAutoReloadEnabled,
   registerNotebookAutoReloadListener,
 } from "./notebookAutoReloadRegistry";
 import { createMindMapShortcutMenu } from "./keyboardGuide";
 import { createPageToolbar, type PageToolbarItem } from "./pageToolbar";
-import { closeKuusiDropdownMenus, openKuusiDropdownMenu, positionKuusiDropdownMenu } from "./formatToolbar";
+import { closeKuusiDropdownMenus, positionKuusiDropdownMenu } from "./formatToolbar";
 import { modKeyLabel } from "./keyboardGuide";
 import {
   commitActiveMindMapCell,
@@ -114,6 +123,9 @@ import {
   pasteMindMapClipboard,
 } from "./mindMapKeyboard";
 import {
+  applyMindMapTypography,
+  DEFAULT_MIND_MAP_USER_SETTINGS,
+  mindMapTypographyGeometryKey,
   MindMapSettingsManager,
   type MindMapUserSettings,
 } from "./mindMapSettings";
@@ -123,107 +135,49 @@ import {
   writeCellNodeWidth,
 } from "./nodeWidth";
 import { createKuusiTranslator, type KuusiTranslator } from "./kuusiI18n";
-import { mindMapIcon } from "./kuusiIcon";
-import { applyKuusiTabIcon } from "./kuusiTabIcon";
+import {
+  dragHasFiles,
+  imageFilesFromDrop,
+  imageMarkdown,
+  saveImageNextToDocument,
+} from "./mindMapImageDrop";
+import type { RenderViewChromeHandle } from "./renderViewChrome";
+import { mountRenderViewChrome } from "./renderViewChrome";
+import { countTextStats, resolveFileBytes } from "./statusStats";
 import type { ITranslator } from "@jupyterlab/translation";
 
-export const KUUSI_ADD_MINDMAP_COMMAND = "jupyterlab-kuusi:add-mindmap";
-export const KUUSI_OPEN_NOTEBOOK_VIEW_COMMAND =
-  "jupyterlab-kuusi:open-notebook-view";
+import {
+  CELL_DOUBLE_TAP_MS,
+  CELL_EDIT_ENTRY_GUARD_MS,
+  DRAG_THRESHOLD_PX,
+  TOUCH_DRAG_HOLD_MS,
+  KUUSI_ADD_MINDMAP_COMMAND,
+  KUUSI_OPEN_MARKDOWN_EDITOR_COMMAND,
+  TREE_DIRECTION_LABELS,
+  VIEWPORT_PAN_LOCK_AFTER_PAN_MS,
+  VIEWPORT_PAN_LOCK_MS,
+  ZOOM_BASE,
+  ZOOM_PERCENT_STEP,
+  ZOOM_WHEEL_MAX_STEP,
+  ZOOM_WHEEL_SENSITIVITY,
+  appearanceEquals,
+  collectVisibleCellIndices,
+  percentToZoom,
+  zoomToPercent,
+  type MindMapSourceKind,
+} from "./notebookMindMapTypes";
+import {
+  MindMapNodeDragController,
+  type MindMapDragState,
+} from "./mindMapNodeDrag";
+import { MindMapViewportController } from "./mindMapViewportController";
 
-const TREE_DIRECTION_LABELS: Record<TreeDirection, string> = {
-  TB: "↓",
-  BT: "↑",
-  LR: "→",
-  RL: "←",
-};
-
-const DRAG_THRESHOLD_PX = 6;
-/**
- * Ignore open-centering against a still-docking / zero-ish split pane.
- * Lumino often reports a tiny non-zero box before the final size lands.
- */
-const OPEN_CENTER_MIN_VIEWPORT_PX = 80;
-/**
- * After open / notebook sync, keep re-centering through dock resize and
- * markdown reflow so an early pan is not left stale.
- */
-const CENTER_FOLLOW_MS = 4000;
-/** Require viewport size unchanged this long before ending open-center follow. */
-const CENTER_VIEWPORT_STABLE_MS = 280;
-/** After drag / manual pan, block auto-recentering this long. */
-const VIEWPORT_PAN_LOCK_MS = 1800;
-const VIEWPORT_PAN_LOCK_AFTER_PAN_MS = 900;
-/** Node must be at least this large before we treat a center attempt as real. */
-const OPEN_CENTER_MIN_NODE_PX = 8;
-/** Max interval between two taps on the same card to enter edit mode. */
-const CELL_DOUBLE_TAP_MS = 450;
-/** Ignore transient command-mode flips while the editor is mounting. */
-const CELL_EDIT_ENTRY_GUARD_MS = 750;
-/** Display 100% equals this internal CSS scale (former 50%). */
-const ZOOM_BASE = 0.5;
-const MIN_ZOOM_PERCENT = 20;
-const MAX_ZOOM_PERCENT = 200;
-const ZOOM_PERCENT_STEP = 10;
-const ZOOM_TICK_STEP = 20;
-/** Visual length of the vertical zoom track (px); keep in sync with CSS. */
-const ZOOM_TRACK_PX = 186;
-/** Zoom thumb diameter (px); keep in sync with CSS. */
-const ZOOM_THUMB_PX = 12;
-const MIN_ZOOM = (MIN_ZOOM_PERCENT / 100) * ZOOM_BASE;
-const MAX_ZOOM = (MAX_ZOOM_PERCENT / 100) * ZOOM_BASE;
-/** Pinch / ctrl+wheel zoom intensity (lower = slower). Tuned for trackpad deltas. */
-const ZOOM_WHEEL_SENSITIVITY = 0.0048;
-/** Cap per-event zoom so a large delta cannot jump too far. */
-const ZOOM_WHEEL_MAX_STEP = 1.18;
-
-const appearanceEquals = (
-  left: AppearanceSettings,
-  right: AppearanceSettings,
-): boolean =>
-  left.edgeStyle === right.edgeStyle &&
-  left.edgeRoute === right.edgeRoute &&
-  left.edgeArrowDirection === right.edgeArrowDirection &&
-  left.edgeArrowStyle === right.edgeArrowStyle &&
-  left.edgeWidth === right.edgeWidth &&
-  left.edgeColor === right.edgeColor &&
-  left.nodeFillColor === right.nodeFillColor &&
-  left.nodeBorderStyle === right.nodeBorderStyle &&
-  left.nodeBorderWidth === right.nodeBorderWidth &&
-  left.nodeBorderColor === right.nodeBorderColor &&
-  left.nodeBorderCorner === right.nodeBorderCorner &&
-  left.nodeBorderRadius === right.nodeBorderRadius &&
-  left.selectionGlowColor === right.selectionGlowColor &&
-  left.selectionGlowWidth === right.selectionGlowWidth &&
-  left.hoverGlowColor === right.hoverGlowColor &&
-  left.hoverGlowWidth === right.hoverGlowWidth;
-
-const collectVisibleCellIndices = (
-  outline: OutlineNode,
-  visibleIds: ReadonlySet<string>,
-  collapsedIds: ReadonlySet<string>,
-): Set<number> => {
-  const indices = new Set<number>();
-
-  const visit = (node: OutlineNode) => {
-    if (!visibleIds.has(node.id)) {
-      return;
-    }
-
-    if (node.cellIndex !== null) {
-      indices.add(node.cellIndex);
-    }
-
-    if (collapsedIds.has(node.id)) {
-      return;
-    }
-
-    node.children.forEach(visit);
-  };
-
-  visit(outline);
-  return indices;
-};
+export {
+  KUUSI_ADD_MINDMAP_COMMAND,
+  KUUSI_OPEN_MARKDOWN_EDITOR_COMMAND,
+  KUUSI_OPEN_NOTEBOOK_VIEW_COMMAND,
+  type MindMapSourceKind,
+} from "./notebookMindMapTypes";
 
 export class NotebookMindMapWidget extends Widget {
   private _notebook: Notebook;
@@ -232,9 +186,8 @@ export class NotebookMindMapWidget extends Widget {
   private _scene: HTMLElement;
   private _edgesSvg: SVGSVGElement | null = null;
   private _cellNodes = new Map<string, HTMLElement>();
-  private _directionTrigger: HTMLButtonElement | null = null;
-  private _directionMenu: HTMLElement | null = null;
-  private _directionMenuItems = new Map<TreeDirection, HTMLButtonElement>();
+
+  private _imageDropNode: HTMLElement | null = null;
   private _treeDirection: TreeDirection = "LR";
   private _layoutDensity: LayoutDensity = "normal";
   private _siblingGap = 22;
@@ -246,15 +199,7 @@ export class NotebookMindMapWidget extends Widget {
   private _resolvedAdaptiveWidths = new Map<string, number>();
   private _collapsedNodes = new Set<string>();
   private _applyingNotebookChange = false;
-  private _dragState: {
-    nodeId: string;
-    /** Roots moved together (Cmd/Ctrl multi-select). */
-    nodeIds: string[];
-    pointerId: number;
-    startX: number;
-    startY: number;
-    active: boolean;
-  } | null = null;
+  private _drag!: MindMapNodeDragController;
   private _resizeState: {
     nodeId: string;
     pointerId: number;
@@ -263,15 +208,6 @@ export class NotebookMindMapWidget extends Widget {
     currentWidth: number;
   } | null = null;
   private _resizeLayoutRaf: number | null = null;
-  private _dragGhost: HTMLElement | null = null;
-  private _dropTargetNodeId: string | null = null;
-  private _dropZone: DropZone | null = null;
-  /** Card geometry at drag start — used for iOS-style sibling gap preview. */
-  private _dragBasePositions = new Map<
-    string,
-    { left: number; top: number; width: number; height: number }
-  >();
-  private _dragSlotPreviewKey: string | null = null;
   /** Used when pointer capture steals the target from scene dblclick. */
   private _lastCellTap: { nodeId: string; at: number } | null = null;
   /** Ignore the synthetic click that follows a completed node drag. */
@@ -284,16 +220,26 @@ export class NotebookMindMapWidget extends Widget {
   /**
    * Keep pan fixed across the post-drop relayout (and notebook sync that would
    * otherwise scroll the dragged node into view).
+   * Held pan / open-center follow / pan lock live on {@link _viewportCtrl}.
    */
-  private _heldViewportPan: { x: number; y: number } | null = null;
-  private _heldViewportPanClearTimer: number | null = null;
-  /** Block ensure-visible / open-center while user just panned or dropped a drag. */
-  private _viewportPanLockUntil = 0;
-  private _centerScheduleGeneration = 0;
+  private _viewportCtrl!: MindMapViewportController;
   private _dragWindowListening = false;
+  private _touchPoints = new Map<number, { x: number; y: number }>();
+  private _pinch: {
+    distance: number;
+    zoom: number;
+    worldX: number;
+    worldY: number;
+  } | null = null;
   private _panX = 0;
   private _panY = 0;
   private _zoom = ZOOM_BASE;
+  private _viewBehavior: ViewBehaviorSettings = { ...DEFAULT_VIEW_BEHAVIOR };
+  /** The first open-center request decides the initial camera (see openView). */
+  private _openViewApplied = false;
+  private _pendingFit = false;
+  private _viewSavingEnabled = false;
+  private _viewSaveTimer: number | null = null;
   private _isPanning = false;
   private _panPointerId: number | null = null;
   private _panStart = { x: 0, y: 0, panX: 0, panY: 0 };
@@ -302,36 +248,14 @@ export class NotebookMindMapWidget extends Widget {
   private _getSourceActiveCellIndex: (() => number) | null = null;
   private _notebookAttached = false;
   private _contentChangeTimer: number | null = null;
-  private _statusNodeEl: HTMLElement;
   private _statusModifiedEl: HTMLElement;
   private _showUpdatedTimestamp = true;
-  private _zoomLabel: HTMLElement | null = null;
-  private _zoomTrigger: HTMLButtonElement | null = null;
-  private _zoomTrack: HTMLElement | null = null;
-  private _zoomThumb: HTMLElement | null = null;
-  private _zoomSliderWrap: HTMLElement | null = null;
-  private _labFullscreenButton: HTMLButtonElement | null = null;
-  private _kuusiFullscreenButton: HTMLButtonElement | null = null;
-  /** Host that owns the document widget during Kuusi-window fullscreen. */
-  private _fullscreenShell: Widget | null = null;
-  private _fullscreenRestoreParent: Widget | null = null;
-  private _fullscreenRestoreIndex = -1;
-  /** True while the Kuusi document lives in the body-level fullscreen shell. */
-  private _kuusiFullscreenSession = false;
-  /** Guards fullscreenchange while the browser is entering Kuusi fullscreen. */
-  private _kuusiFullscreenEntering = false;
-  /** Whether the shell currently owns the browser Fullscreen API. */
-  private _kuusiNativeFullscreenActive = false;
-  private _fullscreenDocInlineStyles: {
-    top: string;
-    left: string;
-    right: string;
-    bottom: string;
-    width: string;
-    height: string;
-    position: string;
-    zIndex: string;
-  } | null = null;
+  private _showNodeCount = true;
+  private _showTextCount = false;
+  private _showPageCount = false;
+  private _showFileSize = false;
+  private _renderChrome: RenderViewChromeHandle | null = null;
+  /** Cache the owning document tab widget (used for Kuusi-window fullscreen). */
   private _documentWidget: Widget | null = null;
   private _edgeMarkerAttrs: { markerStart?: string; markerEnd?: string } | null =
     null;
@@ -349,10 +273,13 @@ export class NotebookMindMapWidget extends Widget {
   private _mindMapBackgroundColor = DEFAULT_MIND_MAP_BACKGROUND_COLOR;
   private _mindMapEditFont: MindMapFont = DEFAULT_MIND_MAP_FONT;
   private _mindMapDisplayFont: MindMapFont = DEFAULT_MIND_MAP_FONT;
-  private _mindMapEditFontSize: MindMapFontSize = DEFAULT_MIND_MAP_FONT_SIZE;
-  private _mindMapDisplayFontSize: MindMapFontSize = DEFAULT_MIND_MAP_FONT_SIZE;
+  private _mindMapEditFontSize: BodyFontSizePx = DEFAULT_BODY_FONT_SIZE_PX;
+  private _mindMapDisplayFontSize: BodyFontSizePx = DEFAULT_BODY_FONT_SIZE_PX;
   private _unifyEditDisplayFont = false;
   private _matchNotebookFont = false;
+  private _typographyGeometryKey = mindMapTypographyGeometryKey(
+    DEFAULT_MIND_MAP_USER_SETTINGS,
+  );
   private _layoutGeneration = 0;
   private _layoutFrame: number | null = null;
   /** Avoid re-seeding if an empty notebook somehow still has no H1 after mutate. */
@@ -384,19 +311,6 @@ export class NotebookMindMapWidget extends Widget {
   /** After insert: pan only along this axis to reveal the new node. */
   private _pendingFocusRevealAxis: "x" | "y" | "xy" = "xy";
   /**
-   * One-shot: center the active cell after open/startup layout settles.
-   * Cleared once centering succeeds; not used for later selection sync.
-   */
-  private _pendingOpenCenterIndex: number | null = null;
-  private _openCentered = false;
-  /** Wall-clock deadline while we keep correcting pan onto `_pendingOpenCenterIndex`. */
-  private _centerFollowUntil = 0;
-  private _openCenterSettleTimer: number | null = null;
-  private _viewportSizeObserver: ResizeObserver | null = null;
-  /** Last viewport size seen while open-centering (stability gate). */
-  private _centerFollowViewportKey = "";
-  private _centerFollowViewportStableSince = 0;
-  /**
    * Cell index that should enter edit after insert. Set synchronously so layout
    * measurement does not force-render markdown before mode flips to edit.
    */
@@ -417,6 +331,83 @@ export class NotebookMindMapWidget extends Widget {
   private _autoReloadHandle: ReturnType<typeof attachNotebookAutoReload> | null =
     null;
   private _lastModifiedLabel = "";
+  private _sourceKind: MindMapSourceKind;
+  private _documentUrlResolver: DocumentContextResolver;
+
+
+  private _createDragHost(): import("./mindMapNodeDrag").MindMapDragHost {
+    const self = this;
+    return {
+      get cellNodes() {
+        return self._cellNodes;
+      },
+      get scene() {
+        return self._scene;
+      },
+      get viewport() {
+        return self._viewport;
+      },
+      get zoom() {
+        return self._zoom;
+      },
+      get panX() {
+        return self._panX;
+      },
+      get panY() {
+        return self._panY;
+      },
+      get treeDirection() {
+        return self._treeDirection;
+      },
+      get siblingGap() {
+        return self._siblingGap;
+      },
+      get childGap() {
+        return self._childGap;
+      },
+      get notebook() {
+        return self._notebook;
+      },
+      get context() {
+        return self._context;
+      },
+      get applyingNotebookChange() {
+        return self._applyingNotebookChange;
+      },
+      get pendingFocusCellIndex() {
+        return self._pendingFocusCellIndex;
+      },
+      get pendingFocusCenter() {
+        return self._pendingFocusCenter;
+      },
+      get viewportAnchor() {
+        return self._viewportAnchor;
+      },
+      getOutlineSnapshot: () => self._getOutlineSnapshot(),
+      getSelectedNodeIds: () => self._getSelectedNodeIds(),
+      getCellIndexFromNodeId: (id) => self._getCellIndexFromNodeId(id),
+      applyLayout: () => self._applyLayout(),
+      invalidateOutlineCache: () => self._invalidateOutlineCache(),
+      refreshEdgesFromCache: () => self._refreshEdgesFromCache(),
+      selectCellsByModelIds: (ids, active) =>
+        self._selectCellsByModelIds(ids, active),
+      cancelCenterFollow: () => self._viewportCtrl.cancelCenterFollow(),
+      holdViewportPan: () => self._viewportCtrl.holdPan(),
+      lockViewportPan: (ms) => self._viewportCtrl.lockPan(ms),
+      setApplyingNotebookChange: (v) => {
+        self._applyingNotebookChange = v;
+      },
+      setPendingFocusCellIndex: (v) => {
+        self._pendingFocusCellIndex = v;
+      },
+      setPendingFocusCenter: (v) => {
+        self._pendingFocusCenter = v;
+      },
+      setViewportAnchor: (v) => {
+        self._viewportAnchor = v;
+      },
+    };
+  }
 
   constructor(
     private _context: DocumentRegistry.IContext<INotebookModel>,
@@ -427,8 +418,11 @@ export class NotebookMindMapWidget extends Widget {
     settingsManager: MindMapSettingsManager,
     translator: ITranslator,
     private _contents: Contents.IManager,
+    sourceKind: MindMapSourceKind = "notebook",
   ) {
     super();
+    this._drag = new MindMapNodeDragController(this._createDragHost());
+    this._sourceKind = sourceKind;
     this._settingsManager = settingsManager;
     this._t = createKuusiTranslator();
     this.addClass("jp-KuusiNotebookMindMap");
@@ -446,12 +440,15 @@ export class NotebookMindMapWidget extends Widget {
       id: KUUSI_ADD_MINDMAP_COMMAND,
     });
 
-    this._openNotebookButton = new CommandToolbarButton({
-      commands: this._commands,
-      id: KUUSI_OPEN_NOTEBOOK_VIEW_COMMAND,
-      args: { path: this._context.path },
-    });
-    this._openNotebookButton.addClass("jp-KuusiNotebookOpenButton");
+    // ipynb views: no "Notebook" switch button. Markdown keeps "Editor".
+    if (this._sourceKind === "markdown") {
+      this._openNotebookButton = new CommandToolbarButton({
+        commands: this._commands,
+        id: KUUSI_OPEN_MARKDOWN_EDITOR_COMMAND,
+        args: { path: this._context.path },
+      });
+      this._openNotebookButton.addClass("jp-KuusiNotebookOpenButton");
+    }
 
     this._appearanceToolbar = createAppearanceToolbar(
       this.node,
@@ -483,6 +480,7 @@ export class NotebookMindMapWidget extends Widget {
       this._t,
     );
 
+    const typography = createMindMapTypographyModel(this._settingsManager);
     const pageItems: PageToolbarItem[] = [
       {
         id: "brand",
@@ -490,12 +488,16 @@ export class NotebookMindMapWidget extends Widget {
         order: 10,
         create: () => createMindMapShortcutMenu(this.node, this._t),
       },
-      {
-        id: "open-notebook",
-        group: "brand",
-        order: 12,
-        create: () => this._openNotebookButton!.node,
-      },
+      ...(this._openNotebookButton
+        ? [
+            {
+              id: "open-notebook",
+              group: "brand" as const,
+              order: 12,
+              create: () => this._openNotebookButton!.node,
+            },
+          ]
+        : []),
       {
         id: "add-node",
         group: "structure",
@@ -509,33 +511,107 @@ export class NotebookMindMapWidget extends Widget {
         create: () => this._createHistoryToolbar(),
       },
       {
-        id: "tree",
-        group: "structure",
-        order: 20,
-        create: () => this._createDirectionToolbar(),
-      },
-      {
         id: "layout",
         group: "structure",
         order: 30,
         create: () =>
-          createLayoutToolbar(
+          createMindMapLayoutToolbar(
             this.node,
-            () => ({
-              density: this._layoutDensity,
-              siblingGap: this._siblingGap,
-              childGap: this._childGap,
-            }),
-            (density) => {
-              const gaps = getLayoutGapsForDensity(density);
-              void this._settingsManager.update({
-                layoutDensity: density,
-                siblingGap: gaps.siblingGap,
-                childGap: gaps.childGap,
-              });
-            },
-            (gaps) => {
-              void this._settingsManager.update(gaps);
+            {
+              viewBehavior: {
+                get: () => this._viewBehavior,
+                update: (partial) => {
+                  void this._settingsManager.update(partial);
+                },
+              },
+              customization: (() => {
+                const layoutReset = createKeyedReset<MindMapUserSettings>({
+                  keys: [
+                    "treeDirection",
+                    "layoutDensity",
+                    "siblingGap",
+                    "childGap",
+                    "background",
+                    "backgroundPattern",
+                    "backgroundColor",
+                  ],
+                  getSettings: () => this._settingsManager.settings,
+                  baseline: (settings) => ({
+                    ...DEFAULT_MIND_MAP_USER_SETTINGS,
+                    ...getThemePresetSettings(settings.theme),
+                  }),
+                  update: (partial) => this._settingsManager.update(partial),
+                });
+
+                return {
+                  ...layoutReset,
+                  connect: (listener: () => void) =>
+                    this._settingsManager.changed.connect(listener),
+                };
+              })(),
+              getTreeDirection: () => this._treeDirection,
+              onTreeDirectionChange: (treeDirection) => {
+                void this._settingsManager.update({ treeDirection });
+              },
+              directionOptions: (
+                Object.keys(TREE_DIRECTION_LABELS) as TreeDirection[]
+              ).map((value) => ({
+                value,
+                label: TREE_DIRECTION_LABELS[value],
+                title: this._getTreeDirectionTitle(value),
+              })),
+              getLayoutState: () => ({
+                density: this._layoutDensity,
+                siblingGap: this._siblingGap,
+                childGap: this._childGap,
+              }),
+              onDensityChange: (density) => {
+                const gaps = getLayoutGapsForDensity(density);
+                void this._settingsManager.update({
+                  layoutDensity: density,
+                  siblingGap: gaps.siblingGap,
+                  childGap: gaps.childGap,
+                });
+              },
+              onGapChange: (gaps) => {
+                void this._settingsManager.update(gaps);
+              },
+              getBackgroundState: () => ({
+                background: this._mindMapBackground,
+                backgroundPattern: this._mindMapBackgroundPattern,
+                backgroundColor: this._mindMapBackgroundColor,
+              }),
+              onBackgroundChange: (state) => {
+                void this._settingsManager.update({
+                  background: state.background,
+                  backgroundPattern: state.backgroundPattern,
+                  backgroundColor: state.backgroundColor,
+                });
+              },
+              backgroundDisplay: {
+                getShowUpdatedTimestamp: () => this._showUpdatedTimestamp,
+                onShowUpdatedTimestampChange: (show) => {
+                  void this._settingsManager.update({
+                    showUpdatedTimestamp: show,
+                  });
+                },
+                getShowNodeCount: () => this._showNodeCount,
+                onShowNodeCountChange: (show) => {
+                  void this._settingsManager.update({ showNodeCount: show });
+                },
+                getShowTextCount: () => this._showTextCount,
+                onShowTextCountChange: (show) => {
+                  void this._settingsManager.update({ showTextCount: show });
+                },
+                getShowPageCount: () => this._showPageCount,
+                onShowPageCountChange: (show) => {
+                  void this._settingsManager.update({ showPageCount: show });
+                },
+                getShowFileSize: () => this._showFileSize,
+                onShowFileSizeChange: (show) => {
+                  void this._settingsManager.update({ showFileSize: show });
+                },
+              },
             },
             this._t,
           ),
@@ -554,127 +630,30 @@ export class NotebookMindMapWidget extends Widget {
               );
             },
             this._t,
+            {
+              isCustomized: () =>
+                !presetMatches(
+                  this._settingsManager.settings,
+                  getThemePresetSettings(this._mindMapTheme),
+                ),
+              preview: (theme) =>
+                this._settingsManager.setPreview(
+                  theme ? buildThemeSettingsUpdate(theme) : null,
+                ),
+              connect: (listener) =>
+                this._settingsManager.changed.connect(listener),
+            },
           ),
       },
-      {
-        id: "font",
-        group: "appearance",
-        order: 20,
-        create: () =>
-          createFontToolbar(
-            this.node,
-            () => this._mindMapEditFont,
-            (editFont) => {
-              const patch: Partial<MindMapUserSettings> = {
-                editFont,
-                matchNotebookFont:
-                  editFont === "notebook" ? this._matchNotebookFont : false,
-              };
-
-              if (this._unifyEditDisplayFont) {
-                patch.displayFont = editFont;
-              }
-
-              void this._settingsManager.update(patch);
-            },
-            () => this._mindMapEditFontSize,
-            (editFontSize) => {
-              const patch: Partial<MindMapUserSettings> = { editFontSize };
-
-              if (this._unifyEditDisplayFont) {
-                patch.displayFontSize = editFontSize;
-              }
-
-              void this._settingsManager.update(patch);
-            },
-            () => this._mindMapDisplayFont,
-            (displayFont) => {
-              const patch: Partial<MindMapUserSettings> = {
-                displayFont,
-                matchNotebookFont:
-                  displayFont === "notebook" ? this._matchNotebookFont : false,
-              };
-
-              if (this._unifyEditDisplayFont) {
-                patch.editFont = displayFont;
-              }
-
-              void this._settingsManager.update(patch);
-            },
-            () => this._mindMapDisplayFontSize,
-            (displayFontSize) => {
-              const patch: Partial<MindMapUserSettings> = { displayFontSize };
-
-              if (this._unifyEditDisplayFont) {
-                patch.editFontSize = displayFontSize;
-              }
-
-              void this._settingsManager.update(patch);
-            },
-            () => this._unifyEditDisplayFont,
-            (unifyEditDisplayFont) => {
-              const patch: Partial<MindMapUserSettings> = {
-                unifyEditDisplayFont,
-              };
-
-              if (unifyEditDisplayFont) {
-                patch.displayFont = this._mindMapEditFont;
-                patch.displayFontSize = this._mindMapEditFontSize;
-              }
-
-              void this._settingsManager.update(patch);
-            },
-            () => this._matchNotebookFont,
-            (matchNotebookFont) => {
-              const patch: Partial<MindMapUserSettings> = {
-                matchNotebookFont,
-              };
-
-              if (matchNotebookFont) {
-                patch.editFont = "notebook";
-                patch.displayFont = "notebook";
-              }
-
-              void this._settingsManager.update(patch);
-            },
-            this._t,
-          ),
-      },
+      ...createTypographyCapsuleItems(this.node, typography, this._t, {
+        orderStart: 20,
+        orderStep: 2,
+      }),
       {
         id: "line-node",
         group: "appearance",
         order: 30,
         create: () => this._appearanceToolbar!.node,
-      },
-      {
-        id: "background",
-        group: "appearance",
-        order: 40,
-        create: () =>
-          createBackgroundToolbar(
-            this.node,
-            () => ({
-              background: this._mindMapBackground,
-              backgroundPattern: this._mindMapBackgroundPattern,
-              backgroundColor: this._mindMapBackgroundColor,
-            }),
-            (state) => {
-              void this._settingsManager.update({
-                background: state.background,
-                backgroundPattern: state.backgroundPattern,
-                backgroundColor: state.backgroundColor,
-              });
-            },
-            this._t,
-            {
-              getShowUpdatedTimestamp: () => this._showUpdatedTimestamp,
-              onShowUpdatedTimestampChange: (show) => {
-                void this._settingsManager.update({
-                  showUpdatedTimestamp: show,
-                });
-              },
-            },
-          ),
       },
     ];
 
@@ -696,13 +675,49 @@ export class NotebookMindMapWidget extends Widget {
     header.appendChild(headerRight);
     this._headerEl = header;
     this.node.appendChild(header);
-    this._updateDirectionButtons();
     this._bindHeaderLayout();
 
     this._viewport = document.createElement("div");
     this._viewport.className = "jp-KuusiNotebookMindMap-viewport";
     this._viewport.tabIndex = -1;
-    this._ensureViewportSizeObserver();
+    {
+      const widget = this;
+      this._viewportCtrl = new MindMapViewportController({
+        get isDisposed() {
+          return widget.isDisposed;
+        },
+        get viewport() {
+          return widget._viewport;
+        },
+        get root() {
+          return widget.node;
+        },
+        get cellNodes() {
+          return widget._cellNodes;
+        },
+        get panX() {
+          return widget._panX;
+        },
+        get panY() {
+          return widget._panY;
+        },
+        get zoom() {
+          return widget._zoom;
+        },
+        setPan: (x, y) => {
+          widget._panX = x;
+          widget._panY = y;
+        },
+        applyTransform: () => widget._applyTransform(),
+        get pendingFocusCellIndex() {
+          return widget._pendingFocusCellIndex;
+        },
+        get pendingFocusCenter() {
+          return widget._pendingFocusCenter;
+        },
+      });
+    }
+    this._viewportCtrl.ensureSizeObserver();
 
     this._scene = document.createElement("div");
     this._scene.className =
@@ -717,16 +732,38 @@ export class NotebookMindMapWidget extends Widget {
     this._statusModifiedEl.setAttribute("aria-live", "polite");
     this._viewport.appendChild(this._statusModifiedEl);
 
-    const statusBar = document.createElement("div");
-    statusBar.className = "jp-KuusiNotebookMindMap-status";
-    this._statusNodeEl = document.createElement("span");
-    this._statusNodeEl.className = "jp-KuusiNotebookMindMap-status-node";
-    statusBar.append(
-      this._statusNodeEl,
-      this._createZoomControl(),
-      this._createFullscreenControl(),
-    );
-    this._viewport.appendChild(statusBar);
+    this._renderChrome = mountRenderViewChrome({
+      host: this._viewport,
+      owner: this,
+      t: this._t,
+      showNodeCount: this._showNodeCount,
+      showTextCount: this._showTextCount,
+      showPageCount: this._showPageCount,
+      showFileSize: this._showFileSize,
+      documentClassName: "jp-KuusiNotebookMindMapDocument",
+      getZoomPercent: () => this._zoomToPercent(this._zoom),
+      setZoomPercent: (percent) => {
+        this._setZoomPercent(percent);
+      },
+      minZoom: this._viewBehavior.zoomMinPercent,
+      maxZoom: this._viewBehavior.zoomMaxPercent,
+      onFit: () => {
+        this.fitToView();
+      },
+      onCloseMenus: () => {
+            closeKuusiDropdownMenus(this.node);
+      },
+      onLayout: () => {
+        this._applyLayout();
+        const index = this._notebook.activeCellIndex;
+
+        if (index >= 0) {
+          this._ensureCellVisibleInViewport(index);
+        }
+      },
+      getDocumentWidget: () =>
+        this._documentWidget ?? this._findDocumentWidget(),
+    });
 
     this._lastModifiedLabel =
       this._context.contentsModel?.last_modified ?? this._lastModifiedLabel;
@@ -734,8 +771,15 @@ export class NotebookMindMapWidget extends Widget {
 
     this.node.appendChild(this._viewport);
 
+    this._documentUrlResolver = wrapDocumentUrlResolver(
+      this._context.urlResolver as DocumentContextResolver,
+      this._contents,
+    );
+
     this._notebook = this._contentFactory.createNotebook({
-      rendermime: this._rendermime.clone({ resolver: this._context.urlResolver }),
+      rendermime: this._rendermime.clone({
+        resolver: this._documentUrlResolver,
+      }),
       contentFactory: this._contentFactory,
       mimeTypeService: this._mimeTypeService,
       notebookConfig: {
@@ -763,8 +807,6 @@ export class NotebookMindMapWidget extends Widget {
     this._bindCellInteractionEvents();
     this._bindKeyboardEvents();
     document.addEventListener("click", this._onDocumentClick);
-    document.addEventListener("fullscreenchange", this._onFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", this._onFullscreenChange);
 
     this._context.model.cells.changed.connect(this._onCellsChanged, this);
     this._context.model.contentChanged.connect(this._onModelContentChanged, this);
@@ -776,34 +818,40 @@ export class NotebookMindMapWidget extends Widget {
 
     const notebookPath = this._context.path;
 
-    this._autoReloadHandle = attachNotebookAutoReload(
-      this._context,
-      this._contents,
-      {
-        getEnabled: () => getNotebookAutoReloadEnabled(notebookPath),
-        onLastModified: (lastModified) => {
-          this._lastModifiedLabel = lastModified;
-          this._updateStatusBar();
+    if (this._sourceKind !== "markdown") {
+      this._autoReloadHandle = attachNotebookAutoReload(
+        this._context,
+        this._contents,
+        {
+          getEnabled: () => getNotebookAutoReloadEnabled(notebookPath),
+          onLastModified: (lastModified) => {
+            this._lastModifiedLabel = lastModified;
+            this._updateStatusBar();
+          },
+          onReverted: () => {
+            this._invalidateOutlineCache();
+            this._scheduleLayout();
+          },
         },
-        onReverted: () => {
-          this._invalidateOutlineCache();
-          this._scheduleLayout();
-        },
-      },
-    );
+      );
 
-    this._autoReloadListenerDispose = registerNotebookAutoReloadListener(
-      notebookPath,
-      this._autoReloadHandle,
-    );
+      this._autoReloadListenerDispose = registerNotebookAutoReloadListener(
+        notebookPath,
+        this._autoReloadHandle,
+      );
+    }
   }
 
   private _applyUserSettings(settings: MindMapUserSettings): void {
     const displayFontChanged =
       settings.displayFont !== this._mindMapDisplayFont ||
       settings.displayFontSize !== this._mindMapDisplayFontSize;
+    const nextTypographyGeometry = mindMapTypographyGeometryKey(settings);
+    const typographyGeometryChanged =
+      nextTypographyGeometry !== this._typographyGeometryKey;
     const fontChanged =
       displayFontChanged ||
+      typographyGeometryChanged ||
       settings.editFont !== this._mindMapEditFont ||
       settings.editFontSize !== this._mindMapEditFontSize ||
       settings.unifyEditDisplayFont !== this._unifyEditDisplayFont ||
@@ -821,6 +869,13 @@ export class NotebookMindMapWidget extends Widget {
       settings.appearance,
       this._appearanceSettings,
     );
+    const levelStylesChanged =
+      JSON.stringify(settings.appearance.levelStyles) !==
+      JSON.stringify(this._appearanceSettings.levelStyles);
+    // Card insets change node sizes, so they need a remeasure like width does.
+    const paddingChanged =
+      settings.appearance.nodePaddingX !== this._appearanceSettings.nodePaddingX ||
+      settings.appearance.nodePaddingY !== this._appearanceSettings.nodePaddingY;
 
     this._mindMapTheme = settings.theme;
     this._mindMapEditFont = settings.editFont;
@@ -829,6 +884,7 @@ export class NotebookMindMapWidget extends Widget {
     this._mindMapDisplayFontSize = settings.displayFontSize;
     this._unifyEditDisplayFont = settings.unifyEditDisplayFont;
     this._matchNotebookFont = settings.matchNotebookFont;
+    this._typographyGeometryKey = nextTypographyGeometry;
     this._layoutDensity = settings.layoutDensity;
     this._siblingGap = settings.siblingGap;
     this._childGap = settings.childGap;
@@ -840,18 +896,29 @@ export class NotebookMindMapWidget extends Widget {
     this._mindMapBackgroundPattern = settings.backgroundPattern;
     this._mindMapBackgroundColor = settings.backgroundColor;
     this._showUpdatedTimestamp = settings.showUpdatedTimestamp;
+    this._showNodeCount = settings.showNodeCount;
+    this._showTextCount = settings.showTextCount;
+    this._showPageCount = settings.showPageCount;
+    this._showFileSize = settings.showFileSize;
+    this._renderChrome?.setStatVisibility({
+      nodes: this._showNodeCount,
+      text: this._showTextCount,
+      pages: this._showPageCount,
+      fileSize: this._showFileSize,
+    });
     this._appearanceSettings = { ...settings.appearance };
-    this._updateDirectionButtons();
+    this._applyViewBehavior(settings);
     this._updateModifiedTimestamp();
+    this._updateStatusBar();
     this._applyScenePresentation();
     this._applyBackground();
     this._syncSceneEditMode();
 
     const geometryChanged =
-      fontChanged || widthChanged || layoutGeometryChanged;
+      fontChanged || widthChanged || paddingChanged || layoutGeometryChanged;
 
-    if (fontChanged || widthChanged) {
-      // Font/width changes alter node sizes; drop caches so layout remeasures.
+    if (fontChanged || widthChanged || paddingChanged) {
+      // Font/width/padding changes alter node sizes; drop caches so layout remeasures.
       this._dimensionCacheByModelId.clear();
       this._lastLayoutDimensions.clear();
       this._resolvedAdaptiveWidths.clear();
@@ -870,7 +937,7 @@ export class NotebookMindMapWidget extends Widget {
     }
 
     if (geometryChanged) {
-      if (fontChanged || widthChanged) {
+      if (fontChanged || widthChanged || paddingChanged) {
         void this._relayoutAfterPresentationChange();
         return;
       }
@@ -881,7 +948,74 @@ export class NotebookMindMapWidget extends Widget {
 
     // Theme / background / line style: CSS (+ edge paths) only — no remeasure.
     if (appearanceChanged) {
+      if (levelStylesChanged) {
+        // Border width / radius per level can change card sizes.
+        this._dimensionCacheByModelId.clear();
+        this._lastLayoutDimensions.clear();
+        this._applyLayout();
+        return;
+      }
+
       this._refreshEdgesFromCache();
+    }
+  }
+
+  private _applyViewBehavior(settings: MindMapUserSettings): void {
+    const previous = this._viewBehavior;
+    this._viewBehavior = {
+      zoomMinPercent: settings.zoomMinPercent,
+      zoomMaxPercent: settings.zoomMaxPercent,
+      wheelZoomSpeed: settings.wheelZoomSpeed,
+      wheelBehavior: settings.wheelBehavior,
+      openView: settings.openView,
+    };
+
+    if (
+      previous.zoomMinPercent !== settings.zoomMinPercent ||
+      previous.zoomMaxPercent !== settings.zoomMaxPercent
+    ) {
+      this._renderChrome?.setZoomRange?.(
+        settings.zoomMinPercent,
+        settings.zoomMaxPercent,
+      );
+
+      // A narrower range can leave the current zoom outside it.
+      if (this._clampZoom(this._zoom) !== this._zoom) {
+        this._setZoomLevel(this._zoom);
+      }
+    }
+  }
+
+  private _scheduleViewSave(): void {
+    if (!this._viewSavingEnabled || this.isDisposed) {
+      return;
+    }
+
+    if (this._viewSaveTimer !== null) {
+      window.clearTimeout(this._viewSaveTimer);
+    }
+
+    this._viewSaveTimer = window.setTimeout(() => {
+      this._viewSaveTimer = null;
+      this._saveViewNow();
+    }, 500);
+  }
+
+  private _saveViewNow(): void {
+    const path = this._context.path;
+
+    if (!this._viewSavingEnabled || !path) {
+      return;
+    }
+
+    try {
+      saveView(window.localStorage, path, {
+        zoom: this._zoom,
+        panX: this._panX,
+        panY: this._panY,
+      });
+    } catch {
+      // localStorage can be unavailable; the view is simply not remembered.
     }
   }
 
@@ -1022,6 +1156,16 @@ export class NotebookMindMapWidget extends Widget {
     this._documentWidget = widget;
   }
 
+  /** Re-layout after the backing `.md` file changed in the text editor. */
+  applyTextDocumentSnapshot(): void {
+    if (this._sourceKind !== "markdown") {
+      return;
+    }
+
+    this._invalidateOutlineCache();
+    this._scheduleLayout();
+  }
+
   protected onAfterAttach(msg: Message): void {
     super.onAfterAttach(msg);
     if (!this._documentWidget) {
@@ -1037,8 +1181,17 @@ export class NotebookMindMapWidget extends Widget {
     const index =
       this._getSourceActiveCellIndex?.() ?? this._notebook.activeCellIndex;
 
+    // Opened while hidden: the follow window expired before the viewport had a
+    // size, so the map never got centered. Retry now that it is visible.
+    const unfulfilled = this._viewportCtrl.unfulfilledCenterIndex;
+
+    if (unfulfilled !== null) {
+      this.requestOpenCenter(unfulfilled);
+      return;
+    }
+
     // Tab revisit: layout only — do not restart the open-center follow loop.
-    if (this._openCentered) {
+    if (this._viewportCtrl.openCentered) {
       if (index >= 0) {
         this._scheduleLayout();
         this._ensureCellVisibleInViewport(index);
@@ -1052,7 +1205,7 @@ export class NotebookMindMapWidget extends Widget {
   }
 
   protected onBeforeHide(msg: Message): void {
-    this._cancelCenterFollow();
+    this._viewportCtrl.pauseCenterFollow();
     super.onBeforeHide(msg);
   }
 
@@ -1066,71 +1219,39 @@ export class NotebookMindMapWidget extends Widget {
     }
 
     // Open-center must win over drag/insert camera freezes.
-    this._heldViewportPan = null;
+    this._viewportCtrl.clearHeldPan();
     this._viewportAnchor = null;
-    this._beginCenterFollow(cellIndex);
+
+    // The first request decides the initial camera; later ones (selection
+    // sync, tab revisits) always center the requested node.
+    const mode = this._openViewApplied ? "selected" : this._viewBehavior.openView;
+    this._openViewApplied = true;
+    this._viewSavingEnabled = true;
+
+    if (mode === "last") {
+      const saved = loadSavedView(window.localStorage, this._context.path);
+
+      if (saved) {
+        this._zoom = this._clampZoom(saved.zoom);
+        this._panX = saved.panX;
+        this._panY = saved.panY;
+        this._viewportCtrl.cancelCenterFollow();
+        this._applyTransform();
+        return;
+      }
+    } else if (mode === "root") {
+      const rootIndex = getMindMapRootNode(this._getOutlineSnapshot().outline)
+        ?.cellIndex;
+
+      if (typeof rootIndex === "number" && rootIndex >= 0) {
+        cellIndex = rootIndex;
+      }
+    } else if (mode === "fit") {
+      this._pendingFit = true;
+    }
+
+    this._viewportCtrl.beginCenterFollow(cellIndex);
     this.syncActiveCellFromNotebook(cellIndex, { center: true });
-  }
-
-  /**
-   * Track a cell for repeated centering until dock/markdown layout settles.
-   * Used for both Kuusi open and notebook → mind-map selection sync.
-   */
-  private _beginCenterFollow(cellIndex: number): void {
-    if (this._openCenterSettleTimer !== null) {
-      window.clearTimeout(this._openCenterSettleTimer);
-      this._openCenterSettleTimer = null;
-    }
-
-    this._openCentered = false;
-    this._pendingOpenCenterIndex = cellIndex;
-    this._centerFollowUntil = performance.now() + CENTER_FOLLOW_MS;
-    this._centerFollowViewportKey = "";
-    this._centerFollowViewportStableSince = 0;
-    this._ensureViewportSizeObserver();
-  }
-
-  /** User navigation always wins over automatic open/selection centering. */
-  private _cancelCenterFollow(): void {
-    this._centerScheduleGeneration += 1;
-    this._pendingOpenCenterIndex = null;
-    this._openCentered = true;
-    this._centerFollowUntil = 0;
-    this._centerFollowViewportKey = "";
-    this._centerFollowViewportStableSince = 0;
-
-    if (this._openCenterSettleTimer !== null) {
-      window.clearTimeout(this._openCenterSettleTimer);
-      this._openCenterSettleTimer = null;
-    }
-  }
-
-  private _isViewportPanLocked(): boolean {
-    return (
-      this._heldViewportPan !== null ||
-      performance.now() < this._viewportPanLockUntil
-    );
-  }
-
-  private _lockViewportPan(ms: number): void {
-    this._viewportPanLockUntil = Math.max(
-      this._viewportPanLockUntil,
-      performance.now() + ms,
-    );
-  }
-
-  /** Keep camera fixed through post-drop relayout + delayed notebook sync. */
-  private _holdViewportPan(): void {
-    this._heldViewportPan = { x: this._panX, y: this._panY };
-
-    if (this._heldViewportPanClearTimer !== null) {
-      window.clearTimeout(this._heldViewportPanClearTimer);
-    }
-
-    this._heldViewportPanClearTimer = window.setTimeout(() => {
-      this._heldViewportPanClearTimer = null;
-      this._heldViewportPan = null;
-    }, VIEWPORT_PAN_LOCK_MS);
   }
 
   private _clearWheelPanMomentum(): void {
@@ -1197,13 +1318,22 @@ export class NotebookMindMapWidget extends Widget {
   }
 
   dispose(): void {
+    if (this._viewSaveTimer !== null) {
+      window.clearTimeout(this._viewSaveTimer);
+      this._viewSaveTimer = null;
+    }
+    this._saveViewNow();
     this._autoReloadListenerDispose?.();
     this._autoReloadListenerDispose = null;
     this._autoReloadHandle?.dispose();
     this._autoReloadHandle = null;
 
-    this._context.model.cells.changed.disconnect(this._onCellsChanged, this);
-    this._context.model.contentChanged.disconnect(this._onModelContentChanged, this);
+    // The context (and its model) can already be disposed when a view is
+    // closed by a view switch; an uncaught throw here aborts the rest of
+    // dispose() and leaves a half-torn-down widget behind.
+    const model = this._context.model;
+    model?.cells?.changed.disconnect(this._onCellsChanged, this);
+    model?.contentChanged.disconnect(this._onModelContentChanged, this);
 
     if (this._contentChangeTimer !== null) {
       window.clearTimeout(this._contentChangeTimer);
@@ -1225,20 +1355,13 @@ export class NotebookMindMapWidget extends Widget {
       this._layoutFrame = null;
     }
 
+    this._clearWheelPanMomentum();
+
     this._measureHost?.remove();
     this._measureHost = null;
     this._resizeObserver?.disconnect();
     this._resizeObserver = null;
-    this._viewportSizeObserver?.disconnect();
-    this._viewportSizeObserver = null;
-    if (this._openCenterSettleTimer !== null) {
-      window.clearTimeout(this._openCenterSettleTimer);
-      this._openCenterSettleTimer = null;
-    }
-    if (this._heldViewportPanClearTimer !== null) {
-      window.clearTimeout(this._heldViewportPanClearTimer);
-      this._heldViewportPanClearTimer = null;
-    }
+    this._viewportCtrl.dispose();
     this._headerLayoutObserver?.disconnect();
     this._headerLayoutObserver = null;
     if (this._headerLayoutRaf !== null) {
@@ -1249,25 +1372,25 @@ export class NotebookMindMapWidget extends Widget {
     this._pageToolbarNode = null;
     this._formatCluster = null;
     document.removeEventListener("click", this._onDocumentClick);
-    document.removeEventListener("fullscreenchange", this._onFullscreenChange);
-    document.removeEventListener(
-      "webkitfullscreenchange",
-      this._onFullscreenChange,
-    );
-    void this._exitElementFullscreen().catch(() => undefined);
-    this._restoreDocumentFromFullscreen();
-    if (this._fullscreenShell && !this._fullscreenShell.isDisposed) {
-      this._fullscreenShell.dispose();
-      this._fullscreenShell = null;
-    }
+    this._renderChrome?.dispose();
+    this._renderChrome = null;
     this._unbindViewportEvents();
     this._unbindCellInteractionEvents();
     this._unbindKeyboardEvents();
-    this._clearDragUi();
+    this._drag.clearUi();
 
     if (this._notebookAttached && this._notebook.isAttached) {
-      Widget.detach(this._notebook);
+      if (this._notebook.node.isConnected) {
+        Widget.detach(this._notebook);
+      } else {
+        // Closing a tab removes our node first; Widget.detach() would throw and
+        // abort the rest of dispose(), leaking the whole mind map.
+        MessageLoop.sendMessage(this._notebook, Widget.Msg.BeforeDetach);
+        this._notebook.node.remove();
+        MessageLoop.sendMessage(this._notebook, Widget.Msg.AfterDetach);
+      }
     }
+    this._notebookAttached = false;
 
     this._addMindMapButton?.dispose();
     this._addMindMapButton = null;
@@ -1279,6 +1402,9 @@ export class NotebookMindMapWidget extends Widget {
     this._settingsConn = null;
     this._unbindAllMarkdownAnchorStrips();
     this._unbindNotebookEditState();
+    // StaticNotebook.dispose() leaves cells (and their CodeMirror views) alive;
+    // only a model swap removes and disposes every cell widget.
+    this._notebook.model = null;
     this._notebook.dispose();
     super.dispose();
   }
@@ -1301,7 +1427,9 @@ export class NotebookMindMapWidget extends Widget {
 
       if (args.type === "remove") {
         (args.oldValues ?? []).forEach((model) => {
-          this._dimensionCacheByModelId.delete(model.id);
+          if (model) {
+            this._dimensionCacheByModelId.delete(model.id);
+          }
         });
       }
 
@@ -1445,65 +1573,6 @@ export class NotebookMindMapWidget extends Widget {
     }
   }
 
-  private _createDirectionToolbar(): HTMLElement {
-    const toolbar = document.createElement("div");
-    toolbar.className = "jp-KuusiNotebookMindMap-direction-toolbar";
-
-    const dropdown = document.createElement("div");
-    dropdown.className = "jp-KuusiFormatDropdown jp-KuusiDirectionDropdown";
-
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className =
-      "jp-KuusiNotebookMindMap-direction-btn jp-KuusiDirectionDropdown-trigger";
-    trigger.setAttribute("aria-haspopup", "menu");
-    trigger.setAttribute("aria-label", this._t.tree());
-    this._directionTrigger = trigger;
-
-    const menu = document.createElement("div");
-    menu.className =
-      "jp-KuusiFormatDropdown-menu jp-KuusiDirectionDropdown-menu";
-    menu.setAttribute("role", "menu");
-    menu.setAttribute("aria-label", this._t.tree());
-    this._directionMenu = menu;
-
-    (Object.keys(TREE_DIRECTION_LABELS) as TreeDirection[]).forEach((value) => {
-      const label = TREE_DIRECTION_LABELS[value];
-      const optionTitle = this._getTreeDirectionTitle(value);
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "jp-KuusiFormatDropdown-item jp-KuusiDirectionDropdown-item";
-      item.setAttribute("role", "menuitem");
-      item.setAttribute("aria-label", optionTitle);
-      item.title = optionTitle;
-      item.textContent = label;
-      item.addEventListener("click", (event) => {
-        event.stopPropagation();
-        void this._settingsManager.update({ treeDirection: value });
-      });
-      this._directionMenuItems.set(value, item);
-      menu.appendChild(item);
-    });
-
-    trigger.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const isOpen = menu.classList.contains("is-open");
-      this._closeDirectionMenu();
-      this._closeZoomSlider();
-      closeKuusiDropdownMenus(this.node);
-
-      if (!isOpen) {
-        openKuusiDropdownMenu(menu, this.node);
-      }
-    });
-
-    dropdown.appendChild(trigger);
-    dropdown.appendChild(menu);
-    toolbar.appendChild(dropdown);
-
-    return toolbar;
-  }
-
   private _createFormatToolbar(): HTMLElement {
     this._formatToolbar = createFormatToolbar({
       getEditor: () => this._notebook.activeCell?.editor ?? null,
@@ -1579,6 +1648,9 @@ export class NotebookMindMapWidget extends Widget {
         outlineVisualHeadingLevel(outlineNode?.headingLevel ?? null),
       );
     });
+
+    // The frame reset cleared level variables on these nodes; restamp them.
+    this._applyLevelStyles(outline);
   }
 
   /** ⌘ on Mac / Ctrl on Windows & Linux — multi-select modifier. */
@@ -1604,303 +1676,39 @@ export class NotebookMindMapWidget extends Widget {
     return ids;
   }
 
-  /** Node ids to move when dragging `nodeId` (multi-select → selection roots). */
-  private _resolveDragNodeIds(nodeId: string): string[] {
-    const selected = this._getSelectedNodeIds();
-
-    if (selected.length <= 1 || !selected.includes(nodeId)) {
-      return [nodeId];
-    }
-
-    const { outline } = this._getOutlineSnapshot();
-    const roots = collectOutlineSelectionRoots(outline, selected);
-
-    return roots.length > 0 ? roots : [nodeId];
-  }
-
-  private _isDraggedRelatedNode(
-    outline: OutlineNode,
-    draggedIds: readonly string[],
-    nodeId: string,
-  ): boolean {
-    return draggedIds.some(
-      (draggedId) =>
-        draggedId === nodeId ||
-        isOutlineDescendant(outline, draggedId, nodeId),
-    );
-  }
-
-  private _closeDirectionMenu(): void {
-    this._directionMenu?.classList.remove("is-open");
-  }
-
-  /** Close tree / zoom / toolbar dropdowns (single document click handler). */
   private _closeFloatingMenus(): void {
-    this._closeDirectionMenu();
     this._closeZoomSlider();
     closeKuusiDropdownMenus(this.node);
   }
 
-  private _onDocumentClick = (): void => {
+  private _onDocumentClick = (event: MouseEvent): void => {
+    const target = event.target;
+    const el =
+      target instanceof Element
+        ? target
+        : target instanceof Node
+          ? target.parentElement
+          : null;
+
+    if (el?.closest(".jp-KuusiFormatDropdown-menu.is-open")) {
+      return;
+    }
+
+    if (
+      el?.closest(
+        // Menu triggers toggle themselves; other capsule parts (gaps, dividers,
+        // plain buttons) should dismiss open menus like any outside click.
+        ".jp-KuusiNotebookMindMap-format-btn, [aria-haspopup], .jp-KuusiRenderChrome",
+      )
+    ) {
+      return;
+    }
+
     this._closeFloatingMenus();
   };
 
   private _closeZoomSlider(): void {
-    this._zoomSliderWrap?.classList.remove("is-open");
-    this.node
-      .querySelector(".jp-KuusiNotebookMindMap-status-zoom")
-      ?.classList.remove("is-open");
-    this._zoomTrigger?.setAttribute("aria-expanded", "false");
-  }
-
-  private _zoomTickPercents(): number[] {
-    const ticks: number[] = [];
-
-    for (
-      let percent = MIN_ZOOM_PERCENT;
-      percent <= MAX_ZOOM_PERCENT;
-      percent += ZOOM_TICK_STEP
-    ) {
-      ticks.push(percent);
-    }
-
-    if (ticks[ticks.length - 1] !== MAX_ZOOM_PERCENT) {
-      ticks.push(MAX_ZOOM_PERCENT);
-    }
-
-    return ticks;
-  }
-
-  private _formatZoomLabel(percent: number): string {
-    return `${this._t.zoom()}: ${percent}%`;
-  }
-
-  /** Bottom offset (px) for tick/thumb centers along the shared track. */
-  private _zoomPercentToTrackBottom(percent: number): number {
-    const snapped = this._snapZoomPercent(percent);
-    const fraction =
-      (snapped - MIN_ZOOM_PERCENT) / (MAX_ZOOM_PERCENT - MIN_ZOOM_PERCENT);
-    return fraction * ZOOM_TRACK_PX;
-  }
-
-  private _zoomPercentFromTrackClientY(clientY: number): number {
-    const track = this._zoomTrack;
-
-    if (!track) {
-      return this._zoomToPercent(this._zoom);
-    }
-
-    const rect = track.getBoundingClientRect();
-    const height = Math.max(rect.height, 1);
-    const fromBottom = rect.bottom - clientY;
-    const fraction = Math.min(1, Math.max(0, fromBottom / height));
-    return MIN_ZOOM_PERCENT + fraction * (MAX_ZOOM_PERCENT - MIN_ZOOM_PERCENT);
-  }
-
-  private _syncZoomThumb(percent: number): void {
-    const snapped = this._snapZoomPercent(percent);
-
-    if (this._zoomThumb) {
-      this._zoomThumb.style.bottom = `${this._zoomPercentToTrackBottom(snapped)}px`;
-    }
-
-    if (this._zoomTrack) {
-      this._zoomTrack.setAttribute("aria-valuenow", String(snapped));
-      this._zoomTrack.setAttribute("aria-valuetext", `${snapped}%`);
-      this._zoomTrack.title = this._t.zoomSlider();
-      this._zoomTrack.setAttribute("aria-label", this._formatZoomLabel(snapped));
-    }
-  }
-
-  private _toggleZoomSlider(wrapper: HTMLElement): void {
-    const isOpen = this._zoomSliderWrap?.classList.contains("is-open") ?? false;
-    this._closeDirectionMenu();
-    closeKuusiDropdownMenus(this.node);
-
-    if (isOpen) {
-      this._closeZoomSlider();
-      return;
-    }
-
-    this._zoomSliderWrap?.classList.add("is-open");
-    wrapper.classList.add("is-open");
-    this._zoomTrigger?.setAttribute("aria-expanded", "true");
-    this._syncZoomThumb(this._zoomToPercent(this._zoom));
-  }
-
-  private _createZoomControl(): HTMLElement {
-    const wrapper = document.createElement("div");
-    wrapper.className = "jp-KuusiNotebookMindMap-status-zoom";
-
-    const sliderWrap = document.createElement("div");
-    sliderWrap.className = "jp-KuusiNotebookMindMap-status-zoom-slider-wrap";
-    sliderWrap.style.setProperty("--kuusi-zoom-track", `${ZOOM_TRACK_PX}px`);
-    sliderWrap.style.setProperty("--kuusi-zoom-thumb", `${ZOOM_THUMB_PX}px`);
-    this._zoomSliderWrap = sliderWrap;
-
-    const rail = document.createElement("div");
-    rail.className = "jp-KuusiNotebookMindMap-status-zoom-rail";
-
-    const ticks = document.createElement("div");
-    ticks.className = "jp-KuusiNotebookMindMap-status-zoom-ticks";
-
-    this._zoomTickPercents().forEach((percent) => {
-      const tick = document.createElement("button");
-      tick.type = "button";
-      tick.className = "jp-KuusiNotebookMindMap-status-zoom-tick";
-      tick.textContent = `${percent}%`;
-      tick.title = `${percent}%`;
-      tick.style.bottom = `${this._zoomPercentToTrackBottom(percent)}px`;
-      tick.addEventListener("click", (event) => {
-        event.stopPropagation();
-        this._setZoomPercent(percent);
-      });
-      ticks.appendChild(tick);
-    });
-
-    const track = document.createElement("div");
-    track.className = "jp-KuusiNotebookMindMap-status-zoom-track";
-    track.setAttribute("role", "slider");
-    track.tabIndex = 0;
-    track.setAttribute("aria-orientation", "vertical");
-    track.setAttribute("aria-valuemin", String(MIN_ZOOM_PERCENT));
-    track.setAttribute("aria-valuemax", String(MAX_ZOOM_PERCENT));
-    this._zoomTrack = track;
-
-    const trackLine = document.createElement("div");
-    trackLine.className = "jp-KuusiNotebookMindMap-status-zoom-track-line";
-    trackLine.setAttribute("aria-hidden", "true");
-
-    const thumb = document.createElement("div");
-    thumb.className = "jp-KuusiNotebookMindMap-status-zoom-thumb";
-    thumb.setAttribute("aria-hidden", "true");
-    this._zoomThumb = thumb;
-
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className = "jp-KuusiNotebookMindMap-status-zoom-btn";
-    trigger.textContent = this._formatZoomLabel(this._zoomToPercent(this._zoom));
-    trigger.setAttribute("aria-haspopup", "true");
-    trigger.setAttribute("aria-expanded", "false");
-    trigger.setAttribute("aria-label", this._t.zoom());
-    trigger.title = this._t.zoomSlider();
-    this._zoomTrigger = trigger;
-    this._zoomLabel = trigger;
-
-    const applyFromPointer = (clientY: number): void => {
-      this._setZoomPercent(this._zoomPercentFromTrackClientY(clientY));
-    };
-
-    track.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      track.setPointerCapture(event.pointerId);
-      applyFromPointer(event.clientY);
-    });
-
-    track.addEventListener("pointermove", (event) => {
-      if (!track.hasPointerCapture(event.pointerId)) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      applyFromPointer(event.clientY);
-    });
-
-    track.addEventListener("pointerup", (event) => {
-      if (track.hasPointerCapture(event.pointerId)) {
-        track.releasePointerCapture(event.pointerId);
-      }
-    });
-
-    track.addEventListener("keydown", (event) => {
-      let next: number | null = null;
-      const current = this._snapZoomPercent(this._zoomToPercent(this._zoom));
-
-      if (event.key === "ArrowUp" || event.key === "ArrowRight") {
-        next = current + ZOOM_PERCENT_STEP;
-      } else if (event.key === "ArrowDown" || event.key === "ArrowLeft") {
-        next = current - ZOOM_PERCENT_STEP;
-      } else if (event.key === "Home") {
-        next = MAX_ZOOM_PERCENT;
-      } else if (event.key === "End") {
-        next = MIN_ZOOM_PERCENT;
-      }
-
-      if (next === null) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      this._setZoomPercent(next);
-    });
-
-    trigger.addEventListener("click", (event) => {
-      event.stopPropagation();
-      this._toggleZoomSlider(wrapper);
-    });
-
-    wrapper.addEventListener("pointerdown", (event) => {
-      event.stopPropagation();
-    });
-
-    // Keep the slider open while adjusting so users can compare levels.
-    wrapper.addEventListener("click", (event) => {
-      event.stopPropagation();
-    });
-
-    wrapper.addEventListener("wheel", (event) => {
-      event.stopPropagation();
-    });
-
-    track.append(trackLine, thumb);
-    rail.append(ticks, track);
-    sliderWrap.appendChild(rail);
-    wrapper.append(sliderWrap, trigger);
-    this._syncZoomThumb(this._zoomToPercent(this._zoom));
-    return wrapper;
-  }
-
-  private _createFullscreenControl(): HTMLElement {
-    const wrapper = document.createElement("div");
-    wrapper.className = "jp-KuusiNotebookMindMap-status-fullscreen";
-
-    const labButton = document.createElement("button");
-    labButton.type = "button";
-    labButton.className =
-      "jp-KuusiNotebookMindMap-status-fullscreen-btn jp-KuusiNotebookMindMap-status-fullscreen-btn-lab";
-    this._labFullscreenButton = labButton;
-    labButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      this._onLabFullscreenClick();
-    });
-
-    const kuusiButton = document.createElement("button");
-    kuusiButton.type = "button";
-    kuusiButton.className =
-      "jp-KuusiNotebookMindMap-status-fullscreen-btn jp-KuusiNotebookMindMap-status-fullscreen-btn-kuusi";
-    this._kuusiFullscreenButton = kuusiButton;
-    kuusiButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      this._onKuusiFullscreenClick();
-    });
-
-    this._updateFullscreenButtons();
-
-    wrapper.addEventListener("pointerdown", (event) => {
-      event.stopPropagation();
-    });
-
-    wrapper.append(labButton, kuusiButton);
-    return wrapper;
+    this._renderChrome?.closeZoomSlider();
   }
 
   /**
@@ -1922,474 +1730,21 @@ export class NotebookMindMapWidget extends Widget {
     return null;
   }
 
-  private _getDocumentWidget(): Widget | null {
-    return this._documentWidget ?? this._findDocumentWidget();
-  }
-
-  private _rememberDockInlineGeometry(doc: Widget): void {
-    const style = doc.node.style;
-    this._fullscreenDocInlineStyles = {
-      top: style.top,
-      left: style.left,
-      right: style.right,
-      bottom: style.bottom,
-      width: style.width,
-      height: style.height,
-      position: style.position,
-      zIndex: style.zIndex,
-    };
-  }
-
-  private _clearDockInlineGeometry(doc: Widget): void {
-    const style = doc.node.style;
-    style.top = "";
-    style.left = "";
-    style.right = "";
-    style.bottom = "";
-    style.width = "";
-    style.height = "";
-    style.position = "";
-    style.zIndex = "";
-  }
-
-  private _restoreDockInlineGeometry(doc: Widget): void {
-    const saved = this._fullscreenDocInlineStyles;
-
-    if (!saved) {
-      return;
-    }
-
-    const style = doc.node.style;
-    style.top = saved.top;
-    style.left = saved.left;
-    style.right = saved.right;
-    style.bottom = saved.bottom;
-    style.width = saved.width;
-    style.height = saved.height;
-    style.position = saved.position;
-    style.zIndex = saved.zIndex;
-    this._fullscreenDocInlineStyles = null;
-  }
-
-  /** Whole JupyterLab shell (or documentElement) for Lab-level fullscreen. */
-  private _getLabFullscreenTarget(): HTMLElement {
-    return (
-      (document.getElementById("jp-main-app") as HTMLElement | null) ??
-      (document.querySelector(".jp-LabShell") as HTMLElement | null) ??
-      document.documentElement
-    );
-  }
-
-  /**
-   * Dedicated host for Kuusi-window fullscreen. Reparenting the document
-   * out of the Lumino dock avoids absolute positioning fighting :fullscreen.
-   */
-  private _getFullscreenShell(): Widget {
-    if (!this._fullscreenShell || this._fullscreenShell.isDisposed) {
-      const shell = new Widget();
-      shell.addClass("jp-KuusiFullscreenShell");
-      shell.layout = new PanelLayout();
-      Widget.attach(shell, document.body);
-      this._fullscreenShell = shell;
-    }
-
-    return this._fullscreenShell;
-  }
-
-  /** Show the body-level shell that hosts the reparented document widget. */
-  private _showKuusiFullscreenShell(): void {
-    const shell = this._getFullscreenShell();
-    shell.addClass("is-kuusi-fullscreen-active");
-    shell.show();
-    shell.node.style.display = "flex";
-    shell.node.style.visibility = "visible";
-    shell.node.style.pointerEvents = "auto";
-  }
-
-  /** Hide the body-level shell after restoring the document to the dock. */
-  private _hideKuusiFullscreenShell(): void {
-    const shell = this._fullscreenShell;
-
-    if (!shell || shell.isDisposed) {
-      return;
-    }
-
-    shell.removeClass("is-kuusi-fullscreen-active");
-    shell.removeClass("is-kuusi-maximized");
-    shell.node.style.display = "";
-    shell.node.style.visibility = "";
-    shell.node.style.pointerEvents = "";
-    shell.hide();
-  }
-
-  private _restoreDocumentFromFullscreen(): void {
-    const doc = this._getDocumentWidget();
-    const restoreParent = this._fullscreenRestoreParent;
-    const restoreIndex = this._fullscreenRestoreIndex;
-    const shell = this._fullscreenShell;
-
-    if (!doc || !restoreParent || !shell || doc.parent !== shell) {
-      return;
-    }
-
-    const layout = restoreParent.layout as PanelLayout | null;
-
-    if (layout) {
-      // PanelLayout.insert/addWidget reparents a child safely. Widget.detach()
-      // is only valid for root widgets attached with Widget.attach().
-      if (restoreIndex >= 0 && restoreIndex <= layout.widgets.length) {
-        layout.insertWidget(restoreIndex, doc);
-      } else {
-        layout.addWidget(doc);
-      }
-    }
-
-    this._fullscreenRestoreParent = null;
-    this._fullscreenRestoreIndex = -1;
-    this._kuusiFullscreenSession = false;
-    this._kuusiNativeFullscreenActive = false;
-    this._restoreDockInlineGeometry(doc);
-    this._hideKuusiFullscreenShell();
-  }
-
-  private _onFullscreenChange = (): void => {
-    if (this._kuusiFullscreenEntering) {
-      this._updateFullscreenButtons();
-      this._syncFullscreenLayout();
-      return;
-    }
-
-    const shell = this._fullscreenShell;
-
-    if (
-      this._kuusiFullscreenSession &&
-      this._kuusiNativeFullscreenActive &&
-      shell &&
-      this._fullscreenElement() !== shell.node
-    ) {
-      this._restoreDocumentFromFullscreen();
-    }
-
-    this._updateFullscreenButtons();
-    this._syncFullscreenLayout();
-  };
-
-  private _syncFullscreenLayout(): void {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (this.isDisposed) {
-          return;
-        }
-
-        let widget: Widget | null = this;
-
-        while (widget) {
-          widget.update();
-          widget = widget.parent;
-        }
-
-        const shell = this._fullscreenShell;
-        const doc = this._getDocumentWidget();
-
-        if (
-          shell &&
-          (this._fullscreenElement() === shell.node ||
-            shell.node.classList.contains("is-kuusi-fullscreen-active"))
-        ) {
-          shell.update();
-          doc?.update();
-        }
-
-        this._applyLayout();
-
-        const index = this._notebook.activeCellIndex;
-
-        if (index >= 0) {
-          this._ensureCellVisibleInViewport(index);
-        }
-      });
-    });
-  }
-
-  private _fullscreenElement(): Element | null {
-    const doc = document as Document & {
-      webkitFullscreenElement?: Element | null;
-      mozFullScreenElement?: Element | null;
-      msFullscreenElement?: Element | null;
-    };
-
-    return (
-      document.fullscreenElement ??
-      doc.webkitFullscreenElement ??
-      doc.mozFullScreenElement ??
-      doc.msFullscreenElement ??
-      null
-    );
-  }
-
-  private _isKuusiFullscreen(): boolean {
-    if (!this._kuusiFullscreenSession) {
-      return false;
-    }
-
-    const shell = this._fullscreenShell;
-
-    return Boolean(
-      shell &&
-        (this._fullscreenElement() === shell.node ||
-          shell.node.classList.contains("is-kuusi-maximized") ||
-          shell.node.classList.contains("is-kuusi-fullscreen-active")),
-    );
-  }
-
-  private _isLabFullscreen(): boolean {
-    const fullscreen = this._fullscreenElement();
-
-    if (!fullscreen || this._isKuusiFullscreen()) {
-      return false;
-    }
-
-    const lab = this._getLabFullscreenTarget();
-
-    return (
-      fullscreen === lab ||
-      fullscreen === document.documentElement ||
-      fullscreen === document.body ||
-      (fullscreen instanceof HTMLElement &&
-        (fullscreen.id === "jp-main-app" ||
-          fullscreen.classList.contains("jp-LabShell")))
-    );
-  }
-
-  private _updateFullscreenButtons(): void {
-    const labActive = this._isLabFullscreen();
-    const kuusiActive = this._isKuusiFullscreen();
-
-    if (this._labFullscreenButton) {
-      const label = labActive
-        ? this._t.exitLabFullscreen()
-        : this._t.enterLabFullscreen();
-      this._labFullscreenButton.title = label;
-      this._labFullscreenButton.setAttribute("aria-label", label);
-      this._labFullscreenButton.classList.toggle("is-active", labActive);
-      this._labFullscreenButton.replaceChildren();
-      (labActive ? collapseIcon : jupyterIcon).render(this._labFullscreenButton);
-    }
-
-    if (this._kuusiFullscreenButton) {
-      const label = kuusiActive
-        ? this._t.exitKuusiFullscreen()
-        : this._t.enterKuusiFullscreen();
-      this._kuusiFullscreenButton.title = label;
-      this._kuusiFullscreenButton.setAttribute("aria-label", label);
-      this._kuusiFullscreenButton.classList.toggle("is-active", kuusiActive);
-      this._kuusiFullscreenButton.replaceChildren();
-      (kuusiActive ? collapseIcon : expandIcon).render(
-        this._kuusiFullscreenButton,
-      );
-    }
-  }
-
-  private _requestElementFullscreen(element: HTMLElement): Promise<void> {
-    const el = element as HTMLElement & {
-      webkitRequestFullscreen?: () => void;
-      webkitRequestFullScreen?: () => void;
-      mozRequestFullScreen?: () => void;
-      msRequestFullscreen?: () => void;
-    };
-
-    if (typeof el.requestFullscreen === "function") {
-      return el.requestFullscreen().then(() => undefined);
-    }
-
-    if (typeof el.webkitRequestFullscreen === "function") {
-      el.webkitRequestFullscreen();
-      return Promise.resolve();
-    }
-
-    if (typeof el.webkitRequestFullScreen === "function") {
-      el.webkitRequestFullScreen();
-      return Promise.resolve();
-    }
-
-    if (typeof el.mozRequestFullScreen === "function") {
-      el.mozRequestFullScreen();
-      return Promise.resolve();
-    }
-
-    if (typeof el.msRequestFullscreen === "function") {
-      el.msRequestFullscreen();
-      return Promise.resolve();
-    }
-
-    return Promise.reject(new Error("Fullscreen API unavailable"));
-  }
-
-  private _exitElementFullscreen(): Promise<void> {
-    const doc = document as Document & {
-      webkitExitFullscreen?: () => void;
-      webkitCancelFullScreen?: () => void;
-      mozCancelFullScreen?: () => void;
-      msExitFullscreen?: () => void;
-    };
-
-    if (!this._fullscreenElement()) {
-      return Promise.resolve();
-    }
-
-    if (typeof document.exitFullscreen === "function") {
-      return document.exitFullscreen().then(() => undefined);
-    }
-
-    if (typeof doc.webkitExitFullscreen === "function") {
-      doc.webkitExitFullscreen();
-      return Promise.resolve();
-    }
-
-    if (typeof doc.webkitCancelFullScreen === "function") {
-      doc.webkitCancelFullScreen();
-      return Promise.resolve();
-    }
-
-    if (typeof doc.mozCancelFullScreen === "function") {
-      doc.mozCancelFullScreen();
-      return Promise.resolve();
-    }
-
-    if (typeof doc.msExitFullscreen === "function") {
-      doc.msExitFullscreen();
-      return Promise.resolve();
-    }
-
-    return Promise.resolve();
-  }
-
-  /**
-   * Enter Lab fullscreen from a click. Exit any current fullscreen first
-   * (and restore the document if it was reparented into the Kuusi shell)
-   * so the browser still treats the chain as a user gesture.
-   */
-  private async _enterLabFullscreen(): Promise<void> {
-    try {
-      if (this._fullscreenElement()) {
-        await this._exitElementFullscreen();
-      }
-
-      this._restoreDocumentFromFullscreen();
-      await this._requestElementFullscreen(this._getLabFullscreenTarget());
-    } catch (error) {
-      console.warn("[kuusi] fullscreen request failed", error);
-    }
-
-    this._updateFullscreenButtons();
-    this._syncFullscreenLayout();
-  }
-
-  /**
-   * Kuusi-window fullscreen: reparent the document into a body-level shell,
-   * then fullscreen that shell. Direct document fullscreen fights Lumino dock
-   * absolute positioning and leaves a broken layout.
-   */
-  private async _toggleKuusiFullscreen(): Promise<void> {
-    const doc = this._getDocumentWidget();
-
-    if (!doc) {
-      console.warn("[kuusi] fullscreen document widget not found");
-      return;
-    }
-
-    const shell = this._getFullscreenShell();
-
-    this._kuusiFullscreenEntering = true;
-
-    try {
-      if (this._isKuusiFullscreen()) {
-        if (this._kuusiNativeFullscreenActive) {
-          await this._exitElementFullscreen();
-        }
-
-        this._restoreDocumentFromFullscreen();
-        return;
-      }
-
-      if (this._fullscreenElement()) {
-        await this._exitElementFullscreen();
-      }
-
-      if (doc.parent && doc.parent !== shell) {
-        const parent = doc.parent;
-        const parentLayout = parent.layout as PanelLayout | null;
-        this._fullscreenRestoreParent = parent;
-        this._fullscreenRestoreIndex = parentLayout
-          ? parentLayout.widgets.indexOf(doc)
-          : -1;
-        (shell.layout as PanelLayout).addWidget(doc);
-      } else if (!this._fullscreenRestoreParent) {
-        console.warn(
-          "[kuusi] fullscreen restore parent missing; cannot reparent document",
-        );
-        return;
-      }
-
-      this._kuusiFullscreenSession = true;
-      this._rememberDockInlineGeometry(doc);
-      this._clearDockInlineGeometry(doc);
-      this._showKuusiFullscreenShell();
-      shell.addClass("is-kuusi-maximized");
-      doc.update();
-
-      try {
-        await this._requestElementFullscreen(shell.node);
-        this._kuusiNativeFullscreenActive = true;
-      } catch (error) {
-        console.warn("[kuusi] fullscreen request failed", error);
-        this._kuusiNativeFullscreenActive = false;
-      }
-    } finally {
-      this._kuusiFullscreenEntering = false;
-    }
-
-    this._updateFullscreenButtons();
-    this._syncFullscreenLayout();
-  }
-
-  private _onLabFullscreenClick = (): void => {
-    if (this._isLabFullscreen()) {
-      void this._exitFullscreen();
-      return;
-    }
-
-    void this._enterLabFullscreen();
-  };
-
-  private _onKuusiFullscreenClick = (): void => {
-    void this._toggleKuusiFullscreen();
-  };
-
-  private async _exitFullscreen(): Promise<void> {
-    try {
-      await this._exitElementFullscreen();
-    } catch {
-      // ignore — restore + button state still run below
-    }
-
-    this._restoreDocumentFromFullscreen();
-    this._updateFullscreenButtons();
-    this._syncFullscreenLayout();
-  }
-
   private _zoomToPercent(zoom: number): number {
-    return Math.round((zoom / ZOOM_BASE) * 100);
+    return zoomToPercent(zoom);
   }
 
   private _percentToZoom(percent: number): number {
-    return (percent / 100) * ZOOM_BASE;
+    return percentToZoom(percent);
   }
 
   private _snapZoomPercent(percent: number): number {
-    const snapped =
-      Math.round(percent / ZOOM_PERCENT_STEP) * ZOOM_PERCENT_STEP;
-    return Math.min(MAX_ZOOM_PERCENT, Math.max(MIN_ZOOM_PERCENT, snapped));
+    const snapped = Math.round(percent / ZOOM_PERCENT_STEP) * ZOOM_PERCENT_STEP;
+
+    return Math.min(
+      this._viewBehavior.zoomMaxPercent,
+      Math.max(this._viewBehavior.zoomMinPercent, snapped),
+    );
   }
 
   private _setZoomPercent(percent: number): void {
@@ -2419,13 +1774,7 @@ export class NotebookMindMapWidget extends Widget {
   }
 
   private _applyFont(): void {
-    applyFontToScene(
-      this._scene,
-      this._mindMapEditFont,
-      this._mindMapDisplayFont,
-      this._mindMapEditFontSize,
-      this._mindMapDisplayFontSize,
-    );
+    applyMindMapTypography(this._scene, this._settingsManager.settings);
   }
 
   private _applyBackground(): void {
@@ -2444,21 +1793,7 @@ export class NotebookMindMapWidget extends Widget {
   }
 
   private _updateZoomControl(): void {
-    const percent = this._zoomToPercent(this._zoom);
-    const snapped = this._snapZoomPercent(percent);
-    const label = this._formatZoomLabel(percent);
-
-    if (this._zoomTrigger) {
-      this._zoomTrigger.textContent = label;
-      this._zoomTrigger.title = this._t.zoomSlider();
-      this._zoomTrigger.setAttribute("aria-label", label);
-    }
-
-    if (this._zoomLabel && this._zoomLabel !== this._zoomTrigger) {
-      this._zoomLabel.textContent = label;
-    }
-
-    this._syncZoomThumb(snapped);
+    this._renderChrome?.setZoomPercent(this._zoomToPercent(this._zoom));
   }
 
   private _bindKeyboardEvents(): void {
@@ -2572,205 +1907,12 @@ export class NotebookMindMapWidget extends Widget {
     return target?.cellIndex ?? null;
   }
 
-  private _centerCellInViewport(index: number): boolean {
-    if (this._isViewportPanLocked()) {
-      return false;
-    }
-
-    const allowCenter =
-      this._pendingOpenCenterIndex === index ||
-      (this._pendingFocusCellIndex === index && this._pendingFocusCenter);
-
-    if (!allowCenter) {
-      return false;
-    }
-
-    const node = this._cellNodes.get(`cell-${index}`);
-
-    if (!node || node.style.display === "none") {
-      return false;
-    }
-
-    // Need a laid-out position; empty left/top means layout has not run yet.
-    if (node.style.left === "" || node.style.top === "") {
-      return false;
-    }
-
-    const viewW = this._viewport.clientWidth;
-    const viewH = this._viewport.clientHeight;
-
-    if (
-      viewW < OPEN_CENTER_MIN_VIEWPORT_PX ||
-      viewH < OPEN_CENTER_MIN_VIEWPORT_PX
-    ) {
-      return false;
-    }
-
-    const worldX = Number.parseFloat(node.style.left) || 0;
-    const worldY = Number.parseFloat(node.style.top) || 0;
-    // Prefer live box; fall back to width style while markdown is measuring.
-    const nodeW =
-      node.offsetWidth || Number.parseFloat(node.style.width) || 0;
-    const nodeH = node.offsetHeight || 0;
-
-    if (nodeW < OPEN_CENTER_MIN_NODE_PX || nodeH < OPEN_CENTER_MIN_NODE_PX) {
-      return false;
-    }
-
-    // Absolute pan from layout coords (transform-origin 0 0). More stable than
-    // incremental getBoundingClientRect deltas while the dock is still resizing.
-    const nextPanX = viewW / 2 - (worldX + nodeW / 2) * this._zoom;
-    const nextPanY = viewH / 2 - (worldY + nodeH / 2) * this._zoom;
-
-    if (
-      Math.abs(nextPanX - this._panX) < 0.5 &&
-      Math.abs(nextPanY - this._panY) < 0.5
-    ) {
-      return true;
-    }
-
-    this._panX = nextPanX;
-    this._panY = nextPanY;
-    this._applyTransform();
-    return true;
-  }
-
-  /**
-   * Retry centering until the viewport/node are ready (open can race layout).
-   */
-  private _scheduleCenterOnCell(index: number, attempts = 120): void {
-    const generation = this._centerScheduleGeneration;
-
-    const tryCenter = (): boolean => {
-      if (this.isDisposed || generation !== this._centerScheduleGeneration) {
-        return true;
-      }
-
-      if (!this._centerCellInViewport(index)) {
-        return false;
-      }
-
-      this._noteCenterFollowSuccess(index);
-      return true;
-    };
-
-    const tick = (left: number): void => {
-      if (tryCenter() || left <= 0) {
-        return;
-      }
-
-      window.requestAnimationFrame(() => {
-        tick(left - 1);
-      });
-    };
-
-    window.requestAnimationFrame(() => {
-      tick(attempts);
-    });
-
-    // Markdown / dock resize often land after the rAF budget — nudge again.
-    [50, 120, 250, 500, 1000, 2000, 3200].forEach((delayMs) => {
-      window.setTimeout(() => {
-        tryCenter();
-      }, delayMs);
-    });
-  }
-
-  /**
-   * Re-center the followed cell while the settle window is open. Extends the
-   * window when the viewport is still changing size (split dock animation).
-   */
-  private _centerFollowIfNeeded(): void {
-    if (this._pendingOpenCenterIndex === null) {
-      return;
-    }
-
-    const now = performance.now();
-    const viewKey = `${this._viewport.clientWidth}x${this._viewport.clientHeight}`;
-
-    if (viewKey !== this._centerFollowViewportKey) {
-      this._centerFollowViewportKey = viewKey;
-      this._centerFollowViewportStableSince = now;
-      // Dock still moving — keep following past the base deadline.
-      this._centerFollowUntil = Math.max(
-        this._centerFollowUntil,
-        now + CENTER_VIEWPORT_STABLE_MS + 400,
-      );
-    }
-
-    const viewportStable =
-      now - this._centerFollowViewportStableSince >= CENTER_VIEWPORT_STABLE_MS;
-
-    if (now > this._centerFollowUntil && viewportStable) {
-      this._openCentered = true;
-      this._pendingOpenCenterIndex = null;
-      return;
-    }
-
-    const index = this._pendingOpenCenterIndex;
-
-    if (this._centerCellInViewport(index)) {
-      this._noteCenterFollowSuccess(index);
-      return;
-    }
-
-    this._scheduleCenterOnCell(index);
-  }
-
-  private _noteCenterFollowSuccess(index: number): void {
-    if (this._pendingOpenCenterIndex !== index) {
-      return;
-    }
-
-    const now = performance.now();
-    // Keep following so late markdown reflow / dock resize can still correct.
-    this._centerFollowUntil = Math.max(
-      this._centerFollowUntil,
-      now + CENTER_VIEWPORT_STABLE_MS + 200,
-    );
-
-    if (this._openCenterSettleTimer !== null) {
-      window.clearTimeout(this._openCenterSettleTimer);
-    }
-
-    const remaining = Math.max(0, this._centerFollowUntil - now);
-    this._openCenterSettleTimer = window.setTimeout(() => {
-      this._openCenterSettleTimer = null;
-      this._centerFollowIfNeeded();
-    }, remaining + 16);
-  }
-
-  private _ensureViewportSizeObserver(): void {
-    if (
-      this._viewportSizeObserver ||
-      typeof ResizeObserver === "undefined" ||
-      this.isDisposed
-    ) {
-      return;
-    }
-
-    this._viewportSizeObserver = new ResizeObserver(() => {
-      if (
-        this.isDisposed ||
-        this._pendingOpenCenterIndex === null ||
-        this._isViewportPanLocked()
-      ) {
-        return;
-      }
-
-      // Split-right docking and markdown-driven size changes.
-      this._centerFollowIfNeeded();
-    });
-    this._viewportSizeObserver.observe(this._viewport);
-    this._viewportSizeObserver.observe(this.node);
-  }
-
   private _ensureCellVisibleInViewport(
     index: number,
     margin = 48,
     axis: "x" | "y" | "xy" = "xy",
   ): void {
-    if (this._isViewportPanLocked()) {
+    if (this._viewportCtrl.isPanLocked()) {
       return;
     }
 
@@ -2867,7 +2009,7 @@ export class NotebookMindMapWidget extends Widget {
     const anchor = this._viewportAnchor;
     this._viewportAnchor = null;
 
-    if (!anchor || this._isViewportPanLocked()) {
+    if (!anchor || this._viewportCtrl.isPanLocked()) {
       return;
     }
 
@@ -2939,9 +2081,9 @@ export class NotebookMindMapWidget extends Widget {
 
     // Default: center. Keep open-center intent even if a caller passes false.
     let center =
-      options.center !== false || this._pendingOpenCenterIndex === cellIndex;
+      options.center !== false || this._viewportCtrl.pendingOpenCenterIndex === cellIndex;
 
-    if (center && this._isViewportPanLocked()) {
+    if (center && this._viewportCtrl.isPanLocked()) {
       center = false;
     }
 
@@ -2972,7 +2114,7 @@ export class NotebookMindMapWidget extends Widget {
 
     if (center) {
       // Follow through markdown reflow / dock resize — a single pan is not enough.
-      this._beginCenterFollow(cellIndex);
+      this._viewportCtrl.beginCenterFollow(cellIndex);
     }
 
     if (needsRelayout || !nodeReady || !this._notebookAttached) {
@@ -2984,12 +2126,7 @@ export class NotebookMindMapWidget extends Widget {
 
     if (center) {
       // Always schedule follow-up nudges; first paint often precedes final size.
-      if (!this._centerCellInViewport(cellIndex)) {
-        this._scheduleCenterOnCell(cellIndex);
-      } else {
-        this._noteCenterFollowSuccess(cellIndex);
-        this._scheduleCenterOnCell(cellIndex);
-      }
+      this._viewportCtrl.centerOrSchedule(cellIndex);
     } else {
       this._ensureCellVisibleInViewport(cellIndex);
     }
@@ -2997,6 +2134,20 @@ export class NotebookMindMapWidget extends Widget {
 
   private _onKeyDown = (event: KeyboardEvent): void => {
     if (!this._shouldHandleKeyboard(event)) {
+      return;
+    }
+
+    // Shift+1: fit the whole map (command mode only, so "!" can still be typed).
+    if (
+      event.code === "Digit1" &&
+      event.shiftKey &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      this._notebook.mode === "command"
+    ) {
+      this.fitToView();
+      event.preventDefault();
       return;
     }
 
@@ -3035,7 +2186,11 @@ export class NotebookMindMapWidget extends Widget {
     );
 
     if (result === "paste") {
-      void pasteMindMapClipboard(this._notebook, this._context.model).then(
+      void pasteMindMapClipboard(
+        this._notebook,
+        this._context.model,
+        this._sourceKind === "markdown",
+      ).then(
         (kind) => {
           if (!kind || this.isDisposed) {
             return;
@@ -3057,7 +2212,7 @@ export class NotebookMindMapWidget extends Widget {
     ) {
       const index = this._notebook.activeCellIndex;
 
-      this._cancelCenterFollow();
+      this._viewportCtrl.cancelCenterFollow();
 
       // Pin the parent only for sibling insert; child insert should pan to the
       // new node without fighting a parent anchor.
@@ -3089,7 +2244,7 @@ export class NotebookMindMapWidget extends Widget {
         event.key === "ArrowLeft" ||
         event.key === "ArrowRight"
       ) {
-        this._cancelCenterFollow();
+        this._viewportCtrl.cancelCenterFollow();
       }
 
       this._scrollActiveCellIntoView();
@@ -3131,19 +2286,6 @@ export class NotebookMindMapWidget extends Widget {
       default:
         return this._t.tree();
     }
-  }
-
-  private _updateDirectionButtons(): void {
-    const currentTitle = this._getTreeDirectionTitle(this._treeDirection);
-
-    if (this._directionTrigger) {
-      this._directionTrigger.textContent = this._t.tree();
-      this._directionTrigger.title = currentTitle;
-    }
-
-    this._directionMenuItems.forEach((item, direction) => {
-      item.classList.toggle("is-active", direction === this._treeDirection);
-    });
   }
 
   private _bindHeaderLayout(): void {
@@ -3237,18 +2379,24 @@ export class NotebookMindMapWidget extends Widget {
       capture: true,
       passive: false,
     });
+    this._viewport.addEventListener("dragover", this._onImageDragOver);
+    this._viewport.addEventListener("dragleave", this._onImageDragLeave);
+    this._viewport.addEventListener("drop", this._onImageDrop);
     this._viewport.addEventListener("pointerdown", this._onPointerDown);
     this._viewport.addEventListener("pointermove", this._onPointerMove);
     this._viewport.addEventListener("pointerup", this._onPointerUp);
-    this._viewport.addEventListener("pointercancel", this._onPointerUp);
+    this._viewport.addEventListener("pointercancel", this._onPointerCancel);
   }
 
   private _unbindViewportEvents(): void {
     this._viewport.removeEventListener("wheel", this._onWheel, { capture: true });
+    this._viewport.removeEventListener("dragover", this._onImageDragOver);
+    this._viewport.removeEventListener("dragleave", this._onImageDragLeave);
+    this._viewport.removeEventListener("drop", this._onImageDrop);
     this._viewport.removeEventListener("pointerdown", this._onPointerDown);
     this._viewport.removeEventListener("pointermove", this._onPointerMove);
     this._viewport.removeEventListener("pointerup", this._onPointerUp);
-    this._viewport.removeEventListener("pointercancel", this._onPointerUp);
+    this._viewport.removeEventListener("pointercancel", this._onPointerCancel);
     this._unbindDragWindowListeners();
   }
 
@@ -3260,7 +2408,8 @@ export class NotebookMindMapWidget extends Widget {
     this._dragWindowListening = true;
     window.addEventListener("pointermove", this._onPointerMove, true);
     window.addEventListener("pointerup", this._onPointerUp, true);
-    window.addEventListener("pointercancel", this._onPointerUp, true);
+    window.addEventListener("pointercancel", this._onPointerCancel, true);
+    window.addEventListener("keydown", this._onDragKeyDown, true);
   }
 
   private _unbindDragWindowListeners(): void {
@@ -3271,7 +2420,8 @@ export class NotebookMindMapWidget extends Widget {
     this._dragWindowListening = false;
     window.removeEventListener("pointermove", this._onPointerMove, true);
     window.removeEventListener("pointerup", this._onPointerUp, true);
-    window.removeEventListener("pointercancel", this._onPointerUp, true);
+    window.removeEventListener("pointercancel", this._onPointerCancel, true);
+    window.removeEventListener("keydown", this._onDragKeyDown, true);
   }
 
   private _bindCellInteractionEvents(): void {
@@ -3292,6 +2442,106 @@ export class NotebookMindMapWidget extends Widget {
     );
     this._scene.removeEventListener("click", this._onCellClick, true);
     this._scene.removeEventListener("dblclick", this._onCellDblClick, true);
+  }
+
+  private _setImageDropTarget(node: HTMLElement | null): void {
+    if (this._imageDropNode === node) {
+      return;
+    }
+
+    this._imageDropNode?.classList.remove("is-image-drop");
+    this._imageDropNode = node;
+    node?.classList.add("is-image-drop");
+  }
+
+  private _onImageDragOver = (event: DragEvent): void => {
+    if (!dragHasFiles(event)) {
+      return;
+    }
+
+    // Without preventDefault the browser opens the dropped file in the tab.
+    event.preventDefault();
+    const index = this._getCellIndexFromTarget(event.target);
+    const node =
+      index >= 0 ? (this._cellNodes.get(`cell-${index}`) ?? null) : null;
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = node ? "copy" : "none";
+    }
+
+    this._setImageDropTarget(node);
+  };
+
+  private _onImageDragLeave = (event: DragEvent): void => {
+    const next = event.relatedTarget;
+
+    if (!(next instanceof Node) || !this._viewport.contains(next)) {
+      this._setImageDropTarget(null);
+    }
+  };
+
+  private _onImageDrop = (event: DragEvent): void => {
+    if (!dragHasFiles(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this._setImageDropTarget(null);
+
+    const index = this._getCellIndexFromTarget(event.target);
+    const files = imageFilesFromDrop(event);
+
+    if (index < 0 || files.length === 0) {
+      return;
+    }
+
+    void this._insertDroppedImages(index, files);
+  };
+
+  /** Save next to the document and link from the node's cell (relative path). */
+  private async _insertDroppedImages(index: number, files: File[]): Promise<void> {
+    let markdown: string;
+
+    try {
+      const saved = [];
+
+      for (const file of files) {
+        saved.push(
+          await saveImageNextToDocument(this._contents, this._context.path, file),
+        );
+      }
+
+      markdown = imageMarkdown(saved);
+    } catch (error) {
+      console.error("[kuusi] saving dropped image failed", error);
+      Notification.error(this._t.imageDropFailed(), { autoClose: 5000 });
+      return;
+    }
+
+    if (this.isDisposed) {
+      return;
+    }
+
+    const model = this._context.model;
+    const cell = model.cells.get(index);
+
+    if (!cell) {
+      return;
+    }
+
+    if (cell.type === "markdown") {
+      const source = cell.sharedModel.getSource().replace(/\s+$/, "");
+      cell.sharedModel.setSource(source ? `${source}\n\n${markdown}` : markdown);
+    } else {
+      model.sharedModel.insertCell(index + 1, {
+        cell_type: "markdown",
+        source: markdown,
+      });
+    }
+
+    this._invalidateOutlineCache();
+    this._scheduleLayout();
   }
 
   private _getCellIndexFromTarget(target: EventTarget | null): number {
@@ -4087,21 +3337,29 @@ export class NotebookMindMapWidget extends Widget {
 
     cell.node.dataset.kuusiAnchorStripBound = "1";
 
-    const strip = (): void => {
+    const refreshRenderedMarkdown = (): void => {
       if (this.isDisposed || cell.isDisposed || !cell.rendered) {
         return;
       }
 
       this._stripInternalHeadingAnchors(cell.node);
+      void refreshMarkdownImageSources(
+        cell.node,
+        this._documentUrlResolver,
+      ).then(() => {
+        if (!this.isDisposed && !cell.isDisposed) {
+          this._scheduleLayoutAfterContentChange();
+        }
+      });
     };
 
     const onRenderedChanged = (_sender: MarkdownCell, rendered: boolean) => {
       if (rendered) {
-        strip();
+        refreshRenderedMarkdown();
       }
     };
     const onContentChanged = (): void => {
-      window.requestAnimationFrame(strip);
+      window.requestAnimationFrame(refreshRenderedMarkdown);
     };
     const onCellDisposed = (): void => {
       this._unbindMarkdownAnchorStrip(cell);
@@ -4141,6 +3399,7 @@ export class NotebookMindMapWidget extends Widget {
   private _applyTransform(): void {
     this._scene.style.transform = `translate(${this._panX}px, ${this._panY}px) scale(${this._zoom})`;
     this._updateStatusBar();
+    this._scheduleViewSave();
   }
 
   private _updateModifiedTimestamp(): void {
@@ -4154,14 +3413,94 @@ export class NotebookMindMapWidget extends Widget {
       : "";
   }
 
+  private _notebookSourceText(): string {
+    const cells = this._context.model.cells;
+    const parts: string[] = [];
+
+    for (let i = 0; i < cells.length; i += 1) {
+      parts.push(cells.get(i).sharedModel.getSource());
+    }
+
+    return parts.join("\n");
+  }
+
   private _updateStatusBar(nodeCount = this._cellNodes.size): void {
-    this._statusNodeEl.textContent = `Node: ${nodeCount}`;
+    const source = this._notebookSourceText();
+    const text = countTextStats(source);
+    const fileBytes = resolveFileBytes(
+      this._context.contentsModel?.size,
+      source,
+    );
+
+    this._renderChrome?.setStats({
+      nodes: nodeCount,
+      characters: text.characters,
+      words: text.words,
+      pages: 1,
+      fileBytes,
+    });
     this._updateModifiedTimestamp();
     this._updateZoomControl();
   }
 
+  /**
+   * Zoom and pan so every visible node fits in the window, centered with a
+   * small margin. Small maps stay at 100% rather than blowing up.
+   */
+  fitToView(): boolean {
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+
+    this._cellNodes.forEach((node) => {
+      if (node.style.display === "none") {
+        return;
+      }
+
+      const left = Number.parseFloat(node.style.left);
+      const top = Number.parseFloat(node.style.top);
+
+      if (!Number.isFinite(left) || !Number.isFinite(top)) {
+        return;
+      }
+
+      minX = Math.min(minX, left);
+      minY = Math.min(minY, top);
+      maxX = Math.max(maxX, left + node.offsetWidth);
+      maxY = Math.max(maxY, top + node.offsetHeight);
+    });
+
+    const viewW = this._viewport.clientWidth;
+    const viewH = this._viewport.clientHeight;
+
+    if (!Number.isFinite(minX) || viewW <= 0 || viewH <= 0) {
+      return false;
+    }
+
+    const width = Math.max(1, maxX - minX);
+    const height = Math.max(1, maxY - minY);
+    const margin = 0.06;
+    const fit = Math.min(
+      (viewW * (1 - margin * 2)) / width,
+      (viewH * (1 - margin * 2)) / height,
+    );
+    const zoom = this._clampZoom(Math.min(fit, this._percentToZoom(100)));
+
+    // An explicit user action: stop any automatic open-center follow.
+    this._viewportCtrl.cancelCenterFollow();
+    this._zoom = zoom;
+    this._panX = viewW / 2 - (minX + width / 2) * zoom;
+    this._panY = viewH / 2 - (minY + height / 2) * zoom;
+    this._applyTransform();
+    return true;
+  }
+
   private _clampZoom(value: number): number {
-    return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+    return Math.min(
+      this._percentToZoom(this._viewBehavior.zoomMaxPercent),
+      Math.max(this._percentToZoom(this._viewBehavior.zoomMinPercent), value),
+    );
   }
 
   private _zoomAtPointer(
@@ -4184,7 +3523,11 @@ export class NotebookMindMapWidget extends Widget {
       normalizedDelta *= 400;
     }
 
-    const rawFactor = Math.exp(-normalizedDelta * ZOOM_WHEEL_SENSITIVITY);
+    const rawFactor = Math.exp(
+      -normalizedDelta *
+        ZOOM_WHEEL_SENSITIVITY *
+        this._viewBehavior.wheelZoomSpeed,
+    );
     const factor = Math.min(
       ZOOM_WHEEL_MAX_STEP,
       Math.max(1 / ZOOM_WHEEL_MAX_STEP, rawFactor),
@@ -4246,11 +3589,18 @@ export class NotebookMindMapWidget extends Widget {
       return;
     }
 
-    this._cancelCenterFollow();
+    this._viewportCtrl.cancelCenterFollow();
     event.preventDefault();
     event.stopPropagation();
 
-    if (event.ctrlKey || event.metaKey) {
+    // Pinch / ctrl+wheel always zooms. In "zoom" mode the plain wheel zooms too
+    // and Shift+wheel pans.
+    const zoomGesture =
+      event.ctrlKey ||
+      event.metaKey ||
+      (this._viewBehavior.wheelBehavior === "zoom" && !event.shiftKey);
+
+    if (zoomGesture) {
       this._zoomAtPointer(
         event.clientX,
         event.clientY,
@@ -4263,10 +3613,86 @@ export class NotebookMindMapWidget extends Widget {
     this._panByWheel(-event.deltaX, -event.deltaY);
   };
 
+  private _beginPinch(): void {
+    const [a, b] = Array.from(this._touchPoints.values());
+
+    if (!a || !b) {
+      return;
+    }
+
+    // A second finger turns any single-finger gesture into a pinch.
+    this._cancelNodeDrag();
+    this._isPanning = false;
+    this._panPointerId = null;
+    this._viewport.classList.remove("is-panning");
+
+    const rect = this._viewport.getBoundingClientRect();
+    const centerX = (a.x + b.x) / 2 - rect.left;
+    const centerY = (a.y + b.y) / 2 - rect.top;
+
+    this._pinch = {
+      distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+      zoom: this._zoom,
+      worldX: (centerX - this._panX) / this._zoom,
+      worldY: (centerY - this._panY) / this._zoom,
+    };
+  }
+
+  private _updatePinch(): void {
+    const pinch = this._pinch;
+    const [a, b] = Array.from(this._touchPoints.values());
+
+    if (!pinch || !a || !b) {
+      return;
+    }
+
+    const rect = this._viewport.getBoundingClientRect();
+    const centerX = (a.x + b.x) / 2 - rect.left;
+    const centerY = (a.y + b.y) / 2 - rect.top;
+    const distance = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+    const nextZoom = this._clampZoom(pinch.zoom * (distance / pinch.distance));
+
+    // Keep the world point first under the fingers glued to their midpoint:
+    // zooms around the pinch and pans with a two-finger drag.
+    this._panX = centerX - pinch.worldX * nextZoom;
+    this._panY = centerY - pinch.worldY * nextZoom;
+    this._zoom = nextZoom;
+    this._applyTransform();
+  }
+
+  private _releaseTouchPoint(event: PointerEvent): void {
+    if (event.pointerType !== "touch") {
+      return;
+    }
+
+    this._touchPoints.delete(event.pointerId);
+
+    if (this._touchPoints.size < 2) {
+      this._pinch = null;
+    }
+  }
+
   private _onPointerDown = (event: PointerEvent): void => {
     // Once the user touches the canvas, never fight their pan/zoom with the
     // startup centering loop.
-    this._cancelCenterFollow();
+    this._viewportCtrl.cancelCenterFollow();
+
+    if (event.pointerType === "touch") {
+      this._touchPoints.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      if (this._touchPoints.size === 2) {
+        this._beginPinch();
+        event.preventDefault();
+        return;
+      }
+
+      if (this._touchPoints.size > 2) {
+        return;
+      }
+    }
 
     if (this._isCellResizeTarget(event.target)) {
       const host = (event.target as HTMLElement).closest(
@@ -4297,20 +3723,25 @@ export class NotebookMindMapWidget extends Widget {
       }
     }
 
-    if (this._isCellDragTarget(event.target)) {
+    // Only the primary button drags; right / middle click must not start a move.
+    if (event.button === 0 && this._isCellDragTarget(event.target)) {
       const host = (event.target as HTMLElement).closest(
         ".jp-KuusiNotebookMindMap-cellNode",
       );
 
       if (host instanceof HTMLElement && host.dataset.nodeId) {
         const nodeId = host.dataset.nodeId;
-        this._dragState = {
+        this._drag.dragState = {
           nodeId,
-          nodeIds: this._resolveDragNodeIds(nodeId),
+          nodeIds: this._drag.resolveDragNodeIds(nodeId),
           pointerId: event.pointerId,
           startX: event.clientX,
           startY: event.clientY,
           active: false,
+          holdUntil:
+            event.pointerType === "touch"
+              ? performance.now() + TOUCH_DRAG_HOLD_MS
+              : 0,
         };
         // Delay pointer capture until the drag activates. Capturing on
         // pointerdown retargets click/dblclick to the viewport and breaks
@@ -4352,6 +3783,18 @@ export class NotebookMindMapWidget extends Widget {
   };
 
   private _onPointerMove = (event: PointerEvent): void => {
+    if (event.pointerType === "touch" && this._touchPoints.has(event.pointerId)) {
+      this._touchPoints.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      if (this._pinch) {
+        this._updatePinch();
+        return;
+      }
+    }
+
     if (this._resizeState && this._resizeState.pointerId === event.pointerId) {
       const resize = this._resizeState;
       const deltaWorld = (event.clientX - resize.startX) / this._zoom;
@@ -4360,8 +3803,8 @@ export class NotebookMindMapWidget extends Widget {
       return;
     }
 
-    if (this._dragState && this._dragState.pointerId === event.pointerId) {
-      const drag = this._dragState;
+    if (this._drag.dragState && this._drag.dragState.pointerId === event.pointerId) {
+      const drag = this._drag.dragState;
       const distance = Math.hypot(
         event.clientX - drag.startX,
         event.clientY - drag.startY,
@@ -4373,11 +3816,22 @@ export class NotebookMindMapWidget extends Widget {
         event.preventDefault();
       }
 
+      if (
+        !drag.active &&
+        distance >= DRAG_THRESHOLD_PX &&
+        drag.holdUntil &&
+        performance.now() < drag.holdUntil
+      ) {
+        // Touch swipe before the long-press elapsed: pan the canvas instead.
+        this._startPanFromDrag(event, drag);
+        return;
+      }
+
       if (!drag.active && distance >= DRAG_THRESHOLD_PX) {
         drag.active = true;
         this._lastCellTap = null;
-        this._cancelCenterFollow();
-        this._lockViewportPan(VIEWPORT_PAN_LOCK_MS);
+        this._viewportCtrl.cancelCenterFollow();
+        this._viewportCtrl.lockPan(VIEWPORT_PAN_LOCK_MS);
 
         const index = this._getCellIndexFromNodeId(drag.nodeId);
         const selected = this._getSelectedNodeIds();
@@ -4387,7 +3841,7 @@ export class NotebookMindMapWidget extends Widget {
           this._selectCell(index);
           drag.nodeIds = [drag.nodeId];
         } else {
-          drag.nodeIds = this._resolveDragNodeIds(drag.nodeId);
+          drag.nodeIds = this._drag.resolveDragNodeIds(drag.nodeId);
         }
 
         try {
@@ -4396,18 +3850,18 @@ export class NotebookMindMapWidget extends Widget {
           // Capture can fail if the pointer was already released.
         }
 
-        this._captureDragBasePositions();
-        this._startDragGhost(drag.nodeId, event.clientX, event.clientY);
+        this._drag.captureBasePositions();
+        this._drag.startGhost(drag.nodeId, event.clientX, event.clientY);
         drag.nodeIds.forEach((nodeId) => {
           this._cellNodes.get(nodeId)?.classList.add("is-drag-source");
         });
         this._viewport.classList.add("is-node-dragging");
-        this._updateDragTarget(event.clientX, event.clientY);
+        this._drag.updateDropTarget(event.clientX, event.clientY);
       }
 
       if (drag.active) {
-        this._updateDragTarget(event.clientX, event.clientY);
-        this._moveDragGhost(event.clientX, event.clientY);
+        this._drag.updateDropTarget(event.clientX, event.clientY);
+        this._drag.moveGhost(event.clientX, event.clientY);
       }
 
       return;
@@ -4422,22 +3876,103 @@ export class NotebookMindMapWidget extends Widget {
     this._applyTransform();
   };
 
+  /** Hand a not-yet-active touch drag over to canvas panning. */
+  private _startPanFromDrag(event: PointerEvent, drag: MindMapDragState): void {
+    this._drag.dragState = null;
+    this._unbindDragWindowListeners();
+
+    if (this._notebook.mode === "edit") {
+      this._commitActiveCellEdit();
+    }
+
+    this._isPanning = true;
+    this._panPointerId = event.pointerId;
+    this._panStart = {
+      x: drag.startX,
+      y: drag.startY,
+      panX: this._panX,
+      panY: this._panY,
+    };
+    this._suppressCellClickUntil = performance.now() + 500;
+
+    try {
+      this._viewport.setPointerCapture(event.pointerId);
+    } catch {
+      // Capture can fail if the pointer was already released.
+    }
+
+    this._viewport.classList.add("is-panning");
+    this._panX = this._panStart.panX + (event.clientX - drag.startX);
+    this._panY = this._panStart.panY + (event.clientY - drag.startY);
+    this._applyTransform();
+  }
+
+  /** Abort an in-flight node drag without dropping (Esc, pointercancel). */
+  private _cancelNodeDrag(): void {
+    const drag = this._drag.dragState;
+
+    if (!drag) {
+      return;
+    }
+
+    this._drag.dragState = null;
+    this._unbindDragWindowListeners();
+
+    if (drag.active) {
+      this._suppressCellClickUntil = performance.now() + 500;
+    }
+
+    this._drag.clearUi();
+
+    try {
+      if (this._viewport.hasPointerCapture(drag.pointerId)) {
+        this._viewport.releasePointerCapture(drag.pointerId);
+      }
+    } catch {
+      // Ignore release errors when capture was never taken.
+    }
+  }
+
+  private _onPointerCancel = (event: PointerEvent): void => {
+    this._releaseTouchPoint(event);
+    const drag = this._drag.dragState;
+
+    if (drag && drag.pointerId === event.pointerId) {
+      this._cancelNodeDrag();
+      return;
+    }
+
+    this._onPointerUp(event);
+  };
+
+  private _onDragKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape" || !this._drag.dragState) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this._cancelNodeDrag();
+  };
+
   private _onPointerUp = (event: PointerEvent): void => {
+    this._releaseTouchPoint(event);
+
     if (this._resizeState && this._resizeState.pointerId === event.pointerId) {
       this._finishResize();
       this._viewport.releasePointerCapture(event.pointerId);
       return;
     }
 
-    if (this._dragState && this._dragState.pointerId === event.pointerId) {
-      const drag = this._dragState;
+    if (this._drag.dragState && this._drag.dragState.pointerId === event.pointerId) {
+      const drag = this._drag.dragState;
       // Clear first so a second listener (viewport + window) is a no-op.
-      this._dragState = null;
+      this._drag.dragState = null;
       this._unbindDragWindowListeners();
 
       if (drag.active) {
         this._suppressCellClickUntil = performance.now() + 500;
-        this._completeNodeDrag(drag.nodeIds);
+        this._drag.completeNodeDrag(drag.nodeIds);
         this._lastCellTap = null;
       } else {
         const index = this._getCellIndexFromNodeId(drag.nodeId);
@@ -4460,7 +3995,7 @@ export class NotebookMindMapWidget extends Widget {
         }
       }
 
-      this._clearDragUi();
+      this._drag.clearUi();
 
       try {
         if (this._viewport.hasPointerCapture(event.pointerId)) {
@@ -4482,7 +4017,7 @@ export class NotebookMindMapWidget extends Widget {
     this._viewport.releasePointerCapture(event.pointerId);
     this._viewport.classList.remove("is-panning");
     this._clearWheelPanMomentum();
-    this._lockViewportPan(VIEWPORT_PAN_LOCK_AFTER_PAN_MS);
+    this._viewportCtrl.lockPan(VIEWPORT_PAN_LOCK_AFTER_PAN_MS);
   };
 
   private _applyResizeWidth(nodeId: string, width: number): void {
@@ -4690,929 +4225,6 @@ export class NotebookMindMapWidget extends Widget {
         : resolveNodeBorderRadius(this._appearanceSettings);
   }
 
-  private _startDragGhost(
-    nodeId: string,
-    clientX: number,
-    clientY: number,
-  ): void {
-    const source = this._cellNodes.get(nodeId);
-
-    if (!source) {
-      return;
-    }
-
-    this._dragGhost?.remove();
-
-    const ghost = source.cloneNode(true) as HTMLElement;
-    ghost.classList.add("jp-KuusiNotebookMindMap-drag-ghost");
-    ghost.classList.remove(
-      "is-selected",
-      "is-drag-source",
-      "is-drop-before",
-      "is-drop-inside",
-      "is-drop-after",
-      "is-slot-neighbor",
-      "is-resizing",
-      "jp-mod-active",
-    );
-    ghost.removeAttribute("id");
-    ghost.querySelectorAll(
-      ".jp-KuusiNotebookMindMap-collapse, .jp-KuusiNotebookMindMap-resizeHandle",
-    ).forEach((el) => el.remove());
-
-    // Keep layout size; screen size comes from canvas zoom via transform.
-    ghost.style.width = `${source.offsetWidth}px`;
-    ghost.style.height = `${source.offsetHeight}px`;
-    ghost.style.left = "0";
-    ghost.style.top = "0";
-    ghost.style.margin = "0";
-    ghost.style.zIndex = "10000";
-    ghost.style.pointerEvents = "none";
-    ghost.style.transformOrigin = "top left";
-
-    // Ghost lives on document.body — copy scene tokens so fonts/colors match.
-    const sceneStyle = getComputedStyle(this._scene);
-    for (let i = 0; i < sceneStyle.length; i += 1) {
-      const name = sceneStyle.item(i);
-
-      if (
-        name.startsWith("--kuusi-") ||
-        name.startsWith("--jp-content-font") ||
-        name.startsWith("--jp-code-font") ||
-        name.startsWith("--jp-ui-font") ||
-        name.startsWith("--jp-mirror-editor")
-      ) {
-        ghost.style.setProperty(name, sceneStyle.getPropertyValue(name));
-      }
-    }
-
-    if (this._scene.dataset.kuusiNodeContrast === "1") {
-      const fg =
-        source.style.getPropertyValue("--kuusi-node-foreground") ||
-        sceneStyle.getPropertyValue("--kuusi-node-foreground");
-
-      if (fg) {
-        ghost.style.setProperty("--kuusi-node-foreground", fg);
-        ghost.style.color = fg;
-      }
-    }
-
-    document.body.appendChild(ghost);
-    this._dragGhost = ghost;
-    this._moveDragGhost(clientX, clientY);
-  }
-
-  private _moveDragGhost(clientX: number, clientY: number): void {
-    if (!this._dragGhost) {
-      return;
-    }
-
-    const zoom = this._zoom;
-    this._dragGhost.style.transform = `translate(${clientX + 12}px, ${clientY + 12}px) scale(${zoom})`;
-  }
-
-  private _updateDragTarget(clientX: number, clientY: number): void {
-    this._cellNodes.forEach((node) => {
-      node.classList.remove(
-        "is-drop-before",
-        "is-drop-inside",
-        "is-drop-after",
-        "is-slot-neighbor",
-      );
-    });
-
-    this._dropTargetNodeId = null;
-    this._dropZone = null;
-
-    const draggedIds = this._dragState?.nodeIds ?? [];
-
-    if (draggedIds.length === 0) {
-      return;
-    }
-
-    // Hit-test against pre-drag layout boxes in scene space so sibling gap
-    // transforms do not move the drop bands under the cursor.
-    const viewportRect = this._viewport.getBoundingClientRect();
-    const sceneX = (clientX - viewportRect.left - this._panX) / this._zoom;
-    const sceneY = (clientY - viewportRect.top - this._panY) / this._zoom;
-
-    const resolved = this._resolveDropAtScene(draggedIds, sceneX, sceneY);
-
-    if (!resolved) {
-      this._updateDragSlotPreview(draggedIds, sceneX, sceneY);
-      return;
-    }
-
-    this._dropTargetNodeId = resolved.targetNodeId;
-    this._dropZone = resolved.zone;
-
-    const targetHost = this._cellNodes.get(resolved.targetNodeId);
-
-    // Sibling slots use live gap animation; only "inside" keeps a ring hint.
-    if (resolved.zone === "inside" && targetHost) {
-      targetHost.classList.add("is-drop-inside");
-    }
-
-    this._updateDragSlotPreview(draggedIds, sceneX, sceneY);
-  }
-
-  /**
-   * Resolve drop target from scene coordinates: card bands first, then the
-   * empty gap between sibling cards (so the pointer can sit between two nodes).
-   */
-  private _resolveDropAtScene(
-    draggedIds: readonly string[],
-    sceneX: number,
-    sceneY: number,
-  ): { targetNodeId: string; zone: DropZone } | null {
-    const { outline } = this._getOutlineSnapshot();
-    let targetNodeId: string | null = null;
-    let targetBase:
-      | { left: number; top: number; width: number; height: number }
-      | null = null;
-
-    this._dragBasePositions.forEach((base, nodeId) => {
-      if (
-        this._isDraggedRelatedNode(outline, draggedIds, nodeId) ||
-        !this._cellNodes.has(nodeId)
-      ) {
-        return;
-      }
-
-      if (
-        sceneX >= base.left &&
-        sceneX <= base.left + base.width &&
-        sceneY >= base.top &&
-        sceneY <= base.top + base.height
-      ) {
-        if (
-          !targetBase ||
-          base.width * base.height < targetBase.width * targetBase.height
-        ) {
-          targetNodeId = nodeId;
-          targetBase = base;
-        }
-      }
-    });
-
-    if (targetNodeId && targetBase) {
-      return {
-        targetNodeId,
-        zone: getDropZoneFromPointer(
-          targetBase,
-          sceneX,
-          sceneY,
-          this._treeDirection,
-        ),
-      };
-    }
-
-    const alongY =
-      this._treeDirection === "LR" || this._treeDirection === "RL";
-    const axis = alongY ? sceneY : sceneX;
-    const cross = alongY ? sceneX : sceneY;
-    const primaryId = draggedIds[0]!;
-    const origin = findOutlineNode(outline, primaryId);
-    const draggedSet = new Set(draggedIds);
-
-    const candidates: Array<{
-      targetNodeId: string;
-      zone: "before" | "after";
-      score: number;
-    }> = [];
-
-    const considerParent = (parent: OutlineNode, prefer: boolean) => {
-      const items = parent.children
-        .filter((child) => !draggedSet.has(child.id))
-        .map((child) => {
-          const base = this._dragBasePositions.get(child.id);
-
-          if (!base) {
-            return null;
-          }
-
-          return {
-            id: child.id,
-            start: alongY ? base.top : base.left,
-            end: alongY ? base.top + base.height : base.left + base.width,
-            crossStart: alongY ? base.left : base.top,
-            crossEnd: alongY
-              ? base.left + base.width
-              : base.top + base.height,
-          };
-        })
-        .filter((item): item is NonNullable<typeof item> => item !== null);
-
-      const gap = resolveSiblingGapDrop(items, axis, cross, {
-        // Stay in the sibling column; past the first/last sibling any distance
-        // along the stack still means insert at top / bottom.
-        crossPad: 64,
-        extremeAxisPad: Number.POSITIVE_INFINITY,
-      });
-
-      if (!gap) {
-        return;
-      }
-
-      candidates.push({
-        targetNodeId: gap.targetNodeId,
-        zone: gap.zone,
-        score: prefer ? -1 : Math.abs(cross - (items[0]?.crossStart ?? 0)),
-      });
-    };
-
-    if (origin) {
-      considerParent(origin.parent, true);
-    }
-
-    const walk = (node: OutlineNode) => {
-      if (!origin || node.id !== origin.parent.id) {
-        considerParent(node, false);
-      }
-
-      node.children.forEach(walk);
-    };
-
-    walk(outline);
-
-    if (candidates.length === 0) {
-      // Empty space behind a card (tree-growth side) → nest as its child.
-      const childLane = this._resolveChildLaneAtScene(
-        draggedIds,
-        sceneX,
-        sceneY,
-      );
-
-      if (childLane) {
-        return childLane;
-      }
-
-      return null;
-    }
-
-    candidates.sort((a, b) => a.score - b.score);
-    const best = candidates[0]!;
-
-    return { targetNodeId: best.targetNodeId, zone: best.zone };
-  }
-
-  /**
-   * Pointer in the gutter behind a card (child side of the tree) counts as
-   * nesting under that card — where the translucent placeholder will sit.
-   */
-  private _resolveChildLaneAtScene(
-    draggedIds: readonly string[],
-    sceneX: number,
-    sceneY: number,
-  ): { targetNodeId: string; zone: "inside" } | null {
-    const { outline } = this._getOutlineSnapshot();
-    const primaryId = draggedIds[0]!;
-    const draggedBase = this._dragBasePositions.get(primaryId);
-    const draggedSpan = draggedBase
-      ? this._treeDirection === "LR" || this._treeDirection === "RL"
-        ? draggedBase.width
-        : draggedBase.height
-      : LAYOUT_NODE_WIDTH.min * 0.35;
-    const depth = this._childGap + Math.max(draggedSpan, 80);
-    const crossPad = 28;
-
-    let bestId: string | null = null;
-    let bestScore = Number.POSITIVE_INFINITY;
-
-    this._dragBasePositions.forEach((base, nodeId) => {
-      if (
-        this._isDraggedRelatedNode(outline, draggedIds, nodeId) ||
-        !this._cellNodes.has(nodeId)
-      ) {
-        return;
-      }
-
-      let inLane = false;
-      let score = Number.POSITIVE_INFINITY;
-
-      switch (this._treeDirection) {
-        case "LR": {
-          const laneLeft = base.left + base.width;
-          const laneRight = laneLeft + depth;
-          inLane =
-            sceneX >= laneLeft &&
-            sceneX <= laneRight &&
-            sceneY >= base.top - crossPad &&
-            sceneY <= base.top + base.height + crossPad;
-          score = Math.abs(sceneX - (laneLeft + this._childGap / 2));
-          break;
-        }
-        case "RL": {
-          const laneRight = base.left;
-          const laneLeft = laneRight - depth;
-          inLane =
-            sceneX <= laneRight &&
-            sceneX >= laneLeft &&
-            sceneY >= base.top - crossPad &&
-            sceneY <= base.top + base.height + crossPad;
-          score = Math.abs(sceneX - (laneRight - this._childGap / 2));
-          break;
-        }
-        case "TB": {
-          const laneTop = base.top + base.height;
-          const laneBottom = laneTop + depth;
-          inLane =
-            sceneY >= laneTop &&
-            sceneY <= laneBottom &&
-            sceneX >= base.left - crossPad &&
-            sceneX <= base.left + base.width + crossPad;
-          score = Math.abs(sceneY - (laneTop + this._childGap / 2));
-          break;
-        }
-        case "BT": {
-          const laneBottom = base.top;
-          const laneTop = laneBottom - depth;
-          inLane =
-            sceneY <= laneBottom &&
-            sceneY >= laneTop &&
-            sceneX >= base.left - crossPad &&
-            sceneX <= base.left + base.width + crossPad;
-          score = Math.abs(sceneY - (laneBottom - this._childGap / 2));
-          break;
-        }
-      }
-
-      if (!inLane || score >= bestScore) {
-        return;
-      }
-
-      bestScore = score;
-      bestId = nodeId;
-    });
-
-    return bestId ? { targetNodeId: bestId, zone: "inside" } : null;
-  }
-
-  private _captureDragBasePositions(): void {
-    this._dragBasePositions.clear();
-    this._dragSlotPreviewKey = null;
-
-    this._cellNodes.forEach((node, nodeId) => {
-      this._dragBasePositions.set(nodeId, {
-        left: Number.parseFloat(node.style.left) || 0,
-        top: Number.parseFloat(node.style.top) || 0,
-        width: node.offsetWidth,
-        height: node.offsetHeight,
-      });
-    });
-  }
-
-  /**
-   * Which side of a sibling insert gap the pointer sits on.
-   * - `after`: pointer is past the gap (below for LR/RL, right for TB) →
-   *   shift the before-side (upper/left) away to open space.
-   * - `before`: pointer is before the gap (above / left) → shift the
-   *   after-side (lower/right) away.
-   */
-  private _resolveSlotGapBias(
-    neighborPrevId: string | null,
-    neighborNextId: string | null,
-    alongY: boolean,
-    sceneX: number,
-    sceneY: number,
-  ): "before" | "after" {
-    const prevBase = neighborPrevId
-      ? this._dragBasePositions.get(neighborPrevId)
-      : undefined;
-    const nextBase = neighborNextId
-      ? this._dragBasePositions.get(neighborNextId)
-      : undefined;
-
-    if (!prevBase && nextBase) {
-      // Insert at start — only the after-side can move.
-      return "before";
-    }
-
-    if (prevBase && !nextBase) {
-      // Insert at end — only the before-side can move.
-      return "after";
-    }
-
-    if (!prevBase || !nextBase) {
-      return "before";
-    }
-
-    const gapMid = alongY
-      ? (prevBase.top + prevBase.height + nextBase.top) / 2
-      : (prevBase.left + prevBase.width + nextBase.left) / 2;
-    const pointer = alongY ? sceneY : sceneX;
-
-    return pointer >= gapMid ? "after" : "before";
-  }
-
-  /**
-   * iOS-style drop preview: collapse the hole left by the dragged card,
-   * open a gap at the before/after insert index, and move the translucent
-   * placeholder into that intended drop slot. For “inside” (become child),
-   * park the placeholder in the child lane behind the target — where the
-   * node will appear after drop.
-   *
-   * Sibling gap bias: if the pointer is on the after side of the gap, the
-   * before-side neighbors slide away (full slot); if on the before side, the
-   * after-side neighbors slide away. The near side stays put.
-   */
-  private _updateDragSlotPreview(
-    draggedIds: readonly string[],
-    sceneX = 0,
-    sceneY = 0,
-  ): void {
-    const alongY =
-      this._treeDirection === "LR" || this._treeDirection === "RL";
-    const primaryId = draggedIds[0];
-    const draggedBase = primaryId
-      ? this._dragBasePositions.get(primaryId)
-      : undefined;
-    const draggedSet = new Set(draggedIds);
-
-    if (!primaryId || !draggedBase) {
-      return;
-    }
-
-    const slotSize =
-      draggedIds.reduce((total, nodeId) => {
-        const base = this._dragBasePositions.get(nodeId);
-
-        if (!base) {
-          return total;
-        }
-
-        const span = alongY ? base.height : base.width;
-        return total + span + this._siblingGap;
-      }, 0) ||
-      (alongY ? draggedBase.height : draggedBase.width) + this._siblingGap;
-
-    const { outline } = this._getOutlineSnapshot();
-    const origin = findOutlineNode(outline, primaryId);
-    const offsets = new Map<string, number>();
-
-    const addOffset = (nodeId: string, delta: number) => {
-      offsets.set(nodeId, (offsets.get(nodeId) ?? 0) + delta);
-    };
-
-    let previewKey = `origin:${origin?.parent.id ?? "none"}`;
-    let neighborPrev: string | null = null;
-    let neighborNext: string | null = null;
-    /** Scene-space destination for the translucent drag-source card. */
-    let placeholderLeft = draggedBase.left;
-    let placeholderTop = draggedBase.top;
-    let movePlaceholder = false;
-
-    // Open a gap at the sibling drop index (before / after).
-    if (
-      this._dropTargetNodeId &&
-      this._dropZone &&
-      this._dropZone !== "inside"
-    ) {
-      const drop = resolveDropTarget(
-        outline,
-        primaryId,
-        this._dropTargetNodeId,
-        this._dropZone,
-      );
-
-      if (drop) {
-        const parent =
-          drop.parentId === "root"
-            ? outline
-            : (findOutlineNode(outline, drop.parentId)?.node ?? null);
-
-        if (parent) {
-          const remaining = parent.children.filter(
-            (child) => !draggedSet.has(child.id),
-          );
-          let insertAt = drop.insertIndex;
-          let removedBefore = 0;
-
-          if (origin && origin.parent.id === parent.id) {
-            parent.children.forEach((child, index) => {
-              if (draggedSet.has(child.id) && index < drop.insertIndex) {
-                removedBefore += 1;
-              }
-            });
-          }
-
-          insertAt -= removedBefore;
-          insertAt = Math.max(0, Math.min(insertAt, remaining.length));
-
-          const sameParentHome =
-            !!origin &&
-            origin.parent.id === parent.id &&
-            (() => {
-              // Compacted home index of the first dragged root among remaining.
-              const firstDragged = parent.children.findIndex((child) =>
-                draggedSet.has(child.id),
-              );
-              if (firstDragged < 0) {
-                return false;
-              }
-              const compacted = parent.children
-                .slice(0, firstDragged)
-                .filter((child) => !draggedSet.has(child.id)).length;
-              return insertAt === compacted;
-            })();
-
-          neighborPrev = remaining[insertAt - 1]?.id ?? null;
-          neighborNext = remaining[insertAt]?.id ?? null;
-          const gapBias = this._resolveSlotGapBias(
-            neighborPrev,
-            neighborNext,
-            alongY,
-            sceneX,
-            sceneY,
-          );
-          previewKey = `slot:${parent.id}:${insertAt}:${gapBias}`;
-
-          if (sameParentHome) {
-            // Dropping back into the original slot — keep everyone still.
-          } else if (origin && origin.parent.id === parent.id) {
-            const firstDraggedIndex = parent.children.findIndex((child) =>
-              draggedSet.has(child.id),
-            );
-            origin.parent.children.forEach((child, index) => {
-              if (!draggedSet.has(child.id) && index > firstDraggedIndex) {
-                addOffset(child.id, -slotSize);
-              }
-            });
-            remaining.forEach((child, index) => {
-              if (gapBias === "after") {
-                if (index < insertAt) {
-                  addOffset(child.id, -slotSize);
-                }
-              } else if (index >= insertAt) {
-                addOffset(child.id, slotSize);
-              }
-            });
-            movePlaceholder = true;
-          } else {
-            if (origin) {
-              const firstDraggedIndex = origin.parent.children.findIndex(
-                (child) => draggedSet.has(child.id),
-              );
-              origin.parent.children.forEach((child, index) => {
-                if (!draggedSet.has(child.id) && index > firstDraggedIndex) {
-                  addOffset(child.id, -slotSize);
-                }
-              });
-            }
-
-            remaining.forEach((child, index) => {
-              if (gapBias === "after") {
-                if (index < insertAt) {
-                  addOffset(child.id, -slotSize);
-                }
-              } else if (index >= insertAt) {
-                addOffset(child.id, slotSize);
-              }
-            });
-            movePlaceholder = true;
-          }
-
-          if (movePlaceholder) {
-            if (neighborNext) {
-              const nextBase = this._dragBasePositions.get(neighborNext);
-
-              if (nextBase) {
-                const nextShift = offsets.get(neighborNext) ?? 0;
-
-                if (alongY) {
-                  placeholderLeft = nextBase.left;
-                  placeholderTop = nextBase.top + nextShift - slotSize;
-                } else {
-                  placeholderLeft = nextBase.left + nextShift - slotSize;
-                  placeholderTop = nextBase.top;
-                }
-              }
-            } else if (neighborPrev) {
-              const prevBase = this._dragBasePositions.get(neighborPrev);
-
-              if (prevBase) {
-                const prevShift = offsets.get(neighborPrev) ?? 0;
-
-                if (alongY) {
-                  placeholderLeft = prevBase.left;
-                  placeholderTop =
-                    prevBase.top +
-                    prevShift +
-                    prevBase.height +
-                    this._siblingGap;
-                } else {
-                  placeholderLeft =
-                    prevBase.left +
-                    prevShift +
-                    prevBase.width +
-                    this._siblingGap;
-                  placeholderTop = prevBase.top;
-                }
-              }
-            }
-          }
-        }
-      }
-    } else if (this._dropZone === "inside" && this._dropTargetNodeId) {
-      previewKey = `inside:${this._dropTargetNodeId}`;
-
-      const targetNode =
-        this._dropTargetNodeId === "root"
-          ? outline
-          : (findOutlineNode(outline, this._dropTargetNodeId)?.node ?? null);
-      const targetBase = this._dragBasePositions.get(this._dropTargetNodeId);
-      const remainingChildren =
-        targetNode?.children.filter((child) => !draggedSet.has(child.id)) ??
-        [];
-      const insertAt = remainingChildren.length;
-      const sameParentHome =
-        !!origin &&
-        origin.parent.id === (targetNode?.id ?? "") &&
-        (() => {
-          const firstDragged = origin.parent.children.findIndex((child) =>
-            draggedSet.has(child.id),
-          );
-          if (firstDragged < 0) {
-            return false;
-          }
-          const compacted = origin.parent.children
-            .slice(0, firstDragged)
-            .filter((child) => !draggedSet.has(child.id)).length;
-          return compacted === insertAt;
-        })();
-
-      neighborPrev = remainingChildren[insertAt - 1]?.id ?? null;
-
-      if (!sameParentHome) {
-        if (origin) {
-          const firstDraggedIndex = origin.parent.children.findIndex((child) =>
-            draggedSet.has(child.id),
-          );
-          origin.parent.children.forEach((child, index) => {
-            if (!draggedSet.has(child.id) && index > firstDraggedIndex) {
-              addOffset(child.id, -slotSize);
-            }
-          });
-        }
-
-        movePlaceholder = true;
-
-        if (neighborPrev) {
-          const prevBase = this._dragBasePositions.get(neighborPrev);
-
-          if (prevBase) {
-            const prevShift = offsets.get(neighborPrev) ?? 0;
-
-            if (alongY) {
-              // LR/RL: append below the last existing child.
-              placeholderLeft = prevBase.left;
-              placeholderTop =
-                prevBase.top +
-                prevShift +
-                prevBase.height +
-                this._siblingGap;
-            } else {
-              placeholderLeft =
-                prevBase.left +
-                prevShift +
-                prevBase.width +
-                this._siblingGap;
-              placeholderTop = prevBase.top;
-            }
-          }
-        } else if (targetBase) {
-          // First child: sit in the growth-direction lane behind the parent.
-          const gap = this._childGap;
-
-          switch (this._treeDirection) {
-            case "LR":
-              placeholderLeft = targetBase.left + targetBase.width + gap;
-              placeholderTop =
-                targetBase.top +
-                (targetBase.height - draggedBase.height) / 2;
-              break;
-            case "RL":
-              placeholderLeft =
-                targetBase.left - gap - draggedBase.width;
-              placeholderTop =
-                targetBase.top +
-                (targetBase.height - draggedBase.height) / 2;
-              break;
-            case "TB":
-              placeholderLeft =
-                targetBase.left +
-                (targetBase.width - draggedBase.width) / 2;
-              placeholderTop = targetBase.top + targetBase.height + gap;
-              break;
-            case "BT":
-              placeholderLeft =
-                targetBase.left +
-                (targetBase.width - draggedBase.width) / 2;
-              placeholderTop =
-                targetBase.top - gap - draggedBase.height;
-              break;
-          }
-        }
-      }
-    } else if (origin) {
-      // No sibling target yet — only collapse the origin hole.
-      const firstDraggedIndex = origin.parent.children.findIndex((child) =>
-        draggedSet.has(child.id),
-      );
-      origin.parent.children.forEach((child, index) => {
-        if (!draggedSet.has(child.id) && index > firstDraggedIndex) {
-          addOffset(child.id, -slotSize);
-        }
-      });
-    }
-
-    if (previewKey === this._dragSlotPreviewKey) {
-      return;
-    }
-
-    this._dragSlotPreviewKey = previewKey;
-
-    const placeholderDx = movePlaceholder
-      ? placeholderLeft - draggedBase.left
-      : 0;
-    const placeholderDy = movePlaceholder
-      ? placeholderTop - draggedBase.top
-      : 0;
-
-    this._cellNodes.forEach((node, nodeId) => {
-      node.classList.remove("is-slot-neighbor");
-
-      if (draggedSet.has(nodeId)) {
-        // Keep the primary card as the moving placeholder; others stay faded.
-        if (nodeId === primaryId) {
-          node.style.transform =
-            placeholderDx === 0 && placeholderDy === 0
-              ? ""
-              : `translate(${placeholderDx}px, ${placeholderDy}px)`;
-        } else {
-          node.style.transform = "";
-        }
-        return;
-      }
-
-      const shift = offsets.get(nodeId) ?? 0;
-      node.style.transform =
-        shift === 0
-          ? ""
-          : alongY
-            ? `translateY(${shift}px)`
-            : `translateX(${shift}px)`;
-
-      if (nodeId === neighborPrev || nodeId === neighborNext) {
-        node.classList.add("is-slot-neighbor");
-      }
-    });
-
-    // Keep connectors glued to the translucent placeholder / shifted siblings.
-    this._refreshEdgesFromCache();
-  }
-
-  private _clearDragSlotPreview(): void {
-    this._dragSlotPreviewKey = null;
-    this._dragBasePositions.clear();
-    this._cellNodes.forEach((node) => {
-      node.style.transform = "";
-      node.classList.remove("is-slot-neighbor");
-    });
-  }
-
-  private _completeNodeDrag(draggedIds: readonly string[]): void {
-    if (!this._dropTargetNodeId || !this._dropZone || draggedIds.length === 0) {
-      return;
-    }
-
-    const primaryId = draggedIds[0]!;
-    const { cells, outline } = this._getOutlineSnapshot();
-
-    if (
-      draggedIds.some(
-        (nodeId) =>
-          nodeId === this._dropTargetNodeId ||
-          isOutlineDescendant(outline, nodeId, this._dropTargetNodeId!),
-      )
-    ) {
-      return;
-    }
-
-    const dropTarget = resolveDropTarget(
-      outline,
-      primaryId,
-      this._dropTargetNodeId,
-      this._dropZone,
-    );
-
-    if (!dropTarget) {
-      return;
-    }
-
-    const movedOutline = moveOutlineNodes(
-      outline,
-      draggedIds,
-      dropTarget.parentId,
-      dropTarget.insertIndex,
-    );
-
-    if (!movedOutline) {
-      return;
-    }
-
-    const modelIds: string[] = [];
-    let activeModelId = "";
-
-    draggedIds.forEach((nodeId) => {
-      const index = this._getCellIndexFromNodeId(nodeId);
-      const cell = index >= 0 ? this._notebook.widgets[index] : null;
-
-      if (!cell) {
-        return;
-      }
-
-      modelIds.push(cell.model.id);
-
-      if (nodeId === primaryId) {
-        activeModelId = cell.model.id;
-      }
-    });
-
-    // Freeze the camera before cells reorder / layout so the window does not
-    // chase the moved node (notebook sync + ensure-visible would pan otherwise).
-    this._cancelCenterFollow();
-    this._lockViewportPan(VIEWPORT_PAN_LOCK_MS);
-    this._holdViewportPan();
-    extendQuietNotebookSync(VIEWPORT_PAN_LOCK_MS);
-    this._viewportAnchor = null;
-    this._pendingFocusCellIndex = null;
-    this._pendingFocusCenter = false;
-
-    this._applyingNotebookChange = true;
-
-    try {
-      applyOutlineToNotebook(this._context.model, movedOutline, cells);
-    } finally {
-      this._applyingNotebookChange = false;
-    }
-
-    if (modelIds.length > 0) {
-      this._selectCellsByModelIds(modelIds, activeModelId || modelIds[0]!);
-    }
-
-    this._invalidateOutlineCache();
-    this._clearDragSlotPreview();
-    this._applyLayout();
-  }
-
-  private _clearDragUi(): void {
-    this._dragGhost?.remove();
-    this._dragGhost = null;
-    this._dropTargetNodeId = null;
-    this._dropZone = null;
-    this._viewport.classList.remove("is-node-dragging");
-    this._clearDragSlotPreview();
-    this._cellNodes.forEach((node) => {
-      node.classList.remove(
-        "is-drop-before",
-        "is-drop-inside",
-        "is-drop-after",
-        "is-drag-source",
-        "is-slot-neighbor",
-      );
-    });
-    this._refreshEdgesFromCache();
-  }
-
-  /** Read inline translate used by drag slot preview (not the scene pan/zoom). */
-  private _readCssTranslate(node: HTMLElement): { x: number; y: number } {
-    const value = node.style.transform;
-
-    if (!value || value === "none") {
-      return { x: 0, y: 0 };
-    }
-
-    if (value.startsWith("translateX(")) {
-      return { x: Number.parseFloat(value.slice(11)) || 0, y: 0 };
-    }
-
-    if (value.startsWith("translateY(")) {
-      return { x: 0, y: Number.parseFloat(value.slice(11)) || 0 };
-    }
-
-    const match = /^translate\(\s*([^,)]+)\s*(?:,\s*([^)]+))?\)/.exec(value);
-
-    if (!match) {
-      return { x: 0, y: 0 };
-    }
-
-    return {
-      x: Number.parseFloat(match[1]!) || 0,
-      y: match[2] ? Number.parseFloat(match[2]!) || 0 : 0,
-    };
-  }
-
   private _resolveLayoutPosition(
     layout: LayoutPosition,
     nodeId: string,
@@ -5628,7 +4240,7 @@ export class NotebookMindMapWidget extends Widget {
     // Include drag-preview translates so connectors follow the placeholder.
     const left = Number.parseFloat(node.style.left);
     const top = Number.parseFloat(node.style.top);
-    const translate = this._readCssTranslate(node);
+    const translate = this._drag.readCssTranslate(node);
 
     return {
       ...layout,
@@ -5645,13 +4257,13 @@ export class NotebookMindMapWidget extends Widget {
    */
   private _collectEdgesForRender(outline: OutlineNode) {
     const edges = collectOutlineEdges(outline, this._collapsedNodes);
-    const draggedIds = this._dragState?.nodeIds ?? [];
+    const draggedIds = this._drag.dragState?.nodeIds ?? [];
 
     if (
-      !this._dragState?.active ||
+      !this._drag.dragState?.active ||
       draggedIds.length === 0 ||
-      !this._dropTargetNodeId ||
-      !this._dropZone
+      !this._drag.dropTargetNodeId ||
+      !this._drag.dropZone
     ) {
       return edges;
     }
@@ -5660,8 +4272,8 @@ export class NotebookMindMapWidget extends Widget {
     const drop = resolveDropTarget(
       outline,
       primaryId,
-      this._dropTargetNodeId,
-      this._dropZone,
+      this._drag.dropTargetNodeId,
+      this._drag.dropZone,
     );
 
     if (!drop) {
@@ -5680,6 +4292,35 @@ export class NotebookMindMapWidget extends Widget {
     }
 
     return filtered;
+  }
+
+  /**
+   * Stamp every node with its depth bucket's fill / border overrides. Runs
+   * after the per-node frame so a node's own fill keeps priority.
+   */
+  private _applyLevelStyles(outline: OutlineNode | null): void {
+    if (!outline) {
+      return;
+    }
+
+    const levels = this._appearanceSettings.levelStyles;
+    const info = computeEdgeInfo(
+      collectOutlineEdges(outline, this._collapsedNodes),
+    );
+
+    this._cellNodes.forEach((node, nodeId) => {
+      const level = levelIdForDepth(info.get(nodeId)?.depth ?? 0);
+      const index = this._getCellIndexFromNodeId(nodeId);
+      const cell = index >= 0 ? this._notebook.widgets[index] : null;
+
+      applyLevelStyleToNode(
+        node,
+        level,
+        levels[level],
+        cell ? readCellFrameStyle(cell.model) : {},
+        resolveNodeForeground,
+      );
+    });
   }
 
   private _renderEdges(
@@ -5716,6 +4357,11 @@ export class NotebookMindMapWidget extends Widget {
 
     const markers = this._edgeMarkerAttrs ?? {};
     const pathData: string[] = [];
+    const pathMeta: Array<{ depth: number; branch: number } | undefined> = [];
+    const edgeInfo = computeEdgeInfo(edges);
+    const { edgeTaper, edgeMinWidth, edgeBranchColors } =
+      this._appearanceSettings;
+    const edgeMinWidthPx = parseEdgeWidthPx(edgeMinWidth);
 
     edges.forEach(({ fromId, toId }) => {
       const fromLayout = positions.get(fromId);
@@ -5727,6 +4373,7 @@ export class NotebookMindMapWidget extends Widget {
 
       const from = this._resolveLayoutPosition(fromLayout, fromId);
       const to = this._resolveLayoutPosition(toLayout, toId);
+      pathMeta.push(edgeInfo.get(toId));
       pathData.push(
         buildMindMapEdgePath(
           from,
@@ -5747,8 +4394,26 @@ export class NotebookMindMapWidget extends Widget {
       }
 
       path.setAttribute("d", d);
+      const meta = pathMeta[index];
       // Keep stroke width in SVG user units so markers stay aligned under zoom.
-      path.setAttribute("stroke-width", String(edgeWidthPx));
+      path.setAttribute(
+        "stroke-width",
+        String(
+          edgeTaper && meta
+            ? taperedEdgeWidth(edgeWidthPx, edgeMinWidthPx, meta.depth)
+            : edgeWidthPx,
+        ),
+      );
+
+      if (edgeBranchColors !== "off" && meta) {
+        // Arrow markers use context-stroke, so they follow this color.
+        (path as SVGElement).style.stroke = branchEdgeColor(
+          edgeBranchColors,
+          meta.branch,
+        );
+      } else {
+        (path as SVGElement).style.removeProperty("stroke");
+      }
 
       if (markers.markerStart) {
         path.setAttribute("marker-start", markers.markerStart);
@@ -5821,6 +4486,7 @@ export class NotebookMindMapWidget extends Widget {
         positions,
       );
 
+      this._applyLevelStyles(outline);
       this._renderEdges(outline, positions);
       this._updateCanvasSize(canvasSize.width, canvasSize.height);
 
@@ -5853,6 +4519,10 @@ export class NotebookMindMapWidget extends Widget {
       }
     }
 
+    if (this._pendingFit && this.fitToView()) {
+      this._pendingFit = false;
+    }
+
     this._lastOutline = outline;
     this._lastLayoutPositions = finalPositions;
     this._lastLayoutDimensions = new Map(nodeDimensions);
@@ -5882,12 +4552,7 @@ export class NotebookMindMapWidget extends Widget {
       if (shouldCenter) {
         this._viewportAnchor = null;
 
-        if (!this._centerCellInViewport(index)) {
-          this._scheduleCenterOnCell(index);
-        } else {
-          this._noteCenterFollowSuccess(index);
-          this._scheduleCenterOnCell(index);
-        }
+        this._viewportCtrl.centerOrSchedule(index);
       } else {
         this._ensureCellVisibleInViewport(index, 48, revealAxis);
       }
@@ -5916,15 +4581,16 @@ export class NotebookMindMapWidget extends Widget {
       this._restoreViewportAnchor();
     }
 
-    if (this._heldViewportPan) {
-      this._panX = this._heldViewportPan.x;
-      this._panY = this._heldViewportPan.y;
+    const heldPan = this._viewportCtrl.heldPan;
+    if (heldPan) {
+      this._panX = heldPan.x;
+      this._panY = heldPan.y;
       this._applyTransform();
     }
 
-    if (!this._isViewportPanLocked()) {
+    if (!this._viewportCtrl.isPanLocked()) {
       // Font/settings / markdown reflow after open or notebook sync.
-      this._centerFollowIfNeeded();
+      this._viewportCtrl.followIfNeeded();
     }
   }
 
@@ -6678,80 +5344,5 @@ export class NotebookMindMapWidget extends Widget {
     };
 
     return visit(root);
-  }
-}
-
-export class NotebookMindMapDocumentWidget extends DocumentWidget<NotebookMindMapWidget> {
-  constructor(options: DocumentWidget.IOptions<NotebookMindMapWidget>) {
-    super(options);
-    this.addClass("jp-KuusiNotebookMindMapDocument");
-    this.toolbar.addClass("jp-NotebookPanel-toolbar");
-
-    applyKuusiTabIcon(this.title, mindMapIcon, "Kuusi Mind Map");
-    options.content.bindDocumentWidget(this);
-
-    const syncAutoReloadPlacement = (): void => {
-      ensureNotebookAutoReloadOnPluginToolbar(this);
-    };
-
-    const placementObserver = new MutationObserver(syncAutoReloadPlacement);
-    placementObserver.observe(this.content.node, {
-      childList: true,
-      subtree: true,
-    });
-    this.disposed.connect(() => {
-      placementObserver.disconnect();
-    });
-    requestAnimationFrame(() => {
-      syncAutoReloadPlacement();
-      window.setTimeout(syncAutoReloadPlacement, 0);
-    });
-  }
-}
-
-export class NotebookMindMapWidgetFactory extends ABCWidgetFactory<
-  NotebookMindMapDocumentWidget,
-  INotebookModel
-> {
-  static readonly NAME = "Kuusi Mind Map";
-
-  constructor(
-    private _rendermime: IRenderMimeRegistry,
-    private _contentFactory: NotebookPanel.IContentFactory,
-    private _mimeTypeService: IEditorMimeTypeService,
-    private _commands: CommandRegistry,
-    private _settingsManager: MindMapSettingsManager,
-    private _kuusiTranslator: ITranslator,
-    private _contents: Contents.IManager,
-    toolbarFactory?: (
-      widget: NotebookMindMapDocumentWidget,
-    ) =>
-      | DocumentRegistry.IToolbarItem[]
-      | IObservableList<DocumentRegistry.IToolbarItem>,
-  ) {
-    super({
-      name: NotebookMindMapWidgetFactory.NAME,
-      modelName: "notebook",
-      fileTypes: ["notebook"],
-      toolbarFactory,
-      preferKernel: false,
-      canStartKernel: true,
-    });
-  }
-
-  protected createNewWidget(
-    context: DocumentRegistry.IContext<INotebookModel>,
-  ): NotebookMindMapDocumentWidget {
-    const content = new NotebookMindMapWidget(
-      context,
-      this._rendermime,
-      this._contentFactory,
-      this._mimeTypeService,
-      this._commands,
-      this._settingsManager,
-      this._kuusiTranslator,
-      this._contents,
-    );
-    return new NotebookMindMapDocumentWidget({ content, context });
   }
 }

@@ -30,6 +30,10 @@ const readFrameStyle = (cell: ICellModel): NodeFrameStyle => {
   return frameStyle as NodeFrameStyle;
 };
 
+/** The node's own frame overrides (per-node fill / border), or `{}`. */
+export const readCellFrameStyle = (cell: ICellModel): NodeFrameStyle =>
+  readFrameStyle(cell);
+
 /** Per-node fill from `metadata.kuusi.frameStyle.background`. */
 export const readCellNodeFill = (cell: ICellModel): string | null => {
   const background = readFrameStyle(cell).background;

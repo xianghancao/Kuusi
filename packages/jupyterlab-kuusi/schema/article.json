@@ -1,0 +1,700 @@
+{
+  "title": "Kuusi Article",
+  "description": "Reading appearance for Markdown and notebook Article views.",
+  "jupyter.lab.internationalization": {
+    "domain": "jupyterlab_kuusi"
+  },
+  "jupyter.lab.setting-icon": "jupyterlab-kuusi:logo",
+  "jupyter.lab.setting-icon-label": "Kuusi Article",
+  "type": "object",
+  "definitions": {
+    "headerStyle": {
+      "type": "object",
+      "properties": {
+        "font": {
+          "type": "string",
+          "enum": [
+            "notebook",
+            "system-ui",
+            "arial",
+            "helvetica",
+            "segoe-ui",
+            "verdana",
+            "georgia",
+            "times",
+            "palatino",
+            "garamond",
+            "cambria"
+          ]
+        },
+        "fontSize": {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "CSS hex color, or empty to follow the page foreground."
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "theme": {
+      "title": "Article theme",
+      "description": "Named preset for page measure, padding, background, and paragraph spacing. Text and heading styles stay under their own menus.",
+      "type": "string",
+      "enum": [
+        "notebook",
+        "essay",
+        "magazine",
+        "night",
+        "academic",
+        "minimal"
+      ],
+      "default": "notebook"
+    },
+    "measure": {
+      "title": "Article measure",
+      "description": "Column width of the Article reading pane.",
+      "type": "string",
+      "enum": [
+        "narrow",
+        "reading",
+        "wide",
+        "full"
+      ],
+      "default": "reading"
+    },
+    "padding": {
+      "title": "Article padding",
+      "description": "Horizontal page inset of the Article column in rem (top/bottom scale with it).",
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 4,
+      "multipleOf": 0.25,
+      "default": 2
+    },
+    "columnAlign": {
+      "title": "Article column alignment",
+      "description": "Horizontal placement of the reading column in the pane.",
+      "type": "string",
+      "enum": [
+        "left",
+        "center"
+      ],
+      "default": "center"
+    },
+    "columns": {
+      "title": "Article columns",
+      "description": "Number of text columns (1 or 2). In paged layout each page has its own columns.",
+      "type": "number",
+      "enum": [
+        1,
+        2
+      ],
+      "default": 1
+    },
+    "pageLayout": {
+      "title": "Article page layout",
+      "description": "Scroll for continuous reading, or paged for print-style paper preview (PDF-like).",
+      "type": "string",
+      "enum": [
+        "scroll",
+        "paged"
+      ],
+      "default": "paged"
+    },
+    "paperSize": {
+      "title": "Article paper size",
+      "description": "Paper size used when page layout is paged (A4 or US Letter).",
+      "type": "string",
+      "enum": [
+        "a4",
+        "letter"
+      ],
+      "default": "a4"
+    },
+    "paperOrientation": {
+      "title": "Article paper orientation",
+      "description": "Portrait or landscape paper when page layout is paged.",
+      "type": "string",
+      "enum": [
+        "portrait",
+        "landscape"
+      ],
+      "default": "portrait"
+    },
+    "paperBorderWidth": {
+      "title": "Article paper edge width",
+      "description": "Border thickness around each paper sheet in px (0–12).",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 1
+    },
+    "paperBorderColor": {
+      "title": "Article paper edge color",
+      "description": "CSS hex color for the paper sheet edge. Empty uses a soft default.",
+      "type": "string",
+      "default": ""
+    },
+    "paperShadow": {
+      "title": "Article paper shadow",
+      "description": "Cast a drop shadow around each paper sheet.",
+      "type": "boolean",
+      "default": true
+    },
+    "paperShadowWidth": {
+      "title": "Article paper shadow width",
+      "description": "Soft shadow blur radius around each paper sheet in px (0–64).",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 64,
+      "default": 28
+    },
+    "imageWidth": {
+      "type": "string",
+      "enum": [
+        "natural",
+        "wide",
+        "full"
+      ],
+      "default": "wide",
+      "title": "Article image width",
+      "description": "How wide images may grow inside the Article column."
+    },
+    "imageAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center",
+      "title": "Article image alignment",
+      "description": "Horizontal placement when images sit on their own line."
+    },
+    "imageWrap": {
+      "type": "string",
+      "enum": [
+        "none",
+        "left",
+        "right"
+      ],
+      "default": "none",
+      "title": "Article image wrap",
+      "description": "Whether following text wraps beside the image."
+    },
+    "imageBorderStyle": {
+      "type": "string",
+      "enum": [
+        "none",
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "none",
+      "title": "Article image border style"
+    },
+    "imageBorderWidth": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 12,
+      "default": 1,
+      "title": "Article image border width",
+      "description": "Image border thickness in px (0–12)."
+    },
+    "imageBorderColor": {
+      "type": "string",
+      "default": "",
+      "title": "Article image border color",
+      "description": "CSS hex color, or empty to follow the page foreground."
+    },
+    "imageRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 32,
+      "default": 0,
+      "title": "Article image corner radius",
+      "description": "Image corner radius in px (0–32)."
+    },
+    "background": {
+      "title": "Article paper background",
+      "description": "Color of the paper the article is printed on.",
+      "type": "string",
+      "enum": [
+        "theme",
+        "paper",
+        "newspaper",
+        "eye-care",
+        "ink",
+        "sepia",
+        "mist"
+      ],
+      "default": "theme"
+    },
+    "backgroundPattern": {
+      "title": "Article paper pattern",
+      "description": "Texture overlay on the paper, not the pane behind it.",
+      "type": "string",
+      "enum": [
+        "none",
+        "plain",
+        "grid",
+        "dots",
+        "lines",
+        "notebook"
+      ],
+      "default": "none"
+    },
+    "viewBackground": {
+      "title": "Article view background",
+      "description": "Solid color of the pane behind the paper.",
+      "type": "string",
+      "enum": [
+        "theme",
+        "paper",
+        "newspaper",
+        "eye-care",
+        "ink",
+        "sepia",
+        "mist"
+      ],
+      "default": "theme"
+    },
+    "viewBackgroundColor": {
+      "title": "Article view background color",
+      "description": "CSS hex color (#rgb / #rrggbb) for the pane behind the paper. Empty uses viewBackground.",
+      "type": "string",
+      "default": ""
+    },
+    "font": {
+      "type": "string",
+      "enum": [
+        "notebook",
+        "system-ui",
+        "arial",
+        "helvetica",
+        "segoe-ui",
+        "verdana",
+        "georgia",
+        "times",
+        "palatino",
+        "garamond",
+        "cambria"
+      ],
+      "default": "notebook",
+      "title": "Article body font",
+      "description": "Font family for Article body text."
+    },
+    "fontSize": {
+      "type": "number",
+      "minimum": 8,
+      "maximum": 16,
+      "default": 14,
+      "title": "Article body font size",
+      "description": "Body size for the Article reading pane."
+    },
+    "color": {
+      "type": "string",
+      "default": "",
+      "title": "Article body color",
+      "description": "Body text color. Empty follows the page foreground."
+    },
+    "letterSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 0,
+      "title": "Article letter spacing",
+      "description": "Tracking for body text, in em (0–0.15)."
+    },
+    "lineHeight": {
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 3,
+      "default": 1.6,
+      "title": "Article leading",
+      "description": "Line-height multiplier for Article body paragraphs (0.5–3)."
+    },
+    "paragraphSpacing": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 48,
+      "default": 12,
+      "title": "Article paragraph spacing",
+      "description": "Vertical space between body paragraphs, in em (0–3)."
+    },
+    "paragraphIndent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 72,
+      "default": 0,
+      "title": "Article paragraph indent",
+      "description": "First-line indent for body paragraphs, in em (0–3)."
+    },
+    "paragraphAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "justify"
+      ],
+      "default": "left",
+      "title": "Article paragraph alignment",
+      "description": "Horizontal alignment for body paragraphs."
+    },
+    "linkStyle": {
+      "type": "string",
+      "enum": [
+        "default",
+        "underline",
+        "accent"
+      ],
+      "default": "default",
+      "title": "Article link style",
+      "description": "How hyperlinks are emphasized in the Article body."
+    },
+    "codeStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "muted",
+        "contrast"
+      ],
+      "default": "muted",
+      "title": "Article code style",
+      "description": "Appearance of inline code and fenced code blocks."
+    },
+    "codeTheme": {
+      "type": "string",
+      "enum": [
+        "notebook",
+        "python",
+        "javascript",
+        "r",
+        "julia",
+        "sql",
+        "rust",
+        "matlab",
+        "shell"
+      ],
+      "default": "notebook",
+      "title": "Article code palette",
+      "description": "Syntax colors for highlighted code. Notebook follows JupyterLab theme colors."
+    },
+    "codeFont": {
+      "type": "string",
+      "enum": [
+        "mono",
+        "menlo",
+        "consolas",
+        "monaco",
+        "source-code-pro",
+        "fira-code",
+        "jetbrains-mono",
+        "cascadia"
+      ],
+      "default": "mono",
+      "title": "Article code font",
+      "description": "Monospace face for inline and fenced code."
+    },
+    "codeFontSize": {
+      "type": "string",
+      "enum": [
+        "xxs",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "xxl"
+      ],
+      "default": "sm",
+      "title": "Article code font size",
+      "description": "Size step for code text."
+    },
+    "codeFrame": {
+      "type": "boolean",
+      "title": "Article code frame",
+      "description": "Draw a border around fenced code blocks. Unset follows the code style (Plain and Contrast are framed)."
+    },
+    "codeFrameColor": {
+      "type": "string",
+      "default": "",
+      "title": "Article code frame color",
+      "description": "CSS hex color, or empty to follow the page foreground."
+    },
+    "codeFrameRadius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24,
+      "default": 6,
+      "title": "Article code corner radius",
+      "description": "Corner radius of code blocks, in px (0–24)."
+    },
+    "codeFrameBorder": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 1,
+      "title": "Article code frame stroke",
+      "description": "Border width of the code frame, in px (0–8)."
+    },
+    "codeFrameWidth": {
+      "type": "number",
+      "minimum": 40,
+      "maximum": 100,
+      "default": 100,
+      "title": "Article code block width",
+      "description": "Maximum width of code blocks, as percent of the column (40–100)."
+    },
+    "tableStyle": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "grid",
+        "lines",
+        "banded",
+        "booktabs",
+        "ruled"
+      ],
+      "default": "booktabs",
+      "title": "Table style",
+      "description": "Word- and LaTeX-inspired table presets (default Booktabs)."
+    },
+    "tableBorderWidth": {
+      "type": "number",
+      "minimum": 0.25,
+      "maximum": 3,
+      "default": 0.75,
+      "title": "Table border width",
+      "description": "Rule / grid stroke thickness in pt (0.25–3)."
+    },
+    "tableHeaderRowBold": {
+      "type": "boolean",
+      "default": true,
+      "title": "Bold table header row",
+      "description": "Make the first row (column headers) bold."
+    },
+    "tableHeaderColumnBold": {
+      "type": "boolean",
+      "default": false,
+      "title": "Bold table first column",
+      "description": "Make the first column (row headers) bold."
+    },
+    "listStyle": {
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "relaxed"
+      ],
+      "default": "normal",
+      "title": "List style",
+      "description": "Vertical density for unordered and ordered lists."
+    },
+    "blockquoteWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Blockquote weight",
+      "description": "Border and emphasis weight for blockquotes."
+    },
+    "hrWeight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "normal",
+        "strong"
+      ],
+      "default": "normal",
+      "title": "Divider weight",
+      "description": "Stroke weight for horizontal rules."
+    },
+    "headers": {
+      "type": "object",
+      "properties": {
+        "h1": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h2": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h3": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h4": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h5": {
+          "$ref": "#/definitions/headerStyle"
+        },
+        "h6": {
+          "$ref": "#/definitions/headerStyle"
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "h1": {
+          "font": "notebook",
+          "fontSize": "xxl",
+          "color": "",
+          "align": "left"
+        },
+        "h2": {
+          "font": "notebook",
+          "fontSize": "xl",
+          "color": "",
+          "align": "left"
+        },
+        "h3": {
+          "font": "notebook",
+          "fontSize": "lg",
+          "color": "",
+          "align": "left"
+        },
+        "h4": {
+          "font": "notebook",
+          "fontSize": "md",
+          "color": "",
+          "align": "left"
+        },
+        "h5": {
+          "font": "notebook",
+          "fontSize": "sm",
+          "color": "",
+          "align": "left"
+        },
+        "h6": {
+          "font": "notebook",
+          "fontSize": "xs",
+          "color": "",
+          "align": "left"
+        }
+      },
+      "title": "Article headers",
+      "description": "Per-level heading styles (H1–H6): font, size, color, and alignment."
+    },
+    "pageHeaderText": {
+      "title": "Article page header",
+      "description": "Running header on every page in paged layout. Placeholders: {title}, {page}, {pages}.",
+      "type": "string",
+      "maxLength": 200,
+      "default": ""
+    },
+    "pageHeaderAlign": {
+      "title": "Article page header alignment",
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center"
+    },
+    "pageFooterText": {
+      "title": "Article page footer",
+      "description": "Running footer on every page in paged layout. Placeholders: {title}, {page}, {pages}.",
+      "type": "string",
+      "maxLength": 200,
+      "default": ""
+    },
+    "pageFooterAlign": {
+      "title": "Article page footer alignment",
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "left"
+    },
+    "pageNumber": {
+      "title": "Article page numbers",
+      "description": "Page number format in paged layout: none, \"3\", or \"3 / 12\".",
+      "type": "string",
+      "enum": [
+        "none",
+        "page",
+        "page-of-total"
+      ],
+      "default": "none"
+    },
+    "pageNumberPosition": {
+      "title": "Article page number position",
+      "type": "string",
+      "enum": [
+        "header",
+        "footer"
+      ],
+      "default": "footer"
+    },
+    "pageNumberAlign": {
+      "title": "Article page number alignment",
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "center"
+    },
+    "pageNumberStart": {
+      "title": "Article page number start",
+      "description": "Number from the first page, or skip the first and start on page 2.",
+      "type": "string",
+      "enum": [
+        "first",
+        "second"
+      ],
+      "default": "first"
+    },
+    "showTextCount": {
+      "title": "Show character / word count",
+      "description": "Display character and word counts beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "showPageCount": {
+      "title": "Show page count",
+      "description": "Display the article page count beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "showFileSize": {
+      "title": "Show file size",
+      "description": "Display the document file size beside zoom.",
+      "type": "boolean",
+      "default": false
+    },
+    "strongColor": {
+      "type": "string",
+      "default": "",
+      "title": "Article bold color",
+      "description": "Color for bold (**strong**) body text. Empty inherits the body color."
+    }
+  },
+  "additionalProperties": false
+}

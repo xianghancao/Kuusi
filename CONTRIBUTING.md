@@ -17,7 +17,7 @@ You may still fork the repo for personal use under the project license (BSD-3-Cl
 Include:
 
 - JupyterLab version (`jupyter lab --version`)
-- Kuusi version (from the **Kuusi** menu → Current)
+- Kuusi version (**Launcher → Kuusi → Settings**)
 - Steps to reproduce
 - Expected vs actual behavior
 - Screenshots or a short screen recording if UI-related
@@ -94,8 +94,9 @@ Then run `npm run check:versions`.
 
 ```
 packages/kuusi-kernel/      # outline tree, dagre layout, navigation (no Jupyter deps)
-packages/jupyterlab-kuusi/  # JupyterLab extension, toolbars, widget
-examples/example.ipynb      # manual feature tour
+packages/jupyterlab-kuusi/  # JupyterLab extension: View, Article, Slides, Mind Map
+examples/example.ipynb      # notebook tour (Article / Slides / Mind Map)
+examples/slides-deck.md     # Markdown slides fixture
 docs/assets/                # Versioned README screenshots
 e2e/                        # Playwright smoke E2E
 scripts/
@@ -106,9 +107,9 @@ Keep kernel logic free of JupyterLab imports.
 ### Code notes
 
 - Match surrounding style; prefer the smallest correct diff
-- New UI labels go through `kuusiI18n.ts` / `TranslationBundle`
-- Settings belong in `schema/plugin.json` and `mindMapSettings.ts`
-- Update `examples/example.ipynb`, `README.md`, and `CHANGELOG.md` for user-facing changes
+- New UI labels go through `kuusiI18n.ts` as `trans.__("literal")` (variables are not extractable). Add the English → 简体中文 row in `packages/jupyterlab-kuusi/scripts/build_zh_cn_locale.py` and run that script to refresh `jupyterlab_kuusi/locale/` and `src/locale/zhCN.ts`. Kuusi follows the JupyterLab language via domain `jupyterlab_kuusi`.
+- Settings belong in `schema/` (`plugin.json` mind map, `article.json`, `markdown-slides.json`, `default-openers.json`) and the matching `*Settings.ts` files
+- Update `examples/example.ipynb`, `examples/slides-deck.md`, `README.md`, and `CHANGELOG.md` for user-facing changes
 - Screenshots: `docs/assets/<version>/`
 
 ## Publishing a release

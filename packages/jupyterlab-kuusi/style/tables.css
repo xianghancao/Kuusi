@@ -1,0 +1,154 @@
+/*
+ * Markdown / HTML tables — Word- and LaTeX-inspired presets.
+ * Hosts set data-kuusi-table-style / header bold flags + --kuusi-table-border-width.
+ */
+
+.jp-KuusiArticle-paper table,
+.jp-KuusiBook-paper table,
+.jp-KuusiMarkdownSlides table,
+.jp-KuusiMindMapNotebook-scene table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0.85em 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.jp-KuusiArticle-paper th,
+.jp-KuusiArticle-paper td,
+.jp-KuusiBook-paper th,
+.jp-KuusiBook-paper td,
+.jp-KuusiMarkdownSlides th,
+.jp-KuusiMarkdownSlides td,
+.jp-KuusiMindMapNotebook-scene th,
+.jp-KuusiMindMapNotebook-scene td {
+  padding: 0.4em 0.65em;
+  vertical-align: top;
+}
+
+/* Header weight overrides (presets may also set weight). */
+[data-kuusi-table-header-row-bold="1"] thead th,
+[data-kuusi-table-header-row-bold="1"] tr:first-child > th {
+  font-weight: 700;
+}
+
+[data-kuusi-table-header-row-bold="0"] thead th,
+[data-kuusi-table-header-row-bold="0"] tr:first-child > th {
+  font-weight: 400;
+}
+
+[data-kuusi-table-header-col-bold="1"] tr > :first-child {
+  font-weight: 700;
+}
+
+[data-kuusi-table-header-col-bold="0"][data-kuusi-table-header-row-bold="0"]
+  tr
+  > :first-child {
+  font-weight: 400;
+}
+
+[data-kuusi-table-header-col-bold="0"][data-kuusi-table-header-row-bold="1"]
+  tr:not(:first-child)
+  > td:first-child {
+  font-weight: inherit;
+}
+
+/* —— Plain (Word Plain Table) —— */
+[data-kuusi-table-style="plain"] table {
+  border: none;
+}
+
+[data-kuusi-table-style="plain"] th,
+[data-kuusi-table-style="plain"] td {
+  border: none;
+  background: transparent;
+}
+
+/* —— Grid (Word Table Grid) —— */
+[data-kuusi-table-style="grid"] th,
+[data-kuusi-table-style="grid"] td {
+  background: transparent;
+  border: var(--kuusi-table-border-width, 0.75pt) solid
+    color-mix(in srgb, currentColor 28%, transparent);
+}
+
+[data-kuusi-table-style="grid"] thead th,
+[data-kuusi-table-style="grid"] tr:first-child > th {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+/* —— Lines (Word list / horizontal only) —— */
+[data-kuusi-table-style="lines"] th,
+[data-kuusi-table-style="lines"] td {
+  background: transparent;
+  border: none;
+  border-bottom: var(--kuusi-table-border-width, 0.75pt) solid
+    color-mix(in srgb, currentColor 22%, transparent);
+}
+
+[data-kuusi-table-style="lines"] tr:last-child > td,
+[data-kuusi-table-style="lines"] tr:last-child > th {
+  border-bottom-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+/* —— Banded (Word banded rows) —— */
+[data-kuusi-table-style="banded"] th,
+[data-kuusi-table-style="banded"] td {
+  border: none;
+  border-bottom: var(--kuusi-table-border-width, 0.75pt) solid
+    color-mix(in srgb, currentColor 12%, transparent);
+}
+
+[data-kuusi-table-style="banded"] thead th,
+[data-kuusi-table-style="banded"] tr:first-child > th {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  border-bottom-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+[data-kuusi-table-style="banded"] tbody tr:nth-child(even) > td,
+[data-kuusi-table-style="banded"]
+  tr:not(:first-child):nth-child(even)
+  > td {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+/* —— Booktabs (LaTeX booktabs: no verticals, thick outer, midrule) —— */
+[data-kuusi-table-style="booktabs"] table {
+  border: none;
+  border-bottom: calc(var(--kuusi-table-border-width, 0.75pt) * 2) solid
+    currentColor;
+  border-top: calc(var(--kuusi-table-border-width, 0.75pt) * 2) solid
+    currentColor;
+}
+
+[data-kuusi-table-style="booktabs"] th,
+[data-kuusi-table-style="booktabs"] td {
+  background: transparent;
+  border: none;
+  padding-bottom: 0.45em;
+  padding-top: 0.45em;
+}
+
+[data-kuusi-table-style="booktabs"] thead th,
+[data-kuusi-table-style="booktabs"] tr:first-child > th {
+  border-bottom: var(--kuusi-table-border-width, 0.75pt) solid currentColor;
+}
+
+/* —— Ruled (academic three-line / simple paper table) —— */
+[data-kuusi-table-style="ruled"] table {
+  border: none;
+  border-bottom: var(--kuusi-table-border-width, 0.75pt) solid currentColor;
+  border-top: calc(var(--kuusi-table-border-width, 0.75pt) * 1.5) solid
+    currentColor;
+}
+
+[data-kuusi-table-style="ruled"] th,
+[data-kuusi-table-style="ruled"] td {
+  background: transparent;
+  border: none;
+}
+
+[data-kuusi-table-style="ruled"] thead th,
+[data-kuusi-table-style="ruled"] tr:first-child > th {
+  border-bottom: var(--kuusi-table-border-width, 0.75pt) solid currentColor;
+}

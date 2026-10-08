@@ -1,9 +1,24 @@
+import {
+  emptyLevelStyles,
+  LEVEL_IDS,
+  type LevelId,
+  type LevelStyles,
+} from "./levelStyles";
+import {
+  EDGE_BRANCH_COLOR_MODES,
+  EDGE_BRANCH_PALETTES,
+  type EdgeBranchColors,
+} from "./edgeStyling";
 import { APPEARANCE_COLOR_SWATCHES } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
-import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import type { PanelWidget } from "./panelWidgets";
 import { renderPanelWidgets } from "./panelWidgets";
-import { mountSecondaryMenu, type SecondaryMenuController } from "./secondaryMenu";
+import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown";
+import {
+  mountComposedSecondaryMenu,
+  mountSecondaryMenu,
+  type SecondaryMenuController,
+} from "./secondaryMenu";
 import { LAYOUT_NODE_WIDTH, type EdgeRouteStyle } from "kuusi-kernel";
 
 export type { EdgeRouteStyle };
@@ -40,6 +55,11 @@ export type AppearanceSettings = {
   edgeArrowStyle: EdgeArrowStyle;
   edgeWidth: string;
   edgeColor: string;
+  /** Lines get thinner with depth (never below `edgeMinWidth`). */
+  edgeTaper: boolean;
+  edgeMinWidth: string;
+  /** Color each first-level branch (and its descendants' lines) differently. */
+  edgeBranchColors: EdgeBranchColors;
   /** Default node fill for the whole map; empty uses theme. */
   nodeFillColor: string;
   nodeBorderStyle: BorderLineStyle;
@@ -55,7 +75,20 @@ export type AppearanceSettings = {
   hoverGlowColor: string;
   /** Hover-node glow ring width (same scale as selection glow). */
   hoverGlowWidth: string;
+  /**
+   * Per-depth overrides for fill and border (root / level 1 / level 2 /
+   * deeper). Empty fields follow the map-wide setting; a node's own fill wins.
+   */
+  levelStyles: LevelStyles;
+  /** Card inset left (the right edge keeps extra room for the collapse chip). Empty = theme. */
+  nodePaddingX: string;
+  /** Card inset top / bottom. Empty = theme. */
+  nodePaddingY: string;
 };
+
+/** Built-in card insets (px) shown when the setting is empty. */
+export const DEFAULT_NODE_PADDING_X_PX = 20;
+export const DEFAULT_NODE_PADDING_Y_PX = 5;
 
 export const DEFAULT_APPEARANCE: AppearanceSettings = {
   edgeStyle: "solid",
@@ -64,6 +97,9 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   edgeArrowStyle: "triangle",
   edgeWidth: "3pt",
   edgeColor: "",
+  edgeTaper: false,
+  edgeMinWidth: "1pt",
+  edgeBranchColors: "off",
   nodeFillColor: "",
   nodeBorderStyle: "solid",
   nodeBorderWidth: "1px",
@@ -74,6 +110,9 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   selectionGlowWidth: "2px",
   hoverGlowColor: "",
   hoverGlowWidth: "1px",
+  levelStyles: emptyLevelStyles(),
+  nodePaddingX: "",
+  nodePaddingY: "",
 };
 
 const EDGE_LINE_STYLES: Array<{ value: EdgeLineStyle; label: string }> = [
@@ -400,6 +439,14 @@ export const applyAppearanceToScene = (
   setVar("--kuusi-selection-glow-width", settings.selectionGlowWidth);
   setVar("--kuusi-hover-glow-color", settings.hoverGlowColor);
   setVar("--kuusi-hover-glow-width", settings.hoverGlowWidth);
+  setVar("--kuusi-node-padding-x", settings.nodePaddingX);
+  setVar("--kuusi-node-padding-y", settings.nodePaddingY);
+
+  if (settings.nodePaddingY) {
+    scene.dataset.kuusiNodePaddingY = "1";
+  } else {
+    delete scene.dataset.kuusiNodePaddingY;
+  }
   scene.style.setProperty(
     "--kuusi-hover-glow-fallback",
     settings.nodeBorderColor.trim() ? settings.nodeBorderColor : "#1976d2",
@@ -610,9 +657,19 @@ export type AppearanceNodeFillApi = {
   setSelectedFill: (color: string) => void;
 };
 
-type LineSection = "style" | "route" | "arrow" | "arrowStyle" | "width" | "color";
+type LineSection =
+  | "style"
+  | "route"
+  | "arrow"
+  | "arrowStyle"
+  | "width"
+  | "taper"
+  | "color"
+  | "branch";
 type NodeSection =
   | "width"
+  | "padding"
+  | "level"
   | "fill"
   | "border"
   | "corner"
@@ -637,6 +694,40 @@ export type NodeWidthMenuApi = {
   }) => void;
 };
 
+const branchColorLabel = (mode: EdgeBranchColors, t: KuusiTranslator): string => {
+  switch (mode) {
+    case "rainbow":
+      return t.branchRainbow();
+    case "pastel":
+      return t.branchPastel();
+    case "mono":
+      return t.branchMono();
+    default:
+      return t.branchOff();
+  }
+};
+
+const createBranchColorsPreview = (mode: EdgeBranchColors): HTMLElement => {
+  const preview = document.createElement("span");
+  preview.className = "jp-KuusiAppearancePreview jp-KuusiAppearancePreview-branches";
+  preview.setAttribute("aria-hidden", "true");
+
+  const colors =
+    mode === "off" ? [] : EDGE_BRANCH_PALETTES[mode].slice(0, 4);
+
+  if (colors.length === 0) {
+    preview.classList.add("is-off");
+    return preview;
+  }
+
+  colors.forEach((color) => {
+    const bar = document.createElement("span");
+    bar.style.background = color;
+    preview.appendChild(bar);
+  });
+  return preview;
+};
+
 export const fillLineAppearanceMenu = (
   root: HTMLElement,
   menu: HTMLElement,
@@ -653,7 +744,9 @@ export const fillLineAppearanceMenu = (
       { id: "arrow", label: t.arrow() },
       { id: "arrowStyle", label: t.arrowStyle() },
       { id: "width", label: t.width() },
+      { id: "taper", label: t.edgeTaper() },
       { id: "color", label: t.color() },
+      { id: "branch", label: t.edgeBranchColors() },
     ],
     getActive: () => lastLineSection,
     setActive: (id) => {
@@ -747,6 +840,59 @@ export const fillLineAppearanceMenu = (
         return;
       }
 
+      if (id === "taper") {
+        const minPt = Number.parseFloat(settings.edgeMinWidth);
+
+        renderPanelWidgets(panel, [
+          {
+            kind: "toggle",
+            label: t.edgeTaperToggle(),
+            title: t.edgeTaperTitle(),
+            value: settings.edgeTaper,
+            onChange: (edgeTaper) => {
+              patch({ edgeTaper });
+              onRebuild();
+            },
+          },
+          {
+            kind: "slider",
+            label: t.edgeMinWidth(),
+            value: Number.isFinite(minPt) ? minPt : 1,
+            min: 0.5,
+            max: 6,
+            step: 0.5,
+            valueSuffix: "pt",
+            onChange: (value) => {
+              patch({ edgeMinWidth: `${value}pt` });
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "branch") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: settings.edgeBranchColors,
+            options: EDGE_BRANCH_COLOR_MODES.map((value) => ({
+              value,
+              label: branchColorLabel(value, t),
+              preview: () => createBranchColorsPreview(value),
+            })),
+            onChange: (value) => {
+              patch({ edgeBranchColors: value as EdgeBranchColors });
+              onRebuild();
+            },
+          },
+        ]);
+        const hint = document.createElement("div");
+        hint.className = "jp-KuusiAppearanceDropdown-hint";
+        hint.textContent = t.edgeBranchColorsHint();
+        panel.appendChild(hint);
+        return;
+      }
+
       if (id === "width") {
         renderPanelWidgets(panel, [
           {
@@ -785,6 +931,23 @@ export const fillLineAppearanceMenu = (
   });
 };
 
+let lastLevelTab: LevelId = "root";
+
+const LEVEL_RADIUS_CHOICES = ["0px", "4px", "8px", "12px", "16px", "24px"];
+
+const levelLabel = (id: LevelId, t: KuusiTranslator): string => {
+  switch (id) {
+    case "root":
+      return t.levelRoot();
+    case "l1":
+      return t.levelOne();
+    case "l2":
+      return t.levelTwo();
+    default:
+      return t.levelDeeper();
+  }
+};
+
 export const fillNodeAppearanceMenu = (
   root: HTMLElement,
   menu: HTMLElement,
@@ -799,6 +962,8 @@ export const fillNodeAppearanceMenu = (
     ariaLabel: t.nodeAppearance(),
     sections: [
       { id: "width", label: t.width() },
+      { id: "padding", label: t.padding() },
+      { id: "level", label: t.nodeLevels() },
       { id: "fill", label: t.fill() },
       { id: "border", label: t.border() },
       { id: "corner", label: t.corner() },
@@ -854,6 +1019,136 @@ export const fillNodeAppearanceMenu = (
             },
           },
         ]);
+        return;
+      }
+
+      if (id === "padding") {
+        const px = (value: string, fallback: number): number => {
+          const parsed = Number.parseFloat(value);
+          return Number.isFinite(parsed) ? parsed : fallback;
+        };
+
+        renderPanelWidgets(panel, [
+          {
+            kind: "slider",
+            label: t.nodePaddingX(),
+            value: px(settings.nodePaddingX, DEFAULT_NODE_PADDING_X_PX),
+            min: 4,
+            max: 48,
+            valueSuffix: "px",
+            onChange: (value) => {
+              patch({ nodePaddingX: `${value}px` });
+            },
+          },
+          {
+            kind: "slider",
+            label: t.nodePaddingY(),
+            value: px(settings.nodePaddingY, DEFAULT_NODE_PADDING_Y_PX),
+            min: 0,
+            max: 32,
+            valueSuffix: "px",
+            onChange: (value) => {
+              patch({ nodePaddingY: `${value}px` });
+            },
+          },
+        ]);
+        return;
+      }
+
+      if (id === "level") {
+        const levelId = lastLevelTab;
+        const style = settings.levelStyles[levelId];
+        const patchLevel = (partial: Partial<typeof style>) => {
+          const current = getSettings();
+          patch({
+            levelStyles: {
+              ...current.levelStyles,
+              [levelId]: { ...current.levelStyles[levelId], ...partial },
+            },
+          });
+        };
+        const follow = { value: "", label: t.followMap() };
+
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            sectionLabel: t.nodeLevel(),
+            value: levelId,
+            options: LEVEL_IDS.map((id) => ({
+              value: id,
+              label: levelLabel(id, t),
+            })),
+            onChange: (value) => {
+              lastLevelTab = value as LevelId;
+              onRebuild();
+            },
+          },
+          {
+            kind: "color",
+            sectionLabel: t.nodeFillDefault(),
+            value: style.fill,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            customInputId: "jp-KuusiAppearanceLevelFill-input",
+            customDefault: "#1976d2",
+            onChange: (color) => {
+              patchLevel({ fill: color });
+              onRebuild();
+            },
+          },
+          {
+            kind: "color",
+            sectionLabel: t.nodeBorderColor(),
+            value: style.borderColor,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            customInputId: "jp-KuusiAppearanceLevelBorder-input",
+            customDefault: "#1976d2",
+            onChange: (color) => {
+              patchLevel({ borderColor: color });
+              onRebuild();
+            },
+          },
+          {
+            kind: "choice",
+            sectionLabel: t.nodeBorderWidth(),
+            value: style.borderWidth,
+            options: [
+              follow,
+              ...NODE_BORDER_WIDTHS.map((width) => ({
+                value: width,
+                label: width,
+                preview: () => createBorderWidthPreview(width),
+              })),
+            ],
+            onChange: (value) => {
+              patchLevel({ borderWidth: value });
+              onRebuild();
+            },
+          },
+          {
+            kind: "choice",
+            sectionLabel: t.corner(),
+            value: style.borderRadius,
+            options: [
+              follow,
+              ...LEVEL_RADIUS_CHOICES.map((radius) => ({
+                value: radius,
+                label: radius,
+                preview: () => createBorderRadiusPreview(radius),
+              })),
+            ],
+            onChange: (value) => {
+              patchLevel({ borderRadius: value });
+              onRebuild();
+            },
+          },
+        ]);
+
+        const hint = document.createElement("div");
+        hint.className = "jp-KuusiAppearanceDropdown-hint";
+        hint.textContent = t.nodeLevelsHint();
+        panel.appendChild(hint);
         return;
       }
 
@@ -1066,74 +1361,7 @@ export const fillNodeAppearanceMenu = (
   });
 };
 
-const createGroupedDropdown = <Id extends string>(
-  root: HTMLElement,
-  buttonLabel: string,
-  title: string,
-  buildMenu: (
-    menu: HTMLElement,
-    refreshPanel: () => void,
-  ) => SecondaryMenuController<Id>,
-): {
-  wrapper: HTMLElement;
-  remount: () => void;
-  refreshPanel: () => void;
-  isOpen: () => boolean;
-} => {
-  const wrapper = document.createElement("div");
-  wrapper.className = "jp-KuusiFormatDropdown jp-KuusiAppearanceDropdown";
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className =
-    "jp-KuusiNotebookMindMap-format-btn jp-KuusiAppearanceDropdown-btn";
-  button.title = title;
-  button.setAttribute("aria-label", title);
-  button.setAttribute("aria-haspopup", "menu");
-  button.textContent = buttonLabel;
-
-  const menu = document.createElement("div");
-  menu.className =
-    "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiAppearanceDropdown-menu jp-KuusiSecondaryMenu-host";
-  menu.setAttribute("role", "menu");
-
-  let controller: SecondaryMenuController<Id> | null = null;
-
-  const refreshPanel = (): void => {
-    controller?.refresh();
-  };
-
-  const remount = (): void => {
-    const wasOpen = menu.classList.contains("is-open");
-    menu.replaceChildren();
-    controller = buildMenu(menu, refreshPanel);
-
-    if (wasOpen) {
-      openKuusiDropdownMenu(menu, root);
-    }
-  };
-
-  remount();
-
-  button.addEventListener("click", (event) => {
-    event.stopPropagation();
-    const isOpen = menu.classList.contains("is-open");
-    closeKuusiDropdownMenus(root);
-
-    if (!isOpen) {
-      refreshPanel();
-      openKuusiDropdownMenu(menu, root);
-    }
-  });
-
-  wrapper.append(button, menu);
-  return {
-    wrapper,
-    remount,
-    refreshPanel,
-    isOpen: () => menu.classList.contains("is-open"),
-  };
-};
+let lastAppearanceGroup = "node";
 
 export type AppearanceToolbarHandle = {
   node: HTMLElement;
@@ -1143,6 +1371,7 @@ export type AppearanceToolbarHandle = {
   syncSelection: () => void;
 };
 
+/** One "Node" capsule: node appearance + connector line tabs in a single menu. */
 export const createAppearanceToolbar = (
   root: HTMLElement,
   getSettings: () => AppearanceSettings,
@@ -1151,47 +1380,68 @@ export const createAppearanceToolbar = (
   nodeWidth: NodeWidthMenuApi,
   t: KuusiTranslator,
 ): AppearanceToolbarHandle => {
-  const toolbar = document.createElement("div");
-  toolbar.className = "jp-KuusiNotebookMindMap-appearance-toolbar";
-  toolbar.setAttribute("role", "group");
-  toolbar.setAttribute("aria-label", t.appearance());
+  let openMenu: HTMLElement | null = null;
+  let rebuildOpen: (() => void) | null = null;
 
-  const lineDropdown = createGroupedDropdown(
-    root,
-    t.line(),
-    t.connectorLineAppearance(),
-    (menu, refreshPanel) =>
-      fillLineAppearanceMenu(root, menu, getSettings, onChange, refreshPanel, t),
-  );
-  const nodeDropdown = createGroupedDropdown(
-    root,
-    t.node(),
-    t.nodeAppearance(),
-    (menu, refreshPanel) =>
-      fillNodeAppearanceMenu(
-        root,
-        menu,
-        getSettings,
-        onChange,
-        nodeFill,
-        nodeWidth,
-        refreshPanel,
-        t,
-      ),
-  );
+  const toolbar = createCapsuleDropdown(root, {
+    toolbarClass: "jp-KuusiNotebookMindMap-appearance-toolbar",
+    dropdownClass: "jp-KuusiAppearanceDropdown",
+    triggerClass: "jp-KuusiAppearanceDropdown-btn",
+    ariaLabel: t.nodeAppearance(),
+    triggerLabel: t.node(),
+    menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiAppearanceDropdown-menu`,
+    fillMenu: (menu, rebuild) => {
+      openMenu = menu;
+      rebuildOpen = rebuild;
+      mountComposedSecondaryMenu(menu, {
+        ariaLabel: t.nodeAppearance(),
+        getActive: () => lastAppearanceGroup,
+        setActive: (id) => {
+          lastAppearanceGroup = id;
+        },
+        groups: [
+          {
+            id: "node",
+            label: t.node(),
+            mount: (host) =>
+              fillNodeAppearanceMenu(
+                root,
+                host,
+                getSettings,
+                onChange,
+                nodeFill,
+                nodeWidth,
+                rebuild,
+                t,
+              ),
+          },
+          {
+            id: "line",
+            label: t.line(),
+            mount: (host) =>
+              fillLineAppearanceMenu(
+                root,
+                host,
+                getSettings,
+                onChange,
+                rebuild,
+                t,
+              ),
+          },
+        ],
+      });
+    },
+  });
 
-  toolbar.replaceChildren(lineDropdown.wrapper, nodeDropdown.wrapper);
+  const rebuildIfOpen = (): void => {
+    if (openMenu?.classList.contains("is-open")) {
+      rebuildOpen?.();
+    }
+  };
 
   return {
     node: toolbar,
-    refresh: () => {
-      lineDropdown.remount();
-      nodeDropdown.remount();
-    },
-    syncSelection: () => {
-      if (nodeDropdown.isOpen()) {
-        nodeDropdown.refreshPanel();
-      }
-    },
+    refresh: rebuildIfOpen,
+    syncSelection: rebuildIfOpen,
   };
 };

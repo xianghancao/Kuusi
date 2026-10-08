@@ -1,0 +1,1370 @@
+# Kuusi UI strings.
+# Copyright (c) Kuusi contributors.
+msgid ""
+msgstr ""
+"Project-Id-Version: jupyterlab-kuusi\n"
+"POT-Creation-Date: 2026-10-03\n"
+"PO-Revision-Date: 2026-10-03\n"
+"Last-Translator: Kuusi\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Insert a cell below"
+msgstr ""
+
+msgid "Cut Cell"
+msgstr ""
+
+msgid "Cut the selected topic and its subtree"
+msgstr ""
+
+msgid "Copy Cell"
+msgstr ""
+
+msgid "Copy the selected topic and its subtree"
+msgstr ""
+
+msgid "Paste Cell Below"
+msgstr ""
+
+msgid "Paste as child of the selected topic (subtree or plain text)"
+msgstr ""
+
+msgid "Add Mind Map"
+msgstr ""
+
+msgid "Create a new notebook in this folder and open it as a mind map"
+msgstr ""
+
+msgid "Kuusi"
+msgstr ""
+
+msgid "Open this notebook beside Kuusi (left: notebook, right: mind map)"
+msgstr ""
+
+msgid "Markdown editor"
+msgstr ""
+
+msgid "Open the plain-text Markdown editor for this file"
+msgstr ""
+
+msgid "Notebook"
+msgstr ""
+
+msgid "Switch to the classic notebook view for this file"
+msgstr ""
+
+msgid "Editor"
+msgstr ""
+
+msgid "Open the Markdown source editor"
+msgstr ""
+
+msgid "Background"
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "Solid color of the pane behind the paper"
+msgstr ""
+
+msgid "Follow the Jupyter pane color"
+msgstr ""
+
+msgid "Business Blue"
+msgstr ""
+
+msgid "Professional cool blue tone for presentations"
+msgstr ""
+
+msgid "Tech Blue"
+msgstr ""
+
+msgid "Futuristic cyan-blue tech canvas"
+msgstr ""
+
+msgid "Color"
+msgstr ""
+
+msgid "Custom color"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Follow the Jupyter theme background"
+msgstr ""
+
+msgid "Dots"
+msgstr ""
+
+msgid "Dot pattern for spatial reference"
+msgstr ""
+
+msgid "Dots dense"
+msgstr ""
+
+msgid "Finer, denser dot pattern"
+msgstr ""
+
+msgid "Eye Care"
+msgstr ""
+
+msgid "Soft green tint to reduce eye strain"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Soft corner gradients"
+msgstr ""
+
+msgid "Grid"
+msgstr ""
+
+msgid "Light grid lines for spatial reference"
+msgstr ""
+
+msgid "Grid dense"
+msgstr ""
+
+msgid "Finer, denser grid lines"
+msgstr ""
+
+msgid "Newspaper"
+msgstr ""
+
+msgid "Warm paper tone with a light newsprint texture"
+msgstr ""
+
+msgid "Sea Blue"
+msgstr ""
+
+msgid "Cool ocean blue canvas"
+msgstr ""
+
+msgid "Grass Green"
+msgstr ""
+
+msgid "Fresh spring green canvas"
+msgstr ""
+
+msgid "Avocado"
+msgstr ""
+
+msgid "Muted yellow-green avocado tone"
+msgstr ""
+
+msgid "Stone Gray"
+msgstr ""
+
+msgid "Neutral warm stone gray canvas"
+msgstr ""
+
+msgid "Red Wall"
+msgstr ""
+
+msgid "Warm terracotta red wall tone"
+msgstr ""
+
+msgid "Ink"
+msgstr ""
+
+msgid "Near-black stage for dark presentations"
+msgstr ""
+
+msgid "Pattern"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "No pattern overlay — color theme only"
+msgstr ""
+
+msgid "Plain"
+msgstr ""
+
+msgid "Flat solid fill without texture overlays"
+msgstr ""
+
+msgid "Canvas background"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Show updated time"
+msgstr ""
+
+msgid "Show the notebook file last-modified time in the bottom-left corner"
+msgstr ""
+
+msgid "Show node count"
+msgstr ""
+
+msgid "Show the number of mind map nodes in the bottom-right corner"
+msgstr ""
+
+msgid "Boundary distance between parent and child nodes"
+msgstr ""
+
+msgid "XMind-style compact map with minimal topic spacing"
+msgstr ""
+
+msgid "Boundary distance between sibling nodes"
+msgstr ""
+
+msgid "Connector line appearance"
+msgstr ""
+
+msgid "Local"
+msgstr ""
+
+msgid "Collapse branch"
+msgstr ""
+
+msgid "Expand branch"
+msgstr ""
+
+msgid "Use the notebook default font"
+msgstr ""
+
+msgid "Enter edit mode (F2) to format markdown"
+msgstr ""
+
+msgid "Enter fullscreen"
+msgstr ""
+
+msgid "Exit fullscreen"
+msgstr ""
+
+msgid "JupyterLab fullscreen"
+msgstr ""
+
+msgid "Exit JupyterLab fullscreen"
+msgstr ""
+
+msgid "Kuusi window fullscreen"
+msgstr ""
+
+msgid "Exit Kuusi window fullscreen"
+msgstr ""
+
+msgid "Play slideshow"
+msgstr ""
+
+msgid "Stop slideshow"
+msgstr ""
+
+msgid "Appearance"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Kuusi is a Jupyter-native mind map view for notebooks—edit structure and content in one place."
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Copy install command"
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "New"
+msgstr ""
+
+msgid "Open PyPI project page"
+msgstr ""
+
+msgid "Open Jupyter Discourse feedback topic"
+msgstr ""
+
+msgid "Open Kuusi on X"
+msgstr ""
+
+msgid "Email Kuusi"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Community"
+msgstr ""
+
+msgid "Default files"
+msgstr ""
+
+msgid "Kuusi Settings"
+msgstr ""
+
+msgid "Join the conversation — feedback on Discourse, updates on X, or email us."
+msgstr ""
+
+msgid "Shortcut"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Sans-serif"
+msgstr ""
+
+msgid "Serif"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
+msgid "Keep edit and display font styles the same"
+msgstr ""
+
+msgid "Match notebook (ipynb) font styles"
+msgstr ""
+
+msgid "Inline styles only affect node content, not structure"
+msgstr ""
+
+msgid "Formatting is available for markdown cells only"
+msgstr ""
+
+msgid "H1–H3 outline chrome or Body; nesting persists to depth 20 with Body style"
+msgstr ""
+
+msgid "Formatting notes"
+msgstr ""
+
+msgid "Formatting shortcuts (edit mode)"
+msgstr ""
+
+msgid "Guide"
+msgstr ""
+
+msgid "Outline heading H1–H3 or Body (nesting to depth 20; deeper levels use Body style)"
+msgstr ""
+
+msgid "Keyboard shortcuts"
+msgstr ""
+
+msgid "Unavailable"
+msgstr ""
+
+msgid "Latest"
+msgstr ""
+
+msgid "PyPI latest"
+msgstr ""
+
+msgid "Layout"
+msgstr ""
+
+msgid "Equal width"
+msgstr ""
+
+msgid "When on, every node uses the same width"
+msgstr ""
+
+msgid "Fit content"
+msgstr ""
+
+msgid "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)"
+msgstr ""
+
+msgid "Node width"
+msgstr ""
+
+msgid "Max width"
+msgstr ""
+
+msgid "Drag the right edge to resize this node"
+msgstr ""
+
+msgid "Line"
+msgstr ""
+
+msgid "Extra open spacing between topics and branches"
+msgstr ""
+
+msgid "Markdown formatting"
+msgstr ""
+
+msgid "Mind map font and size"
+msgstr ""
+
+msgid "Mind map shortcuts"
+msgstr ""
+
+msgid "Mind map theme"
+msgstr ""
+
+msgid "Page and mind map controls"
+msgstr ""
+
+msgid "Article reading controls"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Article type"
+msgstr ""
+
+msgid "Article page"
+msgstr ""
+
+msgid "Article theme"
+msgstr ""
+
+msgid "Follow Jupyter defaults — 52rem column"
+msgstr ""
+
+msgid "Essay"
+msgstr ""
+
+msgid "Narrow serif column on warm paper"
+msgstr ""
+
+msgid "Magazine"
+msgstr ""
+
+msgid "Wide sans-serif column with centered titles"
+msgstr ""
+
+msgid "Night"
+msgstr ""
+
+msgid "Dark ink page with slightly larger type"
+msgstr ""
+
+msgid "Academic"
+msgstr ""
+
+msgid "Serif column with restrained typography"
+msgstr ""
+
+msgid "Minimal"
+msgstr ""
+
+msgid "Clean sans column with generous whitespace"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Image"
+msgstr ""
+
+msgid "Elements"
+msgstr ""
+
+msgid "Article body font"
+msgstr ""
+
+msgid "Article body"
+msgstr ""
+
+msgid "Body"
+msgstr ""
+
+msgid "Article paragraph"
+msgstr ""
+
+msgid "Paragraph"
+msgstr ""
+
+msgid "Spacing"
+msgstr ""
+
+msgid "Compact"
+msgstr ""
+
+msgid "Tighter space between paragraphs"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "Comfortable space between paragraphs"
+msgstr ""
+
+msgid "Loose"
+msgstr ""
+
+msgid "Open space between paragraphs"
+msgstr ""
+
+msgid "Indent"
+msgstr ""
+
+msgid "No first-line indent"
+msgstr ""
+
+msgid "Half"
+msgstr ""
+
+msgid "About one em first-line indent"
+msgstr ""
+
+msgid "Full"
+msgstr ""
+
+msgid "About two em first-line indent"
+msgstr ""
+
+msgid "Left-align body paragraphs"
+msgstr ""
+
+msgid "Justify body paragraphs for even edges"
+msgstr ""
+
+msgid "Justify"
+msgstr ""
+
+msgid "Article headers"
+msgstr ""
+
+msgid "Header"
+msgstr ""
+
+msgid "Alignment"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Left-align heading"
+msgstr ""
+
+msgid "Center"
+msgstr ""
+
+msgid "Center heading"
+msgstr ""
+
+msgid "Right"
+msgstr ""
+
+msgid "Right-align heading"
+msgstr ""
+
+msgid "Padding"
+msgstr ""
+
+msgid "Tighter page margins"
+msgstr ""
+
+msgid "Comfortable page margins"
+msgstr ""
+
+msgid "Open page margins"
+msgstr ""
+
+msgid "Page"
+msgstr ""
+
+msgid "Leading"
+msgstr ""
+
+msgid "Tighter line spacing for dense pages"
+msgstr ""
+
+msgid "Comfortable spacing for long-form reading"
+msgstr ""
+
+msgid "Open spacing for a slower read"
+msgstr ""
+
+msgid "Line height from 0.5× to 3× of the body size"
+msgstr ""
+
+msgid "Space between paragraphs from 0em to 3em"
+msgstr ""
+
+msgid "First-line indent from 0em to 3em"
+msgstr ""
+
+msgid "Tracking"
+msgstr ""
+
+msgid "Letter spacing from 0em to 0.15em"
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid "Theme default link appearance"
+msgstr ""
+
+msgid "Underline"
+msgstr ""
+
+msgid "Always underline body links"
+msgstr ""
+
+msgid "Accent"
+msgstr ""
+
+msgid "Use accent color for links"
+msgstr ""
+
+msgid "Inline code without extra background"
+msgstr ""
+
+msgid "Muted"
+msgstr ""
+
+msgid "Soft background for inline and block code"
+msgstr ""
+
+msgid "Contrast"
+msgstr ""
+
+msgid "Strong background for code blocks"
+msgstr ""
+
+msgid "Column"
+msgstr ""
+
+msgid "Align the text column to the left"
+msgstr ""
+
+msgid "Center the text column in the pane"
+msgstr ""
+
+msgid "Scroll"
+msgstr ""
+
+msgid "Continuous reading column (no paper frame)"
+msgstr ""
+
+msgid "Paged"
+msgstr ""
+
+msgid "Print-style paper preview — use Export → PDF to save"
+msgstr ""
+
+msgid "Paper"
+msgstr ""
+
+msgid "A4"
+msgstr ""
+
+msgid "210 × 297 mm"
+msgstr ""
+
+msgid "Letter"
+msgstr ""
+
+msgid "8.5 × 11 in"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "Text style"
+msgstr ""
+
+msgid "Paragraph style"
+msgstr ""
+
+msgid "Headings"
+msgstr ""
+
+msgid "Heading styles"
+msgstr ""
+
+msgid "Code style"
+msgstr ""
+
+msgid "Page setup"
+msgstr ""
+
+msgid "Slide header, footer & controls"
+msgstr ""
+
+msgid "Page elements"
+msgstr ""
+
+msgid "Presentation controls"
+msgstr ""
+
+msgid "Look"
+msgstr ""
+
+msgid "Header & footer"
+msgstr ""
+
+msgid "Article header, footer & page numbers"
+msgstr ""
+
+msgid "Footer"
+msgstr ""
+
+msgid "Page numbers"
+msgstr ""
+
+msgid "Placeholders: {title} file name, {page} page, {pages} total"
+msgstr ""
+
+msgid "Shown in Paged layout (Page → Layout → Paged)"
+msgstr ""
+
+msgid "Format"
+msgstr ""
+
+msgid "No page numbers"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "Page number only"
+msgstr ""
+
+msgid "3 / 12"
+msgstr ""
+
+msgid "Page number and page count"
+msgstr ""
+
+msgid "Position"
+msgstr ""
+
+msgid "Top margin of each page"
+msgstr ""
+
+msgid "Bottom margin of each page"
+msgstr ""
+
+msgid "Images"
+msgstr ""
+
+msgid "Natural"
+msgstr ""
+
+msgid "Keep images at their natural width"
+msgstr ""
+
+msgid "Wide"
+msgstr ""
+
+msgid "Expand images to the column width"
+msgstr ""
+
+msgid "Let images span the full pane width"
+msgstr ""
+
+msgid "Place images on the left"
+msgstr ""
+
+msgid "Center images in the column"
+msgstr ""
+
+msgid "Place images on the right"
+msgstr ""
+
+msgid "Wrap"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Images sit on their own line; text stays above and below"
+msgstr ""
+
+msgid "Left + wrap"
+msgstr ""
+
+msgid "Image on the left; following text wraps on the right"
+msgstr ""
+
+msgid "Right + wrap"
+msgstr ""
+
+msgid "Image on the right; following text wraps on the left"
+msgstr ""
+
+msgid "Border"
+msgstr ""
+
+msgid "No frame around images"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Continuous line"
+msgstr ""
+
+msgid "Dashed"
+msgstr ""
+
+msgid "Dashed line"
+msgstr ""
+
+msgid "Dotted"
+msgstr ""
+
+msgid "Dotted line"
+msgstr ""
+
+msgid "Double"
+msgstr ""
+
+msgid "Two parallel lines"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Narrow"
+msgstr ""
+
+msgid "About 42rem — essay column"
+msgstr ""
+
+msgid "About 52rem — default article column"
+msgstr ""
+
+msgid "About 68rem — magazine column"
+msgstr ""
+
+msgid "Use the full pane width"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Theme"
+msgstr ""
+
+msgid "Follow the Jupyter theme"
+msgstr ""
+
+msgid "Warm off-white page for long reading"
+msgstr ""
+
+msgid "Cream newsprint tone"
+msgstr ""
+
+msgid "Dark page for night reading"
+msgstr ""
+
+msgid "Sepia"
+msgstr ""
+
+msgid "Warm sepia tone for long reading sessions"
+msgstr ""
+
+msgid "Mist"
+msgstr ""
+
+msgid "Cool light gray page with a soft haze"
+msgstr ""
+
+msgid "Lines"
+msgstr ""
+
+msgid "Horizontal ruled lines like notebook paper"
+msgstr ""
+
+msgid "Margin and ruled lines like a notebook page"
+msgstr ""
+
+msgid "A newer version is available"
+msgstr ""
+
+msgid "Node"
+msgstr ""
+
+msgid "Redo"
+msgstr ""
+
+msgid "Could not save the dropped image next to this document."
+msgstr ""
+
+msgid "Undo"
+msgstr ""
+
+msgid "Node width, fill, border, and selection glow"
+msgstr ""
+
+msgid "Map fill"
+msgstr ""
+
+msgid "Selected fill"
+msgstr ""
+
+msgid "Select a node to set a custom fill"
+msgstr ""
+
+msgid "Border style"
+msgstr ""
+
+msgid "Border width"
+msgstr ""
+
+msgid "Border color"
+msgstr ""
+
+msgid "Selection glow color"
+msgstr ""
+
+msgid "Selection glow width"
+msgstr ""
+
+msgid "Hover"
+msgstr ""
+
+msgid "Hover glow color"
+msgstr ""
+
+msgid "Hover glow width"
+msgstr ""
+
+msgid "Default uses the map node border color when set; otherwise blue."
+msgstr ""
+
+msgid "Node layout spacing"
+msgstr ""
+
+msgid "Balanced default spacing like XMind auto layout"
+msgstr ""
+
+msgid "Open GitHub repository"
+msgstr ""
+
+msgid "Repository"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Restore theme defaults"
+msgstr ""
+
+msgid "Reset page, background, and appearance for this theme"
+msgstr ""
+
+msgid "Soft"
+msgstr ""
+
+msgid "Outline"
+msgstr ""
+
+msgid "Board"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Density"
+msgstr ""
+
+msgid "Width"
+msgstr ""
+
+msgid "Arrow"
+msgstr ""
+
+msgid "Arrow style"
+msgstr ""
+
+msgid "Fill"
+msgstr ""
+
+msgid "Corner"
+msgstr ""
+
+msgid "Selection"
+msgstr ""
+
+msgid "Tree"
+msgstr ""
+
+msgid "Bottom to top"
+msgstr ""
+
+msgid "Left to right"
+msgstr ""
+
+msgid "Right to left"
+msgstr ""
+
+msgid "Top to bottom"
+msgstr ""
+
+msgid "You are on the latest version"
+msgstr ""
+
+msgid "Version"
+msgstr ""
+
+msgid "Zoom"
+msgstr ""
+
+msgid "Adjust zoom (20%–200%)"
+msgstr ""
+
+msgid "Kuusi View"
+msgstr ""
+
+msgid "Open the Kuusi view beside this editor"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Export this render view"
+msgstr ""
+
+msgid "PDF"
+msgstr ""
+
+msgid "Download this view as a PDF file (one page per page or slide)"
+msgstr ""
+
+msgid "Download the PDF file"
+msgstr ""
+
+msgid "Print / Vector PDF…"
+msgstr ""
+
+msgid "Open the system print dialog; choose “Save as PDF” for selectable text"
+msgstr ""
+
+msgid "%1 image"
+msgstr ""
+
+msgid "Download %1 as a %2 image"
+msgstr ""
+
+msgid "the current slide"
+msgstr ""
+
+msgid "the whole mind map"
+msgstr ""
+
+msgid "the whole view"
+msgstr ""
+
+msgid "Exporting %1…"
+msgstr ""
+
+msgid "Exporting %1… page %2 of %3"
+msgstr ""
+
+msgid "Downloaded %1."
+msgstr ""
+
+msgid "Export failed: %1"
+msgstr ""
+
+msgid "This view has nothing to export yet."
+msgstr ""
+
+msgid "This browser cannot encode WebP; saved as PNG instead."
+msgstr ""
+
+msgid "HTML"
+msgstr ""
+
+msgid "Download the rendered HTML"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Download the source file"
+msgstr ""
+
+msgid "Slides controls"
+msgstr ""
+
+msgid "Slides theme"
+msgstr ""
+
+msgid "Classic"
+msgstr ""
+
+msgid "White stage with dark text"
+msgstr ""
+
+msgid "Dark stage for projector rooms"
+msgstr ""
+
+msgid "Forest"
+msgstr ""
+
+msgid "Deep green stage with light text"
+msgstr ""
+
+msgid "Ocean"
+msgstr ""
+
+msgid "Blue stage with light text"
+msgstr ""
+
+msgid "Slate"
+msgstr ""
+
+msgid "Cool gray modern stage"
+msgstr ""
+
+msgid "Warm paper stage with dark text"
+msgstr ""
+
+msgid "Metropolis"
+msgstr ""
+
+msgid "Beamer-inspired flat modern theme with accent bar"
+msgstr ""
+
+msgid "Madrid"
+msgstr ""
+
+msgid "Beamer-inspired header bar and structured footer"
+msgstr ""
+
+msgid "Berlin"
+msgstr ""
+
+msgid "Beamer-inspired accent rail and cool slate stage"
+msgstr ""
+
+msgid "Copenhagen"
+msgstr ""
+
+msgid "Beamer-inspired light theme with subtle structure"
+msgstr ""
+
+msgid "Singapore"
+msgstr ""
+
+msgid "Beamer-inspired bold accent and clean stage"
+msgstr ""
+
+msgid "Slides layout"
+msgstr ""
+
+msgid "Ratio"
+msgstr ""
+
+msgid "16:9"
+msgstr ""
+
+msgid "Widescreen stage (16:9)"
+msgstr ""
+
+msgid "4:3"
+msgstr ""
+
+msgid "Classic projector stage (4:3)"
+msgstr ""
+
+msgid "1:1"
+msgstr ""
+
+msgid "Square stage (1:1)"
+msgstr ""
+
+msgid "Lists"
+msgstr ""
+
+msgid "Tighter spacing between list items"
+msgstr ""
+
+msgid "Normal"
+msgstr ""
+
+msgid "Default list item spacing"
+msgstr ""
+
+msgid "Roomier spacing between list items"
+msgstr ""
+
+msgid "Small"
+msgstr ""
+
+msgid "Smaller slide headings"
+msgstr ""
+
+msgid "Medium"
+msgstr ""
+
+msgid "Default slide heading size"
+msgstr ""
+
+msgid "Large"
+msgstr ""
+
+msgid "Larger slide headings"
+msgstr ""
+
+msgid "Text color"
+msgstr ""
+
+msgid "Accent color"
+msgstr ""
+
+msgid "Split"
+msgstr ""
+
+msgid "New slide at each # / ## / ###; --- optional; long slides auto-split"
+msgstr ""
+
+msgid "--- rules"
+msgstr ""
+
+msgid "Split only on lines that are exactly ---"
+msgstr ""
+
+msgid "Headings only"
+msgstr ""
+
+msgid "New slide at each # / ## / ### (ignore ---)"
+msgstr ""
+
+msgid "Slide stage"
+msgstr ""
+
+msgid "Previous slide"
+msgstr ""
+
+msgid "Next slide"
+msgstr ""
+
+msgid "Slide type"
+msgstr ""
+
+msgid "Frame"
+msgstr ""
+
+msgid "Draw a border around fenced code blocks"
+msgstr ""
+
+msgid "Frame color"
+msgstr ""
+
+msgid "Chrome"
+msgstr ""
+
+msgid "Show the slide header bar with the section title"
+msgstr ""
+
+msgid "Align"
+msgstr ""
+
+msgid "Top"
+msgstr ""
+
+msgid "Align slide content to the top"
+msgstr ""
+
+msgid "Vertically center slide content"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
+msgid "Align slide content to the bottom"
+msgstr ""
+
+msgid "Tighter padding inside the slide stage"
+msgstr ""
+
+msgid "Default padding inside the slide stage"
+msgstr ""
+
+msgid "Roomier padding inside the slide stage"
+msgstr ""
+
+msgid "Buttons"
+msgstr ""
+
+msgid "Show previous / next buttons under the stage"
+msgstr ""
+
+msgid "Page number"
+msgstr ""
+
+msgid "Show the current slide index in the footer and nav"
+msgstr ""
+
+msgid "Show the slide footer bar"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Show a progress bar for deck position"
+msgstr ""
+
+msgid "Shadow"
+msgstr ""
+
+msgid "Drop shadow around the slide stage"
+msgstr ""
+
+msgid "Render view"
+msgstr ""
+
+msgid "Article"
+msgstr ""
+
+msgid "Rendered Markdown preview"
+msgstr ""
+
+msgid "Rendered notebook article"
+msgstr ""
+
+msgid "Mind Map"
+msgstr ""
+
+msgid "Kuusi Markdown mind map"
+msgstr ""
+
+msgid "Kuusi notebook mind map"
+msgstr ""
+
+msgid "Slides"
+msgstr ""
+
+msgid "Live Markdown slides"
+msgstr ""
+
+msgid "Live notebook slides"
+msgstr ""
+
+msgid "Kuusi Live PDF preview (compile to refresh)"
+msgstr ""
+
+msgid "Plain Markdown source editor"
+msgstr ""
+
+msgid "Live Markdown slides (split on --- or H1)"
+msgstr ""

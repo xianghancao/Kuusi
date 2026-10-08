@@ -2,14 +2,21 @@
   "title": "Kuusi Markdown Preview",
   "description": "Linked navigation between Markdown editor and preview.",
   "jupyter.lab.toolbars": {
+    "Markdown Preview": [
+      {
+        "name": "kuusi-render-view-switcher",
+        "rank": 1
+      },
+      {
+        "name": "kuusi-render-export",
+        "label": "Export",
+        "rank": 2
+      }
+    ],
     "Editor": [
       {
         "name": "md-auto-reload",
         "rank": 55
-      },
-      {
-        "name": "md-jump-preview",
-        "rank": 56
       }
     ]
   },

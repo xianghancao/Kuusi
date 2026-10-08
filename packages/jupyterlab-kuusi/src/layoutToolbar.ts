@@ -42,23 +42,93 @@ const getLayoutDensities = (
 }> => [
   {
     value: "compact",
-    label: "Compact",
+    label: t.paragraphSpacingCompact(),
     title: t.compactLayout(),
     previewClass: "jp-KuusiLayoutDropdown-preview-compact",
   },
   {
     value: "normal",
-    label: "Normal",
+    label: t.slidesDensityNormal(),
     title: t.normalLayout(),
     previewClass: "jp-KuusiLayoutDropdown-preview-normal",
   },
   {
     value: "loose",
-    label: "Loose",
+    label: t.paragraphSpacingLoose(),
     title: t.looseLayout(),
     previewClass: "jp-KuusiLayoutDropdown-preview-loose",
   },
 ];
+
+/** Mount the density / spacing secondary menu into an empty shell. */
+export const fillLayoutMenu = (
+  menu: HTMLElement,
+  getState: () => LayoutSpacingState,
+  onDensityChange: (density: LayoutDensity) => void,
+  onGapChange: (gaps: { siblingGap?: number; childGap?: number }) => void,
+  t: KuusiTranslator,
+  rebuildMenu: () => void,
+): void => {
+  mountSecondaryMenu(menu, {
+    ariaLabel: t.nodeLayoutSpacing(),
+    sections: [
+      { id: "density", label: t.density() },
+      { id: "spacing", label: t.spacing() },
+    ],
+    getActive: () => lastLayoutSection,
+    setActive: (id) => {
+      lastLayoutSection = id;
+    },
+    fillSection: (id, panel) => {
+      const state = getState();
+
+      if (id === "density") {
+        renderPanelWidgets(panel, [
+          {
+            kind: "choice",
+            value: state.density,
+            options: getLayoutDensities(t).map(
+              ({ value, label, title, previewClass }) => ({
+                value,
+                label,
+                title,
+                preview: () => createDensityPreview(previewClass),
+              }),
+            ),
+            onChange: (value) => {
+              onDensityChange(value as LayoutDensity);
+              rebuildMenu();
+            },
+          },
+        ]);
+        return;
+      }
+
+      renderPanelWidgets(panel, [
+        {
+          kind: "slider",
+          label: t.siblingGap(),
+          value: state.siblingGap,
+          min: LAYOUT_SIBLING_GAP.min,
+          max: LAYOUT_SIBLING_GAP.max,
+          onChange: (siblingGap) => {
+            onGapChange({ siblingGap });
+          },
+        },
+        {
+          kind: "slider",
+          label: t.childGap(),
+          value: state.childGap,
+          min: LAYOUT_CHILD_GAP.min,
+          max: LAYOUT_CHILD_GAP.max,
+          onChange: (childGap) => {
+            onGapChange({ childGap });
+          },
+        },
+      ]);
+    },
+  });
+};
 
 export const createLayoutToolbar = (
   root: HTMLElement,
@@ -90,65 +160,14 @@ export const createLayoutToolbar = (
 
   const rebuildMenu = () => {
     menu.replaceChildren();
-    mountSecondaryMenu(menu, {
-      ariaLabel: t.nodeLayoutSpacing(),
-      sections: [
-        { id: "density", label: t.density() },
-        { id: "spacing", label: t.spacing() },
-      ],
-      getActive: () => lastLayoutSection,
-      setActive: (id) => {
-        lastLayoutSection = id;
-      },
-      fillSection: (id, panel) => {
-        const state = getState();
-
-        if (id === "density") {
-          renderPanelWidgets(panel, [
-            {
-              kind: "choice",
-              value: state.density,
-              options: getLayoutDensities(t).map(
-                ({ value, label, title, previewClass }) => ({
-                  value,
-                  label,
-                  title,
-                  preview: () => createDensityPreview(previewClass),
-                }),
-              ),
-              onChange: (value) => {
-                onDensityChange(value as LayoutDensity);
-                rebuildMenu();
-              },
-            },
-          ]);
-          return;
-        }
-
-        renderPanelWidgets(panel, [
-          {
-            kind: "slider",
-            label: t.siblingGap(),
-            value: state.siblingGap,
-            min: LAYOUT_SIBLING_GAP.min,
-            max: LAYOUT_SIBLING_GAP.max,
-            onChange: (siblingGap) => {
-              onGapChange({ siblingGap });
-            },
-          },
-          {
-            kind: "slider",
-            label: t.childGap(),
-            value: state.childGap,
-            min: LAYOUT_CHILD_GAP.min,
-            max: LAYOUT_CHILD_GAP.max,
-            onChange: (childGap) => {
-              onGapChange({ childGap });
-            },
-          },
-        ]);
-      },
-    });
+    fillLayoutMenu(
+      menu,
+      getState,
+      onDensityChange,
+      onGapChange,
+      t,
+      rebuildMenu,
+    );
   };
 
   rebuildMenu();

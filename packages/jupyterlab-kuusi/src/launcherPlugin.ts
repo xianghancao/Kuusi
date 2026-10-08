@@ -7,30 +7,18 @@ import { IDefaultFileBrowser } from "@jupyterlab/filebrowser";
 import { ILauncher } from "@jupyterlab/launcher";
 import { IDisposable } from "@lumino/disposable";
 import {
-  FACTORY_EDITOR,
-  FACTORY_KUUSI_NOTEBOOK,
-  FACTORY_MARKDOWN_PREVIEW,
   OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND,
 } from "./defaultOpeners/constants";
-import { OPEN_IMAGE_HUB_COMMAND } from "./imageView/imageOpenHub";
-import { OPEN_LIVE_PDF_HUB_COMMAND } from "./livePdf/livePdfOpenHub";
-import { OPEN_VOICE_RECORDER_COMMAND } from "./voiceRecorder/openVoiceRecorder";
-import { shouldUseKuusiForMarkdown } from "./defaultOpeners/defaultOpenersState";
-import { kuusiBrandIcon } from "./kuusiIcon";
+import { openKuusiSplitWorkspace } from "./kuusiSplitWorkspace";
 import {
-  kuusiLauncherImageIcon,
-  kuusiLauncherLivePdfIcon,
-  kuusiLauncherMarkdownIcon,
-  kuusiLauncherMindMapIcon,
-  kuusiLauncherTexIcon,
-  kuusiLauncherVoiceIcon,
-} from "./launcherIcons";
+  articleIcon,
+  bookIcon,
+  kuusiBrandIcon,
+  slidesIcon,
+} from "./kuusiIcon";
+import { kuusiLauncherMindMapIcon } from "./launcherIcons";
+import { createKuusiMindMapMarkdown } from "./mindMapMarkdown";
 import { createKuusiMindMapNotebook } from "./mindMapNotebook";
-import { OPEN_TEX_WORKSPACE_COMMAND } from "./texCompile/plugin";
-import { OPEN_CHANNEL_MONITOR_COMMAND } from "./channelMonitor/openChannelMonitor";
-import { LAUNCHER_COMPRESS_COMMAND } from "./compress/plugin";
-import { isKuusiFullRelease } from "./releaseTier";
-import { channelMonitorIcon } from "./channelMonitor/channelMonitorIcon";
 
 const PLUGIN_ID = "jupyterlab-kuusi:launcher";
 
@@ -43,16 +31,36 @@ const LAUNCHER_CATEGORY_RANK = 0;
 export const LAUNCHER_SECTION_COMMAND = "jupyterlab-kuusi:launcher-section";
 
 export const LAUNCHER_MINDMAP_COMMAND = "jupyterlab-kuusi:launcher-mindmap";
-export const LAUNCHER_MARKDOWN_COMMAND = "jupyterlab-kuusi:launcher-markdown";
-export const LAUNCHER_TEX_COMMAND = "jupyterlab-kuusi:launcher-tex";
-export const LAUNCHER_LIVE_PDF_COMMAND = "jupyterlab-kuusi:launcher-live-pdf";
-export const LAUNCHER_IMAGE_COMMAND = "jupyterlab-kuusi:launcher-image";
-export const LAUNCHER_VOICE_COMMAND = "jupyterlab-kuusi:launcher-voice";
-export const LAUNCHER_CHANNEL_MONITOR_COMMAND =
-  "jupyterlab-kuusi:launcher-channel-monitor";
+export const LAUNCHER_ARTICLE_COMMAND = "jupyterlab-kuusi:launcher-article";
+export const LAUNCHER_BOOK_COMMAND = "jupyterlab-kuusi:launcher-book";
+export const LAUNCHER_SLIDES_COMMAND = "jupyterlab-kuusi:launcher-slides";
+
+/** Launcher tiles currently shown (section tile is CSS-collapsed for the header icon). */
+const VISIBLE_LAUNCHER_COMMANDS = new Set<string>([
+  LAUNCHER_SECTION_COMMAND,
+  LAUNCHER_MINDMAP_COMMAND,
+  LAUNCHER_ARTICLE_COMMAND,
+  LAUNCHER_BOOK_COMMAND,
+  LAUNCHER_SLIDES_COMMAND,
+  OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND,
+]);
 
 const launcherDirectory = (fileBrowser: IDefaultFileBrowser | null): string =>
   fileBrowser?.model.path ?? "";
+
+/** Create untitled Markdown in the file-browser cwd, then open editor + render view. */
+const createMarkdownAndOpenView = async (
+  app: JupyterFrontEnd,
+  docManager: IDocumentManager,
+  fileBrowser: IDefaultFileBrowser | null,
+  viewId: "article" | "book" | "slides",
+): Promise<void> => {
+  const path = await createKuusiMindMapMarkdown(
+    docManager,
+    launcherDirectory(fileBrowser),
+  );
+  openKuusiSplitWorkspace(app, docManager, path, viewId);
+};
 
 /** Place Kuusi section immediately after the built-in Notebook row (DOM fallback). */
 const placeKuusiLauncherAfterNotebook = (): void => {
@@ -84,8 +92,6 @@ const registerLauncherCommands = (
   docManager: IDocumentManager,
   fileBrowser: IDefaultFileBrowser | null,
 ): void => {
-  const mindMapFactory = FACTORY_KUUSI_NOTEBOOK;
-
   if (!app.commands.hasCommand(LAUNCHER_SECTION_COMMAND)) {
     app.commands.addCommand(LAUNCHER_SECTION_COMMAND, {
       label: "Kuusi",
@@ -99,7 +105,7 @@ const registerLauncherCommands = (
     app.commands.addCommand(LAUNCHER_MINDMAP_COMMAND, {
       label: "Mind Map",
       caption:
-        "Create a notebook in the current folder and open it as a Kuusi mind map",
+        "Create a notebook and open it as a Kuusi mind map beside the editor",
       icon: kuusiLauncherMindMapIcon,
       execute: async () => {
         const path = await createKuusiMindMapNotebook(
@@ -107,86 +113,41 @@ const registerLauncherCommands = (
           launcherDirectory(fileBrowser),
         );
 
-        return docManager.openOrReveal(path, mindMapFactory);
+        openKuusiSplitWorkspace(app, docManager, path, "mindmap");
       },
     });
   }
 
-  if (!app.commands.hasCommand(LAUNCHER_MARKDOWN_COMMAND)) {
-    app.commands.addCommand(LAUNCHER_MARKDOWN_COMMAND, {
-      label: "Markdown",
-      caption: "Create a Markdown file in the current folder",
-      icon: kuusiLauncherMarkdownIcon,
-      execute: async () => {
-        const model = await docManager.newUntitled({
-          path: launcherDirectory(fileBrowser),
-          type: "file",
-          ext: ".md",
-        });
-
-        const factory = shouldUseKuusiForMarkdown()
-          ? FACTORY_MARKDOWN_PREVIEW
-          : FACTORY_EDITOR;
-
-        return docManager.openOrReveal(model.path, factory);
-      },
-    });
-  }
-
-  if (!app.commands.hasCommand(LAUNCHER_TEX_COMMAND)) {
-    app.commands.addCommand(LAUNCHER_TEX_COMMAND, {
-      label: "LaTeX",
+  if (!app.commands.hasCommand(LAUNCHER_ARTICLE_COMMAND)) {
+    app.commands.addCommand(LAUNCHER_ARTICLE_COMMAND, {
+      label: "Article",
       caption:
-        "Create a LaTeX file and open the editor (compile to preview PDF)",
-      icon: kuusiLauncherTexIcon,
-      execute: async () => {
-        const model = await docManager.newUntitled({
-          path: launcherDirectory(fileBrowser),
-          type: "file",
-          ext: ".tex",
-        });
-
-        return app.commands.execute(OPEN_TEX_WORKSPACE_COMMAND, {
-          path: model.path,
-        });
-      },
+        "Create a Markdown file and open the Article view beside the editor",
+      icon: articleIcon,
+      execute: () =>
+        createMarkdownAndOpenView(app, docManager, fileBrowser, "article"),
     });
   }
 
-  if (!app.commands.hasCommand(LAUNCHER_LIVE_PDF_COMMAND)) {
-    app.commands.addCommand(LAUNCHER_LIVE_PDF_COMMAND, {
-      label: "Live PDF",
-      caption: "Drop a PDF or choose one from the file browser to open",
-      icon: kuusiLauncherLivePdfIcon,
-      execute: () => app.commands.execute(OPEN_LIVE_PDF_HUB_COMMAND),
-    });
-  }
-
-  if (!app.commands.hasCommand(LAUNCHER_IMAGE_COMMAND)) {
-    app.commands.addCommand(LAUNCHER_IMAGE_COMMAND, {
-      label: "Image",
-      caption: "Drop an image or choose one from the file browser to open",
-      icon: kuusiLauncherImageIcon,
-      execute: () => app.commands.execute(OPEN_IMAGE_HUB_COMMAND),
-    });
-  }
-
-  if (!app.commands.hasCommand(LAUNCHER_VOICE_COMMAND)) {
-    app.commands.addCommand(LAUNCHER_VOICE_COMMAND, {
-      label: "Voice note",
-      caption: "Record audio and save to the current file browser folder",
-      icon: kuusiLauncherVoiceIcon,
-      execute: () => app.commands.execute(OPEN_VOICE_RECORDER_COMMAND),
-    });
-  }
-
-  if (!app.commands.hasCommand(LAUNCHER_CHANNEL_MONITOR_COMMAND)) {
-    app.commands.addCommand(LAUNCHER_CHANNEL_MONITOR_COMMAND, {
-      label: "Transfer speed",
+  if (!app.commands.hasCommand(LAUNCHER_BOOK_COMMAND)) {
+    app.commands.addCommand(LAUNCHER_BOOK_COMMAND, {
+      label: "Book",
       caption:
-        "Monitor Thunderbolt, Wi-Fi, USB, and disk throughput; copy to a peer Mac",
-      icon: channelMonitorIcon,
-      execute: () => app.commands.execute(OPEN_CHANNEL_MONITOR_COMMAND),
+        "Create a Markdown file and open the Book view beside the editor",
+      icon: bookIcon,
+      execute: () =>
+        createMarkdownAndOpenView(app, docManager, fileBrowser, "book"),
+    });
+  }
+
+  if (!app.commands.hasCommand(LAUNCHER_SLIDES_COMMAND)) {
+    app.commands.addCommand(LAUNCHER_SLIDES_COMMAND, {
+      label: "Slides",
+      caption:
+        "Create a Markdown file and open the Slides view beside the editor",
+      icon: slidesIcon,
+      execute: () =>
+        createMarkdownAndOpenView(app, docManager, fileBrowser, "slides"),
     });
   }
 };
@@ -214,26 +175,21 @@ const launcherPlugin: JupyterFrontEndPlugin<void> = {
       }
       mounted = true;
 
-      const items = isKuusiFullRelease()
-        ? ([
-            { command: LAUNCHER_SECTION_COMMAND, rank: -100 },
-            { command: LAUNCHER_MINDMAP_COMMAND, rank: 0 },
-            { command: LAUNCHER_MARKDOWN_COMMAND, rank: 1 },
-            { command: LAUNCHER_TEX_COMMAND, rank: 2 },
-            { command: LAUNCHER_LIVE_PDF_COMMAND, rank: 3 },
-            { command: LAUNCHER_IMAGE_COMMAND, rank: 4 },
-            { command: LAUNCHER_VOICE_COMMAND, rank: 5 },
-            { command: LAUNCHER_CHANNEL_MONITOR_COMMAND, rank: 6 },
-            { command: LAUNCHER_COMPRESS_COMMAND, rank: 7 },
-            { command: OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND, rank: 8 },
-          ] as const)
-        : ([
-            { command: LAUNCHER_SECTION_COMMAND, rank: -100 },
-            { command: LAUNCHER_MINDMAP_COMMAND, rank: 0 },
-            { command: OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND, rank: 1 },
-          ] as const);
+      // Visible tiles: Mind Map · Article · Book · Slides · Settings
+      // (section command is CSS-collapsed; provides the Kuusi header icon).
+      const items = [
+        { command: LAUNCHER_SECTION_COMMAND, rank: -100 },
+        { command: LAUNCHER_MINDMAP_COMMAND, rank: 10 },
+        { command: LAUNCHER_ARTICLE_COMMAND, rank: 20 },
+        { command: LAUNCHER_BOOK_COMMAND, rank: 21 },
+        { command: LAUNCHER_SLIDES_COMMAND, rank: 22 },
+        { command: OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND, rank: 34 },
+      ] as const;
 
       for (const item of items) {
+        if (!VISIBLE_LAUNCHER_COMMANDS.has(item.command)) {
+          continue;
+        }
         disposables.push(
           launcher.add({
             command: item.command,

@@ -1,0 +1,67 @@
+/* Brand tokens and shared Jupyter accent remaps. */
+
+/*
+ * Kuusi brand palette — remaps Jupyter accent tokens inside Kuusi UI so
+ * buttons, switches, sliders, and active states use spruce green instead
+ * of the default Jupyter blue.
+ */
+body[data-jp-theme-light="true"] {
+  --kuusi-brand-green: #2f5d3a;
+  --kuusi-brand-green-light: #4a7a55;
+  --kuusi-brand-green-dark: #244a2e;
+  --kuusi-brand-green-tint: color-mix(in srgb, #2f5d3a 12%, var(--jp-layout-color1));
+  --kuusi-brand-green-soft: color-mix(in srgb, #2f5d3a 14%, transparent);
+}
+
+body[data-jp-theme-light="false"] {
+  --kuusi-brand-green: #9bc49a;
+  --kuusi-brand-green-light: #b5d4b4;
+  --kuusi-brand-green-dark: #7fa87e;
+  --kuusi-brand-green-tint: color-mix(in srgb, #9bc49a 16%, var(--jp-layout-color1));
+  --kuusi-brand-green-soft: color-mix(in srgb, #9bc49a 18%, transparent);
+}
+
+
+
+/* Shared chrome type tokens. */
+/*
+ * Shared chrome type for editor + render capsules, dropdowns, and labels.
+ * Keep size/weight identical across surfaces — do not diverge per view.
+ */
+body {
+  --kuusi-chrome-font-family: var(--jp-ui-font-family);
+  /* Shared chrome type size: view switcher, capsules, menus, bottom controls. */
+  --kuusi-chrome-font-size: 11px;
+  --kuusi-chrome-font-weight: 550;
+  --kuusi-mindmap-chrome-font-family: var(--kuusi-chrome-font-family);
+  --kuusi-mindmap-chrome-font-size: var(--kuusi-chrome-font-size);
+  --kuusi-mindmap-chrome-font-weight: var(--kuusi-chrome-font-weight);
+}
+
+/* Remap Jupyter accents inside Kuusi surfaces. */
+.jp-KuusiNotebookMindMap,
+.jp-KuusiNotebookMindMapDocument,
+.jp-KuusiMarkdownMindMapDocument,
+.jp-KuusiMarkdownArticle,
+.jp-KuusiNotebookArticle,
+.jp-KuusiMarkdownSlidesDocument,
+.jp-KuusiDefaultOpeners,
+.jp-KuusiNotebookOpenButton,
+.jp-KuusiSettings-dialogBody,
+.jp-FileEditor-Document:has([data-jp-item-name="md-auto-reload"]),
+.jp-FileEditor-Document:has([data-jp-item-name="kuusi-open-render"]),
+.jp-FileEditor-Document.jp-KuusiMarkdownEditorDocument,
+.jp-FileEditor-Document.jp-KuusiEditorFormatHost,
+.jp-NotebookPanel.jp-KuusiEditorFormatHost,
+.jp-FileEditor.jp-KuusiEditorFormatHost,
+.jp-Notebook.jp-KuusiEditorFormatHost,
+.jp-MarkdownViewer-Document:has([data-jp-item-name="kuusi-render-view-switcher"]),
+.jp-MarkdownViewer-Document:has([data-jp-item-name="md-jump-source"]),
+.jp-MarkdownViewer-Document:has([data-jp-item-name="md-preview-auto-reload"]) {
+  --jp-brand-color1: var(--kuusi-brand-green);
+  --jp-brand-color2: var(--kuusi-brand-green-light);
+  --jp-brand-color3: var(--kuusi-brand-green-tint);
+  --jp-success-color0: var(--kuusi-brand-green-light);
+  --jp-success-color1: var(--kuusi-brand-green);
+  --jp-success-color2: var(--kuusi-brand-green-soft);
+}

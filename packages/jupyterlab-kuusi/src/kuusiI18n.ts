@@ -1,227 +1,894 @@
-import type { TranslationBundle } from "@jupyterlab/translation";
+import type { ITranslator, TranslationBundle } from "@jupyterlab/translation";
 import { nullTranslator } from "@jupyterlab/translation";
 
+import { ZH_CN } from "./locale/zhCN";
+
+export const KUUSI_I18N_DOMAIN = "jupyterlab_kuusi";
+
+const interpolate = (template: string, args: unknown[]): string =>
+  template.replace(/%(\d+)/g, (_, index) =>
+    String(args[Number(index) - 1] ?? ""),
+  );
+
+const isChinese = (languageCode: string): boolean =>
+  languageCode.toLowerCase().replace("_", "-").startsWith("zh");
+
+/** Official domain first; zh_CN catalog fills Kuusi strings the pack does not have. */
+export const wrapKuusiBundle = (
+  upstream: TranslationBundle,
+  languageCode: string,
+): TranslationBundle => {
+  if (!isChinese(languageCode)) {
+    return upstream;
+  }
+
+  return Object.create(upstream, {
+    __: {
+      value: (msgid: string, ...args: unknown[]): string => {
+        const official = upstream.__(msgid, ...args);
+        if (official !== msgid && official !== interpolate(msgid, args)) {
+          return official;
+        }
+
+        return interpolate(ZH_CN[msgid] ?? msgid, args);
+      },
+    },
+  }) as TranslationBundle;
+};
+
+let kuusiBundle: TranslationBundle = wrapKuusiBundle(
+  nullTranslator.load(KUUSI_I18N_DOMAIN),
+  typeof document !== "undefined" ? document.documentElement.lang : "",
+);
+
+export const configureKuusiTranslator = (translator: ITranslator): void => {
+  const languageCode =
+    translator.languageCode ||
+    (typeof document !== "undefined" ? document.documentElement.lang : "");
+  kuusiBundle = wrapKuusiBundle(translator.load(KUUSI_I18N_DOMAIN), languageCode);
+};
+
+export const getKuusiBundle = (): TranslationBundle => kuusiBundle;
+
 /**
- * Kuusi chrome strings. Always English until a dedicated `jupyterlab-kuusi`
- * locale pack exists — using the JupyterLab language pack caused mixed UI
- * (some strings translated, Kuusi-specific ones not).
+ * Kuusi chrome strings. Domain `jupyterlab_kuusi` plus a zh_CN catalog
+ * so the UI is not a mix of Lab translations and leftover English.
  */
-export const createKuusiTranslator = (
-  _trans?: TranslationBundle,
-) => {
-  const trans = nullTranslator.load("jupyterlab");
+export const createKuusiTranslator = (trans?: TranslationBundle) => {
+  const t = trans ?? kuusiBundle;
 
   return {
-  background: () => trans.__("Background"),
-  backgroundBusinessBlue: () => trans.__("Business Blue"),
+  background: () => t.__("Background"),
+  viewBackground: () => t.__("View"),
+  viewBackgroundTitle: () =>
+    t.__("Solid color of the pane behind the paper"),
+  viewThemeTitle: () => t.__("Follow the Jupyter pane color"),
+  backgroundBusinessBlue: () => t.__("Business Blue"),
   backgroundBusinessBlueTitle: () =>
-    trans.__("Professional cool blue tone for presentations"),
-  backgroundTechBlue: () => trans.__("Tech Blue"),
+    t.__("Professional cool blue tone for presentations"),
+  backgroundTechBlue: () => t.__("Tech Blue"),
   backgroundTechBlueTitle: () =>
-    trans.__("Futuristic cyan-blue tech canvas"),
-  backgroundColor: () => trans.__("Color"),
-  backgroundCustomColor: () => trans.__("Custom color"),
-  backgroundDefault: () => trans.__("Default"),
+    t.__("Futuristic cyan-blue tech canvas"),
+  backgroundColor: () => t.__("Color"),
+  backgroundCustomColor: () => t.__("Custom color"),
+  backgroundDefault: () => t.__("Default"),
   backgroundDefaultTitle: () =>
-    trans.__("Follow the Jupyter theme background"),
-  backgroundDots: () => trans.__("Dots"),
+    t.__("Follow the Jupyter theme background"),
+  backgroundDots: () => t.__("Dots"),
   backgroundDotsTitle: () =>
-    trans.__("Dot pattern for spatial reference"),
-  backgroundDotsDense: () => trans.__("Dots dense"),
+    t.__("Dot pattern for spatial reference"),
+  backgroundDotsDense: () => t.__("Dots dense"),
   backgroundDotsDenseTitle: () =>
-    trans.__("Finer, denser dot pattern"),
-  backgroundEyeCare: () => trans.__("Eye Care"),
+    t.__("Finer, denser dot pattern"),
+  backgroundEyeCare: () => t.__("Eye Care"),
   backgroundEyeCareTitle: () =>
-    trans.__("Soft green tint to reduce eye strain"),
-  backgroundGradient: () => trans.__("Gradient"),
-  backgroundGradientTitle: () => trans.__("Soft corner gradients"),
-  backgroundGrid: () => trans.__("Grid"),
+    t.__("Soft green tint to reduce eye strain"),
+  backgroundGradient: () => t.__("Gradient"),
+  backgroundGradientTitle: () => t.__("Soft corner gradients"),
+  backgroundGrid: () => t.__("Grid"),
   backgroundGridTitle: () =>
-    trans.__("Light grid lines for spatial reference"),
-  backgroundGridDense: () => trans.__("Grid dense"),
+    t.__("Light grid lines for spatial reference"),
+  backgroundGridDense: () => t.__("Grid dense"),
   backgroundGridDenseTitle: () =>
-    trans.__("Finer, denser grid lines"),
-  backgroundNewspaper: () => trans.__("Newspaper"),
+    t.__("Finer, denser grid lines"),
+  backgroundNewspaper: () => t.__("Newspaper"),
   backgroundNewspaperTitle: () =>
-    trans.__("Warm paper tone with a light newsprint texture"),
-  backgroundSeaBlue: () => trans.__("Sea Blue"),
+    t.__("Warm paper tone with a light newsprint texture"),
+  backgroundSeaBlue: () => t.__("Sea Blue"),
   backgroundSeaBlueTitle: () =>
-    trans.__("Cool ocean blue canvas"),
-  backgroundGrassGreen: () => trans.__("Grass Green"),
+    t.__("Cool ocean blue canvas"),
+  backgroundGrassGreen: () => t.__("Grass Green"),
   backgroundGrassGreenTitle: () =>
-    trans.__("Fresh spring green canvas"),
-  backgroundAvocado: () => trans.__("Avocado"),
+    t.__("Fresh spring green canvas"),
+  backgroundAvocado: () => t.__("Avocado"),
   backgroundAvocadoTitle: () =>
-    trans.__("Muted yellow-green avocado tone"),
-  backgroundStoneGray: () => trans.__("Stone Gray"),
+    t.__("Muted yellow-green avocado tone"),
+  backgroundStoneGray: () => t.__("Stone Gray"),
   backgroundStoneGrayTitle: () =>
-    trans.__("Neutral warm stone gray canvas"),
-  backgroundRedWall: () => trans.__("Red Wall"),
+    t.__("Neutral warm stone gray canvas"),
+  backgroundRedWall: () => t.__("Red Wall"),
   backgroundRedWallTitle: () =>
-    trans.__("Warm terracotta red wall tone"),
-  backgroundInk: () => trans.__("Ink"),
+    t.__("Warm terracotta red wall tone"),
+  backgroundInk: () => t.__("Ink"),
   backgroundInkTitle: () =>
-    trans.__("Near-black stage for dark presentations"),
-  backgroundPattern: () => trans.__("Pattern"),
-  backgroundPatternNone: () => trans.__("None"),
+    t.__("Near-black stage for dark presentations"),
+  backgroundPattern: () => t.__("Pattern"),
+  backgroundPatternNone: () => t.__("None"),
   backgroundPatternNoneTitle: () =>
-    trans.__("No pattern overlay — color theme only"),
-  backgroundPlain: () => trans.__("Plain"),
+    t.__("No pattern overlay — color theme only"),
+  backgroundPlain: () => t.__("Plain"),
   backgroundPlainTitle: () =>
-    trans.__("Flat solid fill without texture overlays"),
-  canvasBackground: () => trans.__("Canvas background"),
-  backgroundStatusSection: () => trans.__("Status"),
-  showUpdatedTimestamp: () => trans.__("Show updated time"),
+    t.__("Flat solid fill without texture overlays"),
+  canvasBackground: () => t.__("Canvas background"),
+  backgroundStatusSection: () => t.__("Status"),
+  showUpdatedTimestamp: () => t.__("Show updated time"),
   showUpdatedTimestampTitle: () =>
-    trans.__(
+    t.__(
       "Show the notebook file last-modified time in the bottom-left corner",
     ),
+  showNodeCount: () => t.__("Show node count"),
+  showNodeCountTitle: () =>
+    t.__("Show the number of mind map nodes beside zoom"),
+  showTextCount: () => t.__("Show character / word count"),
+  showTextCountTitle: () =>
+    t.__("Show character and word counts beside zoom"),
+  showPageCount: () => t.__("Show page count"),
+  showPageCountTitle: () => t.__("Show the page or slide count beside zoom"),
+  showFileSize: () => t.__("Show file size"),
+  showFileSizeTitle: () => t.__("Show the document file size beside zoom"),
+  statusNodes: (count: number) => `${t.__("Nodes")}: ${count}`,
+  statusText: (characters: number, words: number) =>
+    `${characters} ${t.__("chars")} · ${words} ${t.__("words")}`,
+  statusPages: (count: number) => `${t.__("Pages")}: ${count}`,
+  statusFileSizeBytes: (bytes: number) => `${bytes} ${t.__("B")}`,
+  statusFileSizeKb: (kb: number) => `${kb} ${t.__("KB")}`,
+  statusFileSizeMb: (mb: number) => `${mb} ${t.__("MB")}`,
   childGap: () =>
-    trans.__("Boundary distance between parent and child nodes"),
+    t.__("Boundary distance between parent and child nodes"),
   compactLayout: () =>
-    trans.__("XMind-style compact map with minimal topic spacing"),
-  siblingGap: () => trans.__("Boundary distance between sibling nodes"),
-  connectorLineAppearance: () => trans.__("Connector line appearance"),
-  currentVersion: () => trans.__("Local"),
-  collapseBranch: () => trans.__("Collapse branch"),
+    t.__("XMind-style compact map with minimal topic spacing"),
+  siblingGap: () => t.__("Boundary distance between sibling nodes"),
+  connectorLineAppearance: () => t.__("Connector line appearance"),
+  currentVersion: () => t.__("Local"),
+  collapseBranch: () => t.__("Collapse branch"),
   expandBranch: (hiddenCount: number) =>
     hiddenCount > 0
-      ? `${trans.__("Expand branch")} (${hiddenCount})`
-      : trans.__("Expand branch"),
-  defaultFont: () => trans.__("Notebook"),
-  defaultFontTitle: () => trans.__("Use the notebook default font"),
-  editModeHint: () => trans.__("Enter edit mode (F2) to format markdown"),
-  enterFullscreen: () => trans.__("Enter fullscreen"),
-  exitFullscreen: () => trans.__("Exit fullscreen"),
-  enterLabFullscreen: () => trans.__("JupyterLab fullscreen"),
-  exitLabFullscreen: () => trans.__("Exit JupyterLab fullscreen"),
-  enterKuusiFullscreen: () => trans.__("Kuusi window fullscreen"),
-  exitKuusiFullscreen: () => trans.__("Exit Kuusi window fullscreen"),
-  appearance: () => trans.__("Appearance"),
-  about: () => trans.__("About"),
+      ? `${t.__("Expand branch")} (${hiddenCount})`
+      : t.__("Expand branch"),
+  defaultFont: () => t.__("Notebook"),
+  defaultFontTitle: () => t.__("Use the notebook default font"),
+  editModeHint: () => t.__("Enter edit mode (F2) to format markdown"),
+  enterFullscreen: () => t.__("Enter fullscreen"),
+  exitFullscreen: () => t.__("Exit fullscreen"),
+  enterLabFullscreen: () => t.__("JupyterLab fullscreen"),
+  exitLabFullscreen: () => t.__("Exit JupyterLab fullscreen"),
+  enterKuusiFullscreen: () => t.__("Kuusi window fullscreen"),
+  exitKuusiFullscreen: () => t.__("Exit Kuusi window fullscreen"),
+  startSlideshow: () => t.__("Play slideshow"),
+  stopSlideshow: () => t.__("Stop slideshow"),
+  articleScrollHorizontal: () => t.__("Horizontal swipe"),
+  articleScrollHorizontalTitle: () =>
+    t.__("Swipe pages left and right (fullscreen)"),
+  articleScrollVertical: () => t.__("Vertical swipe"),
+  articleScrollVerticalTitle: () =>
+    t.__("Scroll pages up and down (fullscreen)"),
+  appearance: () => t.__("Appearance"),
+  about: () => t.__("About"),
   aboutBlurb: () =>
-    trans.__(
+    t.__(
       "Kuusi is a Jupyter-native mind map view for notebooks—edit structure and content in one place.",
     ),
-  copy: () => trans.__("Copy"),
-  copied: () => trans.__("Copied"),
-  copyInstallCommand: () => trans.__("Copy install command"),
-  install: () => trans.__("Install"),
-  newBadge: () => trans.__("New"),
-  openPyPI: () => trans.__("Open PyPI project page"),
+  copy: () => t.__("Copy"),
+  copied: () => t.__("Copied"),
+  copyInstallCommand: () => t.__("Copy install command"),
+  install: () => t.__("Install"),
+  newBadge: () => t.__("New"),
+  openPyPI: () => t.__("Open PyPI project page"),
   openDiscourse: () =>
-    trans.__("Open Jupyter Discourse feedback topic"),
-  openX: () => trans.__("Open Kuusi on X"),
-  openCommunityEmail: () => trans.__("Email Kuusi"),
-  close: () => trans.__("Close"),
-  community: () => trans.__("Community"),
-  defaultFiles: () => trans.__("Default files"),
-  kuusiSettings: () => trans.__("Kuusi Settings"),
+    t.__("Open Jupyter Discourse feedback topic"),
+  openX: () => t.__("Open Kuusi on X"),
+  openCommunityEmail: () => t.__("Email Kuusi"),
+  close: () => t.__("Close"),
+  community: () => t.__("Community"),
+  defaultFiles: () => t.__("Default files"),
+  groupSurface: () => t.__("Surface"),
+  groupFurniture: () => t.__("Header & footer"),
+  groupDisplay: () => t.__("Display"),
+  resetPageSettings: () => t.__("Reset page settings"),
+  resetPageSettingsTitle: () =>
+    t.__("Restore this menu's settings to the current theme's defaults"),
+  applyToAllViews: () => t.__("Apply text style to all views"),
+  applyToAllViewsTitle: () =>
+    t.__(
+      "Copy font, color, spacing and heading styles to Article, Book, Slides and Mind Map",
+    ),
+  viewMenuIntro: () =>
+    t.__(
+      "Choose which views appear in the view menu and their order, left to right. The first enabled view opens by default.",
+    ),
+  kuusiSettings: () => t.__("Kuusi Settings"),
   communityBlurb: () =>
-    trans.__(
+    t.__(
       "Join the conversation — feedback on Discourse, updates on X, or email us.",
     ),
-  shortcut: () => trans.__("Shortcut"),
-  font: () => trans.__("Font"),
-  fontSectionDefault: () => trans.__("Default"),
-  fontSectionSans: () => trans.__("Sans-serif"),
-  fontSectionSerif: () => trans.__("Serif"),
-  fontSizeSection: () => trans.__("Size"),
-  fontSizeEdit: () => trans.__("Edit"),
-  fontSizeDisplay: () => trans.__("Display"),
-  fontLink: () => trans.__("Link"),
+  shortcut: () => t.__("Shortcut"),
+  font: () => t.__("Font"),
+  fontSectionDefault: () => t.__("Default"),
+  fontSectionSans: () => t.__("Sans-serif"),
+  fontSectionSerif: () => t.__("Serif"),
+  fontSizeSection: () => t.__("Size"),
+  fontSizeEdit: () => t.__("Edit"),
+  fontSizeDisplay: () => t.__("Display"),
+  fontLink: () => t.__("Link"),
   unifyEditDisplayFont: () =>
-    trans.__("Keep edit and display font styles the same"),
+    t.__("Keep edit and display font styles the same"),
   matchNotebookFont: () =>
-    trans.__("Match notebook (ipynb) font styles"),
+    t.__("Match notebook (ipynb) font styles"),
   formatNotesAa: () =>
-    trans.__("Inline styles only affect node content, not structure"),
+    t.__("Inline styles only affect node content, not structure"),
   formatNotesCodeCell: () =>
-    trans.__("Formatting is available for markdown cells only"),
+    t.__("Formatting is available for markdown cells only"),
   formatNotesTitle: () =>
-    trans.__(
+    t.__(
       "H1–H3 outline chrome or Body; nesting persists to depth 20 with Body style",
     ),
-  formattingNotes: () => trans.__("Formatting notes"),
-  formattingShortcuts: () => trans.__("Formatting shortcuts (edit mode)"),
-  guide: () => trans.__("Guide"),
+  formattingNotes: () => t.__("Formatting notes"),
+  formattingShortcuts: () => t.__("Formatting shortcuts (edit mode)"),
+  guide: () => t.__("Guide"),
   headingLevel: () =>
-    trans.__(
+    t.__(
       "Outline heading H1–H3 or Body (nesting to depth 20; deeper levels use Body style)",
     ),
-  keyboardShortcuts: () => trans.__("Keyboard shortcuts"),
-  latestUnavailable: () => trans.__("Unavailable"),
-  latestVersion: () => trans.__("Latest"),
-  pypiLatestVersion: () => trans.__("PyPI latest"),
-  layout: () => trans.__("Layout"),
-  equalNodeWidth: () => trans.__("Equal width"),
+  keyboardShortcuts: () => t.__("Keyboard shortcuts"),
+  latestUnavailable: () => t.__("Unavailable"),
+  latestVersion: () => t.__("Latest"),
+  pypiLatestVersion: () => t.__("PyPI latest"),
+  layout: () => t.__("Layout"),
+  equalNodeWidth: () => t.__("Equal width"),
   equalNodeWidthTitle: () =>
-    trans.__("When on, every node uses the same width"),
-  adaptiveNodeWidth: () => trans.__("Fit content"),
+    t.__("When on, every node uses the same width"),
+  adaptiveNodeWidth: () => t.__("Fit content"),
   adaptiveNodeWidthTitle: () =>
-    trans.__(
+    t.__(
       "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)",
     ),
-  nodeWidth: () => trans.__("Node width"),
-  nodeWidthMax: () => trans.__("Max width"),
+  nodeWidth: () => t.__("Node width"),
+  viewBehavior: () => t.__("View"),
+  zoomRange: () => t.__("Zoom range"),
+  zoomMinimum: () => t.__("Minimum zoom"),
+  zoomMaximum: () => t.__("Maximum zoom"),
+  mouseWheel: () => t.__("Mouse wheel"),
+  wheelPans: () => t.__("Wheel pans"),
+  wheelPansTitle: () =>
+    t.__("Scroll pans the map; Ctrl/⌘ + scroll or pinch zooms"),
+  wheelZooms: () => t.__("Wheel zooms"),
+  wheelZoomsTitle: () =>
+    t.__("Scroll zooms the map; Shift + scroll pans"),
+  wheelZoomSpeed: () => t.__("Zoom speed"),
+  onOpen: () => t.__("On open"),
+  openViewSelected: () => t.__("Center selected node"),
+  openViewRoot: () => t.__("Center root"),
+  openViewFit: () => t.__("Fit whole map"),
+  openViewLast: () => t.__("Restore last view"),
+  nodeLevels: () => t.__("Levels"),
+  nodeLevel: () => t.__("Level"),
+  levelRoot: () => t.__("Root"),
+  levelOne: () => t.__("Level 1"),
+  levelTwo: () => t.__("Level 2"),
+  levelDeeper: () => t.__("Level 3+"),
+  followMap: () => t.__("Follow map"),
+  nodeLevelsHint: () =>
+    t.__("Overrides the map-wide node style for this level. A node's own fill still wins."),
+  edgeTaper: () => t.__("Taper"),
+  edgeTaperToggle: () => t.__("Thinner toward the leaves"),
+  edgeTaperTitle: () =>
+    t.__("Connector lines get thinner with each level away from the root"),
+  edgeMinWidth: () => t.__("Minimum width"),
+  edgeBranchColors: () => t.__("Branch colors"),
+  edgeBranchColorsHint: () =>
+    t.__("Overrides the line color; arrows follow the branch color."),
+  branchOff: () => t.__("Off"),
+  branchRainbow: () => t.__("Rainbow"),
+  branchPastel: () => t.__("Pastel"),
+  branchMono: () => t.__("Mono"),
+  nodePaddingX: () => t.__("Horizontal padding"),
+  nodePaddingY: () => t.__("Vertical padding"),
+  fitToWindow: () => t.__("Fit to window"),
+  fitToWindowTitle: () => t.__("Fit the whole map in the window (Shift+1)"),
+  nodeWidthMax: () => t.__("Max width"),
   resizeHandleTitle: () =>
-    trans.__("Drag the right edge to resize this node"),
-  line: () => trans.__("Line"),
-  looseLayout: () => trans.__("Extra open spacing between topics and branches"),
-  markdownFormatting: () => trans.__("Markdown formatting"),
-  mindMapFont: () => trans.__("Mind map font and size"),
-  mindMapShortcuts: () => trans.__("Mind map shortcuts"),
-  mindMapTheme: () => trans.__("Mind map theme"),
+    t.__("Drag the right edge to resize this node"),
+  line: () => t.__("Line"),
+  looseLayout: () => t.__("Extra open spacing between topics and branches"),
+  markdownFormatting: () => t.__("Markdown formatting"),
+  mindMapFont: () => t.__("Mind map font and size"),
+  mindMapShortcuts: () => t.__("Mind map shortcuts"),
+  mindMapTheme: () => t.__("Mind map theme"),
   pageControls: () =>
-    trans.__("Page and mind map controls"),
-  newVersionAvailable: () => trans.__("A newer version is available"),
-  node: () => trans.__("Node"),
-  redo: () => trans.__("Redo"),
-  undo: () => trans.__("Undo"),
+    t.__("Page and mind map controls"),
+  articleControls: () => t.__("Article reading controls"),
+  bookControls: () => t.__("Book reading controls"),
+  bookPage: () => t.__("Book page"),
+  bookSpread: () => t.__("Spread"),
+  bookSpreadOne: () => t.__("One"),
+  bookSpreadOneTitle: () => t.__("One page at a time"),
+  bookSpreadTwo: () => t.__("Two"),
+  bookSpreadTwoTitle: () => t.__("Facing pages like an open book"),
+  bookPrevious: () => t.__("Previous pages"),
+  bookNext: () => t.__("Next pages"),
+  bookSpine: () => t.__("Spine"),
+  bookSpineRule: () => t.__("Spine rule"),
+  bookSpineRuleOnTitle: () => t.__("Draw a thin rule in the spine"),
+  bookSpineRuleOffTitle: () => t.__("No spine rule"),
+  columns: () => t.__("Columns"),
+  columnsOne: () => t.__("One"),
+  columnsOneTitle: () => t.__("Single reading column"),
+  columnsTwo: () => t.__("Two"),
+  columnsTwoTitle: () => t.__("Two reading columns"),
+  columnsThree: () => t.__("Three"),
+  columnsThreeTitle: () => t.__("Three reading columns"),
+  columnGap: () => t.__("Column gap"),
+  columnFill: () => t.__("Column fill"),
+  columnFillBalance: () => t.__("Balance"),
+  columnFillBalanceTitle: () =>
+    t.__("Balance text height across columns"),
+  columnFillAuto: () => t.__("Auto"),
+  columnFillAutoTitle: () =>
+    t.__("Fill columns in order (newspaper style)"),
+  columnRule: () => t.__("Column rule"),
+  columnRuleOn: () => t.__("On"),
+  columnRuleOnTitle: () => t.__("Draw a thin rule between columns"),
+  columnRuleOff: () => t.__("Off"),
+  columnRuleOffTitle: () => t.__("No rule between columns"),
+  type: () => t.__("Type"),
+  articleType: () => t.__("Article type"),
+  articlePage: () => t.__("Article page"),
+  articleTheme: () => t.__("Article theme"),
+  articleThemeNotebook: () => t.__("Notebook"),
+  articleThemeNotebookTitle: () =>
+    t.__("Jupyter reading column on ruled notebook paper"),
+  articleThemeEssay: () => t.__("Essay"),
+  articleThemeEssayTitle: () =>
+    t.__("Narrow serif essay on warm sepia paper"),
+  articleThemeMagazine: () => t.__("Magazine"),
+  articleThemeMagazineTitle: () =>
+    t.__("Two-column newsprint with centered display titles"),
+  articleThemeNight: () => t.__("Night"),
+  articleThemeNightTitle: () =>
+    t.__("Dark ink page with larger type for low light"),
+  articleThemeAcademic: () => t.__("Academic"),
+  articleThemeAcademicTitle: () =>
+    t.__("Paged Times paper — justified body, restrained titles"),
+  articleThemeMinimal: () => t.__("Minimal"),
+  articleThemeMinimalTitle: () =>
+    t.__("Narrow sans column with generous whitespace"),
+  articleCode: () => t.__("Code"),
+  articleImage: () => t.__("Image"),
+  articleElements: () => t.__("Elements"),
+  articleFont: () => t.__("Article body font"),
+  articleBody: () => t.__("Article body"),
+  body: () => t.__("Body"),
+  articleParagraph: () => t.__("Article paragraph"),
+  paragraph: () => t.__("Paragraph"),
+  paragraphSpacing: () => t.__("Spacing"),
+  paragraphSpacingCompact: () => t.__("Compact"),
+  paragraphSpacingCompactTitle: () =>
+    t.__("Tighter space between paragraphs"),
+  paragraphSpacingReading: () => t.__("Reading"),
+  paragraphSpacingReadingTitle: () =>
+    t.__("Comfortable space between paragraphs"),
+  paragraphSpacingLoose: () => t.__("Loose"),
+  paragraphSpacingLooseTitle: () =>
+    t.__("Open space between paragraphs"),
+  paragraphIndent: () => t.__("Indent"),
+  paragraphIndentNone: () => t.__("None"),
+  paragraphIndentNoneTitle: () => t.__("No first-line indent"),
+  paragraphIndentHalf: () => t.__("Half"),
+  paragraphIndentHalfTitle: () => t.__("About one em first-line indent"),
+  paragraphIndentFull: () => t.__("Full"),
+  paragraphIndentFullTitle: () =>
+    t.__("About two em first-line indent"),
+  paragraphAlignLeftTitle: () => t.__("Left-align body paragraphs"),
+  paragraphAlignJustifyTitle: () =>
+    t.__("Justify body paragraphs for even edges"),
+  alignJustify: () => t.__("Justify"),
+  articleHeader: () => t.__("Article headers"),
+  header: () => t.__("Header"),
+  alignment: () => t.__("Alignment"),
+  alignLeft: () => t.__("Left"),
+  alignLeftTitle: () => t.__("Left-align heading"),
+  alignCenter: () => t.__("Center"),
+  alignCenterTitle: () => t.__("Center heading"),
+  alignRight: () => t.__("Right"),
+  alignRightTitle: () => t.__("Right-align heading"),
+  padding: () => t.__("Padding"),
+  paddingCompact: () => t.__("Compact"),
+  paddingCompactTitle: () => t.__("Tighter page margins"),
+  paddingReading: () => t.__("Reading"),
+  paddingReadingTitle: () => t.__("Comfortable page margins"),
+  paddingLoose: () => t.__("Loose"),
+  paddingLooseTitle: () => t.__("Open page margins"),
+  page: () => t.__("Page"),
+  leading: () => t.__("Leading"),
+  leadingCompact: () => t.__("Compact"),
+  leadingCompactTitle: () =>
+    t.__("Tighter line spacing for dense pages"),
+  leadingReading: () => t.__("Reading"),
+  leadingReadingTitle: () =>
+    t.__("Comfortable spacing for long-form reading"),
+  leadingLoose: () => t.__("Loose"),
+  leadingLooseTitle: () => t.__("Open spacing for a slower read"),
+  leadingSliderTitle: () =>
+    t.__("Line height from 0.5× to 3× of the body size"),
+  paragraphSpacingSliderTitle: () =>
+    t.__("Space between paragraphs from 0em to 3em"),
+  paragraphIndentSliderTitle: () =>
+    t.__("First-line indent from 0em to 3em"),
+  tracking: () => t.__("Tracking"),
+  letterSpacingSliderTitle: () =>
+    t.__("Letter spacing from 0em to 0.15em"),
+  linkStyle: () => t.__("Links"),
+  linkStyleDefault: () => t.__("Default"),
+  linkStyleDefaultTitle: () =>
+    t.__("Theme default link appearance"),
+  linkStyleUnderline: () => t.__("Underline"),
+  linkStyleUnderlineTitle: () =>
+    t.__("Always underline body links"),
+  linkStyleAccent: () => t.__("Accent"),
+  linkStyleAccentTitle: () =>
+    t.__("Use accent color for links"),
+  codeStylePlain: () => t.__("Plain"),
+  codeStylePlainTitle: () =>
+    t.__("Inline code without extra background"),
+  codeStyleMuted: () => t.__("Muted"),
+  codeStyleMutedTitle: () =>
+    t.__("Soft background for inline and block code"),
+  codeStyleContrast: () => t.__("Contrast"),
+  codeStyleContrastTitle: () =>
+    t.__("Strong background for code blocks"),
+  articleTable: () => t.__("Table"),
+  tableStyle: () => t.__("Style"),
+  tableStylePlain: () => t.__("Plain"),
+  tableStylePlainTitle: () =>
+    t.__("No borders — Word Plain Table"),
+  tableStyleGrid: () => t.__("Grid"),
+  tableStyleGridTitle: () =>
+    t.__("Full grid — Word Table Grid"),
+  tableStyleLines: () => t.__("Lines"),
+  tableStyleLinesTitle: () =>
+    t.__("Horizontal rules only"),
+  tableStyleBanded: () => t.__("Banded"),
+  tableStyleBandedTitle: () =>
+    t.__("Alternating row fill with header bar"),
+  tableStyleBooktabs: () => t.__("Booktabs"),
+  tableStyleBooktabsTitle: () =>
+    t.__("LaTeX booktabs — thick outer rules, no verticals"),
+  tableStyleRuled: () => t.__("Ruled"),
+  tableStyleRuledTitle: () =>
+    t.__("Academic three-line table"),
+  tableBorderWidth: () => t.__("Border"),
+  tableHeaderRowBold: () => t.__("Bold header row"),
+  tableHeaderRowBoldTitle: () =>
+    t.__("Make the first row (column headers) bold"),
+  tableHeaderColumnBold: () => t.__("Bold first column"),
+  tableHeaderColumnBoldTitle: () =>
+    t.__("Make the first column (row headers) bold"),
+  articleList: () => t.__("List"),
+  listSpacing: () => t.__("Spacing"),
+  listStyleCompact: () => t.__("Compact"),
+  listStyleCompactTitle: () => t.__("Tighter space between list items"),
+  listStyleNormal: () => t.__("Normal"),
+  listStyleNormalTitle: () => t.__("Comfortable list item spacing"),
+  listStyleRelaxed: () => t.__("Relaxed"),
+  listStyleRelaxedTitle: () => t.__("Open space between list items"),
+  articleQuote: () => t.__("Quote"),
+  blockquoteWeight: () => t.__("Blockquote"),
+  hrWeight: () => t.__("Divider"),
+  ruleWeightLight: () => t.__("Light"),
+  ruleWeightLightTitle: () => t.__("Thin, quiet rule"),
+  ruleWeightNormal: () => t.__("Normal"),
+  ruleWeightNormalTitle: () => t.__("Standard emphasis"),
+  ruleWeightStrong: () => t.__("Strong"),
+  ruleWeightStrongTitle: () => t.__("Heavier rule with more presence"),
+  codeTheme: () => t.__("Palette"),
+  codeThemeNotebook: () => t.__("Notebook"),
+  codeThemeNotebookTitle: () =>
+    t.__("JupyterLab default syntax colors"),
+  codeThemePython: () => t.__("Python"),
+  codeThemePythonTitle: () =>
+    t.__("Blue keywords and deep string tones"),
+  codeThemeJavascript: () => t.__("JavaScript"),
+  codeThemeJavascriptTitle: () =>
+    t.__("Red keywords with amber accents"),
+  codeThemeR: () => t.__("R"),
+  codeThemeRTitle: () => t.__("RStudio-style blues and greens"),
+  codeThemeJulia: () => t.__("Julia"),
+  codeThemeJuliaTitle: () => t.__("Julia purple, green, and red accents"),
+  codeThemeSql: () => t.__("SQL"),
+  codeThemeSqlTitle: () => t.__("Classic SQL blue keywords"),
+  codeThemeRust: () => t.__("Rust"),
+  codeThemeRustTitle: () => t.__("Warm rust orange keywords"),
+  codeThemeMatlab: () => t.__("MATLAB"),
+  codeThemeMatlabTitle: () => t.__("Classic MATLAB blue and purple"),
+  codeThemeShell: () => t.__("Shell"),
+  codeThemeShellTitle: () => t.__("Teal keywords for shell scripts"),
+  columnAlign: () => t.__("Column"),
+  columnAlignLeftTitle: () =>
+    t.__("Align the text column to the left"),
+  columnAlignCenterTitle: () =>
+    t.__("Center the text column in the pane"),
+  pageLayout: () => t.__("Layout"),
+  pageLayoutScroll: () => t.__("Scroll"),
+  pageLayoutScrollTitle: () =>
+    t.__("Continuous reading column (no paper frame)"),
+  pageLayoutPaged: () => t.__("Paged"),
+  pageLayoutPagedTitle: () =>
+    t.__("Print-style paper preview — use Export → PDF to save"),
+  paperSize: () => t.__("Paper"),
+  paperSizeA4: () => t.__("A4"),
+  paperSizeA4Title: () => t.__("210 × 297 mm"),
+  paperSizeLetter: () => t.__("Letter"),
+  paperSizeLetterTitle: () => t.__("8.5 × 11 in"),
+  paperOrientationPortrait: () => t.__("Portrait"),
+  paperOrientationPortraitTitle: () => t.__("Tall page (switches to Paged)"),
+  paperOrientationLandscape: () => t.__("Landscape"),
+  paperOrientationLandscapeTitle: () => t.__("Wide page (switches to Paged)"),
+  paperBorderColor: () => t.__("Edge color"),
+  paperBorderWidth: () => t.__("Edge width"),
+  paperShadow: () => t.__("Shadow"),
+  paperShadowTitle: () => t.__("Drop shadow around the paper sheet"),
+  paperShadowWidth: () => t.__("Shadow width"),
+  text: () => t.__("Text"),
+  textStyle: () => t.__("Text style"),
+  paragraphStyle: () => t.__("Paragraph style"),
+  headings: () => t.__("Headings"),
+  headingStyles: () => t.__("Heading styles"),
+  codeStyleMenu: () => t.__("Code style"),
+  pageSetup: () => t.__("Page setup"),
+  slidesHeaderFooter: () => t.__("Slide header, footer & controls"),
+  slidesPageElements: () => t.__("Page elements"),
+  slidesPresentationControls: () => t.__("Presentation controls"),
+  slidesLook: () => t.__("Look"),
+  headerFooter: () => t.__("Header & footer"),
+  articleHeaderFooter: () => t.__("Article header, footer & page numbers"),
+  pageHeader: () => t.__("Header"),
+  pageFooter: () => t.__("Footer"),
+  pageNumbers: () => t.__("Page numbers"),
+  pageFurnitureText: () => t.__("Text"),
+  pageFurnitureTextTitle: () =>
+    t.__("Placeholders: {title} file name, {page} page, {pages} total"),
+  pageFurnitureAlign: () => t.__("Alignment"),
+  pageFurniturePagedOnly: () =>
+    t.__("Shown in Paged layout (Page → Layout → Paged)"),
+  pageNumberFormat: () => t.__("Format"),
+  pageNumberNone: () => t.__("None"),
+  pageNumberNoneTitle: () => t.__("No page numbers"),
+  pageNumberPage: () => t.__("3"),
+  pageNumberPageTitle: () => t.__("Page number only"),
+  pageNumberPageOfTotal: () => t.__("3 / 12"),
+  pageNumberPageOfTotalTitle: () => t.__("Page number and page count"),
+  pageNumberPosition: () => t.__("Position"),
+  pageNumberInHeader: () => t.__("Header"),
+  pageNumberInHeaderTitle: () => t.__("Top margin of each page"),
+  pageNumberInFooter: () => t.__("Footer"),
+  pageNumberInFooterTitle: () => t.__("Bottom margin of each page"),
+  pageNumberStart: () => t.__("Starts on"),
+  pageNumberStartFirst: () => t.__("First page"),
+  pageNumberStartFirstTitle: () =>
+    t.__("Number from the first page (1, 2, 3…)"),
+  pageNumberStartSecond: () => t.__("Second page"),
+  pageNumberStartSecondTitle: () =>
+    t.__("Skip the first page; numbering begins on page 2 as 1"),
+  imageWidth: () => t.__("Size"),
+  images: () => t.__("Images"),
+  imageWidthNatural: () => t.__("Natural"),
+  imageWidthNaturalTitle: () =>
+    t.__("Keep images at their natural width"),
+  imageWidthWide: () => t.__("Wide"),
+  imageWidthWideTitle: () =>
+    t.__("Expand images to the column width"),
+  imageWidthFull: () => t.__("Full"),
+  imageWidthFullTitle: () =>
+    t.__("Let images span the full pane width"),
+  imageLayout: () => t.__("Layout"),
+  imageAlignLeftTitle: () => t.__("Place images on the left"),
+  imageAlignCenterTitle: () => t.__("Center images in the column"),
+  imageAlignRightTitle: () => t.__("Place images on the right"),
+  imageWrap: () => t.__("Wrap"),
+  imageWrapNone: () => t.__("Block"),
+  imageWrapNoneTitle: () =>
+    t.__("Images sit on their own line; text stays above and below"),
+  imageWrapLeft: () => t.__("Left + wrap"),
+  imageWrapLeftTitle: () =>
+    t.__("Image on the left; following text wraps on the right"),
+  imageWrapRight: () => t.__("Right + wrap"),
+  imageWrapRightTitle: () =>
+    t.__("Image on the right; following text wraps on the left"),
+  imageBorder: () => t.__("Border"),
+  imageBorderColor: () => t.__("Color"),
+  imageBorderNone: () => t.__("None"),
+  imageBorderNoneTitle: () => t.__("No frame around images"),
+  imageBorderSolid: () => t.__("Solid"),
+  imageBorderSolidTitle: () => t.__("Continuous line"),
+  imageBorderDashed: () => t.__("Dashed"),
+  imageBorderDashedTitle: () => t.__("Dashed line"),
+  imageBorderDotted: () => t.__("Dotted"),
+  imageBorderDottedTitle: () => t.__("Dotted line"),
+  imageBorderDouble: () => t.__("Double"),
+  imageBorderDoubleTitle: () => t.__("Two parallel lines"),
+  measure: () => t.__("Measure"),
+  measureNarrow: () => t.__("Narrow"),
+  measureNarrowTitle: () => t.__("About 42rem — essay column"),
+  measureReading: () => t.__("Reading"),
+  measureReadingTitle: () =>
+    t.__("About 52rem — default article column"),
+  measureWide: () => t.__("Wide"),
+  measureWideTitle: () => t.__("About 68rem — magazine column"),
+  measureFull: () => t.__("Full"),
+  measureFullTitle: () => t.__("Use the full pane width"),
+  surface: () => t.__("Surface"),
+  pageTheme: () => t.__("Theme"),
+  pageThemeTitle: () => t.__("Follow the Jupyter theme"),
+  pagePaper: () => t.__("Paper"),
+  pagePaperTitle: () => t.__("Warm off-white page for long reading"),
+  pageNewspaper: () => t.__("Newspaper"),
+  pageNewspaperTitle: () => t.__("Cream newsprint tone"),
+  pageEyeCare: () => t.__("Eye Care"),
+  pageEyeCareTitle: () =>
+    t.__("Soft green tint to reduce eye strain"),
+  pageInk: () => t.__("Ink"),
+  pageInkTitle: () => t.__("Dark page for night reading"),
+  pageSepia: () => t.__("Sepia"),
+  pageSepiaTitle: () =>
+    t.__("Warm sepia tone for long reading sessions"),
+  pageMist: () => t.__("Mist"),
+  pageMistTitle: () =>
+    t.__("Cool light gray page with a soft haze"),
+  backgroundLines: () => t.__("Lines"),
+  backgroundLinesTitle: () =>
+    t.__("Horizontal ruled lines like notebook paper"),
+  backgroundNotebook: () => t.__("Notebook"),
+  backgroundNotebookTitle: () =>
+    t.__("Margin and ruled lines like a notebook page"),
+  newVersionAvailable: () => t.__("A newer version is available"),
+  node: () => t.__("Node"),
+  redo: () => t.__("Redo"),
+  imageDropFailed: () =>
+    t.__("Could not save the dropped image next to this document."),
+  undo: () => t.__("Undo"),
   nodeAppearance: () =>
-    trans.__("Node width, fill, border, and selection glow"),
-  nodeFillDefault: () => trans.__("Map fill"),
-  nodeFillSelected: () => trans.__("Selected fill"),
+    t.__("Node width, fill, border, and selection glow"),
+  nodeFillDefault: () => t.__("Map fill"),
+  nodeFillSelected: () => t.__("Selected fill"),
   nodeFillSelectHint: () =>
-    trans.__("Select a node to set a custom fill"),
-  nodeBorderStyle: () => trans.__("Border style"),
-  nodeBorderWidth: () => trans.__("Border width"),
-  nodeBorderColor: () => trans.__("Border color"),
-  selectionGlowColor: () => trans.__("Selection glow color"),
-  selectionGlowWidth: () => trans.__("Selection glow width"),
-  hover: () => trans.__("Hover"),
-  hoverGlowColor: () => trans.__("Hover glow color"),
-  hoverGlowWidth: () => trans.__("Hover glow width"),
+    t.__("Select a node to set a custom fill"),
+  nodeBorderStyle: () => t.__("Border style"),
+  nodeBorderWidth: () => t.__("Border width"),
+  nodeBorderColor: () => t.__("Border color"),
+  selectionGlowColor: () => t.__("Selection glow color"),
+  selectionGlowWidth: () => t.__("Selection glow width"),
+  hover: () => t.__("Hover"),
+  hoverGlowColor: () => t.__("Hover glow color"),
+  hoverGlowWidth: () => t.__("Hover glow width"),
   hoverGlowFollowsBorderHint: () =>
-    trans.__(
+    t.__(
       "Default uses the map node border color when set; otherwise blue.",
     ),
-  nodeLayoutSpacing: () => trans.__("Node layout spacing"),
-  normalLayout: () => trans.__("Balanced default spacing like XMind auto layout"),
-  openRepository: () => trans.__("Open GitHub repository"),
-  repository: () => trans.__("Repository"),
-  style: () => trans.__("Style"),
-  route: () => trans.__("Route"),
-  theme: () => trans.__("Theme"),
-  density: () => trans.__("Density"),
-  spacing: () => trans.__("Spacing"),
-  width: () => trans.__("Width"),
-  color: () => trans.__("Color"),
-  arrow: () => trans.__("Arrow"),
-  arrowStyle: () => trans.__("Arrow style"),
-  fill: () => trans.__("Fill"),
-  border: () => trans.__("Border"),
-  corner: () => trans.__("Corner"),
-  selection: () => trans.__("Selection"),
-  tree: () => trans.__("Tree"),
-  treeBottomToTop: () => trans.__("Bottom to top"),
-  treeLeftToRight: () => trans.__("Left to right"),
-  treeRightToLeft: () => trans.__("Right to left"),
-  treeTopToBottom: () => trans.__("Top to bottom"),
-  upToDate: () => trans.__("You are on the latest version"),
-  version: () => trans.__("Version"),
-  zoom: () => trans.__("Zoom"),
-  zoomSlider: () => trans.__("Adjust zoom (20%–200%)"),
+  nodeLayoutSpacing: () => t.__("Node layout spacing"),
+  normalLayout: () => t.__("Balanced default spacing like XMind auto layout"),
+  openRepository: () => t.__("Open GitHub repository"),
+  repository: () => t.__("Repository"),
+  style: () => t.__("Style"),
+  route: () => t.__("Route"),
+  theme: () => t.__("Theme"),
+  restoreThemeDefaults: () => t.__("Restore theme defaults"),
+  restoreThemeDefaultsTitle: () =>
+    t.__("Reset page, background, and appearance for this theme"),
+  mindMapThemeSoft: () => t.__("Soft"),
+  mindMapThemeOutline: () => t.__("Outline"),
+  mindMapThemePaper: () => t.__("Paper"),
+  mindMapThemeBoard: () => t.__("Board"),
+  mindMapThemeBlack: () => t.__("Black"),
+  density: () => t.__("Density"),
+  spacing: () => t.__("Spacing"),
+  width: () => t.__("Width"),
+  color: () => t.__("Color"),
+  boldColor: () => t.__("Bold"),
+  boldColorTitle: () =>
+    t.__("Color for bold body text; empty inherits the body color"),
+  arrow: () => t.__("Arrow"),
+  arrowStyle: () => t.__("Arrow style"),
+  fill: () => t.__("Fill"),
+  border: () => t.__("Border"),
+  corner: () => t.__("Corner"),
+  selection: () => t.__("Selection"),
+  tree: () => t.__("Tree"),
+  treeBottomToTop: () => t.__("Bottom to top"),
+  treeLeftToRight: () => t.__("Left to right"),
+  treeRightToLeft: () => t.__("Right to left"),
+  treeTopToBottom: () => t.__("Top to bottom"),
+  upToDate: () => t.__("You are on the latest version"),
+  version: () => t.__("Version"),
+  zoom: () => t.__("Zoom"),
+  zoomIn: () => t.__("Zoom in"),
+  zoomOut: () => t.__("Zoom out"),
+  zoomSlider: () => t.__("Adjust zoom (20%–200%)"),
+  view: () => t.__("Kuusi View"),
+  openRenderViewBesideEditor: () =>
+    t.__("Open the Kuusi view beside this editor"),
+  export: () => t.__("Export"),
+  exportRenderView: () => t.__("Export this render view"),
+  exportPdf: () => t.__("PDF"),
+  exportPdfTitle: () =>
+    t.__("Download this view as a PDF file (one page per page or slide)"),
+  exportPdfSourceTitle: () => t.__("Download the PDF file"),
+  exportPrint: () => t.__("Print / Vector PDF…"),
+  exportPrintTitle: () =>
+    t.__(
+      "Open the system print dialog; choose “Save as PDF” for selectable text",
+    ),
+  exportImage: (format: string) => t.__("%1 image", format),
+  exportImageTitle: (format: string, scope: string) =>
+    t.__("Download %1 as a %2 image", scope, format),
+  exportScopeSlide: () => t.__("the current slide"),
+  exportScopeMindMap: () => t.__("the whole mind map"),
+  exportScopeView: () => t.__("the whole view"),
+  exportWorking: (name: string) => t.__("Exporting %1…", name),
+  exportWorkingPage: (name: string, page: number, total: number) =>
+    t.__("Exporting %1… page %2 of %3", name, page, total),
+  exportDone: (name: string) => t.__("Downloaded %1.", name),
+  exportFailed: (reason: string) => t.__("Export failed: %1", reason),
+  exportNothing: () => t.__("This view has nothing to export yet."),
+  exportWebpFallback: () =>
+    t.__("This browser cannot encode WebP; saved as PNG instead."),
+  exportHtml: () => t.__("HTML"),
+  exportHtmlTitle: () => t.__("Download the rendered HTML"),
+  exportDownloadSource: () => t.__("Download"),
+  exportDownloadSourceTitle: () => t.__("Download the source file"),
+  slidesControls: () => t.__("Slides controls"),
+  slidesTheme: () => t.__("Slides theme"),
+  slidesThemeClassic: () => t.__("Classic"),
+  slidesThemeClassicTitle: () =>
+    t.__("White stage — notebook type, balanced chrome"),
+  slidesThemeNight: () => t.__("Night"),
+  slidesThemeNightTitle: () =>
+    t.__("Dark projector stage — larger type, centered content"),
+  slidesThemeForest: () => t.__("Forest"),
+  slidesThemeForestTitle: () =>
+    t.__("Deep green stage with warm serif type"),
+  slidesThemeOcean: () => t.__("Ocean"),
+  slidesThemeOceanTitle: () =>
+    t.__("Blue stage — centered sans titles and progress"),
+  slidesThemeSlate: () => t.__("Slate"),
+  slidesThemeSlateTitle: () =>
+    t.__("Cool gray modern stage — compact, flat chrome"),
+  slidesThemePaper: () => t.__("Paper"),
+  slidesThemePaperTitle: () =>
+    t.__("Warm paper stage with reading-friendly serif"),
+  slidesThemeMetropolis: () => t.__("Metropolis"),
+  slidesThemeMetropolisTitle: () =>
+    t.__("Flat modern Beamer look — compact, progress bar"),
+  slidesThemeMadrid: () => t.__("Madrid"),
+  slidesThemeMadridTitle: () =>
+    t.__("Structured Beamer look — header bar and footer"),
+  slidesThemeBerlin: () => t.__("Berlin"),
+  slidesThemeBerlinTitle: () =>
+    t.__("Cool slate Beamer look — accent rail, compact"),
+  slidesThemeCopenhagen: () => t.__("Copenhagen"),
+  slidesThemeCopenhagenTitle: () =>
+    t.__("Light Beamer look — airy padding, quiet chrome"),
+  slidesThemeSingapore: () => t.__("Singapore"),
+  slidesThemeSingaporeTitle: () =>
+    t.__("Bold Beamer look — centered titles, strong accent"),
+  slidesLayout: () => t.__("Slides layout"),
+  slidesRatio: () => t.__("Ratio"),
+  slidesRatioWidescreen: () => t.__("16:9"),
+  slidesRatioWidescreenTitle: () =>
+    t.__("Widescreen stage (16:9)"),
+  slidesRatioClassic: () => t.__("4:3"),
+  slidesRatioClassicTitle: () =>
+    t.__("Classic projector stage (4:3)"),
+  slidesRatioSquare: () => t.__("1:1"),
+  slidesRatioSquareTitle: () =>
+    t.__("Square stage (1:1)"),
+  slidesDensity: () => t.__("Lists"),
+  slidesDensityCompact: () => t.__("Compact"),
+  slidesDensityCompactTitle: () =>
+    t.__("Tighter spacing between list items"),
+  slidesDensityNormal: () => t.__("Normal"),
+  slidesDensityNormalTitle: () =>
+    t.__("Default list item spacing"),
+  slidesDensityLoose: () => t.__("Loose"),
+  slidesDensityLooseTitle: () =>
+    t.__("Roomier spacing between list items"),
+  slidesHeadingScale: () => t.__("Headings"),
+  slidesHeadingScaleSm: () => t.__("Small"),
+  slidesHeadingScaleSmTitle: () =>
+    t.__("Smaller slide headings"),
+  slidesHeadingScaleMd: () => t.__("Medium"),
+  slidesHeadingScaleMdTitle: () =>
+    t.__("Default slide heading size"),
+  slidesHeadingScaleLg: () => t.__("Large"),
+  slidesHeadingScaleLgTitle: () =>
+    t.__("Larger slide headings"),
+  slidesTextColor: () => t.__("Text color"),
+  slidesAccent: () => t.__("Accent"),
+  slidesAccentColor: () => t.__("Accent color"),
+  slidesSplit: () => t.__("Split"),
+  slidesSplitAuto: () => t.__("Outline"),
+  slidesSplitAutoTitle: () =>
+    t.__(
+      "New slide at each # / ## / ###; --- optional; long slides auto-split",
+    ),
+  slidesSplitRules: () => t.__("--- rules"),
+  slidesSplitRulesTitle: () =>
+    t.__("Split only on lines that are exactly ---"),
+  slidesSplitHeadings: () => t.__("Headings only"),
+  slidesSplitHeadingsTitle: () =>
+    t.__("New slide at each # / ## / ### (ignore ---)"),
+  slidesStage: () => t.__("Slide stage"),
+  slidesPrevious: () => t.__("Previous slide"),
+  slidesNext: () => t.__("Next slide"),
+  slidesBody: () => t.__("Slide type"),
+  slidesCode: () => t.__("Code"),
+  slidesCodeFrame: () => t.__("Frame"),
+  slidesCodeFrameTitle: () =>
+    t.__("Draw a border around fenced code blocks"),
+  slidesCodeFrameColor: () => t.__("Frame color"),
+  slidesChrome: () => t.__("Chrome"),
+  slidesPageChrome: () => t.__("Page"),
+  slidesHeaderTitle: () =>
+    t.__("Show the slide header bar"),
+  slidesHeaderSource: () => t.__("Header text"),
+  slidesHeaderH1: () => t.__("Heading 1"),
+  slidesHeaderH1Title: () =>
+    t.__("Use the nearest H1 at or before this slide"),
+  slidesHeaderH2: () => t.__("Heading 2"),
+  slidesHeaderH2Title: () =>
+    t.__("Use the nearest H2 at or before this slide"),
+  slidesHeaderH3: () => t.__("Heading 3"),
+  slidesHeaderH3Title: () =>
+    t.__("Use the nearest H3 at or before this slide"),
+  slidesHeaderCustom: () => t.__("Custom"),
+  slidesHeaderCustomTitle: () =>
+    t.__("Use a fixed custom header string"),
+  slidesHeaderCustomText: () => t.__("Custom text"),
+  slidesHeaderCustomTextTitle: () =>
+    t.__("Text shown in the slide header bar"),
+  slidesHeaderCustomPlaceholder: () => t.__("Header text…"),
+  slidesAlign: () => t.__("Align"),
+  slidesAlignTop: () => t.__("Top"),
+  slidesAlignTopTitle: () => t.__("Align slide content to the top"),
+  slidesAlignCenterTitle: () =>
+    t.__("Vertically center slide content"),
+  slidesAlignBottom: () => t.__("Bottom"),
+  slidesAlignBottomTitle: () =>
+    t.__("Align slide content to the bottom"),
+  slidesPaddingCompactTitle: () =>
+    t.__("Tighter padding inside the slide stage"),
+  slidesPaddingNormal: () => t.__("Normal"),
+  slidesPaddingNormalTitle: () =>
+    t.__("Default padding inside the slide stage"),
+  slidesPaddingLooseTitle: () =>
+    t.__("Roomier padding inside the slide stage"),
+  slidesNavButtons: () => t.__("Buttons"),
+  slidesNavButtonsTitle: () =>
+    t.__("Show previous / next buttons under the stage"),
+  slidesPageNumber: () => t.__("Page number"),
+  slidesPageNumberTitle: () =>
+    t.__("Show the page number on the slide footer"),
+  slidesPageNumberDash: () => t.__("3 – 12"),
+  slidesPageNumberDashTitle: () =>
+    t.__("Page number and count separated by an en dash"),
+  slidesFooter: () => t.__("Footer"),
+  slidesFooterTitle: () =>
+    t.__("Show the slide footer bar"),
+  slidesProgress: () => t.__("Progress"),
+  slidesProgressTitle: () =>
+    t.__("Show a progress bar for deck position"),
+  slidesShadow: () => t.__("Shadow"),
+  slidesShadowTitle: () =>
+    t.__("Drop shadow around the slide stage"),
   };
 };
 

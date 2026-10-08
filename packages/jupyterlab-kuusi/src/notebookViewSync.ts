@@ -1,15 +1,13 @@
 import type { JupyterFrontEnd } from "@jupyterlab/application";
 import type { IDocumentManager } from "@jupyterlab/docmanager";
-import type { DocumentRegistry } from "@jupyterlab/docregistry";
 import { MarkdownCell } from "@jupyterlab/cells";
 import { NotebookPanel, type INotebookTracker } from "@jupyterlab/notebook";
-import type { NotebookMindMapDocumentWidget } from "./notebookMindMapWidget";
-import type { NotebookMindMapTracker } from "./tracker";
+import type { KuusiMindMapDocumentWidget, NotebookMindMapTracker } from "./tracker";
 
 const NOTEBOOK_FACTORY = "Notebook";
 
 const boundNotebookPanels = new WeakSet<NotebookPanel>();
-const boundMindMapFocus = new WeakSet<NotebookMindMapDocumentWidget>();
+const boundMindMapFocus = new WeakSet<KuusiMindMapDocumentWidget>();
 
 /** Which side owns keyboard focus for a notebook path in a Kuusi split. */
 export type SplitFocusOwner = "kuusi" | "notebook";
@@ -76,8 +74,8 @@ const findNotebookPanel = (
 const findMindMapForPath = (
   path: string,
   mindMapTracker: NotebookMindMapTracker,
-): NotebookMindMapDocumentWidget | null => {
-  let found: NotebookMindMapDocumentWidget | null = null;
+): KuusiMindMapDocumentWidget | null => {
+  let found: KuusiMindMapDocumentWidget | null = null;
 
   mindMapTracker.forEach((candidate) => {
     if (!found && candidate.context.path === path) {
@@ -132,24 +130,46 @@ export const restoreKuusiFocusIfOwned = (
   mindMap.content.focusMapViewport();
 };
 
-/** Keep reclaiming Kuusi focus for a short window after programmatic sync. */
+/** Pending one-shot settle after programmatic notebook sync (per path). */
+const pendingStickByPath = new Map<string, number>();
+
+/**
+ * Reclaim Kuusi focus after selection sync. Notebook may park focus on the
+ * classic pane asynchronously — one settle after the quiet hold, not a
+ * 16/50/100/200/400ms pin storm. focusin on the notebook pane also restores
+ * while Kuusi owns ({@link bindNotebookFocusOwnership}).
+ */
 const stickKuusiFocus = (
   path: string,
   mindMapTracker: NotebookMindMapTracker,
   notebookTracker?: INotebookTracker,
+  settleMs = 400,
 ): void => {
   const run = (): void => {
     restoreKuusiFocusIfOwned(path, mindMapTracker, notebookTracker);
   };
 
   run();
-  requestAnimationFrame(run);
-  [16, 50, 100, 200, 400].forEach((delayMs) => {
-    window.setTimeout(run, delayMs);
+
+  const prior = pendingStickByPath.get(path);
+  if (prior !== undefined) {
+    window.clearTimeout(prior);
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(run);
   });
+
+  pendingStickByPath.set(
+    path,
+    window.setTimeout(() => {
+      pendingStickByPath.delete(path);
+      run();
+    }, settleMs),
+  );
 };
 
-/** Ensure the classic Notebook view is open (left side of a Kuusi split). */
+/** Ensure the classic Notebook view is open (left editor for Kuusi sync). */
 export const ensureNotebookPanelOpen = async (
   path: string,
   notebookTracker: INotebookTracker,
@@ -221,14 +241,6 @@ export const activateNotebookView = async (
 
   return panel;
 };
-
-/** Open options that place a widget to the right of the notebook panel. */
-export const splitRightOfNotebookOptions = (
-  notebook: NotebookPanel | null,
-): DocumentRegistry.IOpenOptions =>
-  notebook
-    ? { ref: notebook.id, mode: "split-right", activate: true }
-    : { activate: true };
 
 /**
  * Mirror Kuusi’s selection into the classic notebook view (scroll + active cell)
@@ -391,7 +403,7 @@ export const bindNotebookFocusOwnership = (
 
 /** User interacts with Kuusi → Kuusi owns focus and keeps the viewport. */
 export const bindMindMapFocusOwnership = (
-  widget: NotebookMindMapDocumentWidget,
+  widget: KuusiMindMapDocumentWidget,
   notebookTracker?: INotebookTracker,
 ): void => {
   if (boundMindMapFocus.has(widget)) {

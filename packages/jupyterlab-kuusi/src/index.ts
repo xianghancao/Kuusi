@@ -2,12 +2,17 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from "@jupyterlab/application";
+import { createArticleTypographyModel } from "./articleMenus";
+import { createBookTypographyModel } from "./bookMenus";
+import { createMindMapTypographyModel } from "./mindMapMenus";
+import { createSlidesTypographyModel } from "./markdownSlides/slidesMenus";
+import { registerViewTypography } from "./viewTypographySync";
 import {
   createToolbarFactory,
-  ICommandPalette,
   IToolbarWidgetRegistry,
 } from "@jupyterlab/apputils";
 import { IEditorServices } from "@jupyterlab/codeeditor";
+import { IEditorTracker } from "@jupyterlab/fileeditor";
 import { PathExt } from "@jupyterlab/coreutils";
 import { IDocumentManager } from "@jupyterlab/docmanager";
 import {
@@ -17,7 +22,7 @@ import {
 } from "@jupyterlab/notebook";
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 import { ISettingRegistry } from "@jupyterlab/settingregistry";
-import { ITranslator, nullTranslator } from "@jupyterlab/translation";
+import { ITranslator } from "@jupyterlab/translation";
 import {
   addIcon,
   copyIcon,
@@ -26,8 +31,41 @@ import {
   pasteIcon,
   ToolbarButton,
 } from "@jupyterlab/ui-components";
-import { mindMapIcon } from "./kuusiIcon";
+import { registerMarkdownEditorMindMapToolbar } from "./markdownEditorToolbar";
+import { configureKuusiTranslator, getKuusiBundle } from "./kuusiI18n";
 import { createKuusiMindMapNotebook } from "./mindMapNotebook";
+import {
+  MarkdownMindMapDocumentWidget,
+  MarkdownMindMapWidgetFactory,
+} from "./markdownMindMapWidget";
+import {
+  MarkdownSlidesWidgetFactory,
+  NotebookSlidesWidgetFactory,
+} from "./markdownSlides/markdownSlidesWidget";
+import { SlidesSettingsManager } from "./markdownSlides/slidesSettings";
+import slidesSettingsPlugin from "./markdownSlides/slidesSettingsPlugin";
+import {
+  applyArticleToMarkdownDocument,
+  ensureKuusiArticleChrome,
+} from "./articleCapsule";
+import { ArticleSettingsManager } from "./articleSettings";
+import {
+  applyBookToMarkdownDocument,
+  ensureKuusiBookChrome,
+} from "./bookCapsule";
+import { BookSettingsManager } from "./bookSettings";
+import bookSettingsPlugin from "./bookSettingsPlugin";
+import type { MarkdownDocument } from "@jupyterlab/markdownviewer";
+import { NotebookArticleWidgetFactory } from "./notebookArticleWidget";
+import { NotebookBookWidgetFactory } from "./notebookBookWidget";
+import { MarkdownBookWidgetFactory } from "./markdownBookWidget";
+import {
+  bindArticlePositionSync,
+  bindMarkdownMindMapPositionSync,
+  bindNotebookPositionSource,
+  bindSlidesPositionSync,
+  configureRenderPositionSync,
+} from "./renderPositionSync";
 import { attachNotebookAutoReload } from "./notebookAutoReload";
 import {
   getNotebookAutoReloadEnabled,
@@ -37,43 +75,62 @@ import { registerNotebookAutoReloadToolbarFactories } from "./notebookAutoReload
 import {
   NotebookMindMapDocumentWidget,
   NotebookMindMapWidgetFactory,
-} from "./notebookMindMapWidget";
+} from "./notebookMindMapDocument";
 import {
   copyMindMapSubtree,
   cutMindMapSubtree,
   pasteMindMapClipboard,
 } from "./mindMapKeyboard";
-import { registerMindMapToolbarFactories } from "./mindMapToolbar";
+import {
+  registerMarkdownMindMapToolbarFactories,
+  registerMindMapToolbarFactories,
+} from "./mindMapToolbar";
+import {
+  FACTORY_EDITOR,
+  FACTORY_KUUSI_MARKDOWN_BOOK,
+  FACTORY_KUUSI_MARKDOWN_MIND_MAP,
+  FACTORY_KUUSI_MARKDOWN_SLIDES,
+  FACTORY_KUUSI_NOTEBOOK,
+  FACTORY_KUUSI_NOTEBOOK_ARTICLE,
+  FACTORY_KUUSI_NOTEBOOK_BOOK,
+  FACTORY_KUUSI_NOTEBOOK_SLIDES,
+  FACTORY_MARKDOWN_PREVIEW,
+} from "./defaultOpeners/constants";
+import { registerKuusiRenderViewSwitcherToolbars } from "./kuusiRenderViewSwitcher";
+import {
+  ensureKuusiRenderToolbarChrome,
+  registerKuusiRenderExportToolbars,
+} from "./renderExportButton";
+import {
+  bindKuusiSplitWorkspaceOnOpen,
+  registerKuusiSplitWorkspaceCommands,
+} from "./kuusiSplitWorkspace";
+import { registerKuusiEditorRenderToolbars } from "./editorRenderButton";
+import {
+  bindNotebookEditorFormatBars,
+} from "./markdownEditorFormatBar";
 import {
   activateNotebookView,
   bindMindMapFocusOwnership,
   bindNotebookToMindMapSync,
   claimKuusiFocus,
-  ensureNotebookPanelOpen,
   renderMarkdownCellInNotebookEditor,
   revealCellInNotebookEditor,
-  splitRightOfNotebookOptions,
   syncNotebookPanelToMindMaps,
 } from "./notebookViewSync";
 import { NotebookMindMapTracker } from "./tracker";
+import { releaseClosedTabs } from "./releaseClosedTabs";
 import { MindMapSettingsManager } from "./mindMapSettings";
+import articleSettingsPlugin from "./articleSettingsPlugin";
 import defaultOpenersPlugin from "./defaultOpeners/plugin";
 import launcherPlugin from "./launcherPlugin";
-import channelMonitorPlugin from "./channelMonitor/plugin";
-import compressPlugin from "./compress/plugin";
-import imagePlugin from "./imageView/plugin";
-import livePdfPlugin from "./livePdf/plugin";
-import voiceRecorderPlugin from "./voiceRecorder/plugin";
 import markdownPreviewPlugin from "./markdownPreview/plugin";
-import texCompilePlugin from "./texCompile/plugin";
-import { gateFullReleasePlugin } from "./releaseTierGate";
 
 const PLUGIN_ID = "jupyterlab-kuusi:plugin";
 
 namespace CommandIDs {
-  export const openNotebookMindMap =
-    "jupyterlab-kuusi:open-notebook-mindmap";
   export const openNotebookView = "jupyterlab-kuusi:open-notebook-view";
+  export const openMarkdownEditor = "jupyterlab-kuusi:open-markdown-editor";
   export const addMindMap = "jupyterlab-kuusi:add-mindmap";
   export const insertCellBelow = "jupyterlab-kuusi:insert-cell-below";
   export const cutCell = "jupyterlab-kuusi:cut-cell";
@@ -81,24 +138,8 @@ namespace CommandIDs {
   export const pasteCellBelow = "jupyterlab-kuusi:paste-cell-below";
 }
 
-type OpenNotebookMindMapArgs = {
-  path?: string;
-  toolbar?: boolean;
-};
-
 type OpenNotebookViewArgs = {
   path?: string;
-};
-
-const resolveNotebookPath = (
-  args: OpenNotebookMindMapArgs,
-  notebookTracker: INotebookTracker,
-): string | null => {
-  if (args.path) {
-    return args.path;
-  }
-
-  return notebookTracker.currentWidget?.context.path ?? null;
 };
 
 const resolveMindMapPath = (
@@ -126,7 +167,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     ISettingRegistry,
     ITranslator,
   ],
-  optional: [ICommandPalette],
+  optional: [IEditorTracker],
   activate: (
     app: JupyterFrontEnd,
     rendermime: IRenderMimeRegistry,
@@ -137,10 +178,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     toolbarRegistry: IToolbarWidgetRegistry,
     settingRegistry: ISettingRegistry,
     _translator: ITranslator,
-    palette: ICommandPalette | null,
+    editorTracker: IEditorTracker | null,
   ) => {
+    releaseClosedTabs(app);
+
     const mindMapTracker = new NotebookMindMapTracker();
     const factoryName = NotebookMindMapWidgetFactory.NAME;
+    const markdownMindMapFactoryName = MarkdownMindMapWidgetFactory.NAME;
 
     const getActiveNotebook = () =>
       mindMapTracker.currentWidget?.content.notebook ?? null;
@@ -171,11 +215,41 @@ const plugin: JupyterFrontEndPlugin<void> = {
       });
     };
 
-    // Force English for Kuusi commands/toolbars until a dedicated locale pack exists.
-    const kuusiTranslator = nullTranslator;
-    const trans = kuusiTranslator.load("jupyterlab");
+    configureKuusiTranslator(_translator);
+    const kuusiTranslator = _translator;
+    const trans = getKuusiBundle();
     const mindMapSettings = new MindMapSettingsManager(settingRegistry);
     void mindMapSettings.ready();
+    registerViewTypography(
+      "mindmap",
+      createMindMapTypographyModel(mindMapSettings),
+    );
+
+    registerKuusiSplitWorkspaceCommands(app, docManager);
+    bindKuusiSplitWorkspaceOnOpen(
+      app,
+      docManager,
+      notebookTracker,
+      editorTracker,
+    );
+    registerKuusiEditorRenderToolbars(app, docManager, toolbarRegistry);
+    const renderToolbarFactories = [
+      FACTORY_KUUSI_NOTEBOOK,
+      FACTORY_KUUSI_NOTEBOOK_ARTICLE,
+      FACTORY_KUUSI_NOTEBOOK_BOOK,
+      FACTORY_KUUSI_NOTEBOOK_SLIDES,
+      FACTORY_KUUSI_MARKDOWN_MIND_MAP,
+      FACTORY_KUUSI_MARKDOWN_BOOK,
+      FACTORY_KUUSI_MARKDOWN_SLIDES,
+      FACTORY_MARKDOWN_PREVIEW,
+    ];
+    registerKuusiRenderViewSwitcherToolbars(
+      app,
+      toolbarRegistry,
+      trans,
+      renderToolbarFactories,
+    );
+    registerKuusiRenderExportToolbars(app, toolbarRegistry, renderToolbarFactories);
 
     registerNotebookCommand(CommandIDs.insertCellBelow, {
       label: trans.__("Insert a cell below"),
@@ -275,6 +349,213 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     app.docRegistry.addWidgetFactory(factory);
 
+    const articleToolbarFactory = createToolbarFactory(
+      toolbarRegistry,
+      settingRegistry,
+      FACTORY_KUUSI_NOTEBOOK_ARTICLE,
+      PLUGIN_ID,
+      kuusiTranslator,
+    );
+
+    const notebookArticleFactory = new NotebookArticleWidgetFactory({
+      rendermime,
+      translator: kuusiTranslator,
+      toolbarFactory: articleToolbarFactory,
+    });
+
+    app.docRegistry.addWidgetFactory(notebookArticleFactory);
+
+    // Same capsule menus and appearance as the Markdown Article.
+    const articleSettings = new ArticleSettingsManager(settingRegistry);
+    registerViewTypography(
+      "article",
+      createArticleTypographyModel(articleSettings),
+    );
+    const articleWidgets = new Set<MarkdownDocument>();
+
+    void articleSettings.ready().then(() => {
+      articleWidgets.forEach((widget) => {
+        ensureKuusiArticleChrome(widget, articleSettings);
+      });
+    });
+    articleSettings.changed.connect(() => {
+      articleWidgets.forEach((widget) => {
+        applyArticleToMarkdownDocument(widget, articleSettings);
+      });
+    });
+
+    notebookArticleFactory.widgetCreated.connect((_, widget) => {
+      articleWidgets.add(widget);
+      widget.disposed.connect(() => {
+        articleWidgets.delete(widget);
+      });
+      ensureKuusiArticleChrome(widget, articleSettings);
+      ensureKuusiRenderToolbarChrome(
+        app,
+        widget,
+        FACTORY_KUUSI_NOTEBOOK_ARTICLE,
+      );
+      bindArticlePositionSync(widget, "notebook");
+    });
+
+    const bookToolbarFactory = createToolbarFactory(
+      toolbarRegistry,
+      settingRegistry,
+      FACTORY_KUUSI_NOTEBOOK_BOOK,
+      PLUGIN_ID,
+      kuusiTranslator,
+    );
+
+    const notebookBookFactory = new NotebookBookWidgetFactory({
+      rendermime,
+      translator: kuusiTranslator,
+      toolbarFactory: bookToolbarFactory,
+    });
+    app.docRegistry.addWidgetFactory(notebookBookFactory);
+
+    const markdownBookToolbarFactory = createToolbarFactory(
+      toolbarRegistry,
+      settingRegistry,
+      FACTORY_KUUSI_MARKDOWN_BOOK,
+      PLUGIN_ID,
+      kuusiTranslator,
+    );
+
+    const markdownBookFactory = new MarkdownBookWidgetFactory({
+      rendermime,
+      translator: kuusiTranslator,
+      toolbarFactory: markdownBookToolbarFactory,
+    });
+    app.docRegistry.addWidgetFactory(markdownBookFactory);
+
+    const bookSettings = new BookSettingsManager(settingRegistry);
+    registerViewTypography("book", createBookTypographyModel(bookSettings));
+    const bookWidgets = new Set<MarkdownDocument>();
+
+    void bookSettings.ready().then(() => {
+      bookWidgets.forEach((widget) => {
+        ensureKuusiBookChrome(widget, bookSettings);
+      });
+    });
+    bookSettings.changed.connect(() => {
+      bookWidgets.forEach((widget) => {
+        applyBookToMarkdownDocument(widget, bookSettings);
+      });
+    });
+
+    const bindBookWidget = (
+      widget: MarkdownDocument,
+      factoryName: string,
+      kind: "notebook" | "markdown",
+    ): void => {
+      bookWidgets.add(widget);
+      widget.disposed.connect(() => {
+        bookWidgets.delete(widget);
+      });
+      ensureKuusiBookChrome(widget, bookSettings);
+      ensureKuusiRenderToolbarChrome(app, widget, factoryName);
+      bindArticlePositionSync(widget, kind);
+    };
+
+    notebookBookFactory.widgetCreated.connect((_, widget) => {
+      bindBookWidget(widget, FACTORY_KUUSI_NOTEBOOK_BOOK, "notebook");
+    });
+    markdownBookFactory.widgetCreated.connect((_, widget) => {
+      bindBookWidget(widget, FACTORY_KUUSI_MARKDOWN_BOOK, "markdown");
+    });
+
+    const markdownToolbarFactory = createToolbarFactory(
+      toolbarRegistry,
+      settingRegistry,
+      markdownMindMapFactoryName,
+      PLUGIN_ID,
+      kuusiTranslator,
+    );
+
+    const markdownMindMapFactory = new MarkdownMindMapWidgetFactory(
+      rendermime,
+      contentFactory,
+      editorServices.mimeTypeService,
+      app.commands,
+      mindMapSettings,
+      kuusiTranslator,
+      contents,
+      markdownToolbarFactory,
+    );
+
+    app.docRegistry.addWidgetFactory(markdownMindMapFactory);
+
+    const slidesSettings = new SlidesSettingsManager(settingRegistry);
+    void slidesSettings.ready();
+    registerViewTypography(
+      "slides",
+      createSlidesTypographyModel(slidesSettings),
+    );
+
+    const markdownSlidesToolbarFactory = createToolbarFactory(
+      toolbarRegistry,
+      settingRegistry,
+      FACTORY_KUUSI_MARKDOWN_SLIDES,
+      PLUGIN_ID,
+      kuusiTranslator,
+    );
+
+
+    const markdownSlidesFactory = new MarkdownSlidesWidgetFactory(
+      {
+        name: FACTORY_KUUSI_MARKDOWN_SLIDES,
+        modelName: "text",
+        fileTypes: ["markdown"],
+        defaultFor: [],
+        readOnly: true,
+        label: "Kuusi Markdown Slides",
+        toolbarFactory: markdownSlidesToolbarFactory,
+      },
+      rendermime,
+      contents,
+      slidesSettings,
+    );
+
+
+    const notebookSlidesFactory = new NotebookSlidesWidgetFactory(
+      {
+        name: FACTORY_KUUSI_NOTEBOOK_SLIDES,
+        modelName: "notebook",
+        fileTypes: ["notebook"],
+        defaultFor: [],
+        readOnly: true,
+        label: "Kuusi Notebook Slides",
+        toolbarFactory: createToolbarFactory(
+          toolbarRegistry,
+          settingRegistry,
+          FACTORY_KUUSI_NOTEBOOK_SLIDES,
+          PLUGIN_ID,
+          kuusiTranslator,
+        ) as typeof markdownSlidesToolbarFactory,
+      },
+      rendermime,
+      contents,
+      slidesSettings,
+    );
+
+    app.docRegistry.addWidgetFactory(notebookSlidesFactory);
+    notebookSlidesFactory.widgetCreated.connect((_, widget) => {
+      ensureKuusiRenderToolbarChrome(
+        app,
+        widget,
+        FACTORY_KUUSI_NOTEBOOK_SLIDES,
+      );
+      bindSlidesPositionSync(widget, "notebook");
+    });
+
+    app.docRegistry.addWidgetFactory(markdownSlidesFactory);
+
+    registerMarkdownMindMapToolbarFactories(
+      toolbarRegistry,
+      markdownMindMapFactoryName,
+      kuusiTranslator,
+    );
+
     const attachClassicNotebookAutoReload = (panel: NotebookPanel): void => {
       void panel.context.ready.then(() => {
         if (panel.isDisposed) {
@@ -297,9 +578,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     notebookTracker.forEach((panel) => {
       attachClassicNotebookAutoReload(panel);
+      bindNotebookEditorFormatBars(panel);
     });
     notebookTracker.widgetAdded.connect((_, panel) => {
       attachClassicNotebookAutoReload(panel);
+      bindNotebookEditorFormatBars(panel);
     });
 
     registerNotebookAutoReloadToolbarFactories(toolbarRegistry);
@@ -310,7 +593,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
       kuusiTranslator,
     );
 
-    factory.widgetCreated.connect((_, widget) => {
+    if (editorTracker) {
+      registerMarkdownEditorMindMapToolbar(
+        app,
+        docManager,
+        editorTracker,
+        toolbarRegistry,
+        trans,
+      );
+    }
+
+    const bindNotebookMindMapWidget = (
+      widget: NotebookMindMapDocumentWidget,
+    ): void => {
       void mindMapTracker.add(widget);
       bindMindMapFocusOwnership(widget, notebookTracker);
       claimKuusiFocus(widget.context.path);
@@ -350,14 +645,37 @@ const plugin: JupyterFrontEndPlugin<void> = {
           widget.content.requestOpenCenter(panel.content.activeCellIndex);
         }
       });
+    };
+
+    factory.widgetCreated.connect((_, widget) => {
+      bindNotebookMindMapWidget(widget);
+      ensureKuusiRenderToolbarChrome(app, widget, factoryName);
     });
+
+    markdownMindMapFactory.widgetCreated.connect((_, widget) => {
+      void mindMapTracker.add(widget);
+      bindMindMapFocusOwnership(widget, notebookTracker);
+      claimKuusiFocus(widget.context.path);
+      ensureKuusiRenderToolbarChrome(app, widget, markdownMindMapFactoryName);
+      bindMarkdownMindMapPositionSync(widget);
+    });
+
+    markdownSlidesFactory.widgetCreated.connect((_, widget) => {
+      ensureKuusiRenderToolbarChrome(app, widget, FACTORY_KUUSI_MARKDOWN_SLIDES);
+      bindSlidesPositionSync(widget, "markdown");
+    });
+
+
+    configureRenderPositionSync({ editorTracker, notebookTracker });
 
     notebookTracker.forEach((panel) => {
       bindNotebookToMindMapSync(panel, mindMapTracker, notebookTracker);
+      bindNotebookPositionSource(panel);
     });
 
     notebookTracker.widgetAdded.connect((_, panel) => {
       bindNotebookToMindMapSync(panel, mindMapTracker, notebookTracker);
+      bindNotebookPositionSource(panel);
     });
 
     notebookTracker.currentChanged.connect((_, panel) => {
@@ -366,70 +684,21 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    app.commands.addCommand(CommandIDs.openNotebookMindMap, {
-      label: trans.__("Kuusi"),
-      caption: trans.__(
-        "Open this notebook beside Kuusi (left: notebook, right: mind map)",
-      ),
-      icon: mindMapIcon,
-      isEnabled: (args: OpenNotebookMindMapArgs) =>
-        Boolean(resolveNotebookPath(args, notebookTracker)),
-      execute: async (args: OpenNotebookMindMapArgs) => {
-        const path = resolveNotebookPath(args, notebookTracker);
+
+    app.commands.addCommand(CommandIDs.openMarkdownEditor, {
+      label: trans.__("Markdown editor"),
+      caption: trans.__("Open the plain-text Markdown editor for this file"),
+      icon: notebookIcon,
+      isEnabled: (args: OpenNotebookViewArgs) =>
+        Boolean(resolveMindMapPath(args, mindMapTracker)),
+      execute: (args: OpenNotebookViewArgs) => {
+        const path = resolveMindMapPath(args, mindMapTracker);
 
         if (!path) {
           return;
         }
 
-        const notebook = await ensureNotebookPanelOpen(
-          path,
-          notebookTracker,
-          docManager,
-        );
-        const openOptions = splitRightOfNotebookOptions(notebook);
-        const existing = docManager.findWidget(path, factoryName);
-        const wasAttached = Boolean(existing?.isAttached);
-
-        const widget = docManager.openOrReveal(
-          path,
-          factoryName,
-          undefined,
-          openOptions,
-        );
-
-        // openOrReveal only applies split options when attaching a new widget;
-        // re-dock an already-open Kuusi to the right of the notebook.
-        if (widget && notebook && !notebook.isDisposed && wasAttached) {
-          app.shell.add(widget, "main", openOptions);
-        }
-
-        if (widget instanceof NotebookMindMapDocumentWidget) {
-          bindMindMapFocusOwnership(widget, notebookTracker);
-          claimKuusiFocus(path);
-          widget.content.focusMapViewport();
-
-          let activeIndex = -1;
-
-          notebookTracker.forEach((panel) => {
-            if (panel.context.path === path) {
-              activeIndex = panel.content.activeCellIndex;
-            }
-          });
-
-          if (activeIndex < 0) {
-            activeIndex = widget.content.notebook.activeCellIndex;
-          }
-
-          if (activeIndex >= 0) {
-            // requestOpenCenter already follows dock/layout settling. A single
-            // request is important: delayed requests must not restart
-            // auto-centering after the user has begun panning.
-            widget.content.requestOpenCenter(activeIndex);
-            widget.content.focusMapViewport();
-          }
-        }
-
-        return widget;
+        return docManager.openOrReveal(path, FACTORY_EDITOR);
       },
     });
 
@@ -459,51 +728,21 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     toolbarRegistry.addFactory(
-      "Notebook",
-      "open-mindmap",
-      (panel: NotebookPanel) =>
-        new ToolbarButton({
-          className: "jp-KuusiNotebookOpenButton",
-          label: trans.__("Kuusi"),
-          tooltip: trans.__(
-            "Open beside Kuusi (notebook left, mind map right)",
-          ),
-          onClick: () => {
-            void app.commands.execute(CommandIDs.openNotebookMindMap, {
-              path: panel.context.path,
-            });
-          },
-        }),
-    );
-
-    toolbarRegistry.addFactory(
-      factoryName,
+      markdownMindMapFactoryName,
       "open-notebook",
-      (widget: NotebookMindMapDocumentWidget) =>
+      (widget: MarkdownMindMapDocumentWidget) =>
         new ToolbarButton({
           className: "jp-KuusiNotebookOpenButton",
-          label: trans.__("Notebook"),
-          tooltip: trans.__(
-            "Switch to the classic notebook view for this file",
-          ),
+          label: trans.__("Editor"),
+          tooltip: trans.__("Open the Markdown source editor"),
           onClick: () => {
-            void app.commands.execute(CommandIDs.openNotebookView, {
+            void app.commands.execute(CommandIDs.openMarkdownEditor, {
               path: widget.context.path,
             });
           },
         }),
     );
 
-    if (palette) {
-      palette.addItem({
-        command: CommandIDs.openNotebookMindMap,
-        category: "Kuusi",
-      });
-      palette.addItem({
-        command: CommandIDs.openNotebookView,
-        category: "Kuusi",
-      });
-    }
 
     console.info("jupyterlab-kuusi: refactor extension activated");
   },
@@ -511,13 +750,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
 export default [
   plugin,
-  gateFullReleasePlugin(livePdfPlugin),
-  gateFullReleasePlugin(imagePlugin),
-  gateFullReleasePlugin(voiceRecorderPlugin),
-  gateFullReleasePlugin(texCompilePlugin),
-  gateFullReleasePlugin(markdownPreviewPlugin),
-  gateFullReleasePlugin(channelMonitorPlugin),
-  gateFullReleasePlugin(compressPlugin),
+  articleSettingsPlugin,
+  bookSettingsPlugin,
+  slidesSettingsPlugin,
   defaultOpenersPlugin,
+  markdownPreviewPlugin,
   launcherPlugin,
 ];

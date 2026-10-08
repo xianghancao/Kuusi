@@ -1,0 +1,536 @@
+/* Book — facing-pages spread (bounded columns; never overflow column pagination). */
+
+.jp-KuusiNotebookBook,
+.jp-KuusiMarkdownBook {
+  /* Do not set display:flex — DocumentWidget uses Lumino BoxLayout
+     (absolute children). Overriding display lets the content pane cover or
+     displace the toolbar / Article–Book–Slides switcher. */
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.jp-KuusiMarkdownBook > .jp-Toolbar,
+.jp-KuusiNotebookBook > .jp-Toolbar {
+  align-items: center;
+  background: var(--jp-layout-color1);
+  border-bottom: 1px solid var(--jp-border-color2);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  /* Match Article: keep toolbar in Lumino's top slot. Absolute positioning
+     made BoxLayout assign the leftover height to the toolbar (~600px), which
+     shoved the MarkdownViewer to a thin strip at the bottom. */
+  height: var(--jp-private-toolbar-height, 28px);
+  max-height: var(--jp-private-toolbar-height, 28px);
+  min-height: var(--jp-private-toolbar-height, 28px);
+  overflow: hidden;
+  position: relative;
+  z-index: 20;
+}
+
+.jp-KuusiMarkdownBook > .jp-Toolbar .jp-KuusiRenderViewSwitcher,
+.jp-KuusiNotebookBook > .jp-Toolbar .jp-KuusiRenderViewSwitcher,
+.jp-KuusiMarkdownBook > .jp-Toolbar .jp-Toolbar-item,
+.jp-KuusiNotebookBook > .jp-Toolbar .jp-Toolbar-item {
+  align-self: center;
+  max-height: 100%;
+}
+
+/*
+ * MainAreaWidget inserts an empty contentHeader BoxPanel between toolbar and
+ * content. On Book, paper max-height measurement can collapse the viewer
+ * sizeHint so that empty panel absorbs almost all vertical space — the
+ * switcher looks fine (toolbar is thin) but the book itself disappears.
+ */
+.jp-KuusiMarkdownBook > .lm-BoxPanel:not(:has(*)),
+.jp-KuusiNotebookBook > .lm-BoxPanel:not(:has(*)) {
+  display: none !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  min-height: 0 !important;
+}
+
+.jp-KuusiMarkdownBook > .jp-MarkdownViewer,
+.jp-KuusiNotebookBook > .jp-MarkdownViewer {
+  /* Fill the content slot under the toolbar (!important beats Lumino inline). */
+  height: calc(100% - var(--jp-private-toolbar-height, 28px)) !important;
+  left: 0 !important;
+  min-height: 0;
+  overflow: hidden;
+  top: var(--jp-private-toolbar-height, 28px) !important;
+  width: 100% !important;
+  z-index: 0;
+}
+
+.jp-KuusiBook-header {
+  align-items: flex-start;
+  background: transparent;
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  flex-wrap: nowrap;
+  font-family: var(--kuusi-mindmap-chrome-font-family);
+  font-size: var(--kuusi-mindmap-chrome-font-size);
+  font-weight: var(--kuusi-mindmap-chrome-font-weight);
+  gap: 10px;
+  justify-content: space-between;
+  left: 0;
+  overflow: visible;
+  padding: 12px 14px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  /* On the Document shell, sit just under Jupyter's toolbar (same as Article). */
+  top: var(--jp-private-toolbar-height, 28px);
+  z-index: 40;
+}
+
+.jp-KuusiBook-header-left {
+  overflow: visible;
+  pointer-events: none;
+}
+
+.jp-KuusiBook-header-left .jp-KuusiToolbarCluster {
+  pointer-events: auto;
+}
+
+.jp-KuusiBook-paper {
+  --kuusi-book-columns: 2;
+  --kuusi-book-spine: 1.75rem;
+  /* Fixed physical page (A4). Pane resize must not change opening size. */
+  --kuusi-book-page-w: 105mm;
+  --kuusi-book-page-h: 297mm;
+  --kuusi-book-spread-w: calc(
+    var(--kuusi-book-page-w) * var(--kuusi-book-columns) +
+      var(--kuusi-book-spine) * (var(--kuusi-book-columns) - 1)
+  );
+  background: var(--kuusi-article-desk, var(--jp-layout-color2));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* Desk fills the Lumino slot; openings stay fixed A4 and scroll inside. */
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 56px 24px 12px;
+  position: relative;
+  width: 100%;
+}
+
+.jp-KuusiBook-paper[data-kuusi-book-columns="1"] {
+  --kuusi-book-columns: 1;
+  --kuusi-book-page-w: 210mm;
+}
+
+.jp-KuusiBook-stage {
+  /* Column flex so the tall rendered stack can overflow and scroll.
+     Row + stretch pinned the markdown to stage height (fake pagination). */
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* No scroll-snap: mandatory snap on the single rendered block yanked
+     scrollTop back to 0, so Next never moved the spread. */
+  scroll-behavior: auto;
+  width: 100%;
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged .jp-KuusiBook-stage {
+  flex: 0 0 auto;
+  height: var(--kuusi-book-page-h);
+  margin: 0 auto;
+  max-height: var(--kuusi-book-page-h);
+  /* Fixed A4 opening — never shrink to the pane (scroll/zoom instead). */
+  max-width: none;
+  /* Discrete openings like Apple Books — no free scrub scroll. */
+  overflow: hidden;
+  perspective: 1800px;
+  position: relative;
+  touch-action: pan-y;
+  transform-style: preserve-3d;
+  width: var(--kuusi-book-spread-w);
+  --kuusi-book-turn-progress: 0;
+}
+
+/* Soft page leaf that peels during turns / drag (Books-style). */
+.jp-KuusiBook-turnLeaf {
+  border-radius: 1px;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform-origin: right center;
+  transform-style: preserve-3d;
+  z-index: 6;
+}
+
+.jp-KuusiBook-turnLeaf-front {
+  background:
+    linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--kuusi-article-page-bg, #fff) 92%, #ddd) 0%,
+      var(--kuusi-article-page-bg, #fff) 42%,
+      color-mix(in srgb, var(--kuusi-article-page-bg, #fff) 88%, #c8c8c8) 100%
+    );
+  box-shadow:
+    -8px 0 24px rgb(0 0 0 / 18%),
+    inset 1px 0 0 rgb(255 255 255 / 55%);
+  height: 100%;
+  width: 100%;
+}
+
+.jp-KuusiBook-turnLeaf-shade {
+  background: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 0%) 0%,
+    rgb(0 0 0 / 18%) 55%,
+    rgb(0 0 0 / 32%) 100%
+  );
+  bottom: 0;
+  left: 0;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.jp-KuusiBook-turnLeaf-gloss {
+  background: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0%) 40%,
+    rgb(255 255 255 / 35%) 52%,
+    rgb(255 255 255 / 0%) 64%
+  );
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-turn-prev .jp-KuusiBook-turnLeaf {
+  transform-origin: left center;
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-turn-prev .jp-KuusiBook-turnLeaf-front {
+  box-shadow:
+    8px 0 24px rgb(0 0 0 / 18%),
+    inset -1px 0 0 rgb(255 255 255 / 55%);
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-turn-prev .jp-KuusiBook-turnLeaf-shade {
+  background: linear-gradient(
+    270deg,
+    rgb(0 0 0 / 0%) 0%,
+    rgb(0 0 0 / 18%) 55%,
+    rgb(0 0 0 / 32%) 100%
+  );
+}
+
+/* Interactive drag peel — progress 0…1 from pointer. */
+.jp-KuusiBook-stage.is-kuusi-book-drag-turning .jp-KuusiBook-turnLeaf {
+  opacity: 1;
+  transform: rotateY(calc(var(--kuusi-book-turn-progress, 0) * -105deg));
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-drag-turning.is-kuusi-book-turn-prev
+  .jp-KuusiBook-turnLeaf {
+  transform: rotateY(calc(var(--kuusi-book-turn-progress, 0) * 105deg));
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-drag-turning .jp-KuusiBook-turnLeaf-shade {
+  opacity: calc(0.25 + var(--kuusi-book-turn-progress, 0) * 0.55);
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-turning.is-kuusi-book-turn-next
+  .jp-KuusiBook-turnLeaf {
+  animation: kuusi-book-peel-next 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.jp-KuusiBook-stage.is-kuusi-book-turning.is-kuusi-book-turn-prev
+  .jp-KuusiBook-turnLeaf {
+  animation: kuusi-book-peel-prev 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged
+  .jp-KuusiBook-stage.is-kuusi-book-turning
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  animation: kuusi-book-opening-settle 480ms cubic-bezier(0.22, 0.61, 0.36, 1)
+    both;
+}
+
+@keyframes kuusi-book-peel-next {
+  0% {
+    opacity: 0.15;
+    transform: rotateY(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+    transform: rotateY(-118deg);
+  }
+}
+
+@keyframes kuusi-book-peel-prev {
+  0% {
+    opacity: 0.15;
+    transform: rotateY(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+    transform: rotateY(118deg);
+  }
+}
+
+@keyframes kuusi-book-opening-settle {
+  0% {
+    filter: brightness(0.97);
+    transform: translateZ(0);
+  }
+  40% {
+    filter: brightness(0.94);
+  }
+  100% {
+    filter: none;
+    transform: translateZ(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jp-KuusiBook-stage.is-kuusi-book-turning .jp-KuusiBook-turnLeaf,
+  .jp-KuusiBook-paper.is-kuusi-book-paged
+    .jp-KuusiBook-stage.is-kuusi-book-turning
+    :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+    animation: none !important;
+  }
+
+  .jp-KuusiBook-stage.is-kuusi-book-drag-turning .jp-KuusiBook-turnLeaf {
+    opacity: 0 !important;
+  }
+}
+
+/* Edge tap affordance — soft hot zones without chrome chrome. */
+.jp-KuusiBook-paper.is-kuusi-book-paged .jp-KuusiBook-stage::before,
+.jp-KuusiBook-paper.is-kuusi-book-paged .jp-KuusiBook-stage::after {
+  bottom: 0;
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 22%;
+  z-index: 4;
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged .jp-KuusiBook-stage::before {
+  background: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 3.5%) 0%,
+    transparent 100%
+  );
+  left: 0;
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged .jp-KuusiBook-stage::after {
+  background: linear-gradient(
+    270deg,
+    rgb(0 0 0 / 3.5%) 0%,
+    transparent 100%
+  );
+  right: 0;
+}
+
+/*
+ * Bounded facing pages: fixed column-count + capped width.
+ * Never column-width + max-content / overflow-column scrollWidth (hangs).
+ * Prefer column-height + column-wrap (newspaper openings) when supported —
+ * otherwise height:auto packs everything into one tall pair and clips.
+ */
+.jp-KuusiBook-paper.is-kuusi-book-paged
+  .jp-KuusiBook-stage
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    to right,
+    var(--kuusi-article-page-bg, #fff) 0,
+    var(--kuusi-article-page-bg, #fff)
+      calc(
+        (100% - var(--kuusi-book-spine) * (var(--kuusi-book-columns) - 1)) /
+          var(--kuusi-book-columns)
+      ),
+    transparent
+      calc(
+        (100% - var(--kuusi-book-spine) * (var(--kuusi-book-columns) - 1)) /
+          var(--kuusi-book-columns)
+      ),
+    transparent
+      calc(
+        (100% - var(--kuusi-book-spine) * (var(--kuusi-book-columns) - 1)) /
+          var(--kuusi-book-columns) + var(--kuusi-book-spine)
+      ),
+    var(--kuusi-article-page-bg, #fff)
+      calc(
+        (100% - var(--kuusi-book-spine) * (var(--kuusi-book-columns) - 1)) /
+          var(--kuusi-book-columns) + var(--kuusi-book-spine)
+      ),
+    var(--kuusi-article-page-bg, #fff) 100%
+  ) !important;
+  background-attachment: local !important;
+  /* Repeat per opening so later spreads keep the facing-page paper look. */
+  background-repeat: repeat-y !important;
+  background-size: 100% var(--kuusi-book-page-h) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 6%),
+    0 0 18px rgb(0 0 0 / 14%);
+  box-sizing: border-box;
+  color: var(--kuusi-article-body-color, var(--kuusi-article-page-fg, #222));
+  column-count: var(--kuusi-book-columns);
+  column-fill: auto;
+  column-gap: var(--kuusi-book-spine);
+  /* Grow with column stack; never flex-stretch to the stage viewport. */
+  flex: 0 0 auto;
+  font-family: var(
+    --kuusi-article-font-family,
+    var(--jp-content-font-family)
+  );
+  font-size: var(--kuusi-article-font-size, 14px);
+  height: auto;
+  /* Beat Lab `.jp-Document .jp-MarkdownViewer .jp-RenderedMarkdown` absolute
+     inset — that took content out of flow so the stage could never scroll. */
+  inset: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  letter-spacing: var(--kuusi-article-letter-spacing, 0);
+  line-height: var(--kuusi-article-line-height, 1.6);
+  margin: 0 auto;
+  max-width: none;
+  min-height: var(--kuusi-book-page-h);
+  overflow: visible;
+  padding: var(--kuusi-article-padding-top, 1.75rem)
+    var(--kuusi-article-padding-x, 1.75rem)
+    var(--kuusi-article-padding-bottom, 2rem);
+  position: relative !important;
+  right: auto !important;
+  top: auto !important;
+  width: var(--kuusi-book-spread-w);
+}
+
+/* Newspaper openings: fill left→right within one page height, then wrap. */
+@supports (column-height: 100px) {
+  .jp-KuusiBook-paper.is-kuusi-book-paged.is-kuusi-book-column-wrap
+    .jp-KuusiBook-stage
+    :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+    column-height: var(--kuusi-book-page-h);
+    column-wrap: wrap;
+    row-gap: 0;
+  }
+}
+
+.jp-KuusiBook-paper
+  .jp-KuusiBook-stage
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(strong, b) {
+  color: var(--kuusi-article-strong-color, inherit);
+}
+
+.jp-KuusiBook-paper[data-kuusi-book-columns="1"].is-kuusi-book-paged
+  .jp-KuusiBook-stage
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  background-image: none !important;
+  background-color: var(--kuusi-article-page-bg, #fff) !important;
+  column-count: 1;
+}
+
+.jp-KuusiBook-paper[data-kuusi-book-column-rule="1"].is-kuusi-book-paged
+  .jp-KuusiBook-stage
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  column-rule: 1px solid
+    color-mix(in srgb, var(--kuusi-article-page-fg, #222) 22%, transparent);
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(h1, h2, h3, pre, table, blockquote, figure, img) {
+  break-inside: avoid;
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  :is(h1, h2, h3) {
+  break-after: avoid;
+}
+
+.jp-KuusiBook-paper.is-kuusi-book-paged
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown)
+  p {
+  margin-block: var(--kuusi-article-paragraph-spacing, 12pt);
+  text-align: var(--kuusi-article-paragraph-align, left);
+  text-indent: var(--kuusi-article-paragraph-indent, 0);
+}
+
+.jp-KuusiBook-nav {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+  justify-content: center;
+  padding: 8px 0 4px;
+  pointer-events: auto;
+  z-index: 30;
+}
+
+.jp-KuusiBook-navBtn {
+  align-items: center;
+  background: color-mix(in srgb, var(--jp-layout-color1) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--jp-border-color1) 55%, transparent);
+  border-radius: 999px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.25rem;
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 32px;
+  padding: 0 10px;
+}
+
+.jp-KuusiBook-navBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--jp-layout-color1) 92%, transparent);
+}
+
+.jp-KuusiBook-navBtn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.jp-KuusiBook-counter {
+  color: var(--jp-ui-font-color2);
+  font-family: var(--kuusi-mindmap-chrome-font-family, var(--jp-ui-font-family));
+  font-size: var(--kuusi-mindmap-chrome-font-size, 11px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 550;
+  min-width: 5.5em;
+  text-align: center;
+  user-select: none;
+}
+
+@media (max-width: 720px) {
+  .jp-KuusiBook-paper {
+    --kuusi-book-columns: 1;
+    padding: 52px 12px 8px;
+  }
+}

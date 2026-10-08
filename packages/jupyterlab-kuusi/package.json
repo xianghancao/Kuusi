@@ -1,13 +1,14 @@
 {
   "name": "jupyterlab-kuusi",
-  "version": "0.2.6",
-  "description": "Jupyter-native notebook mind map view for JupyterLab",
+  "version": "0.2.7",
+  "description": "Jupyter-native Article, Book, Slides, and Mind Map views for JupyterLab",
   "keywords": [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension",
     "notebook",
     "mindmap",
+    "book",
     "kuusi"
   ],
   "license": "BSD-3-Clause",
@@ -28,7 +29,8 @@
     "build": "npm run build:kernel && npm run build:lib && npm run build:labextension:dev",
     "build:release": "npm run build:kernel && npm run build:lib && npm run build:labextension",
     "build:kernel": "npm run build --workspace=kuusi-kernel",
-    "build:lib": "npm run clean:lib && tsc -p tsconfig.json",
+    "sync:typography-schema": "python3 scripts/sync_typography_schema.py",
+    "build:lib": "npm run sync:typography-schema && npm run clean:lib && tsc -p tsconfig.json",
     "build:labextension": "YARN_ENABLE_IMMUTABLE_INSTALLS=false YARN_ENABLE_SCRIPTS=false jupyter labextension build .",
     "build:labextension:dev": "YARN_ENABLE_IMMUTABLE_INSTALLS=false YARN_ENABLE_SCRIPTS=false jupyter labextension build --development True .",
     "install:extension": "npm run build:kernel && npm run build:lib && npm run build:labextension:dev",
@@ -42,6 +44,7 @@
     "@jupyterlab/apputils": "^4.3.5",
     "@jupyterlab/cells": "^4.3.5",
     "@jupyterlab/codeeditor": "^4.3.5",
+    "@jupyterlab/codemirror": "^4.3.5",
     "@jupyterlab/docmanager": "^4.3.5",
     "@jupyterlab/docregistry": "^4.3.5",
     "@jupyterlab/filebrowser": "^4.3.5",
@@ -58,9 +61,10 @@
     "@jupyterlab/ui-components": "^4.3.5",
     "@lumino/disposable": "^2.1.2",
     "@lumino/widgets": "^2.5.0",
-    "kuusi-kernel": "0.2.6",
-    "pdfjs-dist": "4.10.38",
-    "utif": "^3.1.0"
+    "html-to-image": "^1.11.13",
+    "jspdf": "^3.0.4",
+    "kuusi-kernel": "0.2.7",
+    "style-mod": "^4.1.2"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.5",

@@ -1,0 +1,112 @@
+/* List / blockquote / hr — Elements chrome (data attrs on the view host). */
+
+/* —— Lists —— */
+
+[data-kuusi-list-style="compact"] ul,
+[data-kuusi-list-style="compact"] ol {
+  margin-block: 0.35em;
+  padding-inline-start: 1.35em;
+}
+
+[data-kuusi-list-style="compact"] li {
+  margin-block: 0.1em;
+}
+
+[data-kuusi-list-style="normal"] ul,
+[data-kuusi-list-style="normal"] ol {
+  margin-block: 0.65em;
+  padding-inline-start: 1.6em;
+}
+
+[data-kuusi-list-style="normal"] li {
+  margin-block: 0.25em;
+}
+
+[data-kuusi-list-style="relaxed"] ul,
+[data-kuusi-list-style="relaxed"] ol {
+  margin-block: 1em;
+  padding-inline-start: 1.85em;
+}
+
+[data-kuusi-list-style="relaxed"] li {
+  margin-block: 0.45em;
+}
+
+/* —— Blockquote —— */
+
+[data-kuusi-blockquote-weight] blockquote {
+  margin-block: 0.85em;
+}
+
+[data-kuusi-blockquote-weight="light"] blockquote {
+  border-left: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+  color: color-mix(in srgb, currentColor 78%, transparent);
+  font-style: normal;
+  padding: 0.1em 0 0.1em 0.7em;
+}
+
+[data-kuusi-blockquote-weight="normal"] blockquote {
+  border-left: 4px solid color-mix(in srgb, currentColor 42%, transparent);
+  color: color-mix(in srgb, currentColor 88%, transparent);
+  padding: 0.15em 0 0.15em 0.9em;
+}
+
+[data-kuusi-blockquote-weight="strong"] blockquote {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border-left: 6px solid color-mix(in srgb, currentColor 55%, transparent);
+  color: inherit;
+  padding: 0.55em 0.85em 0.55em 1em;
+}
+
+/* Slides keep accent-tinted quote bars when a weight is stamped. */
+.jp-KuusiMarkdownSlides[data-kuusi-blockquote-weight="light"]
+  .jp-KuusiMarkdownSlides-slide
+  blockquote {
+  border-left-color: color-mix(
+    in srgb,
+    var(--kuusi-slides-accent, currentColor) 45%,
+    transparent
+  );
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-blockquote-weight="normal"]
+  .jp-KuusiMarkdownSlides-slide
+  blockquote {
+  border-left-color: var(--kuusi-slides-accent, #888);
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-blockquote-weight="strong"]
+  .jp-KuusiMarkdownSlides-slide
+  blockquote {
+  background: color-mix(
+    in srgb,
+    var(--kuusi-slides-accent, currentColor) 10%,
+    transparent
+  );
+  border-left-color: var(--kuusi-slides-accent, #888);
+}
+
+/* —— Horizontal rules —— */
+
+[data-kuusi-hr-weight] hr {
+  background: none;
+  border: none;
+  border-top-style: solid;
+  margin-block: 1.1em;
+}
+
+[data-kuusi-hr-weight="light"] hr {
+  border-top-color: color-mix(in srgb, currentColor 18%, transparent);
+  border-top-width: 1px;
+  opacity: 0.85;
+}
+
+[data-kuusi-hr-weight="normal"] hr {
+  border-top-color: color-mix(in srgb, currentColor 32%, transparent);
+  border-top-width: 1px;
+}
+
+[data-kuusi-hr-weight="strong"] hr {
+  border-top-color: color-mix(in srgb, currentColor 48%, transparent);
+  border-top-width: 2.5px;
+}
