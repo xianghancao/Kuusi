@@ -153,6 +153,10 @@
   transform-style: preserve-3d;
   width: var(--kuusi-book-spread-w);
   --kuusi-book-turn-progress: 0;
+  /* The view zoom is a transform, which keeps the full A4 height in the flow.
+     Give the unused height back (or add room when zoomed in) so the page-turn
+     bar sits right under the opening instead of a screen below it. */
+  margin-bottom: calc((var(--kuusi-render-zoom, 1) - 1) * var(--kuusi-book-page-h));
 }
 
 /* Soft page leaf that peels during turns / drag (Books-style). */
@@ -425,7 +429,10 @@
   position: relative !important;
   right: auto !important;
   top: auto !important;
-  width: var(--kuusi-book-spread-w);
+  /* Lumino writes the widget's own width inline (the whole desk, 1400 px+);
+     without !important the two columns are laid out far wider than the
+     visible opening and the right-hand page is cut off. */
+  width: var(--kuusi-book-spread-w) !important;
 }
 
 /* Newspaper openings: fill left→right within one page height, then wrap. */

@@ -606,8 +606,10 @@ export const bindBookPagedLayout = (
     subtree: true,
   });
 
+  // Keep the open spread: `layout` clamps it to the new page count. Resetting
+  // to the first opening here also fired on the settings event that follows
+  // every page turn, so "Next" only ever reached the second opening.
   const settingsDisp = manager?.changed.connect(() => {
-    spread = 0;
     schedule();
   });
 

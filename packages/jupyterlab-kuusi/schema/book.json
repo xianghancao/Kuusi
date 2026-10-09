@@ -113,7 +113,7 @@
       "description": "Page inset in rem.",
       "type": "number",
       "minimum": 0.5,
-      "maximum": 4,
+      "maximum": 8,
       "default": 2
     },
     "background": {
@@ -186,17 +186,11 @@
     },
     "fontSize": {
       "title": "Book body font size",
-      "type": "string",
-      "enum": [
-        "xxs",
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "xxl"
-      ],
-      "default": "xs"
+      "description": "Body size in points. Older named sizes (xs, sm, ...) are still read.",
+      "type": ["number", "string"],
+      "minimum": 8,
+      "maximum": 37.5,
+      "default": 14
     },
     "color": {
       "title": "Book body color",
