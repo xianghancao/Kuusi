@@ -7,18 +7,23 @@ import {
   createKuusiAboutPanel,
   createKuusiCommunityPanel,
   createKuusiRepositoryPanel,
+  createKuusiUpgradePanel,
   createKuusiVersionPanel,
+  KUUSI_PIP_UPGRADE,
 } from "./kuusiInfoPanels";
 import {
+  compareVersions,
   getKuusiVersionState,
   refreshKuusiLatestVersion,
   subscribeKuusiVersionState,
 } from "./kuusiVersionCheck";
+import { KUUSI_VERSION } from "./version";
 import { applyKuusiVersionDisplay } from "./kuusiVersionUi";
 
 type SettingsSection =
   | "openers"
   | "version"
+  | "upgrade"
   | "community"
   | "repository"
   | "about";
@@ -32,6 +37,7 @@ const SETTINGS_SECTIONS: Array<{
 }> = [
   { id: "openers", label: (t) => t.defaultFiles() },
   { id: "version", label: (t) => t.version(), versionTab: true },
+  { id: "upgrade", label: (t) => t.upgrade() },
   { id: "community", label: (t) => t.community() },
   { id: "repository", label: (t) => t.repository() },
   { id: "about", label: (t) => t.about() },
@@ -59,6 +65,17 @@ const createSettingsShell = (
 
   const openersPanel = createDefaultOpenersPanel(manager);
   const versionRefs = createKuusiVersionPanel(t);
+  // A status chip (and the upgrade command) under the two version rows.
+  const versionStatus = document.createElement("div");
+  versionStatus.className = "jp-KuusiSettings-versionStatus";
+  // The two version rows form a card; the panel itself fills the page.
+  const versionCard = document.createElement("div");
+  versionCard.className = "jp-KuusiSettings-versionCard";
+  while (versionRefs.panel.firstChild) {
+    versionCard.appendChild(versionRefs.panel.firstChild);
+  }
+  versionRefs.panel.append(versionCard, versionStatus);
+  const upgradePanel = createKuusiUpgradePanel(t);
   const communityPanel = createKuusiCommunityPanel(t);
   const repositoryPanel = createKuusiRepositoryPanel(t);
   const aboutPanel = createKuusiAboutPanel(t);
@@ -66,6 +83,7 @@ const createSettingsShell = (
   const panels: Record<SettingsSection, HTMLElement> = {
     openers: openersPanel,
     version: versionRefs.panel,
+    upgrade: upgradePanel,
     community: communityPanel,
     repository: repositoryPanel,
     about: aboutPanel,
@@ -80,12 +98,44 @@ const createSettingsShell = (
   const tabButtons = new Map<SettingsSection, HTMLButtonElement>();
 
   const syncVersionPanel = (): void => {
+    const state = getKuusiVersionState();
     applyKuusiVersionDisplay(
       versionRefs.latestValueEl,
       versionRefs.versionTabBadge,
-      getKuusiVersionState(),
+      state,
       t,
     );
+
+    const update = Boolean(state.latest) && compareVersions(state.latest!, KUUSI_VERSION) > 0;
+    const chip = document.createElement("span");
+    chip.className = `jp-KuusiSettings-chip ${
+      !state.latest ? "is-unknown" : update ? "is-update" : "is-ok"
+    }`;
+    chip.textContent = !state.latest
+      ? t.latestUnavailable()
+      : update
+        ? t.newVersionAvailable()
+        : t.upToDate();
+    versionStatus.replaceChildren(chip);
+
+    if (update) {
+      const hint = document.createElement("div");
+      hint.className = "jp-KuusiSettings-updateHint";
+      const lead = document.createElement("span");
+      lead.textContent = `${t.updateWith()}`;
+      const code = document.createElement("code");
+      code.textContent = KUUSI_PIP_UPGRADE;
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "jp-KuusiSettings-linkBtn";
+      more.textContent = `${t.howToUpgrade()} →`;
+      more.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setSection("upgrade");
+      });
+      hint.append(lead, code, more);
+      versionStatus.appendChild(hint);
+    }
   };
 
   const unsubscribeVersion = subscribeKuusiVersionState(() => {
@@ -173,7 +223,10 @@ export const showKuusiSettingsDialog = async (
     await showDialog({
       title: t.kuusiSettings(),
       body: widget,
-      buttons: [Dialog.okButton({ label: t.close() })],
+      // A plain (grey) Close rather than the primary blue button, and focus on
+      // the active tab so the button does not open with a heavy focus ring.
+      buttons: [Dialog.cancelButton({ label: t.close() })],
+      focusNodeSelector: ".jp-KuusiSecondaryMenu-tab.is-active",
     });
   } finally {
     dispose();

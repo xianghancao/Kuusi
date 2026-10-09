@@ -2,7 +2,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from "@jupyterlab/application";
-import { ICommandPalette } from "@jupyterlab/apputils";
+import { ICommandPalette, Notification } from "@jupyterlab/apputils";
 import { ISettingRegistry } from "@jupyterlab/settingregistry";
 import {
   DEFAULT_OPENERS_PLUGIN_ID,
@@ -13,7 +13,29 @@ import {
   DefaultOpenersManager,
   setDefaultOpenersManager,
 } from "./defaultOpenersManager";
+import { createKuusiTranslator } from "../kuusiI18n";
+import { compareVersions } from "../kuusiVersionCheck";
+import { KUUSI_VERSION } from "../version";
 import { showDefaultOpenersSettings } from "./settingsDialog";
+
+const LAST_SEEN_VERSION_KEY = "jupyterlab-kuusi:last-seen-version";
+
+/** After an upgrade, say so once: the user can see the new version took hold. */
+const announceUpgrade = (): void => {
+  try {
+    const previous = window.localStorage.getItem(LAST_SEEN_VERSION_KEY);
+    window.localStorage.setItem(LAST_SEEN_VERSION_KEY, KUUSI_VERSION);
+
+    if (previous && compareVersions(KUUSI_VERSION, previous) > 0) {
+      Notification.success(
+        `${createKuusiTranslator().upgradedTo()} v${KUUSI_VERSION}`,
+        { autoClose: 6000 },
+      );
+    }
+  } catch {
+    // Storage can be blocked (private windows); the notice is optional.
+  }
+};
 
 const defaultOpenersPlugin: JupyterFrontEndPlugin<void> = {
   id: DEFAULT_OPENERS_PLUGIN_ID,
@@ -29,6 +51,7 @@ const defaultOpenersPlugin: JupyterFrontEndPlugin<void> = {
     const manager = new DefaultOpenersManager(
       settingRegistry,
       app.docRegistry,
+      app.restored,
     );
     setDefaultOpenersManager(manager);
 
@@ -46,6 +69,7 @@ const defaultOpenersPlugin: JupyterFrontEndPlugin<void> = {
       });
     }
 
+    void app.restored.then(announceUpgrade);
     console.info("jupyterlab-kuusi: Default openers settings activated");
   },
 };

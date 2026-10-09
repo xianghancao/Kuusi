@@ -38,7 +38,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 | Active on core | Description |
 |----------------|-------------|
 | **Mind Map** | Open `.ipynb` files in the Kuusi canvas (**Open With → Kuusi Mind Map**, or toolbar **Kuusi** on the 0.2.6 wheel). |
-| **Launcher → Kuusi** | **0.2.6 wheel:** Mind Map (new notebook) and Settings. **Current source:** Settings only (other tiles stay registered but hidden). Settings: version, PyPI update check, community links, repository, about, and default openers. |
+| **Launcher → Kuusi** | **0.2.6 wheel:** Mind Map (new notebook) and Settings. **Current source:** Settings only (other tiles stay registered but hidden). Settings: version, PyPI update check, an upgrade guide, community links, repository, about, and default openers. |
 | **Page header (row 2)** | Left **mind map icon** opens the **keyboard shortcuts** guide; appearance and format toolbars behave as in earlier 0.2 releases. |
 
 The same wheel also **bundles** Article / Slides views, export, and Markdown preview. Those plugins **do not register** on PyPI **0.2.x** until **0.3.0** (full tier). The **source tree already has them** — use the override below. Live PDF, Image hub, TeX compile, Voice, transfer-speed monitor, and ZIP live outside Kuusi in `~/Documents/GoogleDrive/Life_OS/academic-toolkit/`.
@@ -238,7 +238,7 @@ Jupyter document toolbar: save, insert, cut/copy/paste, run, kernel, cell type, 
 
 All of the above (except zoom and fullscreen) are **saved automatically** and restored on refresh.
 
-**Version, PyPI update badge, GitHub / PyPI links, Community (Discourse + X), install command, and default file openers** — **Launcher → Kuusi → Settings** (not the mind map page header).
+**Version, PyPI update badge, step-by-step Upgrade guide (copyable commands), GitHub / PyPI links, Community (Discourse + X), install command, and default file openers** — **Launcher → Kuusi → Settings** (not the mind map page header).
 
 #### Right format toolbar (edit mode, markdown cells)
 

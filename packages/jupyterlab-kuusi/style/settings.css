@@ -1,0 +1,454 @@
+/* Kuusi Settings dialog (Launcher → Kuusi → Settings).
+ *
+ * Everything here is scoped to `.jp-KuusiSettings-dialogBody`: the version,
+ * link and tab styles are shared with the header's product menu, which keeps
+ * its compact look.
+ */
+
+.jp-KuusiSettings-dialogBody {
+  --kuusi-settings-radius: 10px;
+  --kuusi-settings-card: var(--jp-layout-color1);
+  --kuusi-settings-card-hover: var(--jp-layout-color2);
+  --kuusi-settings-border: var(--jp-border-color2);
+}
+
+/* --- Left navigation: left-aligned list, accent bar on the current page --- */
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-nav {
+  background: color-mix(in srgb, var(--jp-layout-color2) 55%, transparent);
+  gap: 2px;
+  padding: 10px 8px;
+}
+
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-tab {
+  align-items: center;
+  border-radius: 6px;
+  display: flex;
+  line-height: 1.2;
+  font-size: 13px;
+  font-weight: 500;
+  justify-content: flex-start;
+  padding: 8px 14px;
+  position: relative;
+  text-align: left;
+}
+
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-tabLabel {
+  flex: 0 1 auto;
+  text-align: left;
+}
+
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-tab.is-active {
+  background: color-mix(in srgb, var(--jp-brand-color1) 13%, transparent);
+  font-weight: 600;
+}
+
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-tab.is-active::before {
+  background: var(--jp-brand-color1);
+  border-radius: 2px;
+  bottom: 7px;
+  content: "";
+  left: 0;
+  position: absolute;
+  top: 7px;
+  width: 3px;
+}
+
+/* --- Content: room to breathe, readable size --- */
+.jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-panel {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.jp-KuusiSettings-sectionPanel {
+  padding: 24px 28px 28px;
+}
+
+.jp-KuusiSettings-section + .jp-KuusiSettings-section {
+  border-top: 1px solid var(--kuusi-settings-border);
+  margin-top: 22px;
+  padding-top: 20px;
+}
+
+.jp-KuusiSettings-sectionTitle {
+  color: var(--jp-ui-font-color0);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin: 0 0 6px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiDefaultOpeners {
+  gap: 0;
+  min-width: 0;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder {
+  margin-top: 0;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiDefaultOpeners-intro {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiDefaultOpeners-list,
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-list {
+  gap: 8px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiDefaultOpeners-row,
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-item {
+  background: var(--kuusi-settings-card);
+  border-color: var(--kuusi-settings-border);
+  border-radius: var(--kuusi-settings-radius);
+  padding: 10px 16px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-item {
+  gap: 10px;
+  padding: 5px 12px 5px 16px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiDefaultOpeners-row:hover,
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-item:hover {
+  background: var(--kuusi-settings-card-hover);
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiPanelWidget-toggleLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiDefaultOpeners-rowDescription {
+  font-size: 12px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-label {
+  font-size: 13px;
+}
+
+/* Checkboxes share the switches' green. */
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-check {
+  accent-color: var(--jp-brand-color1);
+  cursor: pointer;
+  height: 16px;
+  margin: 0;
+  width: 16px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-btn {
+  border-radius: 6px;
+  height: 28px;
+  width: 32px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiViewOrder-btn:hover:not(:disabled) {
+  background: var(--kuusi-settings-card-hover);
+}
+
+/* --- Version: a card of rows plus a status chip --- */
+.jp-KuusiSettings-versionCard {
+  background: var(--kuusi-settings-card);
+  border: 1px solid var(--kuusi-settings-border);
+  border-radius: var(--kuusi-settings-radius);
+  padding: 4px 18px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-versionRow {
+  padding: 14px 0;
+}
+
+.jp-KuusiSettings-versionCard .jp-KuusiProductDropdown-versionRow + .jp-KuusiProductDropdown-versionRow {
+  border-top: 1px solid var(--kuusi-settings-border);
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-versionLabel {
+  font-size: 13px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-versionValue {
+  font-family: var(--jp-code-font-family);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.jp-KuusiSettings-versionStatus {
+  padding: 16px 2px 0;
+}
+
+.jp-KuusiSettings-chip {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+  line-height: 1;
+  padding: 6px 12px;
+}
+
+.jp-KuusiSettings-chip::before {
+  background: currentColor;
+  border-radius: 50%;
+  content: "";
+  height: 7px;
+  width: 7px;
+}
+
+.jp-KuusiSettings-chip.is-ok {
+  background: color-mix(in srgb, var(--jp-success-color1) 14%, transparent);
+  color: var(--jp-success-color1);
+}
+
+.jp-KuusiSettings-chip.is-update {
+  background: color-mix(in srgb, var(--jp-warn-color1) 18%, transparent);
+  color: var(--jp-warn-color1);
+}
+
+.jp-KuusiSettings-chip.is-unknown {
+  background: color-mix(in srgb, var(--jp-ui-font-color2) 14%, transparent);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-KuusiSettings-updateHint {
+  align-items: center;
+  color: var(--jp-ui-font-color2);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.jp-KuusiSettings-updateHint code {
+  background: var(--jp-layout-color2);
+  border-radius: 6px;
+  color: var(--jp-ui-font-color0);
+  font-family: var(--jp-code-font-family);
+  font-size: 12px;
+  padding: 4px 8px;
+  user-select: all;
+}
+
+/* --- Community / Repository: link cards --- */
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-repositoryPanel,
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-communityPanel {
+  gap: 10px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-aboutText {
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-communityPanel > .jp-KuusiProductDropdown-aboutText {
+  margin-bottom: 6px;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiFormatDropdown-item.jp-KuusiProductDropdown-link {
+  align-items: center;
+  background: var(--kuusi-settings-card);
+  border: 1px solid var(--kuusi-settings-border);
+  border-radius: var(--kuusi-settings-radius);
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  font-size: 13px;
+  gap: 16px;
+  padding: 12px 16px;
+  width: 100%;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-linkLabel {
+  color: var(--jp-ui-font-color0);
+  flex: 0 0 84px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-linkUrl {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-link::after {
+  color: var(--jp-brand-color1);
+  content: "↗";
+  flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-link:hover {
+  background: var(--kuusi-settings-card-hover);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 55%, var(--kuusi-settings-border));
+}
+
+.jp-KuusiSettings-dialogBody .jp-KuusiProductDropdown-link:hover .jp-KuusiProductDropdown-linkUrl {
+  text-decoration: none;
+}
+
+/* --- Footer: a plain Close, no heavy focus ring --- */
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) .jp-Dialog-footer {
+  padding-top: 8px;
+}
+
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) .jp-Dialog-button:focus {
+  outline: none;
+}
+
+.jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) .jp-Dialog-button:focus-visible {
+  outline: 2px solid var(--jp-brand-color1);
+  outline-offset: 2px;
+}
+
+/* --- Upgrade: numbered steps with copyable commands --- */
+.jp-KuusiUpgrade {
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-KuusiUpgrade .jp-KuusiDefaultOpeners-intro {
+  margin-bottom: 20px;
+}
+
+.jp-KuusiUpgrade-step {
+  display: flex;
+  gap: 14px;
+}
+
+.jp-KuusiUpgrade-step + .jp-KuusiUpgrade-step {
+  border-top: 1px solid var(--kuusi-settings-border);
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.jp-KuusiUpgrade-num {
+  align-items: center;
+  background: color-mix(in srgb, var(--jp-brand-color1) 16%, transparent);
+  border-radius: 50%;
+  color: var(--jp-brand-color1);
+  display: inline-flex;
+  flex: 0 0 24px;
+  font-size: 12px;
+  font-weight: 700;
+  height: 24px;
+  justify-content: center;
+  margin-top: 1px;
+  width: 24px;
+}
+
+.jp-KuusiUpgrade-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.jp-KuusiUpgrade-main > .jp-KuusiSettings-sectionTitle {
+  margin: 0;
+}
+
+.jp-KuusiUpgrade-text {
+  color: var(--jp-ui-font-color2);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.jp-KuusiUpgrade-command {
+  align-items: center;
+  background: var(--jp-layout-color2);
+  border: 1px solid var(--kuusi-settings-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  padding: 6px 6px 6px 12px;
+}
+
+.jp-KuusiUpgrade-command code {
+  background: transparent;
+  color: var(--jp-ui-font-color0);
+  flex: 1 1 auto;
+  font-family: var(--jp-code-font-family);
+  font-size: 12.5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0;
+  user-select: all;
+}
+
+button.jp-KuusiUpgrade-copy {
+  align-items: center;
+  background: var(--kuusi-settings-card);
+  display: inline-flex;
+  justify-content: center;
+  line-height: 1;
+  min-height: 28px;
+  border: 1px solid var(--kuusi-settings-border);
+  border-radius: 6px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 64px;
+  padding: 0 10px;
+}
+
+button.jp-KuusiUpgrade-copy:hover {
+  background: var(--kuusi-settings-card-hover);
+}
+
+button.jp-KuusiUpgrade-copy.is-copied {
+  border-color: var(--jp-success-color1);
+  color: var(--jp-success-color1);
+}
+
+.jp-KuusiUpgrade-details {
+  border: 1px solid var(--kuusi-settings-border);
+  border-radius: var(--kuusi-settings-radius);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.jp-KuusiUpgrade-details[open] {
+  padding-bottom: 14px;
+}
+
+.jp-KuusiUpgrade-details > summary {
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-weight: 600;
+  list-style-position: inside;
+  padding: 10px 0;
+}
+
+.jp-KuusiUpgrade-details[open] > summary {
+  padding-bottom: 2px;
+}
+
+/* A link-style button (used under the version status). */
+button.jp-KuusiSettings-linkBtn {
+  background: transparent;
+  border: 0;
+  color: var(--jp-brand-color1);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: auto;
+  padding: 4px 2px;
+}
+
+button.jp-KuusiSettings-linkBtn:hover {
+  text-decoration: underline;
+}

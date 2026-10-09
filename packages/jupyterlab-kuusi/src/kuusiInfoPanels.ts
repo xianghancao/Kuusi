@@ -129,3 +129,184 @@ export const createKuusiCommunityPanel = (t: KuusiTranslator): HTMLElement => {
   );
   return communityPanel;
 };
+
+const writeClipboard = async (text: string): Promise<boolean> => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Fall through to the legacy path (insecure origins, older browsers).
+  }
+
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    area.remove();
+  }
+};
+
+/** A shell command in a monospace row with a Copy button. */
+export const createCommandBlock = (
+  command: string,
+  t: KuusiTranslator,
+): HTMLElement => {
+  const row = document.createElement("div");
+  row.className = "jp-KuusiUpgrade-command";
+
+  const code = document.createElement("code");
+  code.textContent = command;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "jp-KuusiUpgrade-copy";
+  button.textContent = t.copy();
+  button.setAttribute("aria-label", `${t.copy()}: ${command}`);
+
+  let timer = 0;
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    void writeClipboard(command).then((ok) => {
+      if (!ok) {
+        return;
+      }
+
+      button.textContent = t.copied();
+      button.classList.add("is-copied");
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        button.textContent = t.copy();
+        button.classList.remove("is-copied");
+      }, 1600);
+    });
+  });
+
+  row.append(code, button);
+  return row;
+};
+
+const createUpgradeStep = (
+  index: number,
+  title: string,
+  ...content: Array<HTMLElement | string>
+): HTMLElement => {
+  const step = document.createElement("section");
+  step.className = "jp-KuusiUpgrade-step";
+
+  const badge = document.createElement("span");
+  badge.className = "jp-KuusiUpgrade-num";
+  badge.textContent = String(index);
+  badge.setAttribute("aria-hidden", "true");
+
+  const main = document.createElement("div");
+  main.className = "jp-KuusiUpgrade-main";
+  const heading = document.createElement("h3");
+  heading.className = "jp-KuusiSettings-sectionTitle";
+  heading.textContent = title;
+  main.appendChild(heading);
+
+  content.forEach((item) => {
+    if (typeof item === "string") {
+      const text = document.createElement("p");
+      text.className = "jp-KuusiUpgrade-text";
+      text.textContent = item;
+      main.appendChild(text);
+    } else {
+      main.appendChild(item);
+    }
+  });
+
+  step.append(badge, main);
+  return step;
+};
+
+const createDetails = (
+  summary: string,
+  ...content: Array<HTMLElement | string>
+): HTMLElement => {
+  const details = document.createElement("details");
+  details.className = "jp-KuusiUpgrade-details";
+  const title = document.createElement("summary");
+  title.textContent = summary;
+  details.appendChild(title);
+
+  content.forEach((item) => {
+    if (typeof item === "string") {
+      const text = document.createElement("p");
+      text.className = "jp-KuusiUpgrade-text";
+      text.textContent = item;
+      details.appendChild(text);
+    } else {
+      details.appendChild(item);
+    }
+  });
+
+  return details;
+};
+
+export const KUUSI_PIP_UPGRADE = "pip install -U jupyterlab-kuusi";
+
+/** Settings → Upgrade: how to update Kuusi, step by step. */
+export const createKuusiUpgradePanel = (t: KuusiTranslator): HTMLElement => {
+  const panel = document.createElement("div");
+  panel.className = "jp-KuusiUpgrade";
+
+  const intro = document.createElement("p");
+  intro.className = "jp-KuusiDefaultOpeners-intro";
+  intro.textContent = t.upgradeIntro();
+  panel.appendChild(intro);
+
+  const isMac = /mac/i.test(navigator.platform || navigator.userAgent);
+
+  panel.append(
+    createUpgradeStep(
+      1,
+      t.upgradeInstall(),
+      t.upgradeInstallHint(),
+      createCommandBlock(KUUSI_PIP_UPGRADE, t),
+      createDetails(
+        t.upgradeOthers(),
+        t.upgradeCondaHint(),
+        createCommandBlock("conda activate <env>", t),
+        createCommandBlock(KUUSI_PIP_UPGRADE, t),
+        t.upgradeUvHint(),
+        createCommandBlock("uv pip install -U jupyterlab-kuusi", t),
+      ),
+    ),
+    createUpgradeStep(
+      2,
+      t.upgradeRestart(),
+      t.upgradeRestartBody(),
+      createCommandBlock("jupyter lab", t),
+      isMac ? t.upgradeHardRefreshMac() : t.upgradeHardRefreshOther(),
+    ),
+    createUpgradeStep(
+      3,
+      t.upgradeVerify(),
+      createCommandBlock("jupyter labextension list", t),
+      t.upgradeVerifyBody(),
+      createDetails(
+        t.upgradeTrouble(),
+        t.upgradeTroubleBody(),
+        createCommandBlock("pip show jupyterlab-kuusi", t),
+      ),
+      createDetails(
+        t.upgradeSource(),
+        t.upgradeSourceBody(),
+        createCommandBlock("git pull", t),
+        createCommandBlock("npm run jlab:install", t),
+      ),
+    ),
+  );
+
+  return panel;
+};

@@ -19,10 +19,20 @@ const viewLabels = (): Record<string, string> => {
   };
 };
 
+/** A settings section: small heading, then its description and controls. */
+const createSection = (title: string, className: string): HTMLElement => {
+  const section = document.createElement("section");
+  section.className = `jp-KuusiSettings-section ${className}`;
+  const heading = document.createElement("h3");
+  heading.className = "jp-KuusiSettings-sectionTitle";
+  heading.textContent = title;
+  section.appendChild(heading);
+  return section;
+};
+
 const createViewOrderSection = (manager: DefaultOpenersManager): HTMLElement => {
-  const section = document.createElement("div");
-  section.className = "jp-KuusiViewOrder";
   const trans = getKuusiBundle();
+  const section = createSection(trans.__("Views and order"), "jp-KuusiViewOrder");
   const labels = viewLabels();
 
   const title = document.createElement("p");
@@ -177,16 +187,22 @@ export const createDefaultOpenersPanel = (
   const wrap = document.createElement("div");
   wrap.className = "jp-KuusiDefaultOpeners";
 
+  const fileTypes = createSection(
+    getKuusiBundle().__("File types"),
+    "jp-KuusiDefaultOpeners-fileTypes",
+  );
+  wrap.appendChild(fileTypes);
+
   const intro = document.createElement("p");
   intro.className = "jp-KuusiDefaultOpeners-intro";
   intro.textContent = getKuusiBundle().__(
     "Choose which file types should use Kuusi when opened from the file browser.",
   );
-  wrap.appendChild(intro);
+  fileTypes.appendChild(intro);
 
   const list = document.createElement("div");
   list.className = "jp-KuusiDefaultOpeners-list";
-  wrap.appendChild(list);
+  fileTypes.appendChild(list);
 
   const visibleRows = getOpenerRows();
 

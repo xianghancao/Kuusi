@@ -57,12 +57,18 @@ export class DefaultOpenersManager {
   private _docManagerSettings: ISettingRegistry.ISettings | null = null;
   private _state: DefaultOpenersState = { ...DEFAULT_OPENERS_STATE };
   private _ready: Promise<void>;
+  private _whenAppReady: Promise<unknown>;
   private _applying = false;
   private _updating = false;
 
-  constructor(registry: ISettingRegistry, docRegistry: DocumentRegistry) {
+  constructor(
+    registry: ISettingRegistry,
+    docRegistry: DocumentRegistry,
+    whenAppReady: Promise<unknown> = Promise.resolve(),
+  ) {
     this._registry = registry;
     this._docRegistry = docRegistry;
+    this._whenAppReady = whenAppReady;
     this._ready = this._initialize();
   }
 
@@ -144,16 +150,23 @@ export class DefaultOpenersManager {
 
   private async _initialize(): Promise<void> {
     this._kuusiSettings = await this._registry.load(DEFAULT_OPENERS_PLUGIN_ID);
-    this._docManagerSettings = await this._registry.load(
-      DOC_MANAGER_SETTINGS_PLUGIN_ID,
-    );
-
     this._state = effectiveDefaultOpenersState(
       normalizeState(this._kuusiSettings.composite as Record<string, unknown>),
     );
     setDefaultOpenersState(this._state);
     setRenderViewOrder(this._kuusiSettings.composite.viewOrder);
     setEnabledRenderViews(this._kuusiSettings.composite.enabledViews);
+
+    // The docmanager plugin registers its settings transformer during app
+    // startup; loading earlier rejects ("has no transformers yet").
+    await this._whenAppReady;
+    try {
+      this._docManagerSettings = await this._registry.load(
+        DOC_MANAGER_SETTINGS_PLUGIN_ID,
+      );
+    } catch (error) {
+      console.warn("jupyterlab-kuusi: docmanager settings unavailable", error);
+    }
 
     this._kuusiSettings.changed.connect(() => {
       if (this._applying || this._updating) {
