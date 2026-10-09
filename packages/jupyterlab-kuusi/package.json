@@ -59,7 +59,7 @@
     "@jupyterlab/rendermime": "^4.3.5",
     "@jupyterlab/services": "^7.3.5",
     "@jupyterlab/settingregistry": "^4.3.5",
-    "@jupyterlab/toc": "~6.5.9",
+    "@jupyterlab/toc": ">=6.5.9 <6.7.0",
     "@jupyterlab/translation": "^4.3.5",
     "@jupyterlab/ui-components": "^4.3.5",
     "@lumino/disposable": "^2.1.2",
@@ -72,6 +72,7 @@
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.3.5",
+    "jsdom": "^29.1.1",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3"
   },

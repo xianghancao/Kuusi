@@ -36,9 +36,23 @@ export const setNotebookAutoReloadEnabled = (
 };
 
 /** After a local save, every open view for the path must bump its disk clock. */
+const syncingPaths = new Set<string>();
+
 export const syncNotebookAutoReloadLastModified = (path: string): void => {
-  for (const listener of listenersByPath.get(path) ?? []) {
-    listener.refreshLastModified();
+  // A listener's refresh reports back through onLastModified, which lands here
+  // again; without the guard every refresh re-enters the loop forever.
+  if (syncingPaths.has(path)) {
+    return;
+  }
+
+  syncingPaths.add(path);
+
+  try {
+    for (const listener of listenersByPath.get(path) ?? []) {
+      listener.refreshLastModified();
+    }
+  } finally {
+    syncingPaths.delete(path);
   }
 };
 
