@@ -131,6 +131,21 @@ const restoreKuusiDropdownMenuHome = (menu: HTMLElement): void => {
   }
 };
 
+/**
+ * Re-anchor an open, portaled menu to another element. Used when a capsule has
+ * been folded into the toolbar's "…" overflow and its own trigger is hidden.
+ */
+export const setKuusiDropdownMenuAnchor = (
+  menu: HTMLElement,
+  anchor: HTMLElement,
+): void => {
+  const entry = kuusiDropdownMenuHomes.get(menu);
+
+  if (entry) {
+    entry.anchor = anchor;
+  }
+};
+
 const clearKuusiDropdownMenuPosition = (menu: HTMLElement): void => {
   menu.style.left = "";
   menu.style.right = "";

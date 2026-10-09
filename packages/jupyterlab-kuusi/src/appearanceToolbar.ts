@@ -15,7 +15,6 @@ import type { PanelWidget } from "./panelWidgets";
 import { renderPanelWidgets } from "./panelWidgets";
 import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown";
 import {
-  mountComposedSecondaryMenu,
   mountSecondaryMenu,
   type SecondaryMenuController,
 } from "./secondaryMenu";
@@ -1361,17 +1360,18 @@ export const fillNodeAppearanceMenu = (
   });
 };
 
-let lastAppearanceGroup = "node";
-
 export type AppearanceToolbarHandle = {
+  /** The Node capsule. */
   node: HTMLElement;
-  /** Remount Line/Node shells (e.g. after notebook is ready). */
+  /** The Line (connector) capsule. */
+  lineNode: HTMLElement;
+  /** Remount Node / Line shells (e.g. after notebook is ready). */
   refresh: () => void;
   /** Sync selection-dependent Node → Fill UI without remounting shells. */
   syncSelection: () => void;
 };
 
-/** One "Node" capsule: node appearance + connector line tabs in a single menu. */
+/** Two capsules: "Node" (card appearance) and "Line" (connector lines). */
 export const createAppearanceToolbar = (
   root: HTMLElement,
   getSettings: () => AppearanceSettings,
@@ -1380,67 +1380,56 @@ export const createAppearanceToolbar = (
   nodeWidth: NodeWidthMenuApi,
   t: KuusiTranslator,
 ): AppearanceToolbarHandle => {
-  let openMenu: HTMLElement | null = null;
-  let rebuildOpen: (() => void) | null = null;
+  const openMenus = new Map<
+    string,
+    { menu: HTMLElement; rebuild: () => void }
+  >();
 
-  const toolbar = createCapsuleDropdown(root, {
-    toolbarClass: "jp-KuusiNotebookMindMap-appearance-toolbar",
-    dropdownClass: "jp-KuusiAppearanceDropdown",
-    triggerClass: "jp-KuusiAppearanceDropdown-btn",
-    ariaLabel: t.nodeAppearance(),
-    triggerLabel: t.node(),
-    menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiAppearanceDropdown-menu`,
-    fillMenu: (menu, rebuild) => {
-      openMenu = menu;
-      rebuildOpen = rebuild;
-      mountComposedSecondaryMenu(menu, {
-        ariaLabel: t.nodeAppearance(),
-        getActive: () => lastAppearanceGroup,
-        setActive: (id) => {
-          lastAppearanceGroup = id;
-        },
-        groups: [
-          {
-            id: "node",
-            label: t.node(),
-            mount: (host) =>
-              fillNodeAppearanceMenu(
-                root,
-                host,
-                getSettings,
-                onChange,
-                nodeFill,
-                nodeWidth,
-                rebuild,
-                t,
-              ),
-          },
-          {
-            id: "line",
-            label: t.line(),
-            mount: (host) =>
-              fillLineAppearanceMenu(
-                root,
-                host,
-                getSettings,
-                onChange,
-                rebuild,
-                t,
-              ),
-          },
-        ],
-      });
-    },
+  const createCapsule = (
+    id: "node" | "line",
+    label: string,
+    fill: (menu: HTMLElement, rebuild: () => void) => void,
+  ): HTMLElement =>
+    createCapsuleDropdown(root, {
+      toolbarClass: `jp-KuusiNotebookMindMap-appearance-toolbar jp-KuusiNotebookMindMap-appearance-toolbar--${id}`,
+      dropdownClass: "jp-KuusiAppearanceDropdown",
+      triggerClass: "jp-KuusiAppearanceDropdown-btn",
+      ariaLabel: id === "node" ? t.nodeAppearance() : t.connectorLineAppearance(),
+      triggerLabel: label,
+      menuClassName: `${CAPSULE_MENU_SECONDARY} jp-KuusiAppearanceDropdown-menu`,
+      fillMenu: (menu, rebuild) => {
+        openMenus.set(id, { menu, rebuild });
+        fill(menu, rebuild);
+      },
+    });
+
+  const nodeCapsule = createCapsule("node", t.node(), (menu, rebuild) => {
+    fillNodeAppearanceMenu(
+      root,
+      menu,
+      getSettings,
+      onChange,
+      nodeFill,
+      nodeWidth,
+      rebuild,
+      t,
+    );
+  });
+  const lineCapsule = createCapsule("line", t.line(), (menu, rebuild) => {
+    fillLineAppearanceMenu(root, menu, getSettings, onChange, rebuild, t);
   });
 
   const rebuildIfOpen = (): void => {
-    if (openMenu?.classList.contains("is-open")) {
-      rebuildOpen?.();
-    }
+    openMenus.forEach(({ menu, rebuild }) => {
+      if (menu.classList.contains("is-open")) {
+        rebuild();
+      }
+    });
   };
 
   return {
-    node: toolbar,
+    node: nodeCapsule,
+    lineNode: lineCapsule,
     refresh: rebuildIfOpen,
     syncSelection: rebuildIfOpen,
   };

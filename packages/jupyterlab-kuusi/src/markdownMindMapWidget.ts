@@ -22,6 +22,7 @@ import {
   syncNotebookModelToTextContext,
   syncTextContextToNotebookModel,
 } from "./markdownMindMapModel";
+import { refitAfterDockResize } from "./dockResizeRefit";
 import { mindMapIcon } from "./kuusiIcon";
 import { ensureNotebookAutoReloadOnPluginToolbar } from "./notebookAutoReloadPlacement";
 import { NotebookMindMapWidget } from "./notebookMindMapWidget";
@@ -49,6 +50,7 @@ export class MarkdownMindMapDocumentWidget extends DocumentWidget<
 
     applyKuusiTabIcon(this.title, mindMapIcon, "Kuusi Markdown Mind Map");
     options.content.bindDocumentWidget(this);
+    refitAfterDockResize(this, options.content);
 
     this._bindModelSync();
 

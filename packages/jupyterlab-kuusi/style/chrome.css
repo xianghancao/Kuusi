@@ -2197,14 +2197,14 @@ button.jp-KuusiRenderExport-trigger {
 /* Kuusi Settings — lock JupyterLab dialog frame (content defaults to shrink-wrap). */
 .jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) {
   box-sizing: border-box;
-  height: 480px;
-  max-height: min(480px, 90vh);
-  min-height: min(480px, 90vh);
-  max-width: min(568px, calc(100vw - 32px));
-  min-width: min(568px, calc(100vw - 32px));
+  height: 700px;
+  max-height: min(700px, 94vh);
+  min-height: min(700px, 94vh);
+  max-width: min(780px, calc(100vw - 32px));
+  min-width: min(780px, calc(100vw - 32px));
   overflow: hidden;
   resize: none;
-  width: min(568px, calc(100vw - 32px));
+  width: min(780px, calc(100vw - 32px));
 }
 
 .jp-Dialog-content:has(.jp-KuusiSettings-dialogBody) .jp-Dialog-body {
@@ -2225,7 +2225,7 @@ button.jp-KuusiRenderExport-trigger {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  height: 380px;
+  height: 100%;
   max-height: 100%;
   min-height: 0;
   width: 100%;
@@ -2239,9 +2239,9 @@ button.jp-KuusiRenderExport-trigger {
 }
 
 .jp-KuusiSettings-secondary .jp-KuusiSecondaryMenu-nav {
-  flex: 0 0 132px;
-  min-width: 132px;
-  width: 132px;
+  flex: 0 0 176px;
+  min-width: 176px;
+  width: 176px;
 }
 
 .jp-KuusiSettings-panel.jp-KuusiSecondaryMenu-panel {
@@ -2396,6 +2396,13 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
   padding-top: 2px;
 }
 
+/* A rule between groups (Layout | Surface | Header & footer | …). */
+.jp-KuusiSecondaryMenu-group:not(:first-child) {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+
 /* --- Menu footer actions (reset / apply to all views) --- */
 .jp-KuusiMenuFooterAction {
   border-top: 1px solid var(--jp-border-color2);
@@ -2425,4 +2432,9 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
 /* Menus with many tabs (Article → Page) need more room than the default 380px. */
 .jp-KuusiSecondaryMenu-host.jp-KuusiSecondaryMenu-host--tall {
   height: min(72vh, 520px);
+}
+
+/* Capsules folded into the toolbar's "…" menu (see pageToolbar.ts). */
+.jp-KuusiToolbarCluster .is-toolbar-overflowed {
+  display: none !important;
 }

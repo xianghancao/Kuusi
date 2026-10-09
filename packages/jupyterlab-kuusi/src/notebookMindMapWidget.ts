@@ -650,14 +650,24 @@ export class NotebookMindMapWidget extends Widget {
         orderStep: 2,
       }),
       {
-        id: "line-node",
+        id: "node",
         group: "appearance",
         order: 30,
         create: () => this._appearanceToolbar!.node,
       },
+      {
+        id: "line",
+        group: "appearance",
+        order: 32,
+        create: () => this._appearanceToolbar!.lineNode,
+      },
     ];
 
-    const pageToolbar = createPageToolbar(pageItems, this._t);
+    // Keep room for the vertical Aa strip (44 px) plus its gap.
+    const pageToolbar = createPageToolbar(pageItems, this._t, undefined, {
+      menuRoot: this.node,
+      reserveRight: 54,
+    });
     this._pageToolbarNode = pageToolbar.node;
     headerLeft.appendChild(pageToolbar.node);
     header.appendChild(headerLeft);
@@ -3315,8 +3325,10 @@ export class NotebookMindMapWidget extends Widget {
       return;
     }
 
+    // `disposed` fires after the cell released its model, so this also runs
+    // with `cell.model === null`.
     cell.renderedChanged.disconnect(bindings.onRenderedChanged);
-    cell.model.contentChanged.disconnect(bindings.onContentChanged);
+    cell.model?.contentChanged.disconnect(bindings.onContentChanged);
     cell.disposed.disconnect(bindings.onCellDisposed);
     delete cell.node.dataset.kuusiAnchorStripBound;
     this._anchorStripBindings.delete(cell);

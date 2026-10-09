@@ -71,6 +71,19 @@ npm run build:extension
 npm run jlab:verify
 ```
 
+### Menu grouping rule
+
+Capsule menus with a left-hand list of tabs (Article, Mind Map, Book, …) follow one rule, implemented in `packages/jupyterlab-kuusi/src/secondaryMenu.ts`:
+
+1. Tabs of one concern form a **group**, announced by a small caption (LAYOUT, SURFACE, LINE, …).
+2. A **rule** is drawn between two groups. The first group has none above it.
+3. Tab labels stay short; the caption provides the context. Do not prefix labels with their group (`Line · Width`).
+4. A menu with a single group needs no caption.
+
+Declare groups with `sections[].group` in `mountSecondaryMenu`, or `groups[].label` in `mountComposedSecondaryMenu` (one capsule button merging several menus; a group without a label continues the previous one). Both render the caption and the rule, so do not hand-roll separators in a menu.
+
+Capsule overflow: the page capsule (`src/pageToolbar.ts`, shared by Article, Book, Slides and Mind Map) folds capsules of the `appearance` group into a trailing "…" menu, last first, when the header is too narrow. Put new menus in that group and they get this for free; pass `menuRoot` (and `reserveRight` if something sits at the header's right edge) to `createPageToolbar`.
+
 ### Tests
 
 ```bash

@@ -266,9 +266,16 @@ const renderToggle = (panel: HTMLElement, widget: ToggleWidget): void => {
   switchBtn.addEventListener("pointerdown", (event) => {
     event.stopPropagation();
   });
+  // Flip the switch right away. Several callers (Page → Header / Footer rule,
+  // mirror, first page) do not rebuild the menu, so without this it never
+  // moved and the click looked ignored.
+  let current = widget.value;
   switchBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    widget.onChange(!widget.value);
+    current = !current;
+    switchBtn.classList.toggle("is-on", current);
+    switchBtn.setAttribute("aria-checked", current ? "true" : "false");
+    widget.onChange(current);
   });
 
   section.append(labelEl, switchBtn);

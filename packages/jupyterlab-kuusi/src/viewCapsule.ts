@@ -39,6 +39,7 @@ export const mountViewCapsuleHeader = (
     options.items,
     options.t,
     options.ariaLabel,
+    { menuRoot: options.menuRoot },
   );
   headerLeft.appendChild(pageToolbar.node);
   header.appendChild(headerLeft);

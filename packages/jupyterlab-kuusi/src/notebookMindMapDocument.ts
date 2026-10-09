@@ -12,6 +12,7 @@ import type { Contents } from "@jupyterlab/services";
 import type { ITranslator } from "@jupyterlab/translation";
 import { CommandRegistry } from "@lumino/commands";
 
+import { refitAfterDockResize } from "./dockResizeRefit";
 import { mindMapIcon } from "./kuusiIcon";
 import { applyKuusiTabIcon } from "./kuusiTabIcon";
 import type { MindMapSettingsManager } from "./mindMapSettings";
@@ -26,6 +27,7 @@ export class NotebookMindMapDocumentWidget extends DocumentWidget<NotebookMindMa
 
     applyKuusiTabIcon(this.title, mindMapIcon, "Kuusi Mind Map");
     options.content.bindDocumentWidget(this);
+    refitAfterDockResize(this, options.content);
 
     const syncAutoReloadPlacement = (): void => {
       ensureNotebookAutoReloadOnPluginToolbar(this);

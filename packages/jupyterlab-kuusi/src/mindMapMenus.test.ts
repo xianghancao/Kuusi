@@ -1,3 +1,4 @@
+import "./testDom";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -19,7 +20,10 @@ describe("mind map typography mapping", () => {
 
     assert.equal(values.font, "arial");
     assert.equal(values.fontSize, 16);
-    assert.equal(values.headers.h1.fontSize, "md");
+    assert.equal(
+      values.headers.h1.fontSize,
+      DEFAULT_TYPOGRAPHY_VALUES.headers.h1.fontSize,
+    );
   });
 
   it("writes Text font back to displayFont and keeps headings independent", () => {

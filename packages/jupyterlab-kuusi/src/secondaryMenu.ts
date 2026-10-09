@@ -1,3 +1,21 @@
+/**
+ * Grouping rule for every capsule menu with a left-hand list of tabs
+ * (Article, Mind Map, Book, ...):
+ *
+ *  1. Tabs that belong to one concern form a group; the left list shows a small
+ *     caption for it (LAYOUT, SURFACE, LINE, ...).
+ *  2. A rule is drawn between two groups (`.jp-KuusiSecondaryMenu-group` carries
+ *     it), so groups never run together. The first group has no rule above it.
+ *  3. Tab labels are short: the caption supplies the context. Do not prefix a
+ *     label with its group ("Line · Width") or fake a separator.
+ *  4. A menu with a single group needs no caption.
+ *
+ * Declare groups through `mountSecondaryMenu` (`sections[].group`) or, when one
+ * capsule button merges several menus, `mountComposedSecondaryMenu`
+ * (`groups[].label`). Both render the caption and rule below, so a menu cannot
+ * drift from the rule by hand-rolling its own.
+ */
+
 /** Pointer must rest on a tab this long before it switches the panel. */
 const TAB_HOVER_INTENT_MS = 120;
 
@@ -208,7 +226,7 @@ export const mountSecondaryMenu = <Id extends string>(
 
 export type ComposedMenuGroup = {
   id: string;
-  /** Prefixed onto every tab label ("Line · Width"). Omit for a single-group nav. */
+  /** Caption that opens this group (with a rule above it unless it is first). Omit to continue the previous group. */
   label?: string;
   /** Mount an existing secondary menu into `host`. */
   mount: (host: HTMLElement) => unknown;
@@ -259,11 +277,25 @@ export const mountComposedSecondaryMenu = (
       return;
     }
 
+    // A labelled group opens with its caption (and the rule above it); an
+    // unlabelled one continues the previous group.
+    if (group.label) {
+      const caption = document.createElement("div");
+      caption.className = "jp-KuusiSecondaryMenu-group";
+      caption.setAttribute("role", "presentation");
+      caption.textContent = group.label;
+      nav.appendChild(caption);
+    }
+
     tabs.forEach((tab) => {
       const label = tab.querySelector(".jp-KuusiSecondaryMenu-tabLabel");
 
       if (label && group.label) {
-        label.textContent = `${group.label} · ${label.textContent ?? ""}`;
+        // The caption carries the group visually; keep it in the accessible name.
+        tab.setAttribute(
+          "aria-label",
+          `${group.label} · ${label.textContent ?? ""}`,
+        );
       }
 
       nav.appendChild(tab);
