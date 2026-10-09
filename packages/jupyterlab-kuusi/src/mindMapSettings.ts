@@ -553,11 +553,17 @@ export const applyMindMapTypography = (
   scene.dataset.kuusiLinkStyle = settings.linkStyle;
   scene.dataset.kuusiCodeStyle = settings.codeStyle;
   scene.dataset.kuusiCodeFrame = settings.codeFrame ? "1" : "0";
-  applyCodeAppearance(scene, {
-    codeTheme: settings.codeTheme,
-    codeFont: settings.codeFont,
-    codeFontSize: settings.codeFontSize,
-  });
+  applyCodeAppearance(
+    scene,
+    {
+      codeTheme: settings.codeTheme,
+      codeFont: settings.codeFont,
+      codeFontSize: settings.codeFontSize,
+    },
+    "kuusiCodeTheme",
+    // Node cards take their background from JupyterLab's theme.
+    { followLabTheme: true },
+  );
   applyTableAppearance(scene, {
     tableStyle: settings.tableStyle,
     tableBorderWidth: settings.tableBorderWidth,

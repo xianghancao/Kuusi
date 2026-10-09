@@ -344,6 +344,144 @@ export const CODE_THEME_COLORS: Record<
   },
 };
 
+/** Text on a dark code background: unstyled text, variables, brackets. */
+const DARK_FOREGROUND = "#e6edf3";
+
+const hexToHsl = (hex: string): [number, number, number] => {
+  const value = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map(
+    (i) => Number.parseInt(value.slice(i, i + 2), 16) / 255,
+  );
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+
+  if (max === min) {
+    return [0, 0, l];
+  }
+
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+
+  if (max === r) {
+    h = (g - b) / d + (g < b ? 6 : 0);
+  } else if (max === g) {
+    h = (b - r) / d + 2;
+  } else {
+    h = (r - g) / d + 4;
+  }
+
+  return [h * 60, s, l];
+};
+
+const hslToHex = (h: number, s: number, l: number): string => {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  const [r, g, b] =
+    h < 60 ? [c, x, 0]
+    : h < 120 ? [x, c, 0]
+    : h < 180 ? [0, c, x]
+    : h < 240 ? [0, x, c]
+    : h < 300 ? [x, 0, c]
+    : [c, 0, x];
+
+  return `#${[r, g, b]
+    .map((v) =>
+      Math.round((v + m) * 255)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
+};
+
+/** Same hue, lifted to at least `minLightness` so it reads on a dark ground. */
+const liftForDark = (hex: string, minLightness: number): string => {
+  const [h, s, l] = hexToHsl(hex);
+  return hslToHex(h, s, Math.max(l, minLightness));
+};
+
+const darkPaletteCache = new Map<CodeTheme, CodeThemeColors>();
+
+/**
+ * The language palettes are tuned for light paper (near-black variables and
+ * brackets). On a dark background those vanish, so derive a dark variant:
+ * plain text becomes light, every token keeps its hue at a readable lightness,
+ * and de-emphasised tokens (comments, punctuation) stay a notch dimmer.
+ */
+export const codeThemeColorsFor = (
+  theme: Exclude<CodeTheme, "notebook">,
+  dark: boolean,
+): CodeThemeColors => {
+  const light = CODE_THEME_COLORS[theme];
+
+  if (!dark) {
+    return light;
+  }
+
+  const cached = darkPaletteCache.get(theme);
+
+  if (cached) {
+    return cached;
+  }
+
+  const quiet = new Set<keyof CodeThemeColors>([
+    "comment",
+    "punctuation",
+    "meta",
+  ]);
+  const plain = new Set<keyof CodeThemeColors>([
+    "foreground",
+    "variable",
+    "bracket",
+  ]);
+  const derived = {} as CodeThemeColors;
+
+  (Object.keys(light) as Array<keyof CodeThemeColors>).forEach((key) => {
+    derived[key] = plain.has(key)
+      ? DARK_FOREGROUND
+      : liftForDark(light[key], quiet.has(key) ? 0.62 : 0.7);
+  });
+  darkPaletteCache.set(theme, derived);
+  return derived;
+};
+
+const labThemeIsDark = (): boolean =>
+  typeof document !== "undefined" &&
+  document.body?.dataset.jpThemeLight === "false";
+
+type AppearanceRun = () => void;
+
+/** Hosts whose palette follows JupyterLab's light / dark theme. */
+const followers = new Map<HTMLElement, AppearanceRun>();
+let themeObserver: MutationObserver | null = null;
+
+/** Re-stamp palettes when JupyterLab switches between light and dark. */
+const followLabTheme = (host: HTMLElement, run: AppearanceRun): void => {
+  followers.set(host, run);
+
+  if (themeObserver || typeof MutationObserver === "undefined") {
+    return;
+  }
+
+  themeObserver = new MutationObserver(() => {
+    followers.forEach((rerun, node) => {
+      if (!node.isConnected) {
+        // A closed view: drop it (a re-opened one registers itself again).
+        followers.delete(node);
+        return;
+      }
+
+      rerun();
+    });
+  });
+  themeObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["data-jp-theme-light"],
+  });
+};
+
 /** Mirror CSS vars we stamp (and clear for notebook). */
 const MIRROR_CSS_VARS = [
   "--jp-mirror-editor-keyword-color",
@@ -434,8 +572,22 @@ export const applyCodeAppearance = (
     | "kuusiArticleCodeTheme"
     | "kuusiSlidesCodeTheme"
     | "kuusiCodeTheme" = "kuusiCodeTheme",
+  /**
+   * Background the code sits on. `dark`: always dark (e.g. a dark paper).
+   * `followLabTheme`: dark exactly when JupyterLab's theme is (Mind Map nodes
+   * and Article's "theme" background take their colors from Lab).
+   */
+  surface: { dark?: boolean; followLabTheme?: boolean } = {},
 ): void => {
   ensureCodeHighlightStyles();
+
+  if (surface.followLabTheme) {
+    followLabTheme(host, () => {
+      applyCodeAppearance(host, settings, datasetKey, surface);
+    });
+  }
+
+  const dark = surface.dark === true || (surface.followLabTheme === true && labThemeIsDark());
 
   host.dataset[datasetKey] = settings.codeTheme;
   host.style.setProperty(
@@ -469,7 +621,7 @@ export const applyCodeAppearance = (
     return;
   }
 
-  const colors = CODE_THEME_COLORS[settings.codeTheme];
+  const colors = codeThemeColorsFor(settings.codeTheme, dark);
   host.style.setProperty("--kuusi-code-fg", colors.foreground);
   for (const [key, cssVar] of THEME_VAR_MAP) {
     host.style.setProperty(cssVar, colors[key]);

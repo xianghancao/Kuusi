@@ -53,12 +53,20 @@
   .jp-KuusiNotebookMindMap-cellNode
   pre {
   background: var(--jp-cell-editor-background, var(--md-grey-100, #f5f5f5));
-  border: var(--jp-border-width, 1px) solid
-    var(--jp-cell-editor-border-color, var(--md-grey-300, #e0e0e0));
-  border-radius: var(--jp-border-radius, 2px);
+  /* No border / radius here: the Frame and corner settings own them. A border
+     in this rule used to win over "Frame: off" and over the frame color. */
   color: var(--jp-content-font-color1);
   font-family: var(--jp-code-font-family, ui-monospace, monospace);
   font-size: var(--jp-code-font-size, 13px);
+}
+
+/* MyST wraps each fence in a card with its own shadow and tint (hover adds a
+   deeper shadow) — that read as a second, invisible frame around the block. */
+.jp-KuusiArticle-paper .myst-code,
+.jp-KuusiBook-paper .myst-code,
+.jp-KuusiMarkdownSlides .myst-code {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .jp-KuusiArticle-paper[data-kuusi-article-code-theme="notebook"]
@@ -117,4 +125,191 @@
   .cm-scroller {
   font-family: var(--jp-code-font-family, ui-monospace, monospace);
   font-size: var(--jp-code-font-size, 13px);
+}
+
+/*
+ * Token colors for highlight.js output (MyST renders fences as
+ * `pre.hljs > span.hljs-*`). The Code palette sets Lab's --jp-mirror-editor-*
+ * variables on the view host; Lab maps those to CodeMirror classes only, so
+ * without this mapping the palette changed nothing. The notebook palette uses
+ * the same variables from the active Lab theme.
+ */
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-keyword, .hljs-selector-tag, .hljs-doctag) {
+  color: var(--jp-mirror-editor-keyword-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-built_in, .hljs-type, .hljs-class .hljs-title, .hljs-title.class_) {
+  color: var(--jp-mirror-editor-builtin-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-literal, .hljs-symbol, .hljs-bullet, .hljs-variable.constant_) {
+  color: var(--jp-mirror-editor-atom-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-number {
+  color: var(--jp-mirror-editor-number-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-string, .hljs-addition) {
+  color: var(--jp-mirror-editor-string-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-regexp, .hljs-template-variable) {
+  color: var(--jp-mirror-editor-string-2-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-title, .hljs-section, .hljs-function .hljs-title) {
+  color: var(--jp-mirror-editor-def-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-variable, .hljs-subst) {
+  color: var(--jp-mirror-editor-variable-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-params {
+  color: var(--jp-mirror-editor-variable-2-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-property, .hljs-attr) {
+  color: var(--jp-mirror-editor-property-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-attribute {
+  color: var(--jp-mirror-editor-attribute-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-tag, .hljs-name, .hljs-selector-id, .hljs-selector-class) {
+  color: var(--jp-mirror-editor-tag-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-operator {
+  color: var(--jp-mirror-editor-operator-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-punctuation {
+  color: var(--jp-mirror-editor-punctuation-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-comment {
+  color: var(--jp-mirror-editor-comment-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  :is(.hljs-meta, .hljs-meta .hljs-keyword) {
+  color: var(--jp-mirror-editor-meta-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-quote {
+  color: var(--jp-mirror-editor-quote-color);
+}
+
+:is(
+    [data-kuusi-article-code-theme],
+    [data-kuusi-slides-code-theme],
+    [data-kuusi-code-theme]
+  )
+  pre
+  .hljs-link {
+  color: var(--jp-mirror-editor-link-color);
 }
