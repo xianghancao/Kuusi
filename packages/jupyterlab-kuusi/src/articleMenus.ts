@@ -36,7 +36,10 @@ import {
   type ArticlePageNumberPosition,
   type ArticlePaperOrientation,
   type ArticlePaperSize,
+  ARTICLE_COLUMN_RULE_WIDTH_RANGE,
   articleThemeChrome,
+  type ArticleColumnRuleStyle,
+  autoPageMarginsMm,
   DEFAULT_ARTICLE_SETTINGS,
   type ArticleSettings,
   type ArticleSettingsManager,
@@ -418,6 +421,10 @@ const ARTICLE_PAGE_KEYS = [
   "linkFootnotes",
   "tableFontPercent",
   "tableBandColor",
+  "columnRule",
+  "columnRuleStyle",
+  "columnRuleWidth",
+  "columnRuleColor",
 ] as const satisfies ReadonlyArray<keyof ArticleSettings>;
 
 export const createArticlePageToolbar = (
@@ -670,6 +677,64 @@ export const createArticlePageToolbar = (
                   rebuild();
                 },
               },
+              ...(settings.columns === 2
+                ? ([
+                    {
+                      kind: "toggle",
+                      label: t.columnRule(),
+                      title: t.columnRuleTitle(),
+                      value: settings.columnRule,
+                      onChange: (columnRule: boolean) => {
+                        void manager.update({ columnRule });
+                        rebuild();
+                      },
+                    },
+                    ...(settings.columnRule
+                      ? ([
+                          {
+                            kind: "slider",
+                            label: t.columnRuleWidth(),
+                            value: settings.columnRuleWidth,
+                            min: ARTICLE_COLUMN_RULE_WIDTH_RANGE.min,
+                            max: ARTICLE_COLUMN_RULE_WIDTH_RANGE.max,
+                            step: ARTICLE_COLUMN_RULE_WIDTH_RANGE.step,
+                            formatValue: (value: number) => `${value} px`,
+                            editable: true,
+                            inputStep: 0.5,
+                            onChange: (columnRuleWidth: number) => {
+                              void manager.update({ columnRuleWidth });
+                            },
+                          },
+                          {
+                            kind: "choice",
+                            sectionLabel: t.columnRuleStyle(),
+                            value: settings.columnRuleStyle,
+                            options: [
+                              { value: "solid", label: t.ruleSolid() },
+                              { value: "dashed", label: t.ruleDashed() },
+                              { value: "dotted", label: t.ruleDotted() },
+                              { value: "double", label: t.ruleDouble() },
+                            ],
+                            onChange: (value: string) => {
+                              void manager.update({
+                                columnRuleStyle: value as ArticleColumnRuleStyle,
+                              });
+                            },
+                          },
+                          {
+                            kind: "color",
+                            sectionLabel: t.columnRuleColor(),
+                            value: settings.columnRuleColor,
+                            swatches: APPEARANCE_COLOR_SWATCHES,
+                            includeDefaultSwatch: true,
+                            onChange: (columnRuleColor: string) => {
+                              void manager.update({ columnRuleColor });
+                            },
+                          },
+                        ] as PanelWidget[])
+                      : []),
+                  ] as PanelWidget[])
+                : []),
             ]);
             return;
           }
@@ -1051,22 +1116,47 @@ const fillExtraSection = (
   rebuild: () => void,
 ): void => {
   const s = manager.settings;
-  const mm = (value: number): string =>
-    value > 0 ? `${value} mm` : t.marginAuto();
+  const auto = autoPageMarginsMm(s);
+  // A side left at 0 follows the theme, so show the margin actually in effect
+  // and park the slider there instead of at 0 / "Auto".
+  // Back to 0 = follow the theme: redraw so the field shows the themed value.
+  const refreshIfReset = (value: number) => (): void => {
+    if (value === 0) {
+      rebuild();
+    }
+  };
+  const marginSlider = (
+    label: string,
+    stored: number,
+    themed: number | undefined,
+    onChange: (value: number) => void,
+  ): PanelWidget => ({
+    kind: "slider",
+    label,
+    value: stored > 0 ? stored : (themed ?? 0),
+    min: 0,
+    max: 60,
+    step: 0.1,
+    formatValue: (value) => `${Number(value.toFixed(1))}`,
+    // Type an exact value (one decimal); 0 returns the side to the theme.
+    editable: true,
+    inputStep: 0.1,
+    onChange,
+  });
 
   if (id === "margins") {
     renderPanelWidgets(panel, [
-      numberSlider(t.marginTop(), s.marginTopMm, 0, 60, 1, mm, (marginTopMm) => {
-        void manager.update({ marginTopMm });
+      marginSlider(t.marginTop(), s.marginTopMm, auto?.top, (marginTopMm) => {
+        void manager.update({ marginTopMm }).then(refreshIfReset(marginTopMm));
       }),
-      numberSlider(t.marginBottom(), s.marginBottomMm, 0, 60, 1, mm, (marginBottomMm) => {
-        void manager.update({ marginBottomMm });
+      marginSlider(t.marginBottom(), s.marginBottomMm, auto?.bottom, (marginBottomMm) => {
+        void manager.update({ marginBottomMm }).then(refreshIfReset(marginBottomMm));
       }),
-      numberSlider(t.marginLeft(), s.marginLeftMm, 0, 60, 1, mm, (marginLeftMm) => {
-        void manager.update({ marginLeftMm });
+      marginSlider(t.marginLeft(), s.marginLeftMm, auto?.left, (marginLeftMm) => {
+        void manager.update({ marginLeftMm }).then(refreshIfReset(marginLeftMm));
       }),
-      numberSlider(t.marginRight(), s.marginRightMm, 0, 60, 1, mm, (marginRightMm) => {
-        void manager.update({ marginRightMm });
+      marginSlider(t.marginRight(), s.marginRightMm, auto?.right, (marginRightMm) => {
+        void manager.update({ marginRightMm }).then(refreshIfReset(marginRightMm));
       }),
       numberSlider(
         t.marginGutter(),

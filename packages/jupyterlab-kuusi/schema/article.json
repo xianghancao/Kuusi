@@ -271,7 +271,7 @@
         "lines",
         "notebook"
       ],
-      "default": "notebook"
+      "default": "none"
     },
     "viewBackground": {
       "title": "Article view background",
@@ -320,7 +320,7 @@
     "fontSize": {
       "type": "number",
       "minimum": 8,
-      "maximum": 16,
+      "maximum": 37.5,
       "default": 14,
       "title": "Article body font size",
       "description": "Body size for the Article reading pane."
@@ -842,6 +842,38 @@
     "watermarkText": {
       "title": "Watermark",
       "description": "Diagonal text drawn behind every page, such as DRAFT.",
+      "type": "string",
+      "default": ""
+    },
+    "columnRule": {
+      "title": "Column rule",
+      "description": "Draw a line between the two columns.",
+      "type": "boolean",
+      "default": true
+    },
+    "columnRuleStyle": {
+      "title": "Column rule style",
+      "description": "Line style of the column rule.",
+      "type": "string",
+      "enum": [
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "solid"
+    },
+    "columnRuleWidth": {
+      "title": "Column rule width",
+      "description": "Thickness of the column rule in px.",
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 4,
+      "default": 1
+    },
+    "columnRuleColor": {
+      "title": "Column rule color",
+      "description": "Color of the column rule; empty follows the text color.",
       "type": "string",
       "default": ""
     },

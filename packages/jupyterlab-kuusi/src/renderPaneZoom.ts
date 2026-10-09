@@ -19,6 +19,8 @@ type PaneFitPair = {
   pageHeight?: number;
   /** Width-only fit (continuous Article scroll — height is unbounded). */
   widthOnly?: boolean;
+  /** Height kept free below the subject (e.g. Book's page-turn bar), in px. */
+  reserveBottom?: number;
 };
 
 /**
@@ -28,7 +30,41 @@ type PaneFitPair = {
 const clampPaneZoomPercent = (percent: number): number =>
   Math.min(PANE_ZOOM_MAX, Math.max(PANE_ZOOM_MIN, Math.round(percent * 10) / 10));
 
+/**
+ * Article fullscreen with the horizontal page strip: the desk shows one page at
+ * a time (thumbnails sit below), so the fit target is a single sheet, not the
+ * whole strip. Returns that desk and sheet.
+ */
+export const resolveArticleStrip = (
+  host: HTMLElement,
+): { desk: HTMLElement; sheet: HTMLElement } | null => {
+  const desk =
+    host.querySelector<HTMLElement>(".jp-KuusiArticle-paper") ??
+    (host.classList.contains("jp-KuusiArticle-paper") ? host : null);
+
+  if (
+    !desk ||
+    desk.dataset.kuusiArticleFullscreen !== "1" ||
+    desk.dataset.kuusiArticlePageScroll === "vertical" ||
+    desk.dataset.kuusiArticlePageLayout !== "paged"
+  ) {
+    return null;
+  }
+
+  const strip = desk.querySelector<HTMLElement>(
+    ".jp-RenderedMarkdown.is-kuusi-article-page-scroll-x, .jp-RenderedMySTMarkdown.is-kuusi-article-page-scroll-x",
+  );
+  const sheet = strip?.querySelector<HTMLElement>(".jp-KuusiArticle-pageSheet");
+
+  return strip && sheet ? { desk, sheet } : null;
+};
+
 const resolvePaneFitPair = (host: HTMLElement): PaneFitPair | null => {
+  const strip = resolveArticleStrip(host);
+  if (strip) {
+    return { viewport: strip.desk, subject: strip.sheet };
+  }
+
   const slidesStage = host.querySelector<HTMLElement>(
     ".jp-KuusiMarkdownSlides-stage",
   );
@@ -50,7 +86,14 @@ const resolvePaneFitPair = (host: HTMLElement): PaneFitPair | null => {
     host.querySelector<HTMLElement>(".jp-KuusiBook-paper") ??
     host.querySelector<HTMLElement>(".jp-MarkdownViewer");
   if (bookStage && bookPaper) {
-    return { viewport: bookPaper, subject: bookStage };
+    // The page-turn bar sits under the opening, so the opening must not take
+    // the whole desk height.
+    const nav = bookPaper.querySelector<HTMLElement>(".jp-KuusiBook-nav");
+    return {
+      viewport: bookPaper,
+      subject: bookStage,
+      reserveBottom: (nav?.offsetHeight || 44) + 8,
+    };
   }
 
   const articlePaper =
@@ -107,7 +150,9 @@ export const computePaneFitZoomPercent = (host: HTMLElement): number | null => {
   const paperW = Math.max(1, pair.subject.offsetWidth);
   const fullH = Math.max(1, pair.subject.offsetHeight);
   const paperH = Math.max(1, pair.pageHeight ?? fullH);
-  const { width: viewW, height: viewH } = contentBox(pair.viewport);
+  const box = contentBox(pair.viewport);
+  const viewW = box.width;
+  const viewH = Math.max(1, box.height - (pair.reserveBottom ?? 0));
 
   const fit = pair.widthOnly
     ? viewW / paperW
@@ -117,11 +162,24 @@ export const computePaneFitZoomPercent = (host: HTMLElement): number | null => {
     return null;
   }
 
-  return clampPaneZoomPercent(fit * 100);
+  // One page can be shown larger than 100% on a big screen.
+  return resolveArticleStrip(host)
+    ? Math.min(
+        STRIP_ZOOM_MAX,
+        Math.max(PANE_ZOOM_MIN, Math.round(fit * 1000) / 10),
+      )
+    : clampPaneZoomPercent(fit * 100);
 };
 
-export const isPaneAutoZoomActive = (percent: number): boolean =>
-  percent >= PANE_ZOOM_MIN && percent <= PANE_ZOOM_MAX;
+/** Highest zoom the page-at-a-time strip may fit to. */
+const STRIP_ZOOM_MAX = 200;
+
+export const isPaneAutoZoomActive = (
+  percent: number,
+  host?: HTMLElement,
+): boolean =>
+  percent >= PANE_ZOOM_MIN &&
+  percent <= (host && resolveArticleStrip(host) ? STRIP_ZOOM_MAX : PANE_ZOOM_MAX);
 
 /**
  * Observe the desk and push zoom % while the current zoom stays in-band.
@@ -160,7 +218,7 @@ export const bindPaneAutoZoom = (
     }
 
     const current = getZoomPercent();
-    if (!isPaneAutoZoomActive(current)) {
+    if (!isPaneAutoZoomActive(current, host)) {
       return;
     }
 

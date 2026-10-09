@@ -1,3 +1,4 @@
+import { mountArticlePager } from "./articlePager";
 import { PathExt } from "@jupyterlab/coreutils";
 import type { MarkdownDocument } from "@jupyterlab/markdownviewer";
 
@@ -126,6 +127,12 @@ const mountArticleHeader = (
       syncScrollAxisButton();
     },
   });
+  // Fullscreen horizontal pages: one page at a time, thumbnails below.
+  const pager = mountArticlePager({
+    host: widget.node,
+    refreshZoom: () => renderChrome?.syncZoomTarget(),
+    t,
+  });
   const settingsConnection = manager.changed.connect(() => {
     syncScrollAxisButton();
   });
@@ -140,6 +147,7 @@ const mountArticleHeader = (
     capsule,
     disposeStatusChrome: () => {
       settingsConnection.disconnect();
+      pager.dispose();
       disposeStatusChrome();
     },
   });

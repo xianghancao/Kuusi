@@ -101,6 +101,15 @@ export type ArticleColumnAlign = "left" | "center";
 /** CSS multi-column flow inside the reading pane (1 = single column). */
 export type ArticleColumns = 1 | 2;
 export type ArticlePageLayout = "scroll" | "paged";
+/** Line drawn between the two columns. */
+export type ArticleColumnRuleStyle = "solid" | "dashed" | "dotted" | "double";
+export const ARTICLE_COLUMN_RULE_STYLES: ArticleColumnRuleStyle[] = [
+  "solid",
+  "dashed",
+  "dotted",
+  "double",
+];
+export const ARTICLE_COLUMN_RULE_WIDTH_RANGE = { min: 0.5, max: 4, step: 0.5 };
 export type { ArticlePaperSize, ArticlePaperOrientation } from "./articlePaper";
 export type ArticleLinkStyle = LinkStyle;
 export type ArticleCodeStyle = CodeStyle;
@@ -117,6 +126,48 @@ export const ARTICLE_PADDING_MIN = 0.5;
 export const ARTICLE_PADDING_MAX = 8;
 export const ARTICLE_PADDING_STEP = 0.25;
 export const ARTICLE_PADDING_DEFAULT = 2;
+export interface PageMarginsMm {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+const evenMargins = (mm: number): PageMarginsMm => ({
+  top: mm,
+  right: mm,
+  bottom: mm,
+  left: mm,
+});
+
+/**
+ * Page margins (mm) a paged theme uses while a side is left on Auto. The
+ * padding-derived margins these replace were 5–30 mm: below most printers'
+ * printable area for magazine, and well under Word's defaults elsewhere.
+ */
+const THEME_PAGE_MARGINS_MM: Record<ArticleTheme, PageMarginsMm> = {
+  // Word "Normal" (1 in).
+  notebook: evenMargins(25.4),
+  essay: evenMargins(25.4),
+  night: evenMargins(25.4),
+  // APA and most thesis templates ask for 1 in on every side.
+  academic: evenMargins(25.4),
+  // Airy, as before: it already had the widest margins of any theme.
+  minimal: evenMargins(30),
+  // Print magazine: 12–15 mm outside margins, extra room below for the folio.
+  magazine: { top: 15, right: 12.7, bottom: 18, left: 12.7 },
+};
+
+/**
+ * Margins applied while a side is left on Auto, or null when Auto means
+ * "derive from padding" (continuous, non-paged layouts).
+ */
+export const autoPageMarginsMm = (
+  settings: Pick<ArticleSettings, "theme" | "pageLayout">,
+): PageMarginsMm | null =>
+  settings.pageLayout === "paged"
+    ? (THEME_PAGE_MARGINS_MM[settings.theme] ?? null)
+    : null;
 export type ArticleBackground =
   | "theme"
   | "paper"
@@ -285,6 +336,11 @@ export type ArticleSettings = {
   tableFontPercent: number;
   watermarkText: string;
   tableBandColor: string;
+  columnRule: boolean;
+  columnRuleStyle: ArticleColumnRuleStyle;
+  columnRuleWidth: number;
+  /** Empty follows the text color (faint). */
+  columnRuleColor: string;
   pdfQuality: "standard" | "high";
 };
 
@@ -354,6 +410,10 @@ type ArticleUserOnlyKey =
   | "tableFontPercent"
   | "watermarkText"
   | "tableBandColor"
+  | "columnRule"
+  | "columnRuleStyle"
+  | "columnRuleWidth"
+  | "columnRuleColor"
   | "pdfQuality";
 
 export const ARTICLE_HEADER_LEVELS: ArticleHeaderLevel[] = [1, 2, 3, 4, 5, 6];
@@ -426,7 +486,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   imageBorderColor: "",
   imageRadius: 0,
   background: "theme",
-  backgroundPattern: "notebook",
+  backgroundPattern: "none",
   viewBackground: "theme",
   viewBackgroundColor: "",
   font: DEFAULT_MIND_MAP_FONT,
@@ -501,6 +561,10 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tableFontPercent: 100,
   watermarkText: "",
   tableBandColor: "",
+  columnRule: true,
+  columnRuleStyle: "solid",
+  columnRuleWidth: 1,
+  columnRuleColor: "",
   pdfQuality: "standard",
 };
 
@@ -550,7 +614,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     paperOrientation: "portrait",
     imageWidth: "wide",
     background: "theme",
-    backgroundPattern: "notebook",
+    backgroundPattern: "none",
     viewBackground: "theme",
     font: "notebook",
     fontSize: 14,
@@ -1254,19 +1318,19 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
         : defaults.codeTabSize,
     marginTopMm:
       typeof raw.marginTopMm === "number" && Number.isFinite(raw.marginTopMm)
-        ? Math.min(60, Math.max(0, Math.round(raw.marginTopMm)))
+        ? Math.min(60, Math.max(0, Math.round(raw.marginTopMm * 10) / 10))
         : defaults.marginTopMm,
     marginBottomMm:
       typeof raw.marginBottomMm === "number" && Number.isFinite(raw.marginBottomMm)
-        ? Math.min(60, Math.max(0, Math.round(raw.marginBottomMm)))
+        ? Math.min(60, Math.max(0, Math.round(raw.marginBottomMm * 10) / 10))
         : defaults.marginBottomMm,
     marginLeftMm:
       typeof raw.marginLeftMm === "number" && Number.isFinite(raw.marginLeftMm)
-        ? Math.min(60, Math.max(0, Math.round(raw.marginLeftMm)))
+        ? Math.min(60, Math.max(0, Math.round(raw.marginLeftMm * 10) / 10))
         : defaults.marginLeftMm,
     marginRightMm:
       typeof raw.marginRightMm === "number" && Number.isFinite(raw.marginRightMm)
-        ? Math.min(60, Math.max(0, Math.round(raw.marginRightMm)))
+        ? Math.min(60, Math.max(0, Math.round(raw.marginRightMm * 10) / 10))
         : defaults.marginRightMm,
     marginGutterMm:
       typeof raw.marginGutterMm === "number" && Number.isFinite(raw.marginGutterMm)
@@ -1286,6 +1350,24 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
         : defaults.tableFontPercent,
     watermarkText: normalizePageText(raw.watermarkText, defaults.watermarkText),
     tableBandColor: normalizePageText(raw.tableBandColor, defaults.tableBandColor),
+    columnRule:
+      typeof raw.columnRule === "boolean" ? raw.columnRule : defaults.columnRule,
+    columnRuleStyle: ARTICLE_COLUMN_RULE_STYLES.includes(
+      raw.columnRuleStyle as ArticleColumnRuleStyle,
+    )
+      ? (raw.columnRuleStyle as ArticleColumnRuleStyle)
+      : defaults.columnRuleStyle,
+    columnRuleWidth:
+      typeof raw.columnRuleWidth === "number" && Number.isFinite(raw.columnRuleWidth)
+        ? Math.min(
+            ARTICLE_COLUMN_RULE_WIDTH_RANGE.max,
+            Math.max(
+              ARTICLE_COLUMN_RULE_WIDTH_RANGE.min,
+              Math.round(raw.columnRuleWidth * 2) / 2,
+            ),
+          )
+        : defaults.columnRuleWidth,
+    columnRuleColor: normalizePageText(raw.columnRuleColor, defaults.columnRuleColor),
     pdfQuality: raw.pdfQuality === "standard" || raw.pdfQuality === "high"
       ? (raw.pdfQuality as ArticleSettings["pdfQuality"])
       : defaults.pdfQuality,
@@ -1327,15 +1409,26 @@ export const applyArticleAppearance = (
     const side = (mm: number, fallback: string): string =>
       mm > 0 ? `${mm}mm` : fallback;
     const base = `${settings.padding}rem`;
+    // Paged themes carry their own page margins until a side is set
+    // explicitly; continuous layouts keep deriving margins from padding.
+    const auto = autoPageMarginsMm(settings);
+    const autoSide = (mm: number | undefined, padding: string): string =>
+      mm === undefined ? padding : `${mm}mm`;
     host.style.setProperty(
       "--kuusi-article-padding-top",
-      side(settings.marginTopMm, `calc(${base} * 1.125)`),
+      side(
+        settings.marginTopMm,
+        autoSide(auto?.top, `calc(${base} * 1.125)`),
+      ),
     );
     host.style.setProperty(
       "--kuusi-article-padding-bottom",
-      side(settings.marginBottomMm, `calc(${base} * 2)`),
+      side(
+        settings.marginBottomMm,
+        autoSide(auto?.bottom, `calc(${base} * 2)`),
+      ),
     );
-    const left = side(settings.marginLeftMm, base);
+    const left = side(settings.marginLeftMm, autoSide(auto?.left, base));
     host.style.setProperty(
       "--kuusi-article-padding-left",
       settings.marginGutterMm > 0
@@ -1344,7 +1437,7 @@ export const applyArticleAppearance = (
     );
     host.style.setProperty(
       "--kuusi-article-padding-right",
-      side(settings.marginRightMm, base),
+      side(settings.marginRightMm, autoSide(auto?.right, base)),
     );
   }
   host.style.setProperty("--kuusi-article-tab-size", String(settings.codeTabSize));
@@ -1366,6 +1459,23 @@ export const applyArticleAppearance = (
     host.style.setProperty("--kuusi-table-band", settings.tableBandColor);
   } else {
     host.style.removeProperty("--kuusi-table-band");
+  }
+  host.dataset.kuusiArticleColumnRule = settings.columnRule ? "1" : "0";
+  host.style.setProperty(
+    "--kuusi-article-column-rule-width",
+    `${settings.columnRuleWidth}px`,
+  );
+  host.style.setProperty(
+    "--kuusi-article-column-rule-style",
+    settings.columnRuleStyle,
+  );
+  if (settings.columnRuleColor) {
+    host.style.setProperty(
+      "--kuusi-article-column-rule-color",
+      settings.columnRuleColor,
+    );
+  } else {
+    host.style.removeProperty("--kuusi-article-column-rule-color");
   }
   host.dataset.kuusiArticlePdfQuality = settings.pdfQuality;
   host.dataset.kuusiArticlePdfBookmarks = settings.pdfBookmarks ? "1" : "0";
@@ -1433,6 +1543,11 @@ export const applyArticleAppearance = (
       codeFontSize: settings.codeFontSize,
     },
     "kuusiArticleCodeTheme",
+    // Code sits on the paper: dark ink paper, or Lab's own surface.
+    {
+      dark: settings.background === "ink",
+      followLabTheme: settings.background === "theme",
+    },
   );
   applyTableAppearance(host, {
     tableStyle: settings.tableStyle,
@@ -1820,6 +1935,10 @@ export class ArticleSettingsManager {
         "tableFontPercent",
         "watermarkText",
         "tableBandColor",
+        "columnRule",
+        "columnRuleStyle",
+        "columnRuleWidth",
+        "columnRuleColor",
         "pdfQuality",
       ] as const
     ).forEach((key) => {

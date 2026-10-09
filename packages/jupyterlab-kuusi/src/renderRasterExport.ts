@@ -341,6 +341,10 @@ const captureRegion = async (
         maxHeight: "none",
         margin: "0",
         position: "relative",
+        // html-to-image copies the computed cssText, which in current Chrome
+        // lists logical `inset-inline` / `inset-block` after the physical
+        // properties and would win over left / top below. Reset them first.
+        inset: "auto",
         left: "0",
         top: "0",
         zoom: "1",

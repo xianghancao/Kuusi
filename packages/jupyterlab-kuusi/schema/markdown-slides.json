@@ -160,7 +160,7 @@
     "fontSize": {
       "type": "number",
       "minimum": 8,
-      "maximum": 16,
+      "maximum": 37.5,
       "default": 14,
       "title": "Slides body font size",
       "description": "Body size for slide text."

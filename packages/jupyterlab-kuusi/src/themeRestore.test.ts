@@ -1,3 +1,4 @@
+import "./testDom";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -33,7 +34,7 @@ describe("article theme chrome", () => {
   });
 
   it("gives each article theme a distinct layout fingerprint", () => {
-    assert.equal(ARTICLE_THEME_PRESETS.notebook.backgroundPattern, "notebook");
+    assert.equal(ARTICLE_THEME_PRESETS.notebook.backgroundPattern, "none");
     assert.equal(ARTICLE_THEME_PRESETS.magazine.columns, 2);
     assert.equal(ARTICLE_THEME_PRESETS.magazine.background, "newspaper");
     assert.equal(ARTICLE_THEME_PRESETS.academic.pageLayout, "paged");

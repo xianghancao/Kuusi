@@ -31,7 +31,7 @@ export const ARTICLE_COLUMN_PAGE_CLASS = "jp-KuusiArticle-columnPage";
 export const ARTICLE_COLUMNS_FLOW_CLASS = "jp-KuusiArticle-columnsFlow";
 export const ARTICLE_COLUMNS_FALLBACK_CLASS = "is-kuusi-article-columns-fallback";
 
-const PAGE_GAP_PX = 28;
+export const PAGE_GAP_PX = 28;
 /** Pushes allowed for one block before the layout loop gives up on it. */
 const MAX_RETRIES_PER_BLOCK = 4;
 const MIN_CONTENT_HEIGHT_PX = 48;
@@ -74,7 +74,8 @@ const ATOMIC_CHILD_SELECTOR = ATOMIC_SELECTORS.map(
 
 const bound = new WeakSet<Widget>();
 
-const RENDER_ZOOM_VAR = /--kuusi-render-zoom\s*:[^;]*;?/g;
+const RENDER_ZOOM_VAR =
+  /(?:--kuusi-render-zoom|transform-origin|--kuusi-article-strip-shift(?:-y)?)\s*:[^;]*;?/g;
 
 /** An inline `style` with the view-zoom variable removed. */
 const styleWithoutZoom = (style: string | null): string =>
@@ -125,6 +126,14 @@ type PageMetrics = {
   scale: number;
 };
 
+/**
+ * The fullscreen page controls (articlePager.ts) live inside the observed
+ * widget node, with a scaled copy of the pages in the thumbnails. None of it is
+ * article content; reacting to it would re-paginate in a loop.
+ */
+const PAGER_CHROME_SELECTOR =
+  ".jp-KuusiArticle-pager, .jp-KuusiArticle-pagerSpacer";
+
 const isPagedChrome = (node: Node): boolean => {
   if (!(node instanceof HTMLElement)) {
     return false;
@@ -137,7 +146,7 @@ const isPagedChrome = (node: Node): boolean => {
     node.dataset.kuusiColumnsClone === "1" ||
     Boolean(
       node.closest(
-        `.${ARTICLE_PAGE_SHEET_CLASS}, [data-kuusi-columns-clone="1"]`,
+        `.${ARTICLE_PAGE_SHEET_CLASS}, [data-kuusi-columns-clone="1"], ${PAGER_CHROME_SELECTOR}`,
       ),
     )
   );
@@ -1205,12 +1214,21 @@ const layoutHorizontalPages = (
     return;
   }
 
+  // Columns are laid out inside the padding box, so each one is the paper minus
+  // its left / right margin, and the gap carries the next page's margins plus
+  // the space between sheets. Then column n starts exactly at sheet n's text
+  // edge (padL + n * (paperWidth + PAGE_GAP_PX)).
+  const rendererStyle = getComputedStyle(rendered);
+  const padX =
+    (Number.parseFloat(rendererStyle.paddingLeft) || 0) +
+    (Number.parseFloat(rendererStyle.paddingRight) || 0);
+
   rendered.classList.add("is-kuusi-article-page-scroll-x");
   rendered.style.height = `${metrics.paperHeight}px`;
   rendered.style.minHeight = "0";
   rendered.style.maxWidth = "none";
-  rendered.style.columnWidth = `${paperWidth}px`;
-  rendered.style.columnGap = `${PAGE_GAP_PX}px`;
+  rendered.style.columnWidth = `${Math.max(1, paperWidth - padX)}px`;
+  rendered.style.columnGap = `${PAGE_GAP_PX + padX}px`;
   rendered.style.columnFill = "auto";
   // Let columns determine intrinsic width, then lock it for sheet placement.
   rendered.style.width = "max-content";

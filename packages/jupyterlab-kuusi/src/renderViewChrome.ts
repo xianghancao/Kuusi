@@ -51,6 +51,65 @@ const markZoomInMotion = (target: HTMLElement): void => {
   );
 };
 
+const zoomOriginObservers = new WeakMap<HTMLElement, ResizeObserver>();
+
+/**
+ * Paged Article: the sheet is laid out at its fixed size, left-aligned when it
+ * overflows the desk and centred when it fits. A CSS zoom about the sheet's own
+ * centre then pushes a shrunk sheet to the right (blank desk on the left, the
+ * right edge cut off). Pick the transform origin so the scaled sheet is centred
+ * in the desk: that gives equal margins, i.e. the desk padding once zoom fits.
+ */
+const syncPagedZoomOrigin = (target: HTMLElement): void => {
+  const desk = target.parentElement;
+  const paged =
+    desk?.classList.contains("jp-KuusiArticle-paper") === true &&
+    desk.getAttribute("data-kuusi-article-page-layout") === "paged";
+
+  // The fullscreen page strip positions itself (see articlePager.ts).
+  const strip =
+    desk?.dataset.kuusiArticleFullscreen === "1" &&
+    desk.dataset.kuusiArticlePageScroll !== "vertical" &&
+    target.classList.contains("is-kuusi-article-page-scroll-x");
+
+  if (!desk || !paged || strip) {
+    target.style.removeProperty("transform-origin");
+    return;
+  }
+
+  const zoom = Number.parseFloat(
+    target.style.getPropertyValue("--kuusi-render-zoom"),
+  );
+  const width = target.offsetWidth;
+
+  if (!Number.isFinite(zoom) || Math.abs(1 - zoom) < 0.001 || width <= 0) {
+    target.style.removeProperty("transform-origin");
+    return;
+  }
+
+  const scaledLeft = (desk.clientWidth - width * zoom) / 2;
+  const originX = (scaledLeft - target.offsetLeft) / (1 - zoom);
+  target.style.setProperty("transform-origin", `${originX}px 0`);
+};
+
+const observeZoomOrigin = (target: HTMLElement): void => {
+  const desk = target.parentElement;
+
+  if (!desk || zoomOriginObservers.has(desk) || typeof ResizeObserver === "undefined") {
+    return;
+  }
+
+  const observer = new ResizeObserver(() => {
+    const zoomTarget = desk.querySelector<HTMLElement>(".jp-KuusiRenderZoomTarget");
+
+    if (zoomTarget) {
+      syncPagedZoomOrigin(zoomTarget);
+    }
+  });
+  observer.observe(desk);
+  zoomOriginObservers.set(desk, observer);
+};
+
 export const applyRenderViewCssZoom = (
   target: HTMLElement,
   percent: number,
@@ -64,6 +123,7 @@ export const applyRenderViewCssZoom = (
   if (previous && previous !== target) {
     previous.classList.remove("jp-KuusiRenderZoomTarget");
     previous.style.removeProperty("--kuusi-render-zoom");
+    previous.style.removeProperty("transform-origin");
   }
   // 0.1% precision: manual steps are multiples of 10, the sash fit is not.
   const exact =
@@ -71,6 +131,8 @@ export const applyRenderViewCssZoom = (
     10;
   target.classList.add("jp-KuusiRenderZoomTarget");
   target.style.setProperty("--kuusi-render-zoom", String(exact / 100));
+  syncPagedZoomOrigin(target);
+  observeZoomOrigin(target);
 };
 
 const resolveCssZoomTarget = (host: HTMLElement): HTMLElement =>

@@ -155,15 +155,55 @@ const stripExportChrome = (clone: HTMLElement): void => {
     .forEach((node) => node.remove());
 };
 
+const DEFAULT_PRINT_PAGE_MARGIN = "18mm 16mm";
+
+/**
+ * Paged Article: print with the margins shown on screen. The print stylesheet
+ * zeroes the in-flow padding and lets `@page` carry the margin, and `@page`
+ * cannot read the element's CSS variables, so resolve them to millimetres here.
+ */
+const resolvePrintPageMargin = (host: HTMLElement): string => {
+  const paper =
+    host.closest(".jp-KuusiArticle-paper") ??
+    (host.classList.contains("jp-KuusiArticle-paper") ? host : null) ??
+    host.querySelector(".jp-KuusiArticle-paper");
+  const rendered = paper?.querySelector(
+    ".jp-RenderedMarkdown, .jp-RenderedMySTMarkdown",
+  );
+
+  if (
+    !(paper instanceof HTMLElement) ||
+    !(rendered instanceof HTMLElement) ||
+    paper.dataset.kuusiArticlePageLayout !== "paged"
+  ) {
+    return DEFAULT_PRINT_PAGE_MARGIN;
+  }
+
+  const style = getComputedStyle(rendered);
+  const mm = [
+    style.paddingTop,
+    style.paddingRight,
+    style.paddingBottom,
+    style.paddingLeft,
+  ].map((value) => (Number.parseFloat(value) * 25.4) / 96);
+
+  return mm.every((value) => Number.isFinite(value) && value > 0)
+    ? mm.map((value) => `${value.toFixed(2)}mm`).join(" ")
+    : DEFAULT_PRINT_PAGE_MARGIN;
+};
+
 /**
  * Print-only stylesheet: page size from Article paper setting (A4 / Letter),
  * reading styles on white paper, no desk/chrome. Complements Lab CSS copied
  * into the window.
  */
-const printExportCss = (pageSize = "A4"): string => `
+const printExportCss = (
+  pageSize = "A4",
+  pageMargin = DEFAULT_PRINT_PAGE_MARGIN,
+): string => `
 @page {
   size: ${pageSize};
-  margin: 18mm 16mm;
+  margin: ${pageMargin};
 }
 
 html, body {
@@ -442,6 +482,10 @@ const buildExportHtml = (root: HTMLElement, title: string): string => {
       ? ` style="${escapeHtml(host.style.cssText)}"`
       : "";
   const pageSize = resolvePrintPageSize(host);
+  const pageMargin =
+    host instanceof HTMLElement
+      ? resolvePrintPageMargin(host)
+      : DEFAULT_PRINT_PAGE_MARGIN;
 
   return `<!doctype html>
 <html>
@@ -451,7 +495,7 @@ const buildExportHtml = (root: HTMLElement, title: string): string => {
 <title>${escapeHtml(title)}</title>
 ${collectDocumentStyles()}
 <style>
-${printExportCss(pageSize)}
+${printExportCss(pageSize, pageMargin)}
 </style>
 </head>
 <body class="jp-ThemedContainer jp-KuusiExportPrint">
@@ -530,32 +574,55 @@ const printRenderedView = async (widget: IDocumentWidget): Promise<void> => {
   }
 
   const title = PathExt.basename(widget.context.path);
-  const win = window.open("", "_blank");
 
-  if (!win) {
-    Notification.warning("Allow pop-ups to export PDF.", { autoClose: 4000 });
+  // Print from a hidden iframe, not a pop-up: the root resolves asynchronously,
+  // by which time the click's user activation is gone and browsers block
+  // window.open ("Allow pop-ups to export PDF").
+  const frame = document.createElement("iframe");
+  frame.setAttribute("aria-hidden", "true");
+  frame.tabIndex = -1;
+  frame.style.cssText =
+    "position:fixed;left:-10000px;top:0;width:210mm;height:297mm;border:0;visibility:hidden;";
+  document.body.appendChild(frame);
+
+  const win = frame.contentWindow;
+  const doc = frame.contentDocument;
+
+  if (!win || !doc) {
+    frame.remove();
+    Notification.warning("Could not prepare the PDF export.", {
+      autoClose: 4000,
+    });
     return;
   }
 
-  win.document.open();
-  win.document.write(buildExportHtml(root, title));
-  win.document.close();
-
-  const printWhenReady = (): void => {
-    void waitForImages(win.document).then(() => {
-      // Let layout settle after images decode.
-      window.setTimeout(() => {
-        win.focus();
-        win.print();
-      }, 50);
-    });
+  // The PDF file name follows the top-level title in most browsers.
+  const previousTitle = document.title;
+  let cleanedUp = false;
+  const cleanup = (): void => {
+    if (cleanedUp) {
+      return;
+    }
+    cleanedUp = true;
+    document.title = previousTitle;
+    frame.remove();
   };
 
-  if (win.document.readyState === "complete") {
-    window.setTimeout(printWhenReady, 100);
-  } else {
-    win.addEventListener("load", printWhenReady, { once: true });
-  }
+  doc.open();
+  doc.write(buildExportHtml(root, title));
+  doc.close();
+
+  void waitForImages(doc).then(() => {
+    // Let layout settle after images decode.
+    window.setTimeout(() => {
+      document.title = title;
+      win.addEventListener("afterprint", cleanup, { once: true });
+      win.focus();
+      win.print();
+      // Some browsers never fire afterprint for iframes.
+      window.setTimeout(cleanup, 120_000);
+    }, 100);
+  });
 };
 
 const downloadRenderedHtml = async (widget: IDocumentWidget): Promise<void> => {
