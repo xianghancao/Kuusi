@@ -54,3 +54,12 @@ coverage/
 yarn.lock
 
 e2e/screenshots/
+
+# Scratch space and LaTeX build output
+.tmp/
+examples/live-pdf/*.aux
+examples/live-pdf/*.out
+examples/live-pdf/*.pdf
+examples/live-pdf/*.synctex.gz
+examples/live-pdf/*.toc
+examples/live-pdf/*.log
