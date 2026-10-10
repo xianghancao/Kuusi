@@ -221,7 +221,10 @@ export const mountCssZoomRenderChrome = (
   return {
     ...handle,
     syncZoomTarget: () => {
-      applyZoom(percent, false);
+      // Re-apply the current zoom as is. Snapping it to a 10% step here fought
+      // the sash-fit zoom (64.7% -> 60% -> 64.7% ...), which re-paged the
+      // Article on every pass.
+      applyZoom(percent, false, true);
       paneZoom?.refresh();
     },
   };

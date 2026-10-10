@@ -141,8 +141,15 @@ export const mountArticlePager = (
     next.disabled = index >= pageCount - 1;
     cells.forEach((cell, i) => {
       const on = i === index;
-      cell.classList.toggle("is-current", on);
-      cell.setAttribute("aria-current", on ? "page" : "false");
+      if (cell.classList.contains("is-current") !== on) {
+        cell.classList.toggle("is-current", on);
+      }
+
+      const aria = on ? "page" : "false";
+
+      if (cell.getAttribute("aria-current") !== aria) {
+        cell.setAttribute("aria-current", aria);
+      }
 
       if (on) {
         // Keep the current thumbnail inside a scrolled thumbnail row.
@@ -398,18 +405,38 @@ export const mountArticlePager = (
 
   // --- observation -------------------------------------------------------
 
+  // Class sets without the zoom "in motion" marker: that class comes and goes
+  // with every zoom write, and re-adding a class that is already there still
+  // queues a record. Neither changes the pages.
+  const pageClasses = (value: string | null): string =>
+    (value ?? "")
+      .split(/\s+/)
+      .filter((name) => name && name !== "jp-KuusiRenderZoomTarget--moving")
+      .sort()
+      .join(" ");
   const stripObserver = new MutationObserver((records) => {
+    const classChanged = (r: MutationRecord): boolean =>
+      r.type === "attributes" &&
+      r.attributeName === "class" &&
+      r.target instanceof HTMLElement &&
+      pageClasses(r.oldValue) !== pageClasses(r.target.getAttribute("class"));
+
+    if (records.some((r) => r.type === "childList" || classChanged(r))) {
+      needsRebuild = true;
+    }
+
+    // Style writes (zoom, strip shift) and no-op class writes need no pass:
+    // `sync` itself is what writes them.
     if (
       records.some(
         (r) =>
           r.type === "childList" ||
-          (r.type === "attributes" && r.attributeName === "class"),
+          (r.type === "attributes" &&
+            (r.attributeName === "style" || classChanged(r))),
       )
     ) {
-      needsRebuild = true;
+      schedule();
     }
-
-    schedule();
   });
   const deskObserver = new MutationObserver(() => {
     schedule();
@@ -518,6 +545,7 @@ export const mountArticlePager = (
       stripObserver.observe(pages, {
         attributes: true,
         attributeFilter: ["class", "style"],
+        attributeOldValue: true,
         childList: true,
       });
     }
