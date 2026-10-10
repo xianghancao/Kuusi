@@ -179,6 +179,12 @@ export {
   type MindMapSourceKind,
 } from "./notebookMindMapTypes";
 
+const setIfChanged = (el: Element, name: string, value: string): void => {
+  if (el.getAttribute(name) !== value) {
+    el.setAttribute(name, value);
+  }
+};
+
 export class NotebookMindMapWidget extends Widget {
   private _notebook: Notebook;
   private _notebookMount: HTMLElement;
@@ -4212,21 +4218,45 @@ export class NotebookMindMapWidget extends Widget {
       ? this._t.expandBranch(hiddenCount)
       : this._t.collapseBranch();
 
-    button.title = label;
-    button.setAttribute("aria-label", label);
-    button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-    button.replaceChildren();
+    // Update in place: this runs on every layout pass, and replacing the
+    // children while the pointer is down drops the click (the press started on
+    // a node that no longer exists), so only a very quick tap would register.
+    setIfChanged(button, "title", label);
+    setIfChanged(button, "aria-label", label);
+    setIfChanged(button, "aria-expanded", collapsed ? "false" : "true");
 
-    const arrow = document.createElement("span");
-    arrow.className = "jp-KuusiNotebookMindMap-collapse-arrow";
-    arrow.textContent = collapsed ? "▸" : "▾";
-    button.appendChild(arrow);
+    let arrow = button.querySelector<HTMLElement>(
+      ":scope > .jp-KuusiNotebookMindMap-collapse-arrow",
+    );
+
+    if (!arrow) {
+      arrow = document.createElement("span");
+      arrow.className = "jp-KuusiNotebookMindMap-collapse-arrow";
+      button.prepend(arrow);
+    }
+
+    const arrowText = collapsed ? "▸" : "▾";
+
+    if (arrow.textContent !== arrowText) {
+      arrow.textContent = arrowText;
+    }
+
+    let count = button.querySelector<HTMLElement>(
+      ":scope > .jp-KuusiNotebookMindMap-collapse-count",
+    );
 
     if (collapsed && hiddenCount > 0) {
-      const count = document.createElement("span");
-      count.className = "jp-KuusiNotebookMindMap-collapse-count";
-      count.textContent = String(hiddenCount);
-      button.appendChild(count);
+      if (!count) {
+        count = document.createElement("span");
+        count.className = "jp-KuusiNotebookMindMap-collapse-count";
+        button.appendChild(count);
+      }
+
+      if (count.textContent !== String(hiddenCount)) {
+        count.textContent = String(hiddenCount);
+      }
+    } else {
+      count?.remove();
     }
 
     // Keep the control’s corner in lockstep with Node → Corner (and radius).
