@@ -1002,14 +1002,20 @@ body[data-jp-theme-light="false"]
   display: none;
 }
 
-.jp-KuusiNotebookMindMap-status-node,
-.jp-KuusiRenderChrome-node,
-.jp-KuusiRenderChrome-stats,
+/* Controls *inside* a pill take the pill's type. The pills themselves
+   (-node, -stats) must not inherit: they would pick up the host's 13px / 400
+   instead of the chrome size set above, and look larger than their neighbours. */
 .jp-KuusiNotebookMindMap-status-zoom-btn,
 .jp-KuusiNotebookMindMap-status-zoom-step {
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
+  line-height: 1;
+}
+
+.jp-KuusiNotebookMindMap-status-node,
+.jp-KuusiRenderChrome-node,
+.jp-KuusiRenderChrome-stats {
   line-height: 1;
 }
 
