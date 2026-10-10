@@ -187,8 +187,9 @@ export const sliderIndexToFontSize = (index: number): MindMapFontSize => {
   return MIND_MAP_FONT_SIZES[clamped];
 };
 
+/** Points, like the body font size slider, so the Text menu uses one unit. */
 export const fontSizeLabel = (size: MindMapFontSize): string =>
-  `${FONT_SIZE_LABELS[size]} · ${FONT_SIZE_APPROX_PX[size]}px`;
+  `${FONT_SIZE_LABELS[size]} · ${pxToPt(FONT_SIZE_APPROX_PX[size])}pt`;
 
 export const fontSizeShortLabel = (size: MindMapFontSize): string =>
   FONT_SIZE_LABELS[size];
