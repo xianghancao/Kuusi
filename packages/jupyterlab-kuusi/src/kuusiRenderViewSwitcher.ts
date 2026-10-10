@@ -51,6 +51,12 @@ export class KuusiRenderViewSwitcherWidget extends Widget {
 
   private _sync: (() => void) | null = null;
 
+  private _activeId: KuusiRenderViewId | null = null;
+
+  private _resizeObserver: ResizeObserver | null = null;
+
+  private _themeObserver: MutationObserver | null = null;
+
   constructor(private _app: JupyterFrontEnd) {
     super();
     this.addClass("jp-KuusiRenderViewSwitcher");
@@ -69,6 +75,35 @@ export class KuusiRenderViewSwitcherWidget extends Widget {
     this._group.appendChild(this._thumb);
 
     this.node.appendChild(this._group);
+
+    // The thumb is measured, so it has to be measured again whenever the
+    // buttons change size: a theme switch changes fonts and can briefly hide
+    // the toolbar, and a pass taken then left a zero-width thumb with the
+    // (white) active label on a white pill.
+    if (typeof ResizeObserver !== "undefined") {
+      this._resizeObserver = new ResizeObserver(() => {
+        this._positionThumb(this._activeId);
+      });
+      this._resizeObserver.observe(this._group);
+    }
+
+    if (typeof MutationObserver !== "undefined") {
+      this._themeObserver = new MutationObserver(() => {
+        requestAnimationFrame(() => this._positionThumb(this._activeId));
+      });
+      this._themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-jp-theme-name", "data-jp-theme-light"],
+      });
+    }
+  }
+
+  dispose(): void {
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
+    this._themeObserver?.disconnect();
+    this._themeObserver = null;
+    super.dispose();
   }
 
   /** Re-run path/factory visibility sync after dock settle. */
@@ -124,6 +159,7 @@ export class KuusiRenderViewSwitcherWidget extends Widget {
   }
 
   syncActiveView(viewId: KuusiRenderViewId | null): void {
+    this._activeId = viewId;
     this._buttons.forEach((button, id) => {
       const active = viewId !== null && id === viewId;
       button.classList.toggle("is-active", active);
@@ -148,6 +184,12 @@ export class KuusiRenderViewSwitcherWidget extends Widget {
 
     const groupRect = this._group.getBoundingClientRect();
     const buttonRect = button.getBoundingClientRect();
+
+    // Hidden or not laid out yet: keep the last position; the resize observer
+    // measures again once the buttons have a size.
+    if (buttonRect.width === 0 || buttonRect.height === 0) {
+      return;
+    }
 
     this._thumb.style.opacity = "1";
     this._thumb.style.width = `${buttonRect.width}px`;
