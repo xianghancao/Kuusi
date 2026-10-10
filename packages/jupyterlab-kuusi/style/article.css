@@ -1436,3 +1436,185 @@ button.jp-KuusiArticle-scrollAxis-btn {
 .jp-KuusiArticle-paper[data-kuusi-article-theme="notebook"][data-kuusi-article-view-background="theme"] {
   --kuusi-article-desk: var(--jp-layout-color2);
 }
+
+/* Fullscreen vertical scrolling: outline / page thumbnails on the left
+   (articleSidebar.ts). The desk is narrowed while the panel is open. */
+.jp-KuusiArticle-sidebar {
+  inset: 0 auto 0 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 45;
+}
+
+.jp-KuusiArticle-sidebar[hidden],
+.jp-KuusiArticle-sidebarPanel[hidden],
+.jp-KuusiArticle-sidebarTab[hidden],
+.jp-KuusiArticle-sidebarOutline[hidden],
+.jp-KuusiArticle-sidebarThumbs[hidden] {
+  display: none;
+}
+
+.jp-KuusiArticle-sidebarPanel {
+  background: var(--jp-layout-color1);
+  border-right: 1px solid var(--jp-border-color2);
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+}
+
+.jp-KuusiArticle-sidebarTabs {
+  border-bottom: 1px solid var(--jp-border-color2);
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 8px 8px 8px 52px;
+}
+
+button.jp-KuusiArticle-sidebarTab {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  flex: 1 1 0;
+  font-size: var(--jp-ui-font-size1);
+  padding: 4px 6px;
+}
+
+button.jp-KuusiArticle-sidebarTab:hover {
+  background: var(--jp-layout-color2);
+}
+
+button.jp-KuusiArticle-sidebarTab.is-active {
+  background: var(--jp-layout-color3);
+  color: var(--jp-ui-font-color0);
+  font-weight: 600;
+}
+
+button.jp-KuusiArticle-sidebarToggle {
+  -webkit-backdrop-filter: var(--kuusi-glass-blur, blur(14px) saturate(180%));
+  backdrop-filter: var(--kuusi-glass-blur, blur(14px) saturate(180%));
+  background: var(--kuusi-glass-bg, color-mix(in srgb, var(--jp-layout-color1) 80%, transparent));
+  border: 1px solid var(--kuusi-glass-border, var(--jp-border-color2));
+  border-radius: 8px;
+  box-shadow: var(--kuusi-glass-shadow, none);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  font-size: 15px;
+  height: 32px;
+  left: 12px;
+  line-height: 1;
+  padding: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 8px;
+  width: 32px;
+}
+
+button.jp-KuusiArticle-sidebarToggle:hover {
+  background: var(--kuusi-glass-bg-hover, var(--jp-layout-color2));
+}
+
+button.jp-KuusiArticle-sidebarToggle[aria-pressed="true"] {
+  color: var(--jp-brand-color1);
+}
+
+.jp-KuusiArticle-sidebarOutline,
+.jp-KuusiArticle-sidebarThumbs {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 8px;
+  position: relative;
+}
+
+.jp-KuusiArticle-sidebarEmpty {
+  color: var(--jp-ui-font-color3);
+  font-size: var(--jp-ui-font-size1);
+  padding: 12px;
+}
+
+button.jp-KuusiArticle-sidebarItem {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  display: block;
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.35;
+  overflow: hidden;
+  padding-bottom: 5px;
+  padding-right: 8px;
+  padding-top: 5px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+button.jp-KuusiArticle-sidebarItem:hover {
+  background: var(--jp-layout-color2);
+}
+
+button.jp-KuusiArticle-sidebarItem.is-current {
+  background: color-mix(in srgb, var(--jp-brand-color1) 14%, transparent);
+  color: var(--jp-brand-color1);
+  font-weight: 600;
+}
+
+.jp-KuusiArticle-sidebarThumbsInner {
+  margin: 4px auto;
+  position: relative;
+}
+
+button.jp-KuusiArticle-sidebarCell {
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--jp-ui-font-color1) 22%, transparent);
+  cursor: pointer;
+  left: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+
+button.jp-KuusiArticle-sidebarCell:hover {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--jp-brand-color1) 55%, transparent);
+}
+
+button.jp-KuusiArticle-sidebarCell.is-current {
+  box-shadow: 0 0 0 2px var(--jp-brand-color1);
+}
+
+.jp-KuusiArticle-sidebarCellNumber {
+  background: color-mix(in srgb, var(--jp-layout-color1) 85%, transparent);
+  border-radius: 8px;
+  bottom: 4px;
+  color: var(--jp-ui-font-color1);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1;
+  padding: 2px 6px;
+  position: absolute;
+  right: 4px;
+}
+
+/* Panel open: pages sit centred in the space right of it. Paged sheets are
+   placed by script, so shift them; continuous text just gains left padding. */
+.is-kuusi-view-fullscreen.has-kuusi-article-sidebar
+  .jp-KuusiArticle-paper:not(.jp-KuusiArticle-pagerClone)[data-kuusi-article-page-layout="paged"]
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  translate: 126px 0;
+}
+
+.is-kuusi-view-fullscreen.has-kuusi-article-sidebar
+  .jp-KuusiArticle-paper:not(.jp-KuusiArticle-pagerClone):not([data-kuusi-article-page-layout="paged"]) {
+  padding-left: calc(252px + var(--kuusi-article-padding-x, 2rem));
+}

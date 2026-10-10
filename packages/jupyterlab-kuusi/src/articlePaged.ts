@@ -132,7 +132,7 @@ type PageMetrics = {
  * article content; reacting to it would re-paginate in a loop.
  */
 const PAGER_CHROME_SELECTOR =
-  ".jp-KuusiArticle-pager, .jp-KuusiArticle-pagerSpacer";
+  ".jp-KuusiArticle-pager, .jp-KuusiArticle-pagerSpacer, .jp-KuusiArticle-sidebar";
 
 const isPagedChrome = (node: Node): boolean => {
   if (!(node instanceof HTMLElement)) {
@@ -1535,11 +1535,21 @@ export const bindArticlePagedLayout = (
 
     if (rendered) {
       applying = true;
+      // Re-paging empties and refills the desk, which clamps its scroll
+      // position to the top; put the reader back where they were.
+      const desk = rendered.closest<HTMLElement>(".jp-KuusiArticle-paper");
+      const keepTop = desk?.scrollTop ?? 0;
+      const keepLeft = desk?.scrollLeft ?? 0;
 
       try {
         paginateArticle(rendered, manager?.settings ?? null, getTitle(), root);
         pagedWidth = rendered.clientWidth;
       } finally {
+        if (desk && (keepTop > 0 || keepLeft > 0)) {
+          desk.scrollTop = keepTop;
+          desk.scrollLeft = keepLeft;
+        }
+
         applying = false;
         mutations.takeRecords();
       }
@@ -1619,7 +1629,18 @@ export const bindArticlePagedLayout = (
     typeof ResizeObserver !== "undefined" ? new ResizeObserver(onResize) : null;
   resize?.observe(root);
 
-  root.addEventListener("load", schedule, true);
+  // Images in the fullscreen thumbnail copies load too; they are not content.
+  const onLoad = (event: Event): void => {
+    if (
+      event.target instanceof Element &&
+      event.target.closest(PAGER_CHROME_SELECTOR)
+    ) {
+      return;
+    }
+
+    schedule();
+  };
+  root.addEventListener("load", onLoad, true);
   document.fonts?.addEventListener?.("loadingdone", schedule);
   const settingsConnection = manager?.changed.connect(schedule);
   schedule();
@@ -1632,7 +1653,7 @@ export const bindArticlePagedLayout = (
 
     mutations.disconnect();
     resize?.disconnect();
-    root.removeEventListener("load", schedule, true);
+    root.removeEventListener("load", onLoad, true);
     document.fonts?.removeEventListener?.("loadingdone", schedule);
   });
 };

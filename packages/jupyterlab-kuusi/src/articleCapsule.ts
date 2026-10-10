@@ -1,4 +1,5 @@
 import { mountArticlePager } from "./articlePager";
+import { mountArticleSidebar } from "./articleSidebar";
 import { PathExt } from "@jupyterlab/coreutils";
 import type { MarkdownDocument } from "@jupyterlab/markdownviewer";
 
@@ -133,6 +134,8 @@ const mountArticleHeader = (
     refreshZoom: () => renderChrome?.syncZoomTarget(),
     t,
   });
+  // Fullscreen vertical scrolling: outline and page thumbnails on the left.
+  const sidebar = mountArticleSidebar({ host: widget.node, t });
   const settingsConnection = manager.changed.connect(() => {
     syncScrollAxisButton();
   });
@@ -148,6 +151,7 @@ const mountArticleHeader = (
     disposeStatusChrome: () => {
       settingsConnection.disconnect();
       pager.dispose();
+      sidebar.dispose();
       disposeStatusChrome();
     },
   });
