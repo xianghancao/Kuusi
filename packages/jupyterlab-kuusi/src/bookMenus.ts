@@ -7,14 +7,14 @@ import { renderPanelWidgets } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
 import { buildStatusPanelWidgets } from "./statusDisplay";
 import { presetMatches } from "./themeRestore";
+import {
+  formatMmLength,
+  mmToRem,
+  MM_RANGES,
+  remToMm,
+} from "./lengthUnits";
 import type { TypographyModel } from "./typographyMenus";
 import {
-  BOOK_COLUMN_GAP_MAX,
-  BOOK_COLUMN_GAP_MIN,
-  BOOK_COLUMN_GAP_STEP,
-  BOOK_PADDING_MAX,
-  BOOK_PADDING_MIN,
-  BOOK_PADDING_STEP,
   bookThemeChrome,
   DEFAULT_BOOK_SETTINGS,
   type BookColumns,
@@ -48,7 +48,6 @@ export const createBookTypographyModel = (
   lineHeightRange: { min: 0.9, max: 2.4, step: 0.05 },
 });
 
-const formatRem = (value: number): string => `${value.toFixed(2)}rem`;
 
 const getThemes = (
   t: KuusiTranslator,
@@ -345,13 +344,13 @@ export const createBookPageToolbar = (
               {
                 kind: "slider",
                 label: t.bookSpine(),
-                value: settings.columnGap,
-                min: BOOK_COLUMN_GAP_MIN,
-                max: BOOK_COLUMN_GAP_MAX,
-                step: BOOK_COLUMN_GAP_STEP,
-                formatValue: formatRem,
-                onChange: (columnGap) => {
-                  void manager.update({ columnGap });
+                value: remToMm(settings.columnGap),
+                min: MM_RANGES.bookGap.min,
+                max: MM_RANGES.bookGap.max,
+                step: MM_RANGES.bookGap.step,
+                formatValue: formatMmLength,
+                onChange: (gapMm) => {
+                  void manager.update({ columnGap: mmToRem(gapMm) });
                 },
               },
             ]);
@@ -363,13 +362,13 @@ export const createBookPageToolbar = (
               {
                 kind: "slider",
                 label: t.padding(),
-                value: settings.padding,
-                min: BOOK_PADDING_MIN,
-                max: BOOK_PADDING_MAX,
-                step: BOOK_PADDING_STEP,
-                formatValue: formatRem,
-                onChange: (padding) => {
-                  void manager.update({ padding });
+                value: remToMm(settings.padding),
+                min: MM_RANGES.padding.min,
+                max: MM_RANGES.padding.max,
+                step: MM_RANGES.padding.step,
+                formatValue: formatMmLength,
+                onChange: (paddingMm) => {
+                  void manager.update({ padding: mmToRem(paddingMm) });
                 },
               },
             ]);

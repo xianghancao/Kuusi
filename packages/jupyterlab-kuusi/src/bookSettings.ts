@@ -95,7 +95,7 @@ export type BookSettings = TypographyValues & {
 
 export const BOOK_COLUMN_GAP_MIN = 1;
 export const BOOK_COLUMN_GAP_MAX = 4;
-export const BOOK_COLUMN_GAP_STEP = 0.25;
+export const BOOK_COLUMN_GAP_STEP = 0.01;
 export const BOOK_COLUMN_GAP_DEFAULT = 2.5;
 
 export const BOOK_PADDING_MIN = ARTICLE_PADDING_MIN;

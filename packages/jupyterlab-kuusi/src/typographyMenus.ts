@@ -1,4 +1,10 @@
 import {
+  formatPtLength,
+  PT_RANGES,
+  ptToPxLength,
+  pxToPtLength,
+} from "./lengthUnits";
+import {
   CODE_FONT_OPTIONS,
   CODE_THEMES,
   type CodeFont,
@@ -58,12 +64,8 @@ import {
 } from "./textMenuSections";
 import {
   BODY_FONT_SIZE_RANGE,
-  CODE_BORDER_RANGE,
-  CODE_RADIUS_RANGE,
   CODE_WIDTH_RANGE,
   HEADING_LEVELS,
-  IMAGE_BORDER_RANGE,
-  IMAGE_RADIUS_RANGE,
   LETTER_SPACING_RANGE,
   PARAGRAPH_INDENT_RANGE,
   PARAGRAPH_SPACING_RANGE,
@@ -302,8 +304,6 @@ const buildCodeFontWidgets = (
 
 const formatPt = (value: number): string =>
   Number.isInteger(value) ? `${value} pt` : `${value.toFixed(2)} pt`;
-
-const formatPx = (value: number): string => `${Math.round(value)} px`;
 
 const dropdownClasses = (
   model: TypographyModel,
@@ -685,10 +685,10 @@ const fillCodeSection = (
     renderPanelWidgets(panel, [
       slider(
         t.corner(),
-        values.codeFrameRadius,
-        CODE_RADIUS_RANGE,
-        formatPx,
-        (value) => model.update({ codeFrameRadius: Math.round(value) }),
+        pxToPtLength(values.codeFrameRadius),
+        PT_RANGES.codeRadius,
+        formatPtLength,
+        (pt) => model.update({ codeFrameRadius: ptToPxLength(pt) }),
       ),
     ]);
     return;
@@ -698,10 +698,10 @@ const fillCodeSection = (
     renderPanelWidgets(panel, [
       slider(
         t.border(),
-        values.codeFrameBorder,
-        CODE_BORDER_RANGE,
-        formatPx,
-        (value) => model.update({ codeFrameBorder: Math.round(value) }),
+        pxToPtLength(values.codeFrameBorder),
+        PT_RANGES.codeBorder,
+        formatPtLength,
+        (pt) => model.update({ codeFrameBorder: ptToPxLength(pt) }),
       ),
     ]);
     return;
@@ -947,17 +947,17 @@ const fillImageSection = (
     },
     slider(
       t.border(),
-      values.imageBorderWidth,
-      IMAGE_BORDER_RANGE,
-      formatPx,
-      (value) => model.update({ imageBorderWidth: Math.round(value) }),
+      pxToPtLength(values.imageBorderWidth),
+      PT_RANGES.imageBorder,
+      formatPtLength,
+      (pt) => model.update({ imageBorderWidth: ptToPxLength(pt) }),
     ),
     slider(
       t.corner(),
-      values.imageRadius,
-      IMAGE_RADIUS_RANGE,
-      formatPx,
-      (value) => model.update({ imageRadius: Math.round(value) }),
+      pxToPtLength(values.imageRadius),
+      PT_RANGES.imageRadius,
+      formatPtLength,
+      (pt) => model.update({ imageRadius: ptToPxLength(pt) }),
     ),
   ]);
 };

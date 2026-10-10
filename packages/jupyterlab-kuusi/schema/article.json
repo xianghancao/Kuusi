@@ -92,7 +92,6 @@
       "type": "number",
       "minimum": 0.5,
       "maximum": 8,
-      "multipleOf": 0.25,
       "default": 2
     },
     "columnAlign": {

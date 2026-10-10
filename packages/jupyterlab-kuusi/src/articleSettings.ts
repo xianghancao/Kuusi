@@ -124,7 +124,8 @@ export type ArticlePadding = number;
 export const ARTICLE_PADDING_MIN = 0.5;
 /** 8 rem ≈ 34 mm: enough for ordinary printed margins (it used to stop at 17 mm). */
 export const ARTICLE_PADDING_MAX = 8;
-export const ARTICLE_PADDING_STEP = 0.25;
+/** Padding is chosen in mm (see lengthUnits.ts), so storage is not snapped to quarter rems. */
+export const ARTICLE_PADDING_STEP = 0.01;
 export const ARTICLE_PADDING_DEFAULT = 2;
 export interface PageMarginsMm {
   top: number;

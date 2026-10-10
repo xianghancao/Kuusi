@@ -14,6 +14,16 @@ import type { KuusiTranslator } from "./kuusiI18n";
 import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown";
 import { presetMatches } from "./themeRestore";
 import { renderPanelWidgets, type PanelWidget } from "./panelWidgets";
+import {
+  formatMmLength,
+  formatPtLength,
+  mmToRem,
+  MM_RANGES,
+  PT_RANGES,
+  ptToPxLength,
+  pxToPtLength,
+  remToMm,
+} from "./lengthUnits";
 import { mountSecondaryMenu } from "./secondaryMenu";
 import { buildStatusPanelWidgets } from "./statusDisplay";
 import { getTextAlignOptions, type TypographyModel } from "./typographyMenus";
@@ -21,11 +31,6 @@ import {
   ARTICLE_LINE_HEIGHT_MAX,
   ARTICLE_LINE_HEIGHT_MIN,
   ARTICLE_LINE_HEIGHT_STEP,
-  ARTICLE_PADDING_MAX,
-  ARTICLE_PADDING_MIN,
-  ARTICLE_PADDING_STEP,
-  ARTICLE_PAPER_BORDER_RANGE,
-  ARTICLE_PAPER_SHADOW_WIDTH_RANGE,
   type ArticleBackground,
   type ArticleBackgroundPattern,
   type ArticleColumns,
@@ -36,7 +41,6 @@ import {
   type ArticlePageNumberPosition,
   type ArticlePaperOrientation,
   type ArticlePaperSize,
-  ARTICLE_COLUMN_RULE_WIDTH_RANGE,
   articleThemeChrome,
   type ArticleColumnRuleStyle,
   autoPageMarginsMm,
@@ -87,12 +91,6 @@ export const createArticleTypographyModel = (
     step: ARTICLE_LINE_HEIGHT_STEP,
   },
 });
-
-/** 1 rem = 16 CSS px = 4.233 mm: show the printed size next to the CSS unit. */
-const MM_PER_REM = 25.4 / 6;
-
-const formatPaddingRem = (value: number): string =>
-  `${value.toFixed(2)}rem · ${(value * MM_PER_REM).toFixed(1)} mm`;
 
 const appendHint = (panel: HTMLElement, text: string): void => {
   const hint = document.createElement("div");
@@ -607,14 +605,14 @@ export const createArticlePageToolbar = (
               {
                 kind: "slider",
                 label: t.paperBorderWidth(),
-                value: settings.paperBorderWidth,
-                min: ARTICLE_PAPER_BORDER_RANGE.min,
-                max: ARTICLE_PAPER_BORDER_RANGE.max,
-                step: ARTICLE_PAPER_BORDER_RANGE.step,
-                formatValue: (value) => `${Math.round(value)} px`,
-                onChange: (paperBorderWidth) => {
+                value: pxToPtLength(settings.paperBorderWidth),
+                min: PT_RANGES.paperBorder.min,
+                max: PT_RANGES.paperBorder.max,
+                step: PT_RANGES.paperBorder.step,
+                formatValue: formatPtLength,
+                onChange: (paperBorderPt) => {
                   void manager.update({
-                    paperBorderWidth: Math.round(paperBorderWidth),
+                    paperBorderWidth: ptToPxLength(paperBorderPt),
                     pageLayout: "paged",
                   });
                 },
@@ -635,14 +633,14 @@ export const createArticlePageToolbar = (
               {
                 kind: "slider",
                 label: t.paperShadowWidth(),
-                value: settings.paperShadowWidth,
-                min: ARTICLE_PAPER_SHADOW_WIDTH_RANGE.min,
-                max: ARTICLE_PAPER_SHADOW_WIDTH_RANGE.max,
-                step: ARTICLE_PAPER_SHADOW_WIDTH_RANGE.step,
-                formatValue: (value) => `${Math.round(value)} px`,
-                onChange: (paperShadowWidth) => {
+                value: pxToPtLength(settings.paperShadowWidth),
+                min: PT_RANGES.paperShadow.min,
+                max: PT_RANGES.paperShadow.max,
+                step: PT_RANGES.paperShadow.step,
+                formatValue: formatPtLength,
+                onChange: (paperShadowPt) => {
                   void manager.update({
-                    paperShadowWidth: Math.round(paperShadowWidth),
+                    paperShadowWidth: ptToPxLength(paperShadowPt),
                     pageLayout: "paged",
                   });
                 },
@@ -694,15 +692,15 @@ export const createArticlePageToolbar = (
                           {
                             kind: "slider",
                             label: t.columnRuleWidth(),
-                            value: settings.columnRuleWidth,
-                            min: ARTICLE_COLUMN_RULE_WIDTH_RANGE.min,
-                            max: ARTICLE_COLUMN_RULE_WIDTH_RANGE.max,
-                            step: ARTICLE_COLUMN_RULE_WIDTH_RANGE.step,
-                            formatValue: (value: number) => `${value} px`,
-                            editable: true,
-                            inputStep: 0.5,
-                            onChange: (columnRuleWidth: number) => {
-                              void manager.update({ columnRuleWidth });
+                            value: pxToPtLength(settings.columnRuleWidth),
+                            min: PT_RANGES.columnRule.min,
+                            max: PT_RANGES.columnRule.max,
+                            step: PT_RANGES.columnRule.step,
+                            formatValue: formatPtLength,
+                            onChange: (columnRulePt: number) => {
+                              void manager.update({
+                                columnRuleWidth: ptToPxLength(columnRulePt),
+                              });
                             },
                           },
                           {
@@ -769,13 +767,13 @@ export const createArticlePageToolbar = (
               {
                 kind: "slider",
                 label: t.padding(),
-                value: settings.padding,
-                min: ARTICLE_PADDING_MIN,
-                max: ARTICLE_PADDING_MAX,
-                step: ARTICLE_PADDING_STEP,
-                formatValue: formatPaddingRem,
-                onChange: (padding) => {
-                  void manager.update({ padding });
+                value: remToMm(settings.padding),
+                min: MM_RANGES.padding.min,
+                max: MM_RANGES.padding.max,
+                step: MM_RANGES.padding.step,
+                formatValue: formatMmLength,
+                onChange: (paddingMm) => {
+                  void manager.update({ padding: mmToRem(paddingMm) });
                 },
               },
             ]);

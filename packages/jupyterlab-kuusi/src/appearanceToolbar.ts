@@ -1,4 +1,11 @@
 import {
+  cssLengthLabel,
+  formatPtLength,
+  PT_RANGES,
+  ptToPxLength,
+  pxToPtLength,
+} from "./lengthUnits";
+import {
   emptyLevelStyles,
   LEVEL_IDS,
   type LevelId,
@@ -172,7 +179,7 @@ const NODE_BORDER_CORNER_OPTIONS: NodeBorderCornerOption[] = [
     (radius): NodeBorderCornerOption => ({
       kind: "radius",
       radius,
-      label: radius,
+      label: cssLengthLabel(radius),
     }),
   ),
   { kind: "ellipse", label: "Ellipse" },
@@ -860,7 +867,7 @@ export const fillLineAppearanceMenu = (
             min: 0.5,
             max: 6,
             step: 0.5,
-            valueSuffix: "pt",
+            formatValue: formatPtLength,
             onChange: (value) => {
               patch({ edgeMinWidth: `${value}pt` });
             },
@@ -1031,23 +1038,25 @@ export const fillNodeAppearanceMenu = (
           {
             kind: "slider",
             label: t.nodePaddingX(),
-            value: px(settings.nodePaddingX, DEFAULT_NODE_PADDING_X_PX),
-            min: 4,
-            max: 48,
-            valueSuffix: "px",
+            value: pxToPtLength(px(settings.nodePaddingX, DEFAULT_NODE_PADDING_X_PX)),
+            min: PT_RANGES.nodePaddingX.min,
+            max: PT_RANGES.nodePaddingX.max,
+            step: PT_RANGES.nodePaddingX.step,
+            formatValue: formatPtLength,
             onChange: (value) => {
-              patch({ nodePaddingX: `${value}px` });
+              patch({ nodePaddingX: `${ptToPxLength(value)}px` });
             },
           },
           {
             kind: "slider",
             label: t.nodePaddingY(),
-            value: px(settings.nodePaddingY, DEFAULT_NODE_PADDING_Y_PX),
-            min: 0,
-            max: 32,
-            valueSuffix: "px",
+            value: pxToPtLength(px(settings.nodePaddingY, DEFAULT_NODE_PADDING_Y_PX)),
+            min: PT_RANGES.nodePaddingY.min,
+            max: PT_RANGES.nodePaddingY.max,
+            step: PT_RANGES.nodePaddingY.step,
+            formatValue: formatPtLength,
             onChange: (value) => {
-              patch({ nodePaddingY: `${value}px` });
+              patch({ nodePaddingY: `${ptToPxLength(value)}px` });
             },
           },
         ]);
@@ -1116,7 +1125,7 @@ export const fillNodeAppearanceMenu = (
               follow,
               ...NODE_BORDER_WIDTHS.map((width) => ({
                 value: width,
-                label: width,
+                label: cssLengthLabel(width),
                 preview: () => createBorderWidthPreview(width),
               })),
             ],
@@ -1133,7 +1142,7 @@ export const fillNodeAppearanceMenu = (
               follow,
               ...LEVEL_RADIUS_CHOICES.map((radius) => ({
                 value: radius,
-                label: radius,
+                label: cssLengthLabel(radius),
                 preview: () => createBorderRadiusPreview(radius),
               })),
             ],
@@ -1216,7 +1225,7 @@ export const fillNodeAppearanceMenu = (
             value: settings.nodeBorderWidth,
             options: NODE_BORDER_WIDTHS.map((width) => ({
               value: width,
-              label: width,
+              label: cssLengthLabel(width),
               preview: () => createBorderWidthPreview(width),
             })),
             onChange: (value) => {
@@ -1298,7 +1307,7 @@ export const fillNodeAppearanceMenu = (
             value: settings.hoverGlowWidth,
             options: NODE_BORDER_WIDTHS.map((width) => ({
               value: width,
-              label: width,
+              label: cssLengthLabel(width),
               preview: () => createBorderWidthPreview(width),
             })),
             onChange: (value) => {
@@ -1334,7 +1343,7 @@ export const fillNodeAppearanceMenu = (
           value: settings.selectionGlowWidth,
           options: NODE_BORDER_WIDTHS.map((width) => ({
             value: width,
-            label: width,
+            label: cssLengthLabel(width),
             preview: () => createBorderWidthPreview(width),
           })),
           onChange: (value) => {
