@@ -127,6 +127,7 @@ import {
   DEFAULT_MIND_MAP_USER_SETTINGS,
   mindMapTypographyGeometryKey,
   MindMapSettingsManager,
+  scopeSettingsManager,
   type MindMapUserSettings,
 } from "./mindMapSettings";
 import {
@@ -332,6 +333,9 @@ export class NotebookMindMapWidget extends Widget {
   private _wheelPanFrame: number | null = null;
   private _t: KuusiTranslator;
   private _settingsManager: MindMapSettingsManager;
+  private _disposeSettingsScope: (() => void) | null = null;
+  private _contentVisibleObserver: ResizeObserver | null = null;
+  private _contentVisibleTimer: number | null = null;
   private _settingsConn: { disconnect: () => void } | null = null;
   private _autoReloadListenerDispose: (() => void) | null = null;
   private _autoReloadHandle: ReturnType<typeof attachNotebookAutoReload> | null =
@@ -429,7 +433,9 @@ export class NotebookMindMapWidget extends Widget {
     super();
     this._drag = new MindMapNodeDragController(this._createDragHost());
     this._sourceKind = sourceKind;
-    this._settingsManager = settingsManager;
+    const scoped = scopeSettingsManager(settingsManager);
+    this._settingsManager = scoped.manager;
+    this._disposeSettingsScope = scoped.dispose;
     this._t = createKuusiTranslator();
     this.addClass("jp-KuusiNotebookMindMap");
     this.title.label = this._context.path.split("/").pop() ?? "Notebook";
@@ -739,6 +745,7 @@ export class NotebookMindMapWidget extends Widget {
     this._scene.className =
       "jp-KuusiNotebookMindMap-scene jp-Notebook jp-KuusiMindMapNotebook-scene";
     this._viewport.appendChild(this._scene);
+    this._watchContentVisible();
     this._applyScenePresentation();
     this._applyBackground();
 
@@ -1378,6 +1385,14 @@ export class NotebookMindMapWidget extends Widget {
     this._resizeObserver?.disconnect();
     this._resizeObserver = null;
     this._viewportCtrl.dispose();
+    this._contentVisibleObserver?.disconnect();
+    this._contentVisibleObserver = null;
+
+    if (this._contentVisibleTimer !== null) {
+      window.clearTimeout(this._contentVisibleTimer);
+      this._contentVisibleTimer = null;
+    }
+
     this._headerLayoutObserver?.disconnect();
     this._headerLayoutObserver = null;
     if (this._headerLayoutRaf !== null) {
@@ -1416,13 +1431,40 @@ export class NotebookMindMapWidget extends Widget {
     this._redoButton = null;
     this._settingsConn?.disconnect();
     this._settingsConn = null;
+    this._disposeSettingsScope?.();
+    this._disposeSettingsScope = null;
     this._unbindAllMarkdownAnchorStrips();
     this._unbindNotebookEditState();
     // StaticNotebook.dispose() leaves cells (and their CodeMirror views) alive;
     // only a model swap removes and disposes every cell widget.
-    this._notebook.model = null;
-    this._notebook.dispose();
+    // JupyterLab 4.6's Notebook throws from that setter (it reads the new
+    // model's signals). An escape here skipped `super.dispose()`, so the
+    // widget never emitted `disposed` and the document manager kept every
+    // closed Mind Map alive; always finish tearing down.
+    try {
+      this._notebook.model = null;
+    } catch {
+      // Fall through to disposing the cells by hand.
+    }
+
+    for (const cell of [...this._notebook.widgets]) {
+      if (!cell.isDisposed) {
+        cell.dispose();
+      }
+    }
+
+    try {
+      this._notebook.dispose();
+    } catch {
+      // A child that still believes it is attached (our node is already out of
+      // the document) throws from Widget.detach; the rest is torn down below.
+    }
+
     super.dispose();
+    // JupyterLab keeps a reference to a closed main-area widget's toolbar
+    // element, which keeps this subtree alive as detached DOM. Empty it so
+    // what is left behind is a few nodes, not a whole mind map.
+    this.node.replaceChildren();
   }
 
   private _onCellsChanged(
@@ -3465,6 +3507,77 @@ export class NotebookMindMapWidget extends Widget {
    * Zoom and pan so every visible node fits in the window, centered with a
    * small margin. Small maps stay at 100% rather than blowing up.
    */
+  /**
+   * When the viewport changes size (fullscreen, a dock drag, a window resize)
+   * the pan can end up pointing at empty canvas, leaving only a blank view.
+   * Once the size settles, if no node is on screen, fit the whole map.
+   */
+  private _watchContentVisible(): void {
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    this._contentVisibleObserver = new ResizeObserver(() => {
+      if (this._contentVisibleTimer !== null) {
+        window.clearTimeout(this._contentVisibleTimer);
+      }
+
+      this._contentVisibleTimer = window.setTimeout(() => {
+        this._contentVisibleTimer = null;
+        this._ensureContentVisible();
+      }, 350);
+    });
+    this._contentVisibleObserver.observe(this._viewport);
+  }
+
+  private _ensureContentVisible(): void {
+    if (
+      this.isDisposed ||
+      !this.isVisible ||
+      this._isPanning ||
+      this._notebook.mode === "edit"
+    ) {
+      return;
+    }
+
+    const viewW = this._viewport.clientWidth;
+    const viewH = this._viewport.clientHeight;
+
+    if (viewW <= 0 || viewH <= 0) {
+      return;
+    }
+
+    let seen = false;
+    let any = false;
+
+    this._cellNodes.forEach((node) => {
+      if (seen || node.style.display === "none") {
+        return;
+      }
+
+      const left = Number.parseFloat(node.style.left);
+      const top = Number.parseFloat(node.style.top);
+
+      if (!Number.isFinite(left) || !Number.isFinite(top)) {
+        return;
+      }
+
+      any = true;
+      const x = this._panX + left * this._zoom;
+      const y = this._panY + top * this._zoom;
+      const w = node.offsetWidth * this._zoom;
+      const h = node.offsetHeight * this._zoom;
+
+      if (x < viewW && x + w > 0 && y < viewH && y + h > 0) {
+        seen = true;
+      }
+    });
+
+    if (any && !seen) {
+      this.fitToView();
+    }
+  }
+
   fitToView(): boolean {
     let minX = Number.POSITIVE_INFINITY;
     let minY = Number.POSITIVE_INFINITY;
