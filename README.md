@@ -145,11 +145,11 @@ npm run jlab:install
 jupyter lab
 ```
 
-`npm run jlab:install` builds the extension, installs it with pip, and rebuilds JupyterLab.
+`npm run jlab:install` builds the extension, installs it with pip, and rebuilds JupyterLab. It uses the `jupyter` on your `PATH` (and the Python that runs it), so activate the environment you start JupyterLab from first (`conda activate …`).
 
-This repo’s `scripts/kuusi-env.sh` pins **Anaconda** for install/dev (`KUUSI_PYTHON` / `KUUSI_JUPYTER`), so `pip list` matches the JupyterLab you start. Edit that file if your conda path changes.
+Two tools are involved, and each does half the job: **npm** compiles the TypeScript into a labextension (`packages/jupyterlab-kuusi/jupyterlab_kuusi/labextension/`), and **pip** installs the package into your Python environment and copies that labextension to `<env>/share/jupyter/labextensions/`, which is the only place JupyterLab reads. After changing source, run **both** again (or `npm run jlab:install`) and reload JupyterLab; building with npm alone leaves JupyterLab on the old copy.
 
-Override for one command:
+To pin a different environment for one command:
 
 ```bash
 KUUSI_PYTHON=/path/to/python KUUSI_JUPYTER=/path/to/jupyter npm run jlab:install
