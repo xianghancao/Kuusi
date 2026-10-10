@@ -197,6 +197,10 @@ export class KuusiDocumentFullscreen {
   }
 
   private _onFullscreenChange = (): void => {
+    if (this._kuusiSession && this._target) {
+      this._watchFullscreenSize(this._target);
+    }
+
     if (this._kuusiEntering) {
       this.syncButtons();
       this._syncLayout();
@@ -215,6 +219,52 @@ export class KuusiDocumentFullscreen {
     this.syncButtons();
     this._syncLayout();
   };
+
+  private _sizeObserver: ResizeObserver | null = null;
+  private _settleTimers: number[] = [];
+
+  /**
+   * Entering fullscreen is animated on macOS (and in JupyterLab Desktop): the
+   * `fullscreenchange` event and the first resize arrive while the window is
+   * still the old size, and the final size does not always fire another window
+   * `resize`. A layout pass taken then leaves the document's contents at the old
+   * dock-slot size, with the fullscreen background showing around them. So keep
+   * watching the fullscreen element and lay out again whenever it changes size,
+   * plus a few delayed passes while the animation settles.
+   */
+  private _watchFullscreenSize(doc: Widget): void {
+    this._unwatchFullscreenSize();
+
+    if (typeof ResizeObserver !== "undefined") {
+      let last = "";
+      this._sizeObserver = new ResizeObserver(() => {
+        const key = `${doc.node.offsetWidth}x${doc.node.offsetHeight}`;
+
+        if (key === last) {
+          return;
+        }
+
+        last = key;
+        this._syncLayout();
+      });
+      this._sizeObserver.observe(doc.node);
+    }
+
+    this._settleTimers = [250, 700, 1400].map((delay) =>
+      window.setTimeout(() => {
+        if (this._kuusiSession) {
+          this._syncLayout();
+        }
+      }, delay),
+    );
+  }
+
+  private _unwatchFullscreenSize(): void {
+    this._sizeObserver?.disconnect();
+    this._sizeObserver = null;
+    this._settleTimers.forEach((timer) => window.clearTimeout(timer));
+    this._settleTimers = [];
+  }
 
   private _syncLayout(): void {
     requestAnimationFrame(() => {
@@ -344,6 +394,7 @@ export class KuusiDocumentFullscreen {
   }
 
   private _restoreDocument(): void {
+    this._unwatchFullscreenSize();
     this._restoreDocumentChrome();
 
     const doc = this._target;
@@ -474,6 +525,7 @@ export class KuusiDocumentFullscreen {
       this._hideDocumentChrome(doc);
       window.addEventListener("resize", this._onWindowResize);
       window.addEventListener("keydown", this._onWindowKeyDown, true);
+      this._watchFullscreenSize(doc);
 
       try {
         await this._requestElementFullscreen(doc.node);
