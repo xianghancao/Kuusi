@@ -5316,7 +5316,10 @@ export class NotebookMindMapWidget extends Widget {
           }
 
           const layoutHeight = this._lastLayoutDimensions.get(nodeId)?.height ?? 0;
-          const contentHeight = entry.contentRect.height;
+          // Same measure the layout used (border box). `contentRect` leaves out
+          // the node's padding and border, so it never matched `layoutHeight`
+          // and every layout pass scheduled another one, indefinitely.
+          const contentHeight = this._measureNodeHeight(node);
 
           if (Math.abs(contentHeight - layoutHeight) > 4) {
             const index = Number.parseInt(nodeId.slice("cell-".length), 10);
