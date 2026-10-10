@@ -23,6 +23,25 @@
   width: 100% !important;
 }
 
+/* The dock's layout also writes inline geometry on the document's children,
+   and in a native fullscreen window it can be left stale (a Mind Map squeezed
+   into a 100px strip at the bottom of a blank screen). The content always
+   fills the document; the empty panel the dock adds beside it takes no room. */
+.jp-KuusiViewFullscreen > .lm-BoxPanel {
+  display: none !important;
+}
+
+.jp-KuusiViewFullscreen > :not(.jp-Toolbar):not(.lm-BoxPanel) {
+  height: 100% !important;
+  inset: 0 !important;
+  left: 0 !important;
+  max-height: none !important;
+  max-width: none !important;
+  position: absolute !important;
+  top: 0 !important;
+  width: 100% !important;
+}
+
 .is-kuusi-view-fullscreen .jp-KuusiArticle-header,
 .is-kuusi-view-fullscreen .jp-KuusiBook-header,
 .is-kuusi-view-fullscreen .jp-KuusiNotebookMindMap-header,

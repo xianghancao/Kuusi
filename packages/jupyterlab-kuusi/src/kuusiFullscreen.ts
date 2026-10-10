@@ -57,6 +57,16 @@ export type KuusiDocumentFullscreenOptions = {
  * view-fullscreen button (Kuusi window). Corner action `"play"` shows a
  * slideshow start/stop control instead.
  */
+/**
+ * Inline `contain` / `z-index` of the dock ancestors as they were before any
+ * fullscreen lifted them. Shared by every view, so overlapping or interrupted
+ * sessions always restore the true originals.
+ */
+const ORIGINAL_ANCESTOR_STYLE = new WeakMap<
+  HTMLElement,
+  { contain: string; zIndex: string }
+>();
+
 export class KuusiDocumentFullscreen {
   private _kuusiButton: HTMLButtonElement | null = null;
 
@@ -334,6 +344,10 @@ export class KuusiDocumentFullscreen {
    * escapes the dock and paints above the Lab top bar.
    */
   private _liftAncestorContainment(doc: Widget): void {
+    // A session that never reached its restore (view closed, fullscreen left
+    // by a path we did not see) must not leave its lift behind: lifting again
+    // would record the lifted values as the originals and keep them forever.
+    this._restoreAncestorContainment();
     let node = doc.node.parentElement;
 
     while (node && node !== document.body) {
@@ -342,11 +356,14 @@ export class KuusiDocumentFullscreen {
       const stacked = style.position !== "static" && style.zIndex !== "auto";
 
       if (contained || stacked) {
-        this._liftedContainment.push({
-          node,
-          contain: node.style.contain,
-          zIndex: node.style.zIndex,
-        });
+        if (!ORIGINAL_ANCESTOR_STYLE.has(node)) {
+          ORIGINAL_ANCESTOR_STYLE.set(node, {
+            contain: node.style.contain,
+            zIndex: node.style.zIndex,
+          });
+        }
+
+        this._liftedContainment.push({ node, ...ORIGINAL_ANCESTOR_STYLE.get(node)! });
 
         if (contained) {
           node.style.contain = "none";
@@ -365,6 +382,7 @@ export class KuusiDocumentFullscreen {
     for (const { node, contain, zIndex } of this._liftedContainment) {
       node.style.contain = contain;
       node.style.zIndex = zIndex;
+      ORIGINAL_ANCESTOR_STYLE.delete(node);
     }
 
     this._liftedContainment = [];
