@@ -893,3 +893,45 @@ export class MindMapSettingsManager {
     });
   }
 }
+
+/**
+ * A view of the shared settings manager that remembers every listener it
+ * hands out, so a closing view can drop them all at once. The manager lives as
+ * long as the app; a listener left behind keeps its widget (and the whole
+ * mind map DOM) from being collected.
+ */
+export const scopeSettingsManager = (
+  manager: MindMapSettingsManager,
+): { manager: MindMapSettingsManager; dispose: () => void } => {
+  const open = new Set<{ disconnect: () => void }>();
+  const changed = {
+    connect: (fn: (settings: MindMapUserSettings) => void) => {
+      const inner = manager.changed.connect(fn);
+      const handle = {
+        disconnect: () => {
+          open.delete(handle);
+          inner.disconnect();
+        },
+      };
+      open.add(handle);
+      return handle;
+    },
+  };
+  const proxy = new Proxy(manager, {
+    get: (target, prop) => {
+      if (prop === "changed") {
+        return changed;
+      }
+
+      const value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+
+  return {
+    manager: proxy,
+    dispose: () => {
+      [...open].forEach((handle) => handle.disconnect());
+    },
+  };
+};

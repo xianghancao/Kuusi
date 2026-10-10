@@ -453,27 +453,43 @@ const labThemeIsDark = (): boolean =>
 
 type AppearanceRun = () => void;
 
-/** Hosts whose palette follows JupyterLab's light / dark theme. */
-const followers = new Map<HTMLElement, AppearanceRun>();
+// Not in this project's TypeScript `lib`, but present in every browser JupyterLab supports.
+declare const WeakRef: new <T extends object>(target: T) => {
+  deref: () => T | undefined;
+};
+
+/**
+ * Hosts whose palette follows JupyterLab's light / dark theme. Held weakly: a
+ * closed view used to stay in a plain Map (with its whole DOM) until the next
+ * theme switch happened to prune it.
+ */
+const followerRuns = new WeakMap<HTMLElement, AppearanceRun>();
+const followerRefs = new Set<{ deref: () => HTMLElement | undefined }>();
 let themeObserver: MutationObserver | null = null;
 
 /** Re-stamp palettes when JupyterLab switches between light and dark. */
 const followLabTheme = (host: HTMLElement, run: AppearanceRun): void => {
-  followers.set(host, run);
+  if (!followerRuns.has(host)) {
+    followerRefs.add(new WeakRef(host));
+  }
+
+  followerRuns.set(host, run);
 
   if (themeObserver || typeof MutationObserver === "undefined") {
     return;
   }
 
   themeObserver = new MutationObserver(() => {
-    followers.forEach((rerun, node) => {
-      if (!node.isConnected) {
+    followerRefs.forEach((ref) => {
+      const node = ref.deref();
+
+      if (!node || !node.isConnected) {
         // A closed view: drop it (a re-opened one registers itself again).
-        followers.delete(node);
+        followerRefs.delete(ref);
         return;
       }
 
-      rerun();
+      followerRuns.get(node)?.();
     });
   });
   themeObserver.observe(document.body, {

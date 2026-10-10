@@ -392,6 +392,9 @@ export class MarkdownSlidesViewer extends Widget {
     this._renderer.dispose();
     Signal.clearData(this);
     super.dispose();
+    // JupyterLab keeps a closed widget's toolbar element, which keeps this
+    // subtree alive as detached DOM; empty it.
+    this.node.replaceChildren();
   }
 
   goTo(index: number): void {

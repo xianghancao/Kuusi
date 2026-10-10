@@ -166,6 +166,9 @@ const mountArticleHeader = (
     binding.capsule.dispose();
     binding.disposeStatusChrome();
     chromeBindings.delete(widget);
+    // JupyterLab keeps a closed widget's toolbar element, which keeps this
+    // subtree alive as detached DOM; empty it once disposal has finished.
+    window.setTimeout(() => widget.node.replaceChildren(), 0);
   });
 };
 

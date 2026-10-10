@@ -37,6 +37,41 @@ export type CapsuleDropdownOptions = {
 };
 
 /** One capsule button with a dropdown menu rebuilt on every open. */
+// Not in this project's TypeScript `lib`, but present in every browser JupyterLab supports.
+declare const WeakRef: new <T extends object>(target: T) => {
+  deref: () => T | undefined;
+};
+
+type SyncHolder = HTMLElement & { __kuusiSync?: () => void };
+
+/**
+ * A settings listener that does not keep its toolbar alive. It is built here,
+ * outside `createCapsuleDropdown`, on purpose: a closure created inside would
+ * share that function's scope and so still reach the toolbar and the widget.
+ */
+const connectWeakSync = (
+  toolbar: HTMLElement,
+  connect: (listener: () => void) => { disconnect: () => void },
+): void => {
+  const ref = new WeakRef(toolbar);
+  let connection: { disconnect: () => void } | null = null;
+  let wasConnected = false;
+  const listener = (): void => {
+    const live = ref.deref() as SyncHolder | undefined;
+
+    if (!live || !live.isConnected) {
+      if (!live || wasConnected) {
+        connection?.disconnect();
+      }
+      return;
+    }
+
+    wasConnected = true;
+    live.__kuusiSync?.();
+  };
+  connection = connect(listener);
+};
+
 export const createCapsuleDropdown = (
   root: HTMLElement,
   options: CapsuleDropdownOptions,
@@ -70,21 +105,16 @@ export const createCapsuleDropdown = (
   syncTrigger();
 
   if (options.connectSync) {
-    let connection: { disconnect: () => void } | null = null;
-    let wasConnected = false;
-
-    connection = options.connectSync(() => {
-      if (!toolbar.isConnected) {
-        // Removed from the DOM after having been shown: stop listening.
-        if (wasConnected) {
-          connection?.disconnect();
-        }
-        return;
-      }
-
-      wasConnected = true;
+    // The settings manager outlives every view, and its listener list used to
+    // hold this closure (and through it the toolbar, the menus and the whole
+    // widget) until some later settings change happened to prune it. The
+    // listener keeps only a weak reference to the toolbar, which owns the real
+    // callback.
+    const holder = toolbar as unknown as { __kuusiSync?: () => void };
+    holder.__kuusiSync = () => {
       syncTrigger();
-    });
+    };
+    connectWeakSync(toolbar, options.connectSync);
   }
   options.bindTrigger?.(() => {
     if (!toolbar.isConnected) {
