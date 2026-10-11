@@ -204,7 +204,7 @@ Moving the editor caret (or the notebook’s active cell) scrolls or pages an op
 
 **Article paged** (Page → Layout → Paged): paper sheets with a gap. Headings stay with the next block; paragraphs avoid orphan/widow lines; long code, tables, and lists split across pages (tables repeat the header). Images and display math do not split.
 
-**Export** (view toolbar): PDF, PNG, JPEG, WebP, Print / Vector PDF, HTML, or download the source file.
+**Export** (view toolbar): PDF (a paged Article prints page by page as real text through the system dialog; "PDF (image, with bookmarks)" keeps the page-image PDF), PNG, JPEG, WebP, HTML, or download the source file.
 
 Mind Map appearance and shortcuts follow.
 
