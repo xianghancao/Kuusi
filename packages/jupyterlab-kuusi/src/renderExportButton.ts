@@ -26,6 +26,10 @@ import {
 import { createKuusiTranslator, type KuusiTranslator } from "./kuusiI18n";
 import { scheduleDocumentToolbarRelayout } from "./documentToolbarLayout";
 import {
+  articleVectorPdfAvailable,
+  printArticleVector,
+} from "./articleVectorPrint";
+import {
   ensureKuusiRenderViewSwitcherOnToolbar,
   KUUSI_RENDER_VIEW_SWITCHER_ITEM,
 } from "./kuusiRenderViewSwitcher";
@@ -504,29 +508,6 @@ ${printExportCss(pageSize, pageMargin)}
 </html>`;
 };
 
-const waitForImages = (doc: Document): Promise<void> => {
-  const images = Array.from(doc.images);
-
-  if (images.length === 0) {
-    return Promise.resolve();
-  }
-
-  return Promise.all(
-    images.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          if (img.complete) {
-            resolve();
-            return;
-          }
-
-          img.addEventListener("load", () => resolve(), { once: true });
-          img.addEventListener("error", () => resolve(), { once: true });
-        }),
-    ),
-  ).then(() => undefined);
-};
-
 const blobFromContents = (file: Contents.IModel): Blob => {
   const mime = file.mimetype || "application/octet-stream";
 
@@ -560,68 +541,6 @@ const downloadSourceFile = async (
   triggerDownload(blobFromContents(file), PathExt.basename(path));
   Notification.success(`Downloaded ${PathExt.basename(path)}.`, {
     autoClose: 2500,
-  });
-};
-
-const printRenderedView = async (widget: IDocumentWidget): Promise<void> => {
-  const root = await resolveExportRoot(widget);
-
-  if (!root) {
-    Notification.warning("This view has nothing to print yet.", {
-      autoClose: 3500,
-    });
-    return;
-  }
-
-  const title = PathExt.basename(widget.context.path);
-
-  // Print from a hidden iframe, not a pop-up: the root resolves asynchronously,
-  // by which time the click's user activation is gone and browsers block
-  // window.open ("Allow pop-ups to export PDF").
-  const frame = document.createElement("iframe");
-  frame.setAttribute("aria-hidden", "true");
-  frame.tabIndex = -1;
-  frame.style.cssText =
-    "position:fixed;left:-10000px;top:0;width:210mm;height:297mm;border:0;visibility:hidden;";
-  document.body.appendChild(frame);
-
-  const win = frame.contentWindow;
-  const doc = frame.contentDocument;
-
-  if (!win || !doc) {
-    frame.remove();
-    Notification.warning("Could not prepare the PDF export.", {
-      autoClose: 4000,
-    });
-    return;
-  }
-
-  // The PDF file name follows the top-level title in most browsers.
-  const previousTitle = document.title;
-  let cleanedUp = false;
-  const cleanup = (): void => {
-    if (cleanedUp) {
-      return;
-    }
-    cleanedUp = true;
-    document.title = previousTitle;
-    frame.remove();
-  };
-
-  doc.open();
-  doc.write(buildExportHtml(root, title));
-  doc.close();
-
-  void waitForImages(doc).then(() => {
-    // Let layout settle after images decode.
-    window.setTimeout(() => {
-      document.title = title;
-      win.addEventListener("afterprint", cleanup, { once: true });
-      win.focus();
-      win.print();
-      // Some browsers never fire afterprint for iframes.
-      window.setTimeout(cleanup, 120_000);
-    }, 100);
   });
 };
 
@@ -669,6 +588,8 @@ const createMenuItem = (
 };
 
 export class KuusiRenderExportWidget extends Widget {
+  private _refreshPdfItems: () => void = () => undefined;
+
   constructor(
     app: JupyterFrontEnd,
     widget: IDocumentWidget,
@@ -715,12 +636,47 @@ export class KuusiRenderExportWidget extends Widget {
     {
       const scope = imageScopeFor(factoryName, t);
 
-      menu.appendChild(
-        createMenuItem(t.exportPdf(), t.exportPdfTitle(), () => {
+      // A paged Article prints page by page as real text (the system dialog's
+      // “Save as PDF”); the screenshot PDF stays for bookmarks. Other views
+      // only have the screenshot PDF. Pages appear after the menu is built,
+      // so the choice is refreshed each time the menu opens.
+      const pdfItem = createMenuItem(t.exportPdf(), t.exportPdfTitle(), () => {
+        closeMenu();
+
+        if (!articleVectorPdfAvailable(widget)) {
+          runExclusive(() => exportRenderedPdf(widget, t));
+          return;
+        }
+
+        printArticleVector(widget, PathExt.basename(widget.context.path))
+          .then((printed) => {
+            if (!printed) {
+              Notification.warning(t.exportNothing(), { autoClose: 3500 });
+            }
+          })
+          .catch((error) => {
+            Notification.error(
+              error instanceof Error ? error.message : "Could not export PDF.",
+              { autoClose: 4000 },
+            );
+          });
+      });
+      const pdfImageItem = createMenuItem(
+        t.exportPdfImage(),
+        t.exportPdfImageTitle(),
+        () => {
           closeMenu();
           runExclusive(() => exportRenderedPdf(widget, t));
-        }),
+        },
       );
+      pdfImageItem.style.display = "none";
+      menu.append(pdfItem, pdfImageItem);
+      this._refreshPdfItems = () => {
+        const vector = articleVectorPdfAvailable(widget);
+        pdfItem.textContent = vector ? t.exportPdfVector() : t.exportPdf();
+        pdfItem.title = vector ? t.exportPdfVectorTitle() : t.exportPdfTitle();
+        pdfImageItem.style.display = vector ? "" : "none";
+      };
 
       RASTER_IMAGE_FORMATS.forEach((format) => {
         const label = RASTER_IMAGE_LABELS[format];
@@ -735,18 +691,6 @@ export class KuusiRenderExportWidget extends Widget {
           ),
         );
       });
-
-      menu.appendChild(
-        createMenuItem(t.exportPrint(), t.exportPrintTitle(), () => {
-          closeMenu();
-          printRenderedView(widget).catch((error) => {
-            Notification.error(
-              error instanceof Error ? error.message : "Could not export PDF.",
-              { autoClose: 4000 },
-            );
-          });
-        }),
-      );
     }
 
     if (HTML_EXPORT_FACTORIES.has(factoryName)) {
@@ -783,6 +727,7 @@ export class KuusiRenderExportWidget extends Widget {
       closeKuusiDropdownMenus(this.node);
 
       if (!isOpen) {
+        this._refreshPdfItems();
         openKuusiDropdownMenu(menu, widget.node);
       }
     });
