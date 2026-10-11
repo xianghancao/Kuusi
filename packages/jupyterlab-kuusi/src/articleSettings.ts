@@ -354,28 +354,8 @@ export type ArticleSettings = {
 
 /** Page furniture and code chrome are per-user, not part of a theme preset. */
 type ArticleUserOnlyKey =
-  | "codeTheme"
-  | "codeFont"
-  | "codeFontSize"
-  | "codeFrame"
   | "codeFrameColor"
-  | "codeFrameRadius"
-  | "codeFrameBorder"
-  | "codeFrameWidth"
-  | "tableStyle"
-  | "tableBorderWidth"
-  | "tableTransparency"
-  | "tableHeaderRowBold"
-  | "tableHeaderColumnBold"
-  | "listStyle"
-  | "blockquoteWeight"
-  | "hrWeight"
-  | "imageAlign"
-  | "imageWrap"
-  | "imageBorderStyle"
-  | "imageBorderWidth"
   | "imageBorderColor"
-  | "imageRadius"
   | "pageHeaderText"
   | "pageHeaderAlign"
   | "pageHeaderRule"
@@ -389,10 +369,7 @@ type ArticleUserOnlyKey =
   | "pageNumberAlign"
   | "pageNumberStart"
   | "viewBackgroundColor"
-  | "paperBorderWidth"
   | "paperBorderColor"
-  | "paperShadow"
-  | "paperShadowWidth"
   | "showTextCount"
   | "showPageCount"
   | "showFileSize"
@@ -599,6 +576,71 @@ const headersFromLegacyTitle = (raw: {
   });
 };
 
+/**
+ * Elements and paper chrome a theme sets: code, table, list, quote, rule,
+ * image, and the sheet's border and shadow. Custom colors stay per-user.
+ */
+export type ArticleThemeElementKey =
+  | "codeTheme"
+  | "codeFont"
+  | "codeFontSize"
+  | "codeFrame"
+  | "codeFrameRadius"
+  | "codeFrameBorder"
+  | "codeFrameWidth"
+  | "tableStyle"
+  | "tableBorderWidth"
+  | "tableTransparency"
+  | "tableHeaderRowBold"
+  | "tableHeaderColumnBold"
+  | "listStyle"
+  | "blockquoteWeight"
+  | "hrWeight"
+  | "imageAlign"
+  | "imageWrap"
+  | "imageBorderStyle"
+  | "imageBorderWidth"
+  | "imageRadius"
+  | "paperBorderWidth"
+  | "paperShadow"
+  | "paperShadowWidth";
+
+export type ArticleThemeElements = Pick<ArticleSettings, ArticleThemeElementKey>;
+
+const THEME_ELEMENT_BASE: ArticleThemeElements = {
+  codeTheme: DEFAULT_CODE_THEME,
+  codeFont: DEFAULT_CODE_FONT,
+  codeFontSize: DEFAULT_CODE_FONT_SIZE,
+  codeFrame: false,
+  codeFrameRadius: 6,
+  codeFrameBorder: 1,
+  codeFrameWidth: 100,
+  tableStyle: DEFAULT_TABLE_STYLE,
+  tableBorderWidth: DEFAULT_TABLE_BORDER_WIDTH,
+  tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
+  tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
+  tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
+  listStyle: DEFAULT_LIST_STYLE,
+  blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
+  hrWeight: DEFAULT_HR_WEIGHT,
+  imageAlign: "center",
+  imageWrap: "none",
+  imageBorderStyle: "none",
+  imageBorderWidth: 1,
+  imageRadius: 0,
+  paperBorderWidth: ARTICLE_PAPER_BORDER_DEFAULT,
+  paperShadow: true,
+  paperShadowWidth: ARTICLE_PAPER_SHADOW_WIDTH_DEFAULT,
+};
+
+export const ARTICLE_THEME_ELEMENT_KEYS = Object.keys(
+  THEME_ELEMENT_BASE,
+) as ArticleThemeElementKey[];
+
+const themeElements = (
+  overrides: Partial<ArticleThemeElements> = {},
+): ArticleThemeElements => ({ ...THEME_ELEMENT_BASE, ...overrides });
+
 export const ARTICLE_THEME_PRESETS: Record<
   ArticleTheme,
   Omit<ArticleSettings, "theme" | ArticleUserOnlyKey>
@@ -627,6 +669,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     paragraphAlign: "left",
     linkStyle: "default",
     codeStyle: "muted",
+    ...themeElements(),
     headers: themeHeaders("notebook", "left", {
       h1: "xxl",
       h2: "xl",
@@ -660,6 +703,16 @@ export const ARTICLE_THEME_PRESETS: Record<
     paragraphAlign: "left",
     linkStyle: "underline",
     codeStyle: "plain",
+    ...themeElements({
+      codeTheme: "notebook",
+      codeFontSize: "xxs",
+      listStyle: "relaxed",
+      blockquoteWeight: "light",
+      hrWeight: "light",
+      imageRadius: 2,
+      paperBorderWidth: 0,
+      paperShadowWidth: 24,
+    }),
     headers: themeHeaders("garamond", "left", {
       h1: "xxl",
       h2: "xl",
@@ -693,6 +746,20 @@ export const ARTICLE_THEME_PRESETS: Record<
     paragraphAlign: "left",
     linkStyle: "accent",
     codeStyle: "contrast",
+    ...themeElements({
+      codeTheme: "python",
+      codeFontSize: "xxs",
+      codeFrame: true,
+      codeFrameRadius: 4,
+      tableStyle: "banded",
+      tableBorderWidth: 0.5,
+      listStyle: "compact",
+      blockquoteWeight: "strong",
+      hrWeight: "strong",
+      imageRadius: 3,
+      paperBorderWidth: 0,
+      paperShadowWidth: 16,
+    }),
     headers: themeHeaders("helvetica", "center", {
       h1: "xxl",
       h2: "xl",
@@ -719,13 +786,23 @@ export const ARTICLE_THEME_PRESETS: Record<
     fontSize: 16,
     color: "",
     strongColor: "",
-    letterSpacing: 0.15,
+    letterSpacing: 0.25,
     lineHeight: 1.7,
     paragraphSpacing: 14,
     paragraphIndent: 0,
     paragraphAlign: "left",
     linkStyle: "accent",
     codeStyle: "contrast",
+    ...themeElements({
+      codeTheme: "python",
+      codeFont: "jetbrains-mono",
+      codeFrame: true,
+      tableStyle: "lines",
+      tableBorderWidth: 0.5,
+      hrWeight: "light",
+      imageRadius: 6,
+      paperShadow: false,
+    }),
     headers: themeHeaders("system-ui", "left", {
       h1: "xl",
       h2: "lg",
@@ -759,6 +836,15 @@ export const ARTICLE_THEME_PRESETS: Record<
     paragraphAlign: "justify",
     linkStyle: "underline",
     codeStyle: "muted",
+    ...themeElements({
+      codeTheme: "notebook",
+      codeFontSize: "xxs",
+      tableBorderWidth: 1,
+      listStyle: "compact",
+      blockquoteWeight: "light",
+      hrWeight: "light",
+      paperShadow: false,
+    }),
     headers: themeHeaders("times", "center", {
       h1: "xl",
       h2: "lg",
@@ -792,6 +878,17 @@ export const ARTICLE_THEME_PRESETS: Record<
     paragraphAlign: "left",
     linkStyle: "default",
     codeStyle: "plain",
+    ...themeElements({
+      codeTheme: "notebook",
+      tableStyle: "lines",
+      tableBorderWidth: 0.5,
+      listStyle: "relaxed",
+      blockquoteWeight: "light",
+      hrWeight: "light",
+      imageRadius: 4,
+      paperBorderWidth: 0,
+      paperShadow: false,
+    }),
     headers: themeHeaders("system-ui", "left", {
       h1: "lg",
       h2: "md",
@@ -808,31 +905,7 @@ export const articleThemeChrome = (
   theme: ArticleTheme,
 ): Omit<(typeof ARTICLE_THEME_PRESETS)[ArticleTheme], never> => {
   const preset = ARTICLE_THEME_PRESETS[theme];
-  return {
-    measure: preset.measure,
-    padding: preset.padding,
-    columnAlign: preset.columnAlign,
-    columns: preset.columns,
-    pageLayout: preset.pageLayout,
-    paperSize: preset.paperSize,
-    paperOrientation: preset.paperOrientation,
-    imageWidth: preset.imageWidth,
-    background: preset.background,
-    backgroundPattern: preset.backgroundPattern,
-    viewBackground: preset.viewBackground,
-    font: preset.font,
-    fontSize: preset.fontSize,
-    color: preset.color,
-    strongColor: preset.strongColor,
-    letterSpacing: preset.letterSpacing,
-    lineHeight: preset.lineHeight,
-    paragraphSpacing: preset.paragraphSpacing,
-    paragraphIndent: preset.paragraphIndent,
-    paragraphAlign: preset.paragraphAlign,
-    linkStyle: preset.linkStyle,
-    codeStyle: preset.codeStyle,
-    headers: preset.headers,
-  };
+  return { ...preset, headers: preset.headers };
 };
 
 const isFont = (value: unknown): value is ArticleFont => isFontValue(value);
