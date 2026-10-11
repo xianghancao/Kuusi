@@ -590,6 +590,11 @@ export const applyMindMapTypography = (
     "--kuusi-mindmap-body-color",
     settings.color || "inherit",
   );
+  if (settings.color) {
+    scene.dataset.kuusiBodyColor = "1";
+  } else {
+    delete scene.dataset.kuusiBodyColor;
+  }
   if (settings.strongColor) {
     scene.style.setProperty("--kuusi-mindmap-strong-color", settings.strongColor);
   } else {

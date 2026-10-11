@@ -2069,3 +2069,16 @@ button.jp-KuusiNotebookMindMap-format-btn:focus-visible {
   :is(.cm-content, .jp-RenderedHTMLCommon, .jp-MarkdownOutput) {
   color: var(--kuusi-node-foreground);
 }
+
+/* An explicit Body colour reaches the rendered text inside cards (JupyterLab
+   gives .jp-RenderedHTMLCommon / .cm-content their own colour) and wins over
+   the automatic contrast colour. Headings keep their own colour rules. */
+.jp-KuusiMindMapNotebook-scene[data-kuusi-body-color="1"]
+  .jp-KuusiNotebookMindMap-cellNode:not([data-kuusi-heading-level])
+  :is(.cm-content, .jp-RenderedHTMLCommon, .jp-MarkdownOutput)
+  :is(p, li, td, th, span, div, blockquote, code):not(strong):not(b):not(:is(h1, h2, h3, h4, h5, h6) *),
+.jp-KuusiMindMapNotebook-scene[data-kuusi-body-color="1"]
+  .jp-KuusiNotebookMindMap-cellNode:not([data-kuusi-heading-level])
+  :is(.cm-content, .jp-RenderedHTMLCommon, .jp-MarkdownOutput) {
+  color: var(--kuusi-mindmap-body-color);
+}
