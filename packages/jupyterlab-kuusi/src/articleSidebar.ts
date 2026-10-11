@@ -410,12 +410,18 @@ export const mountArticleSidebar = (
     setHidden(outlineList, tab !== "outline");
     setHidden(thumbList, tab !== "pages");
 
+    // Rebuilding empties the list, which resets its scroll to the top; put it
+    // back so a rebuild never makes the list jump.
     if (open && tab === "outline" && outlineDirty) {
+      const keep = outlineList.scrollTop;
       buildOutline();
+      outlineList.scrollTop = keep;
     }
 
     if (open && tab === "pages" && thumbsDirty) {
+      const keep = thumbList.scrollTop;
       buildThumbs();
+      thumbList.scrollTop = keep;
     }
 
     applyInset(open);
