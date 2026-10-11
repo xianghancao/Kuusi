@@ -26,6 +26,15 @@
   vertical-align: top;
 }
 
+/* JupyterLab colours the table with its own (light-theme dark) font colour; follow
+   the page instead so dark papers such as Night stay readable. */
+.jp-KuusiArticle-paper .jp-RenderedHTMLCommon table,
+.jp-KuusiBook-paper .jp-RenderedHTMLCommon table,
+.jp-KuusiMarkdownSlides .jp-RenderedHTMLCommon table,
+.jp-KuusiMindMapNotebook-scene .jp-RenderedHTMLCommon table {
+  color: inherit;
+}
+
 /*
  * Row fills come from JupyterLab's rendered-HTML theme (opaque layout colors).
  * Scale them by the table transparency setting; 100% (default) lets the page
