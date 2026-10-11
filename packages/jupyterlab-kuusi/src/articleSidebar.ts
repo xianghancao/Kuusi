@@ -301,6 +301,23 @@ export const mountArticleSidebar = (
     thumbsDirty = false;
   };
 
+  // The lists only follow the page when the current entry changes, and never
+  // while the reader is scrolling a list by hand (otherwise it snaps back).
+  const USER_SCROLL_HOLD_MS = 2000;
+  let lastOutlineIndex = -1;
+  let lastPageIndex = -1;
+  let userScrolledAt = 0;
+  const holdForUser = (): void => {
+    userScrolledAt = Date.now();
+  };
+  [outlineList, thumbList].forEach((list) => {
+    list.addEventListener("wheel", holdForUser, { passive: true });
+    list.addEventListener("touchmove", holdForUser, { passive: true });
+    list.addEventListener("pointerdown", holdForUser);
+  });
+  const userIsScrolling = (): boolean =>
+    Date.now() - userScrolledAt < USER_SCROLL_HOLD_MS;
+
   const markCurrent = (): void => {
     if (!deskNode || !active) {
       return;
@@ -316,11 +333,13 @@ export const mountArticleSidebar = (
           index = i;
         }
       });
+      const follow = index !== lastOutlineIndex && !userIsScrolling();
+      lastOutlineIndex = index;
       outlineButtons.forEach((button, i) => {
         const on = i === index;
         setClass(button, "is-current", on);
 
-        if (on) {
+        if (on && follow) {
           const top = button.offsetTop;
           const bottom = top + button.offsetHeight;
 
@@ -342,11 +361,13 @@ export const mountArticleSidebar = (
           index = i;
         }
       });
+      const follow = index !== lastPageIndex && !userIsScrolling();
+      lastPageIndex = index;
       cells.forEach((cell, i) => {
         const on = i === index;
         setClass(cell, "is-current", on);
 
-        if (on) {
+        if (on && follow) {
           const top = cell.offsetTop;
           const bottom = top + cell.offsetHeight;
 
