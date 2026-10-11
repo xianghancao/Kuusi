@@ -176,33 +176,30 @@ export const buildFontWidgets = (
     cjk: t.fontSectionChinese(),
   };
 
-  return FONT_SECTION_ORDER.flatMap((category) => {
-    const options = FONT_OPTIONS.filter((option) => option.category === category);
-
-    if (options.length === 0) {
-      return [];
-    }
-
-    return [
-      {
-        kind: "choice" as const,
-        sectionLabel: sectionLabels[category],
-        value: font,
-        options: options.map((option) => ({
+  return [
+    {
+      kind: "select",
+      label: t.font(),
+      value: font,
+      groups: FONT_SECTION_ORDER.map((category) => ({
+        label: sectionLabels[category],
+        options: FONT_OPTIONS.filter(
+          (option) => option.category === category,
+        ).map((option) => ({
           value: option.value,
           label: option.label,
           title: option.title,
           preview: () => createFontPreview(option.previewFamily),
         })),
-        onChange: (value: string) => {
-          onFontChange(value as MindMapFont);
-        },
-        onPreview: onPreview
-          ? (value: string | null) => onPreview(value as MindMapFont | null)
-          : undefined,
+      })),
+      onChange: (value: string) => {
+        onFontChange(value as MindMapFont);
       },
-    ];
-  });
+      onPreview: onPreview
+        ? (value: string | null) => onPreview(value as MindMapFont | null)
+        : undefined,
+    },
+  ];
 };
 
 const getTextAlignOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [

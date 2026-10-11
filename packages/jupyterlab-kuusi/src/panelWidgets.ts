@@ -29,6 +29,22 @@ export type ChoiceWidget = {
   rowClassName?: string;
 };
 
+export type SelectGroup = { label: string; options: ChoiceOption[] };
+
+/**
+ * One-row dropdown that expands inline into a grouped, scrollable list. Each
+ * option shows its own `preview` (e.g. the font drawn in itself), and hovering
+ * one fires `onPreview` like a choice row does.
+ */
+export type SelectWidget = {
+  kind: "select";
+  label: string;
+  value: string;
+  groups: SelectGroup[];
+  onChange: (value: string) => void;
+  onPreview?: (value: string | null) => void;
+};
+
 export type SliderWidget = {
   kind: "slider";
   label: string;
@@ -78,6 +94,7 @@ export type TextWidget = {
 
 export type PanelWidget =
   | ChoiceWidget
+  | SelectWidget
   | SliderWidget
   | ToggleWidget
   | ColorWidget
@@ -150,6 +167,111 @@ const renderChoice = (panel: HTMLElement, widget: ChoiceWidget): void => {
     }
     row.appendChild(item);
   });
+};
+
+const renderSelect = (panel: HTMLElement, widget: SelectWidget): void => {
+  const section = document.createElement("div");
+  section.className = "jp-KuusiPanelWidget-select";
+
+  const labelEl = document.createElement("span");
+  labelEl.className = "jp-KuusiPanelWidget-selectLabel";
+  labelEl.textContent = widget.label;
+
+  const all = widget.groups.flatMap((group) => group.options);
+  const current = all.find((option) => option.value === widget.value);
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "jp-KuusiPanelWidget-selectTrigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-label", widget.label);
+  trigger.title = widget.label;
+
+  const currentLabel = document.createElement("span");
+  currentLabel.className = "jp-KuusiPanelWidget-selectCurrent";
+  currentLabel.textContent = current?.label ?? widget.value;
+  const currentPreview = resolvePreview(current?.preview);
+  const caret = document.createElement("span");
+  caret.className = "jp-KuusiPanelWidget-selectCaret";
+  caret.setAttribute("aria-hidden", "true");
+  caret.textContent = "▾";
+  trigger.append(currentLabel);
+  if (currentPreview) {
+    trigger.append(currentPreview);
+  }
+  trigger.append(caret);
+
+  const list = document.createElement("div");
+  list.className = "jp-KuusiPanelWidget-selectList";
+  list.setAttribute("role", "listbox");
+  list.hidden = true;
+
+  const owner = panel.closest<HTMLElement>(".jp-KuusiFormatDropdown-menu");
+
+  widget.groups.forEach((group) => {
+    if (group.options.length === 0) {
+      return;
+    }
+    const heading = document.createElement("div");
+    heading.className = "jp-KuusiPanelWidget-selectGroup";
+    heading.textContent = group.label;
+    list.appendChild(heading);
+
+    group.options.forEach((option) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "jp-KuusiPanelWidget-selectOption";
+      item.setAttribute("role", "option");
+      item.setAttribute(
+        "aria-selected",
+        option.value === widget.value ? "true" : "false",
+      );
+      item.title = option.title ?? option.label;
+      item.classList.toggle("is-active", option.value === widget.value);
+
+      const text = document.createElement("span");
+      text.className = "jp-KuusiPanelWidget-selectOptionLabel";
+      text.textContent = option.label;
+      item.appendChild(text);
+      const preview = resolvePreview(option.preview);
+      if (preview) {
+        item.appendChild(preview);
+      }
+
+      item.addEventListener("pointerdown", (event) => {
+        event.stopPropagation();
+      });
+      item.addEventListener("click", (event) => {
+        event.stopPropagation();
+        widget.onChange(option.value);
+      });
+      if (widget.onPreview) {
+        bindThemeRowPreview(owner ?? panel, item, option.value, widget.onPreview);
+      }
+      list.appendChild(item);
+    });
+  });
+
+  trigger.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
+  trigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const open = list.hidden;
+    list.hidden = !open;
+    trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      list
+        .querySelector<HTMLElement>(".is-active")
+        ?.scrollIntoView({ block: "nearest" });
+    } else {
+      widget.onPreview?.(null);
+    }
+  });
+
+  section.append(labelEl, trigger, list);
+  panel.appendChild(section);
 };
 
 const renderSlider = (panel: HTMLElement, widget: SliderWidget): void => {
@@ -372,6 +494,9 @@ export const renderPanelWidget = (
   switch (widget.kind) {
     case "choice":
       renderChoice(panel, widget);
+      return;
+    case "select":
+      renderSelect(panel, widget);
       return;
     case "slider":
       renderSlider(panel, widget);
