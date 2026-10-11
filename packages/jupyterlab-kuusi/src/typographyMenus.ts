@@ -126,6 +126,10 @@ export type TypographyModel = {
   preview?: (partial: Partial<TypographyValues> | null) => void;
   /** Present on Article: repeat table header rows on each page of a paged table. */
   tableRepeatHeader?: { get: () => boolean; set: (value: boolean) => void };
+  /** View-specific controls appended to an Elements panel (Article only). */
+  extras?: Partial<
+    Record<"code" | "image" | "table" | "links", () => PanelWidget[]>
+  >;
   lineHeightRange: NumberRange;
   /** Present on Mind Map: Text menu adds Edit / Link tabs. */
   editMode?: TypographyEditMode;
@@ -737,6 +741,7 @@ const fillCodeSection = (
           rebuild();
         },
       },
+      ...(model.extras?.code?.() ?? []),
     ]);
     return;
   }
@@ -988,6 +993,7 @@ const fillImageSection = (
           rebuild();
         },
       },
+      ...(model.extras?.image?.() ?? []),
     ]);
     return;
   }
@@ -1158,6 +1164,7 @@ const fillTableSection = (
         (value) => `${value}%`,
         (tableTransparency) => model.update({ tableTransparency }),
       ),
+      ...(model.extras?.table?.() ?? []),
     ]);
     return;
   }
@@ -1343,6 +1350,7 @@ const fillLinksPanel = (
         rebuild();
       },
     },
+  ...(model.extras?.links?.() ?? []),
   ]);
 };
 
