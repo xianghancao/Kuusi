@@ -96,13 +96,19 @@ const mountArticleHeader = (
       return;
     }
     paper.dataset.kuusiArticleFullscreen = active ? "1" : "0";
-    paper.dataset.kuusiArticlePageScroll = pageScrollAxis;
+    paper.dataset.kuusiArticlePageScroll = effectiveScrollAxis();
   };
+  // Two-column pages are stacked vertically (the horizontal strip is one
+  // column per page), so they always scroll vertically in fullscreen.
+  const effectiveScrollAxis = (): ArticlePageScrollAxis =>
+    manager.settings.columns >= 2 ? "vertical" : pageScrollAxis;
   const syncScrollAxisButton = (): void => {
     const paged =
       manager.settings.pageLayout === "paged" ||
       articlePaperHost(widget)?.dataset.kuusiArticlePageLayout === "paged";
-    renderChrome?.setPageScrollAxisVisible?.(fullscreenActive && Boolean(paged));
+    renderChrome?.setPageScrollAxisVisible?.(
+      fullscreenActive && Boolean(paged) && manager.settings.columns < 2,
+    );
   };
   syncPaperScrollAxis(false);
 
@@ -116,7 +122,7 @@ const mountArticleHeader = (
       pageScrollAxis = axis;
       const paper = articlePaperHost(widget);
       if (paper) {
-        paper.dataset.kuusiArticlePageScroll = axis;
+        paper.dataset.kuusiArticlePageScroll = effectiveScrollAxis();
         paper.scrollLeft = 0;
         paper.scrollTop = 0;
       }
@@ -137,6 +143,7 @@ const mountArticleHeader = (
   // Fullscreen vertical scrolling: outline and page thumbnails on the left.
   const sidebar = mountArticleSidebar({ host: widget.node, t });
   const settingsConnection = manager.changed.connect(() => {
+    syncPaperScrollAxis(fullscreenActive);
     syncScrollAxisButton();
   });
   const disposeStatusChrome = bindDocumentStatusChrome({
