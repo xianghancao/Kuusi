@@ -28,7 +28,9 @@ import {
   DEFAULT_TABLE_APPEARANCE,
   DEFAULT_TABLE_BORDER_WIDTH,
   DEFAULT_TABLE_STYLE,
+  DEFAULT_TABLE_TRANSPARENCY,
   TABLE_BORDER_RANGE,
+  TABLE_TRANSPARENCY_RANGE,
   isTableStyle,
 } from "./tableSettings";
 import {
@@ -214,6 +216,7 @@ export const DEFAULT_BOOK_SETTINGS: BookSettings = {
   codeFrameWidth: 100,
   tableStyle: DEFAULT_TABLE_STYLE,
   tableBorderWidth: DEFAULT_TABLE_BORDER_WIDTH,
+  tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
   listStyle: DEFAULT_TYPOGRAPHY_VALUES.listStyle,
@@ -371,6 +374,11 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
       TABLE_BORDER_RANGE,
       defaults.tableBorderWidth,
     ),
+    tableTransparency: normalizeInRange(
+      source.tableTransparency,
+      TABLE_TRANSPARENCY_RANGE,
+      defaults.tableTransparency,
+    ),
     tableHeaderRowBold:
       typeof source.tableHeaderRowBold === "boolean"
         ? source.tableHeaderRowBold
@@ -468,6 +476,7 @@ export const bookSettingsToArticle = (
   codeFrameWidth: settings.codeFrameWidth,
   tableStyle: settings.tableStyle,
   tableBorderWidth: settings.tableBorderWidth,
+  tableTransparency: settings.tableTransparency,
   tableHeaderRowBold: settings.tableHeaderRowBold,
   tableHeaderColumnBold: settings.tableHeaderColumnBold,
   listStyle: settings.listStyle,

@@ -595,6 +595,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   tableStyleRuledTitle: () =>
     t.__("Academic three-line table"),
   tableBorderWidth: () => t.__("Border"),
+  tableTransparency: () => t.__("Table background transparency"),
   tableHeaderRowBold: () => t.__("Bold header row"),
   tableHeaderRowBoldTitle: () =>
     t.__("Make the first row (column headers) bold"),

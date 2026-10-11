@@ -62,7 +62,9 @@ import {
   DEFAULT_TABLE_APPEARANCE,
   DEFAULT_TABLE_BORDER_WIDTH,
   DEFAULT_TABLE_STYLE,
+  DEFAULT_TABLE_TRANSPARENCY,
   TABLE_BORDER_RANGE,
+  TABLE_TRANSPARENCY_RANGE,
   applyTableAppearance,
   isTableStyle,
   type TableStyle,
@@ -192,6 +194,8 @@ export type SlidesSettings = {
   codeFrameWidth: number;
   tableStyle: TableStyle;
   tableBorderWidth: number;
+  /** Table cell fill transparency in percent (100 = see-through). */
+  tableTransparency: number;
   tableHeaderRowBold: boolean;
   tableHeaderColumnBold: boolean;
   listStyle: ListStyle;
@@ -532,6 +536,7 @@ export const DEFAULT_SLIDES_SETTINGS: SlidesSettings = {
   codeFrameWidth: 100,
   tableStyle: DEFAULT_TABLE_STYLE,
   tableBorderWidth: DEFAULT_TABLE_BORDER_WIDTH,
+  tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
   listStyle: DEFAULT_LIST_STYLE,
@@ -715,6 +720,11 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
       TABLE_BORDER_RANGE,
       defaults.tableBorderWidth,
     ),
+    tableTransparency: normalizeInRange(
+      raw.tableTransparency,
+      TABLE_TRANSPARENCY_RANGE,
+      defaults.tableTransparency,
+    ),
     tableHeaderRowBold:
       typeof raw.tableHeaderRowBold === "boolean"
         ? raw.tableHeaderRowBold
@@ -798,6 +808,7 @@ export const applySlidesAppearance = (
   applyTableAppearance(host, {
     tableStyle: settings.tableStyle,
     tableBorderWidth: settings.tableBorderWidth,
+    tableTransparency: settings.tableTransparency,
     tableHeaderRowBold: settings.tableHeaderRowBold,
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
   });
@@ -995,6 +1006,7 @@ const SLIDES_SETTING_KEYS: Array<keyof SlidesSettings> = [
   "codeFrameWidth",
   "tableStyle",
   "tableBorderWidth",
+  "tableTransparency",
   "tableHeaderRowBold",
   "tableHeaderColumnBold",
   "listStyle",

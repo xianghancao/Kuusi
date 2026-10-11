@@ -26,6 +26,37 @@
   vertical-align: top;
 }
 
+/*
+ * Row fills come from JupyterLab's rendered-HTML theme (opaque layout colors).
+ * Scale them by the table transparency setting; 100% (default) lets the page
+ * show through, 0% keeps the theme fills.
+ */
+[data-kuusi-table-style] table tbody tr:nth-child(odd) {
+  background: color-mix(
+    in srgb,
+    var(--jp-layout-color0) var(--kuusi-table-fill, 0%),
+    transparent
+  );
+}
+
+[data-kuusi-table-style] table tbody tr:nth-child(even) {
+  background: color-mix(
+    in srgb,
+    var(--jp-rendermime-table-row-background, var(--jp-layout-color2))
+      var(--kuusi-table-fill, 0%),
+    transparent
+  );
+}
+
+[data-kuusi-table-style] table tbody tr:hover {
+  background: color-mix(
+    in srgb,
+    var(--jp-rendermime-table-row-hover-background, var(--jp-layout-color2))
+      var(--kuusi-table-fill, 0%),
+    transparent
+  );
+}
+
 /* Header weight overrides (presets may also set weight). */
 [data-kuusi-table-header-row-bold="1"] thead th,
 [data-kuusi-table-header-row-bold="1"] tr:first-child > th {

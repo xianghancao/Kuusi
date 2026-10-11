@@ -115,6 +115,7 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   codeFrameWidth: DEFAULT_TYPOGRAPHY_VALUES.codeFrameWidth,
   tableStyle: DEFAULT_TYPOGRAPHY_VALUES.tableStyle,
   tableBorderWidth: DEFAULT_TYPOGRAPHY_VALUES.tableBorderWidth,
+  tableTransparency: DEFAULT_TYPOGRAPHY_VALUES.tableTransparency,
   tableHeaderRowBold: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderColumnBold,
   listStyle: DEFAULT_TYPOGRAPHY_VALUES.listStyle,
@@ -486,6 +487,7 @@ const MIND_MAP_TYPOGRAPHY_KEYS: Array<keyof MindMapTypographyFields> = [
   "codeFrameWidth",
   "tableStyle",
   "tableBorderWidth",
+  "tableTransparency",
   "tableHeaderRowBold",
   "tableHeaderColumnBold",
   "listStyle",
@@ -567,6 +569,7 @@ export const applyMindMapTypography = (
   applyTableAppearance(scene, {
     tableStyle: settings.tableStyle,
     tableBorderWidth: settings.tableBorderWidth,
+    tableTransparency: settings.tableTransparency,
     tableHeaderRowBold: settings.tableHeaderRowBold,
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
   });

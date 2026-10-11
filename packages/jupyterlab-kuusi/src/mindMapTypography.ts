@@ -48,6 +48,7 @@ export const mindMapSettingsToTypography = (
   codeFrameWidth: settings.codeFrameWidth,
   tableStyle: settings.tableStyle,
   tableBorderWidth: settings.tableBorderWidth,
+  tableTransparency: settings.tableTransparency,
   tableHeaderRowBold: settings.tableHeaderRowBold,
   tableHeaderColumnBold: settings.tableHeaderColumnBold,
   listStyle: settings.listStyle,

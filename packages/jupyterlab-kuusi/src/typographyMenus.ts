@@ -82,6 +82,7 @@ import {
   PARAGRAPH_INDENT_RANGE,
   PARAGRAPH_SPACING_RANGE,
   TABLE_BORDER_RANGE,
+  TABLE_TRANSPARENCY_RANGE,
   headingId,
   updateHeadingStyle,
   type CodeStyle,
@@ -1141,6 +1142,13 @@ const fillTableSection = (
           rebuild();
         },
       },
+      slider(
+        t.tableTransparency(),
+        values.tableTransparency,
+        TABLE_TRANSPARENCY_RANGE,
+        (value) => `${value}%`,
+        (tableTransparency) => model.update({ tableTransparency }),
+      ),
     ]);
     return;
   }

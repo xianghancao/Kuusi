@@ -509,6 +509,14 @@
       "title": "Table border width",
       "description": "Rule / grid stroke thickness in pt (0.25–3)."
     },
+    "tableTransparency": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 100,
+      "title": "Table background transparency",
+      "description": "Transparency of table cell fills in percent: 100 lets the page show through, 0 keeps opaque rows."
+    },
     "tableHeaderRowBold": {
       "type": "boolean",
       "default": true,

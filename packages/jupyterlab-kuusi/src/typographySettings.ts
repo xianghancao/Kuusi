@@ -20,7 +20,9 @@ import {
   DEFAULT_TABLE_APPEARANCE,
   DEFAULT_TABLE_BORDER_WIDTH,
   DEFAULT_TABLE_STYLE,
+  DEFAULT_TABLE_TRANSPARENCY,
   TABLE_BORDER_RANGE,
+  TABLE_TRANSPARENCY_RANGE,
   isTableStyle,
   type TableStyle,
 } from "./tableSettings";
@@ -95,6 +97,8 @@ export type TypographyValues = {
   tableStyle: TableStyle;
   /** Table rule / grid stroke in pt. */
   tableBorderWidth: number;
+  /** Table cell fill transparency in percent (100 = see-through). */
+  tableTransparency: number;
   tableHeaderRowBold: boolean;
   tableHeaderColumnBold: boolean;
   /** List spacing density. */
@@ -151,7 +155,7 @@ export const PARAGRAPH_INDENT_RANGE: NumberRange = {
 export const CODE_RADIUS_RANGE: NumberRange = { min: 0, max: 24, step: 1 };
 export const CODE_BORDER_RANGE: NumberRange = { min: 0, max: 8, step: 1 };
 export const CODE_WIDTH_RANGE: NumberRange = { min: 40, max: 100, step: 5 };
-export { TABLE_BORDER_RANGE };
+export { TABLE_BORDER_RANGE, TABLE_TRANSPARENCY_RANGE };
 export const IMAGE_BORDER_RANGE: NumberRange = { min: 0, max: 12, step: 1 };
 export const IMAGE_RADIUS_RANGE: NumberRange = { min: 0, max: 32, step: 1 };
 
@@ -317,6 +321,7 @@ export const DEFAULT_TYPOGRAPHY_VALUES: TypographyValues = {
   codeFrameWidth: 100,
   tableStyle: DEFAULT_TABLE_STYLE,
   tableBorderWidth: DEFAULT_TABLE_BORDER_WIDTH,
+  tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
   listStyle: DEFAULT_LIST_STYLE,
@@ -410,6 +415,11 @@ export const normalizeTypographyValues = (
       raw.tableBorderWidth,
       TABLE_BORDER_RANGE,
       fallback.tableBorderWidth,
+    ),
+    tableTransparency: normalizeInRange(
+      raw.tableTransparency,
+      TABLE_TRANSPARENCY_RANGE,
+      fallback.tableTransparency,
     ),
     tableHeaderRowBold:
       typeof raw.tableHeaderRowBold === "boolean"

@@ -660,6 +660,7 @@ export const ZH_CN: Record<string, string> = {
   "Heading 2": "二级标题",
   "Heading 3": "三级标题",
   "Custom": "自定义",
+  "Table background transparency": "表格背景透明度",
   "Custom text": "自定义文字",
   "Use the nearest H1 at or before this slide":
     "使用本页及之前最近的一级标题",
