@@ -58,6 +58,17 @@ test("start at H2 leaves the title unnumbered", () => {
   );
 });
 
+test("tocEntries can leave Heading 1 out and counts depth from H2", () => {
+  const list = [
+    { level: 1, title: "Doc", number: "" },
+    { level: 2, title: "A", number: "1" },
+    { level: 3, title: "A.1", number: "1.1" },
+    { level: 4, title: "deep", number: "" },
+  ];
+  assert.deepEqual(tocEntries(list, 2, 2).map((e) => e.title), ["A", "A.1"]);
+  assert.deepEqual(tocEntries(list, 2).map((e) => e.title), ["Doc", "A"]);
+});
+
 test("none yields empty labels", () => {
   assert.deepEqual(headingNumberLabels([1, 2], "none"), ["", ""]);
 });

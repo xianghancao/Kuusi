@@ -995,11 +995,17 @@
       "maximum": 4,
       "default": 3
     },
+    "tocShowH1": {
+      "title": "Show Heading 1 in contents",
+      "description": "List Heading 1 (usually the document title) in the contents.",
+      "type": "boolean",
+      "default": false
+    },
     "tocShowTitle": {
       "title": "Show contents title",
       "description": "Show the heading above the contents list.",
       "type": "boolean",
-      "default": false
+      "default": true
     },
     "tocTitle": {
       "title": "Contents title",

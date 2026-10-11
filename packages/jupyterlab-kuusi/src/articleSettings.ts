@@ -336,6 +336,8 @@ export type ArticleSettings = {
   tocTitle: string;
   /** Show the heading above the contents list. */
   tocShowTitle: boolean;
+  /** List Heading 1 (usually the document title) in the contents. */
+  tocShowH1: boolean;
   coverPage: boolean;
   /** Cover page title; empty uses the document name. */
   coverTitle: string;
@@ -397,6 +399,7 @@ type ArticleUserOnlyKey =
   | "tocDepth"
   | "tocTitle"
   | "tocShowTitle"
+  | "tocShowH1"
   | "coverPage"
   | "coverTitle"
   | "coverAuthor"
@@ -544,7 +547,8 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tocShow: false,
   tocDepth: 3,
   tocTitle: "",
-  tocShowTitle: false,
+  tocShowTitle: true,
+  tocShowH1: false,
   coverPage: false,
   coverTitle: "",
   coverAuthor: "",
@@ -1418,6 +1422,8 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       typeof raw.tocShowTitle === "boolean"
         ? raw.tocShowTitle
         : defaults.tocShowTitle,
+    tocShowH1:
+      typeof raw.tocShowH1 === "boolean" ? raw.tocShowH1 : defaults.tocShowH1,
     coverPage:
       typeof raw.coverPage === "boolean" ? raw.coverPage : defaults.coverPage,
     coverTitle: normalizePageText(raw.coverTitle, defaults.coverTitle),
@@ -2045,6 +2051,7 @@ export class ArticleSettingsManager {
         "tocDepth",
         "tocTitle",
         "tocShowTitle",
+        "tocShowH1",
         "coverPage",
         "coverTitle",
         "coverAuthor",

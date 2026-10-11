@@ -235,6 +235,9 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   contentsShowTitle: () =>
     t.__("Insert a table of contents with page numbers at the start"),
   contentsDepth: () => t.__("Heading levels"),
+  contentsShowH1: () => t.__("Show Heading 1"),
+  contentsShowH1Hint: () =>
+    t.__("List Heading 1 (usually the document title) in the contents"),
   contentsHeadingToggle: () => t.__("Show title"),
   contentsHeadingToggleHint: () => t.__("Show a heading above the contents list"),
   contentsTitleLabel: () => t.__("Title"),

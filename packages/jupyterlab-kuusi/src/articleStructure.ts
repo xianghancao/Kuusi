@@ -130,11 +130,15 @@ export type TocEntry = {
 export const tocEntries = (
   headings: ReadonlyArray<{ level: number; title: string; number: string }>,
   depth: number,
+  minLevel = 1,
 ): TocEntry[] => {
-  const base = headings.length > 0 ? Math.min(...headings.map((h) => h.level)) : 1;
+  // Levels above `minLevel` (the document title) stay out of the list, and the
+  // depth counts from the first level that is listed.
+  const listed = headings.filter((h) => h.level >= minLevel);
+  const base = listed.length > 0 ? Math.min(...listed.map((h) => h.level)) : 1;
 
   return headings.flatMap((h, heading) =>
-    h.title && h.level - base < depth
+    h.title && h.level >= minLevel && h.level - base < depth
       ? [{ level: h.level, number: h.number, title: h.title, heading }]
       : [],
   );
@@ -169,6 +173,7 @@ export type StructureSettings = {
   tocDepth: number;
   tocTitle: string;
   tocShowTitle: boolean;
+  tocShowH1: boolean;
   pageNumberStart: PageNumberStart;
 };
 
@@ -290,6 +295,7 @@ export const applyStructure = (
       number: labels[i],
     })),
     settings.tocDepth,
+    settings.tocShowH1 ? 1 : 2,
   );
 
   if (entries.length === 0) {

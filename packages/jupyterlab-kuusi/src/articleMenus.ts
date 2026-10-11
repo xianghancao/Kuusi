@@ -507,6 +507,7 @@ const ARTICLE_PAGE_KEYS = [
   "tocDepth",
   "tocTitle",
   "tocShowTitle",
+  "tocShowH1",
   "coverPage",
   "coverTitle",
   "coverAuthor",
@@ -1165,6 +1166,15 @@ const fillStructureSection = (
         onChange: (tocShowTitle) => {
           void manager.update({ tocShowTitle });
           rebuild();
+        },
+      },
+      {
+        kind: "toggle",
+        label: t.contentsShowH1(),
+        title: t.contentsShowH1Hint(),
+        value: settings.tocShowH1,
+        onChange: (tocShowH1) => {
+          void manager.update({ tocShowH1 });
         },
       },
       ...(settings.tocShowTitle

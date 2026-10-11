@@ -59,6 +59,8 @@ export const ZH_CN: Record<string, string> = {
   "Standard": "标准",
   "High": "高",
   "Cover page": "封面页",
+  "Show Heading 1": "显示一级标题",
+  "List Heading 1 (usually the document title) in the contents": "在目录中列出一级标题（通常是文档总标题）",
   "Start numbering at": "编号起始层级",
   "Heading 1 is the first numbered level": "从一级标题开始编号",
   "Leave Heading 1 (the document title) unnumbered and start at Heading 2": "一级标题（文档总标题）不编号，从二级标题开始",
