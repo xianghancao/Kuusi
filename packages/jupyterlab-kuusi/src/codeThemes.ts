@@ -8,10 +8,7 @@
 import { jupyterHighlightStyle } from "@jupyterlab/codemirror";
 import { StyleModule } from "style-mod";
 
-import {
-  MIND_MAP_FONT_SIZE_REM,
-  type MindMapFontSize,
-} from "./fontToolbar";
+import { codeSizePx, type CodeFontSize } from "./fontToolbar";
 
 export type CodeTheme =
   | "notebook"
@@ -74,7 +71,7 @@ export const CODE_THEMES: readonly CodeTheme[] = [
 /** Follow JupyterLab theme token colors (no Kuusi palette override). */
 export const DEFAULT_CODE_THEME: CodeTheme = "notebook";
 export const DEFAULT_CODE_FONT: CodeFont = "mono";
-export const DEFAULT_CODE_FONT_SIZE: MindMapFontSize = "xs";
+export const DEFAULT_CODE_FONT_SIZE: CodeFontSize = "xs";
 
 const CODE_THEME_SET = new Set<string>(CODE_THEMES);
 
@@ -150,8 +147,8 @@ export const codeFontFamilyCss = (font: CodeFont): string =>
   CODE_FONT_OPTIONS.find((option) => option.value === font)?.previewFamily ??
   CODE_FONT_OPTIONS[0].previewFamily;
 
-export const codeFontSizeCss = (size: MindMapFontSize): string =>
-  MIND_MAP_FONT_SIZE_REM[size];
+export const codeFontSizeCss = (size: CodeFontSize): string =>
+  `${codeSizePx(size) / 16}rem`;
 
 /** Language-inspired token palettes (readable on light paper). */
 export const CODE_THEME_COLORS: Record<
@@ -582,7 +579,7 @@ export const applyCodeAppearance = (
   settings: {
     codeTheme: CodeTheme;
     codeFont: CodeFont;
-    codeFontSize: MindMapFontSize;
+    codeFontSize: CodeFontSize;
   },
   datasetKey:
     | "kuusiArticleCodeTheme"

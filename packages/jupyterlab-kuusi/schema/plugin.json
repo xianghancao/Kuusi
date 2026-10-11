@@ -498,19 +498,28 @@
       "description": "Monospace face for code inside nodes."
     },
     "codeFontSize": {
-      "type": "string",
-      "enum": [
-        "xxs",
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "xxl"
-      ],
       "default": "xs",
       "title": "Mind map code font size",
-      "description": "Size step for code text."
+      "description": "Size step for code text.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 54
+        }
+      ]
     },
     "codeFrame": {
       "type": "boolean",

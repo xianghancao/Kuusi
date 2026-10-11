@@ -232,7 +232,7 @@ export const canonicalHeadingSize = (px: number): HeadingFontSize => {
   const max = HEADING_FONT_SIZE_PT_RANGE.max * PX_PER_PT;
   const clamped = roundPx(Math.min(max, Math.max(min, px)));
   const step = MIND_MAP_FONT_SIZES.find(
-    (name) => Math.abs(HEADING_STEP_PX[name] - clamped) < 0.02,
+    (name) => Math.abs(HEADING_STEP_PX[name] - clamped) < 0.15,
   );
 
   return step ?? clamped;
@@ -243,6 +243,57 @@ export const normalizeHeadingFontSize = (
 ): HeadingFontSize | null => {
   if (typeof value === "number" && Number.isFinite(value)) {
     return canonicalHeadingSize(value);
+  }
+
+  return normalizeMindMapFontSize(value);
+};
+
+/**
+ * Code size: a named step, or a custom CSS px value (a custom value that lands
+ * on a step is stored as that step, as for headings).
+ */
+export type CodeFontSize = MindMapFontSize | number;
+
+/** Code steps in points — the same sizes the named steps always rendered at. */
+export const CODE_STEP_PT: Record<MindMapFontSize, number> = {
+  xxs: 9,
+  xs: 10.5,
+  sm: 12,
+  md: 13.5,
+  lg: 15,
+  xl: 17.25,
+  xxl: 19.5,
+};
+
+export const CODE_FONT_SIZE_PT_RANGE = { min: 6, max: 40 } as const;
+
+export const CODE_STEP_PX: Record<MindMapFontSize, number> = {
+  xxs: 12,
+  xs: 14,
+  sm: 16,
+  md: 18,
+  lg: 20,
+  xl: 23,
+  xxl: 26,
+};
+
+export const codeSizePx = (size: CodeFontSize): number =>
+  typeof size === "number" ? size : CODE_STEP_PX[size];
+
+export const canonicalCodeSize = (px: number): CodeFontSize => {
+  const min = CODE_FONT_SIZE_PT_RANGE.min * PX_PER_PT;
+  const max = CODE_FONT_SIZE_PT_RANGE.max * PX_PER_PT;
+  const clamped = roundPx(Math.min(max, Math.max(min, px)));
+  const step = MIND_MAP_FONT_SIZES.find(
+    (name) => Math.abs(CODE_STEP_PX[name] - clamped) < 0.15,
+  );
+
+  return step ?? clamped;
+};
+
+export const normalizeCodeFontSize = (value: unknown): CodeFontSize | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return canonicalCodeSize(value);
   }
 
   return normalizeMindMapFontSize(value);

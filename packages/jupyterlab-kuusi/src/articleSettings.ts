@@ -8,8 +8,9 @@ import {
   mindMapFontFamilyCss,
   normalizeBodyFontSizePx,
   headingSizeCss,
+  normalizeCodeFontSize,
+  type CodeFontSize,
   normalizeHeadingFontSize,
-  normalizeMindMapFontSize,
   type BodyFontSizePx,
   type MindMapFont,
   type MindMapFontSize,
@@ -276,7 +277,7 @@ export type ArticleSettings = {
   codeStyle: ArticleCodeStyle;
   codeTheme: CodeTheme;
   codeFont: CodeFont;
-  codeFontSize: ArticleFontSize;
+  codeFontSize: CodeFontSize;
   codeFrame: boolean;
   /** Empty string follows the page foreground. */
   codeFrameColor: string;
@@ -1179,7 +1180,7 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
     codeTheme: isCodeTheme(raw.codeTheme) ? raw.codeTheme : defaults.codeTheme,
     codeFont: isCodeFont(raw.codeFont) ? raw.codeFont : defaults.codeFont,
     codeFontSize:
-      normalizeMindMapFontSize(raw.codeFontSize) ?? defaults.codeFontSize,
+      normalizeCodeFontSize(raw.codeFontSize) ?? defaults.codeFontSize,
     // Before the frame toggle, Plain and Contrast code blocks were framed.
     codeFrame:
       typeof raw.codeFrame === "boolean"

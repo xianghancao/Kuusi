@@ -332,17 +332,26 @@
     },
     "codeFontSize": {
       "title": "Book code font size",
-      "type": "string",
-      "enum": [
-        "xxs",
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "xxl"
-      ],
-      "default": "sm"
+      "default": "sm",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 54
+        }
+      ]
     },
     "codeFrame": {
       "title": "Book code frame",

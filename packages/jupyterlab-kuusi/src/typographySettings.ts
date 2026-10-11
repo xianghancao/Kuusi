@@ -32,12 +32,12 @@ import {
   DEFAULT_MIND_MAP_FONT_SIZE,
   FONT_OPTIONS,
   normalizeBodyFontSizePx,
+  normalizeCodeFontSize,
   normalizeHeadingFontSize,
-  normalizeMindMapFontSize,
+  type CodeFontSize,
   type HeadingFontSize,
   type BodyFontSizePx,
   type MindMapFont,
-  type MindMapFontSize,
 } from "./fontToolbar";
 
 /**
@@ -86,7 +86,7 @@ export type TypographyValues = {
   /** Language-inspired syntax color palette (default Python). */
   codeTheme: CodeTheme;
   codeFont: CodeFont;
-  codeFontSize: MindMapFontSize;
+  codeFontSize: CodeFontSize;
   codeFrame: boolean;
   /** Empty string follows the theme border color. */
   codeFrameColor: string;
@@ -387,7 +387,7 @@ export const normalizeTypographyValues = (
     codeTheme: isCodeTheme(raw.codeTheme) ? raw.codeTheme : fallback.codeTheme,
     codeFont: isCodeFont(raw.codeFont) ? raw.codeFont : fallback.codeFont,
     codeFontSize:
-      normalizeMindMapFontSize(raw.codeFontSize) ?? fallback.codeFontSize,
+      normalizeCodeFontSize(raw.codeFontSize) ?? fallback.codeFontSize,
     codeFrame:
       typeof raw.codeFrame === "boolean" ? raw.codeFrame : fallback.codeFrame,
     codeFrameColor: isTypographyColor(raw.codeFrameColor)

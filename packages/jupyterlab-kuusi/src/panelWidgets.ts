@@ -446,7 +446,7 @@ const renderSize = (panel: HTMLElement, widget: SizeWidget): void => {
   const show = (value: number, syncInput: boolean): void => {
     const index = nearest(value);
     slider.value = String(index);
-    const onStep = Math.abs(widget.steps[index].value - value) < 0.005;
+    const onStep = Math.abs(widget.steps[index].value - value) < 0.06;
     caption.textContent = onStep ? widget.steps[index].label : widget.customLabel;
     if (syncInput) {
       input.value = String(value);

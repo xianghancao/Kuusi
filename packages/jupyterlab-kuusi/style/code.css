@@ -57,7 +57,7 @@
      in this rule used to win over "Frame: off" and over the frame color. */
   color: var(--jp-content-font-color1);
   font-family: var(--jp-code-font-family, ui-monospace, monospace);
-  font-size: var(--jp-code-font-size, 13px);
+  font-size: var(--kuusi-code-font-size, var(--jp-code-font-size, 13px));
 }
 
 /* MyST wraps each fence in a card with its own shadow and tint (hover adds a
@@ -124,7 +124,7 @@
   .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
   .cm-scroller {
   font-family: var(--jp-code-font-family, ui-monospace, monospace);
-  font-size: var(--jp-code-font-size, 13px);
+  font-size: var(--kuusi-code-font-size, var(--jp-code-font-size, 13px));
 }
 
 /*

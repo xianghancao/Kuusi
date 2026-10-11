@@ -438,19 +438,28 @@
       "description": "Monospace face for inline and fenced code."
     },
     "codeFontSize": {
-      "type": "string",
-      "enum": [
-        "xxs",
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "xxl"
-      ],
       "default": "xs",
       "title": "Article code font size",
-      "description": "Size step for code text."
+      "description": "Size step for code text.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 54
+        }
+      ]
     },
     "codeFrame": {
       "type": "boolean",

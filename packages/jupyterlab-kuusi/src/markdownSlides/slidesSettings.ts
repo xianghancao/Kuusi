@@ -6,7 +6,8 @@ import {
   mindMapFontFamilyCss,
   normalizeBodyFontSizePx,
   nearestHeadingStep,
-  normalizeMindMapFontSize,
+  normalizeCodeFontSize,
+  type CodeFontSize,
   type BodyFontSizePx,
   type MindMapFont,
   type MindMapFontSize,
@@ -181,7 +182,7 @@ export type SlidesSettings = {
   codeStyle: CodeStyle;
   codeTheme: CodeTheme;
   codeFont: CodeFont;
-  codeFontSize: MindMapFontSize;
+  codeFontSize: CodeFontSize;
   /** Draw a bordered frame around fenced code blocks. */
   codeFrame: boolean;
   /** Empty string follows the theme code border color. */
@@ -692,7 +693,7 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
     codeTheme: isCodeTheme(raw.codeTheme) ? raw.codeTheme : defaults.codeTheme,
     codeFont: isCodeFont(raw.codeFont) ? raw.codeFont : defaults.codeFont,
     codeFontSize:
-      normalizeMindMapFontSize(raw.codeFontSize) ?? defaults.codeFontSize,
+      normalizeCodeFontSize(raw.codeFontSize) ?? defaults.codeFontSize,
     codeFrame: normalizeBoolean(raw.codeFrame, defaults.codeFrame),
     codeFrameColor: isTypographyColor(raw.codeFrameColor)
       ? raw.codeFrameColor

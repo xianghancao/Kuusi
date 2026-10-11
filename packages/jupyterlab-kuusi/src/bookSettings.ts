@@ -35,7 +35,7 @@ import {
 } from "./tableSettings";
 import {
   normalizeBodyFontSizePx,
-  normalizeMindMapFontSize,
+  normalizeCodeFontSize,
   type MindMapFont,
   isFontValue,
 } from "./fontToolbar";
@@ -342,7 +342,7 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
       : defaults.codeTheme,
     codeFont: isCodeFont(source.codeFont) ? source.codeFont : defaults.codeFont,
     codeFontSize:
-      normalizeMindMapFontSize(source.codeFontSize) ?? defaults.codeFontSize,
+      normalizeCodeFontSize(source.codeFontSize) ?? defaults.codeFontSize,
     codeFrame:
       typeof source.codeFrame === "boolean"
         ? source.codeFrame

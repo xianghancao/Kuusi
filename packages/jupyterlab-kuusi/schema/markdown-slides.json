@@ -304,19 +304,28 @@
       "description": "Monospace face for code on slides."
     },
     "codeFontSize": {
-      "type": "string",
-      "enum": [
-        "xxs",
-        "xs",
-        "sm",
-        "md",
-        "lg",
-        "xl",
-        "xxl"
-      ],
       "default": "xs",
       "title": "Slides code font size",
-      "description": "Size step for code text."
+      "description": "Size step for code text.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "xxs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "xxl"
+          ]
+        },
+        {
+          "type": "number",
+          "minimum": 8,
+          "maximum": 54
+        }
+      ]
     },
     "accentColor": {
       "title": "Slide accent color",

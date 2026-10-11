@@ -22,6 +22,10 @@ import {
   BODY_FONT_SIZE_PT_RANGE,
   BODY_FONT_SIZE_STEP,
   BODY_STEP_PT,
+  CODE_FONT_SIZE_PT_RANGE,
+  CODE_STEP_PT,
+  canonicalCodeSize,
+  codeSizePx,
   FONT_OPTIONS,
   HEADING_FONT_SIZE_PT_RANGE,
   HEADING_STEP_PT,
@@ -179,6 +183,11 @@ const previewWith =
 const headingSizeSteps: SizeStep[] = MIND_MAP_FONT_SIZES.map((name) => ({
   label: fontSizeShortLabel(name),
   value: HEADING_STEP_PT[name],
+}));
+
+const codeSizeSteps: SizeStep[] = MIND_MAP_FONT_SIZES.map((name) => ({
+  label: fontSizeShortLabel(name),
+  value: CODE_STEP_PT[name],
 }));
 
 const bodySizeSteps: SizeStep[] = BODY_STEP_PT.map((pt, index) => ({
@@ -701,15 +710,15 @@ const fillCodeSection = (
   if (id === "size") {
     renderPanelWidgets(panel, [
       {
-        kind: "slider",
-        label: headed ? t.fontSizeSection() : t.fontSizeSection(),
-        value: fontSizeToSliderIndex(values.codeFontSize),
-        min: 0,
-        max: MIND_MAP_FONT_SIZES.length - 1,
-        formatValue: (index) =>
-          fontSizeLabel(sliderIndexToFontSize(index)),
-        onChange: (index) => {
-          model.update({ codeFontSize: sliderIndexToFontSize(index) });
+        kind: "size",
+        label: t.fontSizeSection(),
+        value: pxToPt(codeSizePx(values.codeFontSize)),
+        steps: codeSizeSteps,
+        min: CODE_FONT_SIZE_PT_RANGE.min,
+        max: CODE_FONT_SIZE_PT_RANGE.max,
+        customLabel: t.sizeCustom(),
+        onChange: (size) => {
+          model.update({ codeFontSize: canonicalCodeSize(size * PX_PER_PT) });
         },
       },
     ]);
