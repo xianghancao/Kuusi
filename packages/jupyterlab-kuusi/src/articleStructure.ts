@@ -133,6 +133,9 @@ export const setStructureLabels = (
 
 export type StructureSettings = {
   coverPage: boolean;
+  coverTitle: string;
+  coverAuthor: string;
+  coverDate: string;
   linkFootnotes: boolean;
   imageCaptions: boolean;
   codeLineNumbers: boolean;
@@ -244,7 +247,7 @@ export const applyStructure = (
 
   const finish = (): void => {
     if (settings.coverPage) {
-      addCover(flow, docTitle);
+      addCover(flow, settings, docTitle);
     }
   };
 
@@ -294,15 +297,30 @@ const generated = (el: HTMLElement, extra: string): HTMLElement => {
 const inGenerated = (el: Element): boolean =>
   Boolean(el.closest(`.${TOC_CLASS}, h1, h2, h3, h4, h5, h6`));
 
-const addCover = (flow: HTMLElement, docTitle: string): void => {
+const addCover = (
+  flow: HTMLElement,
+  settings: Pick<StructureSettings, "coverTitle" | "coverAuthor" | "coverDate">,
+  docTitle: string,
+): void => {
   const cover = generated(document.createElement("div"), `${TOC_CLASS}Cover`);
   const title = document.createElement("div");
   title.className = `${TOC_CLASS}CoverTitle`;
-  title.textContent = docTitle;
+  title.textContent = settings.coverTitle.trim() || docTitle;
+  cover.append(title);
+
+  const author = settings.coverAuthor.trim();
+  if (author) {
+    const authorLine = document.createElement("div");
+    authorLine.className = `${TOC_CLASS}CoverAuthor`;
+    authorLine.textContent = author;
+    cover.append(authorLine);
+  }
+
   const date = document.createElement("div");
   date.className = `${TOC_CLASS}CoverDate`;
-  date.textContent = new Date().toLocaleDateString();
-  cover.append(title, date);
+  date.textContent =
+    settings.coverDate.trim() || new Date().toLocaleDateString();
+  cover.append(date);
   flow.insertBefore(cover, flow.firstElementChild);
 
   const after = cover.nextElementSibling;

@@ -504,6 +504,9 @@ const ARTICLE_PAGE_KEYS = [
   "tocDepth",
   "tocTitle",
   "coverPage",
+  "coverTitle",
+  "coverAuthor",
+  "coverDate",
   "marginTopMm",
   "marginBottomMm",
   "marginLeftMm",
@@ -1086,8 +1089,42 @@ const fillStructureSection = (
         value: settings.coverPage,
         onChange: (coverPage) => {
           void manager.update({ coverPage });
+          rebuild();
         },
       },
+      ...(settings.coverPage
+        ? ([
+            {
+              kind: "text",
+              label: t.coverTitleLabel(),
+              placeholder: t.coverTitlePlaceholder(),
+              maxLength: 120,
+              value: settings.coverTitle,
+              onChange: (coverTitle: string) => {
+                void manager.update({ coverTitle });
+              },
+            },
+            {
+              kind: "text",
+              label: t.coverAuthorLabel(),
+              maxLength: 80,
+              value: settings.coverAuthor,
+              onChange: (coverAuthor: string) => {
+                void manager.update({ coverAuthor });
+              },
+            },
+            {
+              kind: "text",
+              label: t.coverDateLabel(),
+              placeholder: t.coverDatePlaceholder(),
+              maxLength: 40,
+              value: settings.coverDate,
+              onChange: (coverDate: string) => {
+                void manager.update({ coverDate });
+              },
+            },
+          ] satisfies PanelWidget[])
+        : []),
       {
         kind: "toggle",
         label: t.contentsShow(),

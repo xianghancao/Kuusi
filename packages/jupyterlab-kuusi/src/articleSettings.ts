@@ -327,6 +327,12 @@ export type ArticleSettings = {
   /** Contents page heading; empty uses the localized “Contents”. */
   tocTitle: string;
   coverPage: boolean;
+  /** Cover page title; empty uses the document name. */
+  coverTitle: string;
+  /** Cover page author line; empty omits it. */
+  coverAuthor: string;
+  /** Cover page date text; empty uses today's date. */
+  coverDate: string;
   codeLineNumbers: boolean;
   imageCaptions: boolean;
   hyphenate: boolean;
@@ -379,6 +385,9 @@ type ArticleUserOnlyKey =
   | "tocDepth"
   | "tocTitle"
   | "coverPage"
+  | "coverTitle"
+  | "coverAuthor"
+  | "coverDate"
   | "codeLineNumbers"
   | "imageCaptions"
   | "hyphenate"
@@ -521,6 +530,9 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tocDepth: 3,
   tocTitle: "",
   coverPage: false,
+  coverTitle: "",
+  coverAuthor: "",
+  coverDate: "",
   codeLineNumbers: false,
   imageCaptions: false,
   hyphenate: false,
@@ -1382,6 +1394,9 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
     tocTitle: normalizePageText(raw.tocTitle, defaults.tocTitle),
     coverPage:
       typeof raw.coverPage === "boolean" ? raw.coverPage : defaults.coverPage,
+    coverTitle: normalizePageText(raw.coverTitle, defaults.coverTitle),
+    coverAuthor: normalizePageText(raw.coverAuthor, defaults.coverAuthor),
+    coverDate: normalizePageText(raw.coverDate, defaults.coverDate),
     codeLineNumbers:
       typeof raw.codeLineNumbers === "boolean" ? raw.codeLineNumbers : defaults.codeLineNumbers,
     imageCaptions:
@@ -2002,6 +2017,9 @@ export class ArticleSettingsManager {
         "tocDepth",
         "tocTitle",
         "coverPage",
+        "coverTitle",
+        "coverAuthor",
+        "coverDate",
         "codeLineNumbers",
         "imageCaptions",
         "hyphenate",

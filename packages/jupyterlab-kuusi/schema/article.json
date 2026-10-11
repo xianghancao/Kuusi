@@ -757,6 +757,24 @@
       "type": "boolean",
       "default": false
     },
+    "coverTitle": {
+      "title": "Cover title",
+      "description": "Title on the cover page; empty uses the document name.",
+      "type": "string",
+      "default": ""
+    },
+    "coverAuthor": {
+      "title": "Cover author",
+      "description": "Author line on the cover page; empty leaves it out.",
+      "type": "string",
+      "default": ""
+    },
+    "coverDate": {
+      "title": "Cover date",
+      "description": "Date text on the cover page; empty uses today's date.",
+      "type": "string",
+      "default": ""
+    },
     "codeLineNumbers": {
       "title": "Code line numbers",
       "description": "Number the lines of code blocks.",

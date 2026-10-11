@@ -1388,6 +1388,11 @@ button.jp-KuusiArticle-scrollAxis-btn {
   line-height: 1.2;
 }
 
+.jp-KuusiArticle-tocCoverAuthor {
+  font-size: 1.25em;
+  margin-top: 1.2em;
+}
+
 .jp-KuusiArticle-tocCoverDate {
   margin-top: 1.2em;
   opacity: 0.6;
