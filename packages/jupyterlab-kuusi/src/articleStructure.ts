@@ -179,7 +179,7 @@ export type StructureSettings = {
 
 const HEADINGS = "h1, h2, h3, h4, h5, h6";
 
-const contentHeadings = (rendered: HTMLElement): HTMLElement[] =>
+export const contentHeadings = (rendered: HTMLElement): HTMLElement[] =>
   Array.from(rendered.querySelectorAll<HTMLElement>(HEADINGS)).filter(
     (h) => !h.closest(`.${TOC_CLASS}`),
   );
@@ -288,15 +288,17 @@ export const applyStructure = (
     return;
   }
 
-  const entries = tocEntries(
-    headings.map((h, i) => ({
-      level: Number(h.tagName.slice(1)),
-      title: headingText(h),
-      number: labels[i],
-    })),
-    settings.tocDepth,
-    settings.tocShowH1 ? 1 : 2,
-  );
+  const listing = headings.map((h, i) => ({
+    level: Number(h.tagName.slice(1)),
+    title: headingText(h),
+    number: labels[i],
+  }));
+  let entries = tocEntries(listing, settings.tocDepth, settings.tocShowH1 ? 1 : 2);
+
+  // A document with only Heading 1 chapters would get an empty contents page.
+  if (entries.length === 0 && !settings.tocShowH1) {
+    entries = tocEntries(listing, settings.tocDepth, 1);
+  }
 
   if (entries.length === 0) {
     finish();
@@ -306,7 +308,23 @@ export const applyStructure = (
   const base = Math.min(...entries.map((e) => e.level));
   // Title and rows are separate flow blocks (no wrapper) so a long contents
   // page paginates like any other content.
-  const rows = entries.map((entry) => tocRow(entry, base));
+  const rows = entries.map((entry) => {
+    const row = tocRow(entry, base);
+    const target = headings[entry.heading];
+    row.setAttribute("role", "link");
+    row.tabIndex = 0;
+    const jump = (): void => {
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    row.addEventListener("click", jump);
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        jump();
+      }
+    });
+    return row;
+  });
   const titleNodes: HTMLElement[] = [];
   if (settings.tocShowTitle) {
     const title = document.createElement("div");

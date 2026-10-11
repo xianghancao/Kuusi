@@ -586,6 +586,7 @@ export const createArticlePageToolbar = (
           { id: "header", label: t.pageHeader(), group: t.headerFooter() },
           { id: "footer", label: t.pageFooter(), group: t.headerFooter() },
           { id: "numbers", label: t.pageNumbers(), group: t.headerFooter() },
+          { id: "cover", label: t.coverPage(), group: t.groupStructure() },
           {
             id: "contents",
             label: t.contentsSection(),

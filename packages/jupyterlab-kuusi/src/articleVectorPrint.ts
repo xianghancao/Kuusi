@@ -1,6 +1,7 @@
 import type { IDocumentWidget } from "@jupyterlab/docregistry";
 
 import { PAGE_GAP_PX } from "./articlePaged";
+import { contentHeadings } from "./articleStructure";
 
 /** Classes the scoped Article selectors hang off (`.jp-Document.jp-KuusiMarkdownArticle …`). */
 const SCOPE_CLASS = /^(jp-Kuusi|jp-Document$)/;
@@ -108,12 +109,71 @@ const escapeAttr = (value: string): string =>
  * spacing, so a long document does not copy its text once per page while the
  * column fragmentation (and so every position) stays as on screen.
  */
+/**
+ * Make a cloned block's in-document jumps work in the PDF: contents rows
+ * become real links to their heading's id (headings without one get one).
+ */
+const HEADING_SELECTOR = "h1, h2, h3, h4, h5, h6";
+const TOC_ROW = ".jp-KuusiArticle-tocRow";
+
+const linkClone = (
+  live: HTMLElement,
+  clone: HTMLElement,
+  anchors: Map<Element, string>,
+  targets: string[],
+): HTMLElement => {
+  const livePairs: HTMLElement[] = [
+    ...(live.matches(HEADING_SELECTOR) ? [live] : []),
+    ...Array.from(live.querySelectorAll<HTMLElement>(HEADING_SELECTOR)),
+  ];
+  const clonePairs: HTMLElement[] = [
+    ...(clone.matches(HEADING_SELECTOR) ? [clone] : []),
+    ...Array.from(clone.querySelectorAll<HTMLElement>(HEADING_SELECTOR)),
+  ];
+  livePairs.forEach((heading, index) => {
+    const anchor = anchors.get(heading);
+    if (anchor && clonePairs[index]) {
+      clonePairs[index].id = anchor;
+    }
+  });
+
+  const toLink = (row: HTMLElement): HTMLElement => {
+    const anchor = targets[Number(row.dataset.heading)];
+    if (!anchor) {
+      return row;
+    }
+
+    const link = document.createElement("a");
+    Array.from(row.attributes).forEach((attr) => {
+      if (attr.name !== "role" && attr.name !== "tabindex") {
+        link.setAttribute(attr.name, attr.value);
+      }
+    });
+    link.setAttribute("href", `#${anchor}`);
+    while (row.firstChild) {
+      link.appendChild(row.firstChild);
+    }
+    return link;
+  };
+
+  if (clone.matches(TOC_ROW)) {
+    return toLink(clone);
+  }
+
+  clone.querySelectorAll<HTMLElement>(TOC_ROW).forEach((row) => {
+    row.replaceWith(toLink(row));
+  });
+  return clone;
+};
+
 const clonePageContent = (
   pages: HTMLElement,
   sheet: HTMLElement,
   pageTop: number,
   pageHeight: number,
   target: HTMLElement,
+  anchors: Map<Element, string>,
+  targets: string[],
 ): void => {
   const cs = getComputedStyle(pages);
   const singleColumn = cs.columnCount === "auto" || cs.columnCount === "1";
@@ -133,9 +193,6 @@ const clonePageContent = (
       pieces: rects.length,
     };
   };
-  // Border-box bottom of the previous block, to give each empty box the exact
-  // distance it has on screen (margins may have collapsed).
-  let previousBottom = Number.parseFloat(cs.paddingTop) || 0;
 
   for (const child of Array.from(pages.childNodes)) {
     if (!(child instanceof HTMLElement)) {
@@ -157,7 +214,9 @@ const clonePageContent = (
       style.display !== "none";
 
     if (!flows) {
-      target.appendChild(child.cloneNode(true));
+      target.appendChild(
+        linkClone(child, child.cloneNode(true) as HTMLElement, anchors, targets),
+      );
       continue;
     }
 
@@ -167,7 +226,9 @@ const clonePageContent = (
       (top < pageTop + pageHeight + slack && bottom > pageTop - slack);
 
     if (near) {
-      target.appendChild(child.cloneNode(true));
+      target.appendChild(
+        linkClone(child, child.cloneNode(true) as HTMLElement, anchors, targets),
+      );
     } else {
       // Same tag and classes, so the break rules (keep headings with the next
       // block, orphans, widows) fragment it as on screen; no content.
@@ -177,11 +238,9 @@ const clonePageContent = (
       hollow.style.cssText =
         "display:block;box-sizing:border-box;min-height:0;padding:0;border:0;" +
         `height:${child.offsetHeight}px;` +
-        `margin:${Math.max(0, top - previousBottom)}px 0 ${style.marginBottom} 0;`;
+        `margin:${style.marginTop} 0 ${style.marginBottom} 0;`;
       target.appendChild(hollow);
     }
-
-    previousBottom = bottom;
   }
 };
 
@@ -199,6 +258,13 @@ const buildPrintHtml = (
   }
 
   const stride = height + PAGE_GAP_PX;
+  // Anchor id per heading, in the order the contents rows count them.
+  const anchors = new Map<Element, string>();
+  const targets = contentHeadings(pages).map((heading, index) => {
+    const id = heading.id || `kuusi-h-${index}`;
+    anchors.set(heading, id);
+    return id;
+  });
   const origin = offsetWithin(first, desk);
   const deskWidth = desk.clientWidth;
   const wrappers = [] as string[];
@@ -231,7 +297,7 @@ const buildPrintHtml = (
     page.className = PAGE_CLASS;
     page.style.cssText =
       `width:${width}px;height:${height}px;overflow:hidden;position:relative;` +
-      "break-after:page;page-break-after:always;";
+      "flex:none;";
 
     let parent: HTMLElement = page;
     outer.forEach((classes) => {
@@ -265,7 +331,7 @@ const buildPrintHtml = (
     parent.style.setProperty("transform", "none", "important");
     parent.style.setProperty("contain", "none", "important");
     parent.style.setProperty("--kuusi-render-zoom", "1");
-    clonePageContent(pages, sheet, pageTop, height, parent);
+    clonePageContent(pages, sheet, pageTop, height, parent, anchors, targets);
     wrappers.push(page.outerHTML);
   });
 
@@ -277,11 +343,17 @@ const buildPrintHtml = (
     `<!doctype html><html ${attrs}><head><meta charset="utf-8">` +
     `<title>${escapeAttr(title)}</title><base href="${escapeAttr(location.href)}">` +
     styleSheetsHtml() +
-    `<style>@page{size:${width}px ${height}px;margin:0}` +
-    "html,body{margin:0;padding:0;height:auto!important;overflow:visible!important;" +
-    "background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+    "<style>" +
+    "html,body{margin:0;height:auto!important;overflow:visible!important;" +
+    "-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+    "body{background:#e8e8e8!important;padding:24px 0}" +
+    `.${PAGE_CLASS}{margin:0 auto 24px!important;box-shadow:0 1px 6px rgb(0 0 0 / 25%)}` +
     `.${PAGE_CLASS} .jp-KuusiArticle-pageSheet{box-shadow:none!important;clip-path:none!important}` +
-    `.${PAGE_CLASS}:last-child{break-after:auto;page-break-after:auto}` +
+    `.${PAGE_CLASS} a.jp-KuusiArticle-tocRow,.${PAGE_CLASS} a.jp-KuusiArticle-tocRow *{color:inherit!important;text-decoration:none!important}` +
+    `@media print{@page{size:${width}px ${height}px;margin:0}` +
+    "body{background:#fff!important;padding:0}" +
+    `.${PAGE_CLASS}{margin:0!important;box-shadow:none;break-after:page;page-break-after:always}` +
+    `.${PAGE_CLASS}:last-child{break-after:auto;page-break-after:auto}}` +
     `</style></head><body class="${escapeAttr(document.body.className)}">` +
     wrappers.join("") +
     "</body></html>";
@@ -301,6 +373,19 @@ const waitForPrintAssets = async (doc: Document): Promise<void> => {
     ),
   );
   await doc.fonts?.ready;
+};
+
+/**
+ * The paged Article as one standalone HTML document: every page as laid out
+ * on screen, contents rows and heading links working, printable page by page.
+ * Null when the view has no pages.
+ */
+export const buildArticlePagesHtml = (
+  widget: IDocumentWidget,
+  title: string,
+): string | null => {
+  const article = findPagedArticle(widget);
+  return article ? (buildPrintHtml(article, title)?.html ?? null) : null;
 };
 
 /**

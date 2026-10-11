@@ -27,6 +27,7 @@ import { createKuusiTranslator, type KuusiTranslator } from "./kuusiI18n";
 import { scheduleDocumentToolbarRelayout } from "./documentToolbarLayout";
 import {
   articleVectorPdfAvailable,
+  buildArticlePagesHtml,
   printArticleVector,
 } from "./articleVectorPrint";
 import {
@@ -545,6 +546,25 @@ const downloadSourceFile = async (
 };
 
 const downloadRenderedHtml = async (widget: IDocumentWidget): Promise<void> => {
+  // A paged Article keeps its pages exactly as laid out on screen.
+  const pagesHtml = buildArticlePagesHtml(
+    widget,
+    PathExt.basename(widget.context.path),
+  );
+
+  if (pagesHtml) {
+    const pagesStem = PathExt.basename(
+      widget.context.path,
+      PathExt.extname(widget.context.path),
+    );
+    triggerDownload(
+      new Blob([pagesHtml], { type: "text/html;charset=utf-8" }),
+      `${pagesStem}.html`,
+    );
+    Notification.success(`Downloaded ${pagesStem}.html.`, { autoClose: 2500 });
+    return;
+  }
+
   const root = await resolveExportRoot(widget);
 
   if (!root) {

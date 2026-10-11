@@ -1623,3 +1623,18 @@ button.jp-KuusiArticle-sidebarCell.is-current {
   .jp-KuusiArticle-paper:not(.jp-KuusiArticle-pagerClone):not([data-kuusi-article-page-layout="paged"]) {
   padding-left: calc(252px + var(--kuusi-article-padding-x, 2rem));
 }
+
+/* Contents rows jump to their heading. */
+.jp-KuusiArticle-tocRow {
+  cursor: pointer;
+}
+
+.jp-KuusiArticle-tocRow:hover .jp-KuusiArticle-tocText,
+.jp-KuusiArticle-tocRow:focus-visible .jp-KuusiArticle-tocText {
+  text-decoration: underline;
+}
+
+a.jp-KuusiArticle-tocRow {
+  color: inherit;
+  text-decoration: none;
+}
