@@ -69,21 +69,24 @@ const kuusiMenuObservers = new WeakMap<HTMLElement, ResizeObserver>();
 const kuusiMenuTriggers = new WeakMap<HTMLElement, HTMLElement>();
 const kuusiMenuRoots = new WeakMap<HTMLElement, HTMLElement>();
 
+function closeKuusiMenuNode(node: Element): void {
+  node.classList.remove("is-open");
+
+  if (!(node instanceof HTMLElement)) {
+    return;
+  }
+
+  kuusiMenuObservers.get(node)?.disconnect();
+  kuusiMenuObservers.delete(node);
+  kuusiMenuTriggers.get(node)?.setAttribute("aria-expanded", "false");
+
+  clearKuusiDropdownMenuPosition(node);
+  restoreKuusiDropdownMenuHome(node);
+}
+
 const closeAllMenus = (root: HTMLElement): void => {
-  const closeOne = (node: Element): void => {
-    node.classList.remove("is-open");
+  const closeOne = closeKuusiMenuNode;
 
-    if (!(node instanceof HTMLElement)) {
-      return;
-    }
-
-    kuusiMenuObservers.get(node)?.disconnect();
-    kuusiMenuObservers.delete(node);
-    kuusiMenuTriggers.get(node)?.setAttribute("aria-expanded", "false");
-
-    clearKuusiDropdownMenuPosition(node);
-    restoreKuusiDropdownMenuHome(node);
-  };
 
   root.querySelectorAll(".jp-KuusiFormatDropdown-menu").forEach(closeOne);
 
@@ -174,6 +177,17 @@ export const positionKuusiDropdownMenu = (
 
   if (!(trigger instanceof HTMLElement)) {
     return;
+  }
+
+  // A portaled menu whose trigger was hidden or removed would be placed at
+  // the window corner and cover the JupyterLab menu bar; close it instead.
+  if (menu.classList.contains("jp-KuusiFormatDropdown-menu--portal")) {
+    const tr = trigger.getBoundingClientRect();
+
+    if (!trigger.isConnected || (tr.width === 0 && tr.height === 0)) {
+      closeKuusiMenuNode(menu);
+      return;
+    }
   }
 
   const panelRoot =
