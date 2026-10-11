@@ -86,6 +86,12 @@ export const createArticleTypographyModel = (
     void manager.update(partial);
   },
   preview: (partial) => manager.setPreview(partial),
+  tableRepeatHeader: {
+    get: () => manager.settings.tableRepeatHeader,
+    set: (tableRepeatHeader) => {
+      void manager.update({ tableRepeatHeader });
+    },
+  },
   lineHeightRange: {
     min: ARTICLE_LINE_HEIGHT_MIN,
     max: ARTICLE_LINE_HEIGHT_MAX,
@@ -532,15 +538,6 @@ export const createArticlePageToolbar = (
                     pageLayout: value as ArticlePageLayout,
                   });
                   rebuild();
-                },
-              },
-              {
-                kind: "toggle",
-                label: t.tableRepeatHeader(),
-                title: t.tableRepeatHeaderTitle(),
-                value: settings.tableRepeatHeader,
-                onChange: (tableRepeatHeader) => {
-                  void manager.update({ tableRepeatHeader });
                 },
               },
             ]);

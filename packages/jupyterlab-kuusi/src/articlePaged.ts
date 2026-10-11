@@ -1156,6 +1156,22 @@ const placeBlock = (
   return splitByLines(child, metrics);
 };
 
+const sheetShadowClip = (
+  page: number,
+  pages: number,
+  axis: "vertical" | "horizontal",
+): string => {
+  const reach = "calc(-1 * var(--kuusi-article-paper-shadow-width, 28px))";
+  const half = `${-PAGE_GAP_PX / 2}px`;
+  const before = page === 0 ? reach : half;
+  const after = page === pages - 1 ? reach : half;
+
+  // inset(top right bottom left)
+  return axis === "horizontal"
+    ? `inset(${reach} ${after} ${reach} ${before})`
+    : `inset(${before} ${reach} ${after} ${reach})`;
+};
+
 const appendPageSheets = (
   rendered: HTMLElement,
   pages: number,
@@ -1192,6 +1208,9 @@ const appendPageSheets = (
     } else {
       sheet.style.top = `${page * metrics.stride}px`;
     }
+    // Neighbouring shadows would stack in the gap and read darker than the
+    // desk beside the sheet, so each shadow stops at the middle of the gap.
+    sheet.style.clipPath = sheetShadowClip(page, pages, axis);
     if (settings) {
       decorateSheet(sheet, settings, title, page, pages, margins);
     }

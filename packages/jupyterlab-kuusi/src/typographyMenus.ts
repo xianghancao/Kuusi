@@ -119,6 +119,8 @@ export type TypographyModel = {
   update: (partial: Partial<TypographyValues>) => void;
   /** Show `partial` without saving it; null drops the preview (menu hover). */
   preview?: (partial: Partial<TypographyValues> | null) => void;
+  /** Present on Article: repeat table header rows on each page of a paged table. */
+  tableRepeatHeader?: { get: () => boolean; set: (value: boolean) => void };
   lineHeightRange: NumberRange;
   /** Present on Mind Map: Text menu adds Edit / Link tabs. */
   editMode?: TypographyEditMode;
@@ -1177,6 +1179,19 @@ const fillTableSection = (
         rebuild();
       },
     },
+    ...(model.tableRepeatHeader
+      ? [
+          {
+            kind: "toggle" as const,
+            label: t.tableRepeatHeader(),
+            title: t.tableRepeatHeaderTitle(),
+            value: model.tableRepeatHeader.get(),
+            onChange: (value: boolean) => {
+              model.tableRepeatHeader?.set(value);
+            },
+          },
+        ]
+      : []),
   ]);
 };
 
