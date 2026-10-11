@@ -23,6 +23,10 @@ export const createMindMapTypographyModel = (
   update: (partial) => {
     void manager.update(typographyPatch(manager.settings, partial));
   },
+  preview: (partial) =>
+    manager.setPreview(
+      partial ? typographyPatch(manager.settings, partial) : null,
+    ),
   lineHeightRange: MIND_MAP_LINE_HEIGHT_RANGE,
   editMode: {
     getFont: () => manager.settings.editFont,

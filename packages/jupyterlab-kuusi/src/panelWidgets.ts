@@ -2,6 +2,7 @@ import {
   appendColorPickerSection,
   type ColorSwatch,
 } from "./colorPicker";
+import { bindThemeRowPreview } from "./themeCapsule";
 import {
   appendDropdownSectionRow,
   createDropdownOptionRow,
@@ -21,6 +22,8 @@ export type ChoiceWidget = {
   value: string;
   options: ChoiceOption[];
   onChange: (value: string) => void;
+  /** Hover / keyboard focus preview; null drops it. Never saves. */
+  onPreview?: (value: string | null) => void;
   itemClassName?: string;
   labelClassName?: string;
   rowClassName?: string;
@@ -54,6 +57,8 @@ export type ColorWidget = {
   sectionLabel: string;
   value: string;
   onChange: (color: string) => void;
+  /** Hover preview of a swatch; null drops it. Never saves. */
+  onPreview?: (color: string | null) => void;
   swatches: ColorSwatch[];
   customInputId?: string;
   customDefault?: string;
@@ -134,6 +139,15 @@ const renderChoice = (panel: HTMLElement, widget: ChoiceWidget): void => {
       event.stopPropagation();
       widget.onChange(option.value);
     });
+    if (widget.onPreview) {
+      const owner = panel.closest<HTMLElement>(".jp-KuusiFormatDropdown-menu");
+      bindThemeRowPreview(
+        owner ?? panel,
+        item,
+        option.value,
+        widget.onPreview,
+      );
+    }
     row.appendChild(item);
   });
 };
@@ -293,6 +307,8 @@ const renderColor = (panel: HTMLElement, widget: ColorWidget): void => {
       customInputId: widget.customInputId,
       customDefault: widget.customDefault,
       includeDefaultSwatch: widget.includeDefaultSwatch,
+      onPreview: widget.onPreview,
+      previewOwner: panel.closest<HTMLElement>(".jp-KuusiFormatDropdown-menu"),
     },
   );
 };

@@ -45,6 +45,7 @@ export const createBookTypographyModel = (
   update: (partial) => {
     void manager.update(partial);
   },
+  preview: (partial) => manager.setPreview(partial),
   lineHeightRange: { min: 0.9, max: 2.4, step: 0.05 },
 });
 

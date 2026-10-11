@@ -12,6 +12,11 @@ export type ThemeCapsuleOption = {
   title: string;
 };
 
+const menuPreviews = new WeakMap<
+  HTMLElement,
+  Set<(value: string | null) => void>
+>();
+
 /**
  * Hover a row to preview its theme, move away to drop the preview, click to
  * apply. The preview is an unsaved overlay on the settings manager.
@@ -48,14 +53,18 @@ export const bindThemeRowPreview = (
   row.addEventListener("click", clear);
 
   // Esc / outside click closes the menu without a mouseleave on the row.
-  if (!menu.dataset.kuusiPreviewWatch) {
-    menu.dataset.kuusiPreviewWatch = "1";
+  let watched = menuPreviews.get(menu);
+  if (!watched) {
+    const set = new Set<(value: string | null) => void>();
+    watched = set;
+    menuPreviews.set(menu, set);
     new MutationObserver(() => {
       if (!menu.classList.contains("is-open")) {
-        preview(null);
+        set.forEach((drop) => drop(null));
       }
     }).observe(menu, { attributes: true, attributeFilter: ["class"] });
   }
+  watched.add(preview);
 };
 
 export type ThemeCapsuleOptions = {

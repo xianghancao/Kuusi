@@ -85,6 +85,7 @@ export const createArticleTypographyModel = (
   update: (partial) => {
     void manager.update(partial);
   },
+  preview: (partial) => manager.setPreview(partial),
   lineHeightRange: {
     min: ARTICLE_LINE_HEIGHT_MIN,
     max: ARTICLE_LINE_HEIGHT_MAX,

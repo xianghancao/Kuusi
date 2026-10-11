@@ -58,6 +58,16 @@ export const createSlidesTypographyModel = (
       color === undefined ? rest : { ...rest, textColor: color },
     );
   },
+  preview: (partial) => {
+    if (!partial) {
+      manager.setPreview(null);
+      return;
+    }
+    const { color, ...rest } = partial;
+    manager.setPreview(
+      color === undefined ? rest : { ...rest, textColor: color },
+    );
+  },
   lineHeightRange: SLIDES_LINE_HEIGHT_RANGE,
 });
 

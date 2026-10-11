@@ -1,4 +1,5 @@
 import { appendDropdownSection, appendDropdownSectionRow } from "./formatToolbar";
+import { bindThemeRowPreview } from "./themeCapsule";
 
 export type ColorSwatch = {
   label: string;
@@ -49,6 +50,8 @@ export const appendColorPickerSection = (
     customInputId?: string;
     customDefault?: string;
     includeDefaultSwatch?: boolean;
+    onPreview?: (color: string | null) => void;
+    previewOwner?: HTMLElement | null;
   },
 ): void => {
   const includeDefault = options?.includeDefaultSwatch ?? false;
@@ -84,6 +87,14 @@ export const appendColorPickerSection = (
       event.stopPropagation();
       onSelect(color);
     });
+    if (options?.onPreview) {
+      bindThemeRowPreview(
+        options.previewOwner ?? menu,
+        swatch,
+        color,
+        options.onPreview,
+      );
+    }
     row.appendChild(swatch);
   });
 

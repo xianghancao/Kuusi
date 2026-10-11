@@ -105,6 +105,8 @@ export type TypographyModel = {
   view: KuusiViewId;
   get: () => TypographyValues;
   update: (partial: Partial<TypographyValues>) => void;
+  /** Show `partial` without saving it; null drops the preview (menu hover). */
+  preview?: (partial: Partial<TypographyValues> | null) => void;
   lineHeightRange: NumberRange;
   /** Present on Mind Map: Text menu adds Edit / Link tabs. */
   editMode?: TypographyEditMode;
@@ -146,12 +148,26 @@ const rememberedSection = <Id extends string>(
   };
 };
 
+/**
+ * Hover preview for one menu control: `build(value)` gives the unsaved
+ * settings to show; null drops the overlay.
+ */
+const previewWith =
+  <V>(
+    model: TypographyModel,
+    build: (value: V) => Partial<TypographyValues>,
+  ): ((value: V | null) => void) | undefined =>
+  model.preview
+    ? (value) => model.preview?.(value === null ? null : build(value))
+    : undefined;
+
 const FONT_SECTION_ORDER: FontCategory[] = ["default", "sans", "serif", "cjk"];
 
 export const buildFontWidgets = (
   font: MindMapFont,
   onFontChange: (font: MindMapFont) => void,
   t: KuusiTranslator,
+  onPreview?: (font: MindMapFont | null) => void,
 ): PanelWidget[] => {
   const sectionLabels: Record<FontCategory, string> = {
     default: t.fontSectionDefault(),
@@ -181,6 +197,9 @@ export const buildFontWidgets = (
         onChange: (value: string) => {
           onFontChange(value as MindMapFont);
         },
+        onPreview: onPreview
+          ? (value: string | null) => onPreview(value as MindMapFont | null)
+          : undefined,
       },
     ];
   });
@@ -376,6 +395,13 @@ export const createTextToolbar = (
         });
       };
 
+      const previewHeading = (id: HeadingId, key: "font" | "color" | "align") =>
+        previewWith(model, (value: string) => ({
+          headers: updateHeadingStyle(model.get().headers, id, {
+            [key]: value,
+          } as Partial<TypographyValues["headers"][HeadingId]>),
+        }));
+
       mountSecondaryMenu<TextMenuSection>(menu, {
         ariaLabel: t.textStyle(),
         sections: [
@@ -397,6 +423,7 @@ export const createTextToolbar = (
                   rebuild();
                 },
                 t,
+                previewWith(model, (font: MindMapFont) => ({ font })),
               ),
               {
                 kind: "slider",
@@ -422,6 +449,7 @@ export const createTextToolbar = (
                 onChange: (color) => {
                   model.update({ color });
                 },
+                onPreview: previewWith(model, (color: string) => ({ color })),
               },
               {
                 kind: "color",
@@ -432,6 +460,9 @@ export const createTextToolbar = (
                 onChange: (strongColor) => {
                   model.update({ strongColor });
                 },
+                onPreview: previewWith(model, (strongColor: string) => ({
+                  strongColor,
+                })),
               },
               slider(
                 t.tracking(),
@@ -460,6 +491,7 @@ export const createTextToolbar = (
                 rebuild();
               },
               t,
+              previewHeading(id as HeadingId, "font"),
             ),
             {
               kind: "slider",
@@ -484,6 +516,7 @@ export const createTextToolbar = (
               onChange: (color) => {
                 updateHeading(id as HeadingId, { color });
               },
+              onPreview: previewHeading(id as HeadingId, "color"),
             },
             {
               kind: "choice",
@@ -494,6 +527,7 @@ export const createTextToolbar = (
                 updateHeading(id as HeadingId, { align: value as TextAlign });
                 rebuild();
               },
+              onPreview: previewHeading(id as HeadingId, "align"),
             },
           ]);
         },
@@ -570,6 +604,9 @@ export const createParagraphToolbar = (
                 model.update({ paragraphAlign: value as ParagraphAlign });
                 rebuild();
               },
+              onPreview: previewWith(model, (paragraphAlign: string) => ({
+                paragraphAlign: paragraphAlign as ParagraphAlign,
+              })),
             },
           ]);
         },
