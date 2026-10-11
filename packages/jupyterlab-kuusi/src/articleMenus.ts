@@ -69,6 +69,7 @@ type PageSection =
   | "background"
   | "view"
   | "status"
+  | "cover"
   | "contents"
   | "chapters"
   | "margins"
@@ -618,7 +619,7 @@ export const createArticlePageToolbar = (
             return;
           }
 
-          if (id === "contents" || id === "chapters") {
+          if (id === "cover" || id === "contents" || id === "chapters") {
             fillStructureSection(id, panel, manager, t, rebuild);
             return;
           }
@@ -1072,7 +1073,7 @@ const getPageNumberPositions = (
   }));
 
 const fillStructureSection = (
-  id: "contents" | "chapters",
+  id: "cover" | "contents" | "chapters",
   panel: HTMLElement,
   manager: ArticleSettingsManager,
   t: KuusiTranslator,
@@ -1080,7 +1081,7 @@ const fillStructureSection = (
 ): void => {
   const settings = manager.settings;
 
-  if (id === "contents") {
+  if (id === "cover") {
     renderPanelWidgets(panel, [
       {
         kind: "toggle",
@@ -1125,6 +1126,12 @@ const fillStructureSection = (
             },
           ] satisfies PanelWidget[])
         : []),
+    ]);
+    return;
+  }
+
+  if (id === "contents") {
+    renderPanelWidgets(panel, [
       {
         kind: "toggle",
         label: t.contentsShow(),
