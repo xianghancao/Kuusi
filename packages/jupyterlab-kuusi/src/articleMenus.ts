@@ -505,6 +505,7 @@ const ARTICLE_PAGE_KEYS = [
   "tocShow",
   "tocDepth",
   "tocTitle",
+  "tocShowTitle",
   "coverPage",
   "coverTitle",
   "coverAuthor",
@@ -1156,15 +1157,29 @@ const fillStructureSection = (
         },
       },
       {
-        kind: "text",
-        label: t.contentsTitleLabel(),
-        placeholder: t.contentsDefaultTitle(),
-        maxLength: 60,
-        value: settings.tocTitle,
-        onChange: (tocTitle) => {
-          void manager.update({ tocTitle });
+        kind: "toggle",
+        label: t.contentsHeadingToggle(),
+        title: t.contentsHeadingToggleHint(),
+        value: settings.tocShowTitle,
+        onChange: (tocShowTitle) => {
+          void manager.update({ tocShowTitle });
+          rebuild();
         },
       },
+      ...(settings.tocShowTitle
+        ? ([
+            {
+              kind: "text",
+              label: t.contentsTitleLabel(),
+              placeholder: t.contentsDefaultTitle(),
+              maxLength: 60,
+              value: settings.tocTitle,
+              onChange: (tocTitle: string) => {
+                void manager.update({ tocTitle });
+              },
+            },
+          ] satisfies PanelWidget[])
+        : []),
     ]);
     return;
   }

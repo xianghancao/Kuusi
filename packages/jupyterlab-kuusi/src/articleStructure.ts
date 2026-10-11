@@ -155,6 +155,7 @@ export type StructureSettings = {
   tocShow: boolean;
   tocDepth: number;
   tocTitle: string;
+  tocShowTitle: boolean;
   pageNumberStart: PageNumberStart;
 };
 
@@ -285,12 +286,16 @@ export const applyStructure = (
   const base = Math.min(...entries.map((e) => e.level));
   // Title and rows are separate flow blocks (no wrapper) so a long contents
   // page paginates like any other content.
-  const title = document.createElement("div");
-  title.className = `${TOC_CLASS} ${TOC_CLASS}Title`;
-  title.textContent = settings.tocTitle || fallbackTitle;
   const rows = entries.map((entry) => tocRow(entry, base));
+  const titleNodes: HTMLElement[] = [];
+  if (settings.tocShowTitle) {
+    const title = document.createElement("div");
+    title.className = `${TOC_CLASS} ${TOC_CLASS}Title`;
+    title.textContent = settings.tocTitle || fallbackTitle;
+    titleNodes.push(title);
+  }
   const before = flow.firstElementChild;
-  [title, ...rows].forEach((node) => flow.insertBefore(node, before));
+  [...titleNodes, ...rows].forEach((node) => flow.insertBefore(node, before));
 
   // Content after the contents page starts on a fresh page.
   const after = rows[rows.length - 1].nextElementSibling;

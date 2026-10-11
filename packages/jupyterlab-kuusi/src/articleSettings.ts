@@ -330,6 +330,8 @@ export type ArticleSettings = {
   tocDepth: number;
   /** Contents page heading; empty uses the localized “Contents”. */
   tocTitle: string;
+  /** Show the heading above the contents list. */
+  tocShowTitle: boolean;
   coverPage: boolean;
   /** Cover page title; empty uses the document name. */
   coverTitle: string;
@@ -389,6 +391,7 @@ type ArticleUserOnlyKey =
   | "tocShow"
   | "tocDepth"
   | "tocTitle"
+  | "tocShowTitle"
   | "coverPage"
   | "coverTitle"
   | "coverAuthor"
@@ -535,6 +538,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tocShow: false,
   tocDepth: 3,
   tocTitle: "",
+  tocShowTitle: true,
   coverPage: false,
   coverTitle: "",
   coverAuthor: "",
@@ -1401,6 +1405,10 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
           )
         : defaults.tocDepth,
     tocTitle: normalizePageText(raw.tocTitle, defaults.tocTitle),
+    tocShowTitle:
+      typeof raw.tocShowTitle === "boolean"
+        ? raw.tocShowTitle
+        : defaults.tocShowTitle,
     coverPage:
       typeof raw.coverPage === "boolean" ? raw.coverPage : defaults.coverPage,
     coverTitle: normalizePageText(raw.coverTitle, defaults.coverTitle),
@@ -2026,6 +2034,7 @@ export class ArticleSettingsManager {
         "tocShow",
         "tocDepth",
         "tocTitle",
+        "tocShowTitle",
         "coverPage",
         "coverTitle",
         "coverAuthor",

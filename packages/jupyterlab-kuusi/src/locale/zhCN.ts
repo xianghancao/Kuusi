@@ -59,6 +59,8 @@ export const ZH_CN: Record<string, string> = {
   "Standard": "标准",
   "High": "高",
   "Cover page": "封面页",
+  "Show title": "显示标题",
+  "Show a heading above the contents list": "在目录列表上方显示标题",
   "Numbered levels": "编号层级",
   "Number only Heading 1": "只给一级标题编号",
   "Number Heading 1 and Heading 2": "给一级和二级标题编号",

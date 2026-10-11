@@ -985,6 +985,12 @@
       "maximum": 4,
       "default": 3
     },
+    "tocShowTitle": {
+      "title": "Show contents title",
+      "description": "Show the heading above the contents list.",
+      "type": "boolean",
+      "default": true
+    },
     "tocTitle": {
       "title": "Contents title",
       "description": "Heading of the contents page; empty uses the localized default.",
