@@ -25,7 +25,7 @@ import {
   applyFontToScene,
   DEFAULT_BODY_FONT_SIZE_PX,
   DEFAULT_MIND_MAP_FONT,
-  MIND_MAP_FONT_SIZE_REM,
+  headingSizeCss,
   mindMapFontFamilyCss,
   normalizeBodyFontSizePx,
   type BodyFontSizePx,
@@ -652,7 +652,7 @@ export const applyMindMapTypography = (
     );
     scene.style.setProperty(
       `--kuusi-mindmap-${id}-font-size`,
-      MIND_MAP_FONT_SIZE_REM[style.fontSize],
+      headingSizeCss(style.fontSize),
     );
     scene.style.setProperty(
       `--kuusi-mindmap-${id}-color`,

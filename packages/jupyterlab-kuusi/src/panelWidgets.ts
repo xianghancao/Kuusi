@@ -60,6 +60,25 @@ export type SliderWidget = {
   onChange: (value: number) => void;
 };
 
+export type SizeStep = { label: string; value: number };
+
+/**
+ * Size picker: a slider that snaps to named steps, plus a number field for
+ * any value in range. Values are in points.
+ */
+export type SizeWidget = {
+  kind: "size";
+  label: string;
+  value: number;
+  steps: readonly SizeStep[];
+  min: number;
+  max: number;
+  /** Fired on every change, never rebuilds the menu. */
+  onChange: (value: number) => void;
+  /** Caption when the value sits between steps. */
+  customLabel: string;
+};
+
 export type ToggleWidget = {
   kind: "toggle";
   label: string;
@@ -96,6 +115,7 @@ export type PanelWidget =
   | ChoiceWidget
   | SelectWidget
   | SliderWidget
+  | SizeWidget
   | ToggleWidget
   | ColorWidget
   | TextWidget;
@@ -377,6 +397,113 @@ const renderSlider = (panel: HTMLElement, widget: SliderWidget): void => {
   panel.appendChild(section);
 };
 
+const renderSize = (panel: HTMLElement, widget: SizeWidget): void => {
+  const section = document.createElement("div");
+  section.className = "jp-KuusiPanelWidget-slider jp-KuusiPanelWidget-size";
+
+  const header = document.createElement("div");
+  header.className = "jp-KuusiPanelWidget-sliderHeader";
+
+  const labelEl = document.createElement("span");
+  labelEl.className = "jp-KuusiPanelWidget-sliderLabel";
+  labelEl.textContent = widget.label;
+
+  const caption = document.createElement("span");
+  caption.className = "jp-KuusiPanelWidget-sizeCaption";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.className = "jp-KuusiPanelWidget-sliderValueInput";
+  input.min = String(widget.min);
+  input.max = String(widget.max);
+  input.step = "0.5";
+  input.setAttribute("aria-label", widget.label);
+  input.title = widget.label;
+
+  const unit = document.createElement("span");
+  unit.className = "jp-KuusiPanelWidget-sizeUnit";
+  unit.textContent = "pt";
+
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.className = "jp-KuusiPanelWidget-sliderInput";
+  slider.min = "0";
+  slider.max = String(widget.steps.length - 1);
+  slider.step = "1";
+  slider.setAttribute("aria-label", widget.label);
+  slider.title = widget.label;
+
+  const nearest = (value: number): number =>
+    widget.steps.reduce(
+      (best, step, index) =>
+        Math.abs(step.value - value) <
+        Math.abs(widget.steps[best].value - value)
+          ? index
+          : best,
+      0,
+    );
+
+  const show = (value: number, syncInput: boolean): void => {
+    const index = nearest(value);
+    slider.value = String(index);
+    const onStep = Math.abs(widget.steps[index].value - value) < 0.005;
+    caption.textContent = onStep ? widget.steps[index].label : widget.customLabel;
+    if (syncInput) {
+      input.value = String(value);
+    }
+  };
+
+  const stop = (target: HTMLElement): void => {
+    ["pointerdown", "mousedown", "click"].forEach((type) => {
+      target.addEventListener(type, (event) => {
+        event.stopPropagation();
+      });
+    });
+  };
+
+  slider.addEventListener("input", () => {
+    const step = widget.steps[Number(slider.value)];
+    show(step.value, true);
+    widget.onChange(step.value);
+  });
+
+  const commitInput = (): void => {
+    const parsed = Number.parseFloat(input.value);
+    if (!Number.isFinite(parsed)) {
+      show(widget.value, true);
+      return;
+    }
+    const next = Math.min(
+      widget.max,
+      Math.max(widget.min, Math.round(parsed * 10) / 10),
+    );
+    show(next, true);
+    widget.onChange(next);
+  };
+
+  input.addEventListener("change", commitInput);
+  input.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitInput();
+      input.blur();
+    }
+  });
+  stop(input);
+  stop(slider);
+
+  show(widget.value, true);
+
+  const value = document.createElement("span");
+  value.className = "jp-KuusiPanelWidget-sizeValue";
+  value.append(caption, input, unit);
+
+  header.append(labelEl, value);
+  section.append(header, slider);
+  panel.appendChild(section);
+};
+
 const renderToggle = (panel: HTMLElement, widget: ToggleWidget): void => {
   const section = document.createElement("div");
   section.className = "jp-KuusiPanelWidget-toggle";
@@ -500,6 +627,9 @@ export const renderPanelWidget = (
       return;
     case "slider":
       renderSlider(panel, widget);
+      return;
+    case "size":
+      renderSize(panel, widget);
       return;
     case "toggle":
       renderToggle(panel, widget);

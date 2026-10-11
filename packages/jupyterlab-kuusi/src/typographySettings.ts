@@ -30,7 +30,9 @@ import {
   DEFAULT_MIND_MAP_FONT_SIZE,
   FONT_OPTIONS,
   normalizeBodyFontSizePx,
+  normalizeHeadingFontSize,
   normalizeMindMapFontSize,
+  type HeadingFontSize,
   type BodyFontSizePx,
   type MindMapFont,
   type MindMapFontSize,
@@ -55,7 +57,7 @@ export type HeadingId = `h${HeadingLevel}`;
 
 export type HeadingStyle = {
   font: MindMapFont;
-  fontSize: MindMapFontSize;
+  fontSize: HeadingFontSize;
   /** Empty string follows the page foreground. */
   color: string;
   align: TextAlign;
@@ -245,7 +247,7 @@ export const normalizeHeadingStyle = (
 
   return {
     font: isTypographyFont(raw.font) ? raw.font : fallback.font,
-    fontSize: normalizeMindMapFontSize(raw.fontSize) ?? fallback.fontSize,
+    fontSize: normalizeHeadingFontSize(raw.fontSize) ?? fallback.fontSize,
     color: isTypographyColor(raw.color) ? raw.color : fallback.color,
     align: isTextAlign(raw.align) ? raw.align : fallback.align,
   };

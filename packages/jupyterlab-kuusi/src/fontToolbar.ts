@@ -176,6 +176,78 @@ export const normalizeMindMapFontSize = (
   return LEGACY_FONT_SIZE_MAP[value] ?? null;
 };
 
+/**
+ * Heading size: a named step, or a custom CSS px value. A custom value that
+ * lands on a step is stored as that step, so presets compare equal.
+ */
+export type HeadingFontSize = MindMapFontSize | number;
+
+/** One heading scale for every view, in points (Word-like whole numbers). */
+export const HEADING_STEP_PT: Record<MindMapFontSize, number> = {
+  xxs: 10,
+  xs: 11,
+  sm: 13,
+  md: 15,
+  lg: 18,
+  xl: 22,
+  xxl: 27,
+};
+
+/** Body size steps in points; 10.5pt is the default body size. */
+export const BODY_STEP_PT: readonly number[] = [9, 10, 10.5, 11, 12, 14, 16];
+
+/** Custom heading sizes the number field accepts, in points. */
+export const HEADING_FONT_SIZE_PT_RANGE = { min: 6, max: 72 } as const;
+
+const roundPx = (value: number): number => Math.round(value * 100) / 100;
+
+export const HEADING_STEP_PX: Record<MindMapFontSize, number> = {
+  xxs: roundPx(HEADING_STEP_PT.xxs * PX_PER_PT),
+  xs: roundPx(HEADING_STEP_PT.xs * PX_PER_PT),
+  sm: roundPx(HEADING_STEP_PT.sm * PX_PER_PT),
+  md: roundPx(HEADING_STEP_PT.md * PX_PER_PT),
+  lg: roundPx(HEADING_STEP_PT.lg * PX_PER_PT),
+  xl: roundPx(HEADING_STEP_PT.xl * PX_PER_PT),
+  xxl: roundPx(HEADING_STEP_PT.xxl * PX_PER_PT),
+};
+
+export const headingSizePx = (size: HeadingFontSize): number =>
+  typeof size === "number" ? size : HEADING_STEP_PX[size];
+
+export const headingSizeCss = (size: HeadingFontSize): string =>
+  `${headingSizePx(size)}px`;
+
+/** The named step closest to `px` (for views that only know steps). */
+export const nearestHeadingStep = (px: number): MindMapFontSize =>
+  MIND_MAP_FONT_SIZES.reduce((best, step) =>
+    Math.abs(HEADING_STEP_PX[step] - px) <
+    Math.abs(HEADING_STEP_PX[best] - px)
+      ? step
+      : best,
+  );
+
+/** Step name for a size that sits on a step, otherwise the clamped px. */
+export const canonicalHeadingSize = (px: number): HeadingFontSize => {
+  const min = HEADING_FONT_SIZE_PT_RANGE.min * PX_PER_PT;
+  const max = HEADING_FONT_SIZE_PT_RANGE.max * PX_PER_PT;
+  const clamped = roundPx(Math.min(max, Math.max(min, px)));
+  const step = MIND_MAP_FONT_SIZES.find(
+    (name) => Math.abs(HEADING_STEP_PX[name] - clamped) < 0.02,
+  );
+
+  return step ?? clamped;
+};
+
+export const normalizeHeadingFontSize = (
+  value: unknown,
+): HeadingFontSize | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return canonicalHeadingSize(value);
+  }
+
+  return normalizeMindMapFontSize(value);
+};
+
 export const fontSizeToSliderIndex = (size: MindMapFontSize): number =>
   Math.max(0, MIND_MAP_FONT_SIZES.indexOf(size));
 

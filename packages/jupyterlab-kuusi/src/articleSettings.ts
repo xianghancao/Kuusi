@@ -7,6 +7,8 @@ import {
   bodyFontSizeCss,
   mindMapFontFamilyCss,
   normalizeBodyFontSizePx,
+  headingSizeCss,
+  normalizeHeadingFontSize,
   normalizeMindMapFontSize,
   type BodyFontSizePx,
   type MindMapFont,
@@ -422,16 +424,6 @@ export const ARTICLE_HEADER_LEVELS: ArticleHeaderLevel[] = [1, 2, 3, 4, 5, 6];
 export const articleHeaderId = (level: ArticleHeaderLevel): ArticleHeaderId =>
   `h${level}`;
 
-const HEADER_SIZE_CSS: Record<ArticleFontSize, string> = {
-  xxs: "0.85rem",
-  xs: "0.95rem",
-  sm: "1.1rem",
-  md: "1.25rem",
-  lg: "1.5rem",
-  xl: "1.85rem",
-  xxl: "2.25rem",
-};
-
 const makeHeader = (
   partial: Partial<ArticleHeaderStyle> = {},
 ): ArticleHeaderStyle => ({
@@ -575,7 +567,7 @@ const headersFromLegacyTitle = (raw: {
   titleAlign?: unknown;
 }): ArticleHeaders | null => {
   const font = isFont(raw.titleFont) ? raw.titleFont : null;
-  const fontSize = normalizeMindMapFontSize(raw.titleFontSize);
+  const fontSize = normalizeHeadingFontSize(raw.titleFontSize);
   const align = isHeaderAlign(raw.titleAlign) ? raw.titleAlign : null;
 
   if (!font && !fontSize && !align) {
@@ -1048,7 +1040,7 @@ const normalizeHeaderStyle = (
 
   return {
     font: isFont(raw.font) ? raw.font : fallback.font,
-    fontSize: normalizeMindMapFontSize(raw.fontSize) ?? fallback.fontSize,
+    fontSize: normalizeHeadingFontSize(raw.fontSize) ?? fallback.fontSize,
     color: isColor(raw.color) ? raw.color : fallback.color,
     align: isHeaderAlign(raw.align) ? raw.align : fallback.align,
   };
@@ -1648,7 +1640,7 @@ export const applyArticleAppearance = (
     );
     host.style.setProperty(
       `--kuusi-article-${id}-font-size`,
-      HEADER_SIZE_CSS[style.fontSize],
+      headingSizeCss(style.fontSize),
     );
     host.style.setProperty(
       `--kuusi-article-${id}-color`,

@@ -25,16 +25,26 @@
           ]
         },
         "fontSize": {
-          "type": "string",
-          "enum": [
-            "xxs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "xxl"
-          ]
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "xxs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "xxl"
+              ]
+            },
+            {
+              "type": "number",
+              "minimum": 8,
+              "maximum": 96
+            }
+          ],
+          "description": "A size step, or a custom size in CSS px."
         },
         "color": {
           "type": "string"

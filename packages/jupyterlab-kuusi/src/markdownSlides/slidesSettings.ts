@@ -5,6 +5,7 @@ import {
   DEFAULT_MIND_MAP_FONT,
   mindMapFontFamilyCss,
   normalizeBodyFontSizePx,
+  nearestHeadingStep,
   normalizeMindMapFontSize,
   type BodyFontSizePx,
   type MindMapFont,
@@ -881,7 +882,11 @@ export const applySlidesAppearance = (
     const style = settings.headers[id];
     host.style.setProperty(
       `--kuusi-slides-${id}-font-size`,
-      SLIDES_HEADING_SIZE_EM[style.fontSize],
+      SLIDES_HEADING_SIZE_EM[
+        typeof style.fontSize === "number"
+          ? nearestHeadingStep(style.fontSize)
+          : style.fontSize
+      ],
     );
     setOrRemove(
       host,

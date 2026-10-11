@@ -1428,6 +1428,22 @@ button.jp-KuusiPanelWidget-switch.is-on .jp-KuusiPanelWidget-switchThumb {
   text-align: right;
 }
 
+.jp-KuusiPanelWidget-sizeValue {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.jp-KuusiPanelWidget-sizeCaption {
+  color: var(--jp-ui-font-color2);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.jp-KuusiPanelWidget-sizeUnit {
+  color: var(--jp-ui-font-color2);
+}
+
 .jp-KuusiPanelWidget-sliderValueInput {
   background: var(--jp-layout-color1);
   border: 1px solid var(--jp-border-color2);

@@ -280,6 +280,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   fontSectionSerif: () => t.__("Serif"),
   fontSectionChinese: () => t.__("Chinese"),
   fontSizeSection: () => t.__("Size"),
+  sizeCustom: () => t.__("Custom"),
   fontSizeEdit: () => t.__("Edit"),
   fontSizeDisplay: () => t.__("Display"),
   fontLink: () => t.__("Link"),

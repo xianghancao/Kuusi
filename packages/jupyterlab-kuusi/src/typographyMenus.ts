@@ -19,9 +19,18 @@ import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown
 import { APPEARANCE_COLOR_SWATCHES } from "./colorPicker";
 import {
   BODY_FONT_SIZE_INPUT_STEP,
+  BODY_FONT_SIZE_PT_RANGE,
   BODY_FONT_SIZE_STEP,
+  BODY_STEP_PT,
   FONT_OPTIONS,
+  HEADING_FONT_SIZE_PT_RANGE,
+  HEADING_STEP_PT,
   MIND_MAP_FONT_SIZES,
+  PX_PER_PT,
+  canonicalHeadingSize,
+  fontSizeShortLabel,
+  headingSizePx,
+  nearestHeadingStep,
   ptToPx,
   pxToPt,
   clampBodyFontSizePx,
@@ -31,6 +40,8 @@ import {
   sliderIndexToFontSize,
   type BodyFontSizePx,
   type FontCategory,
+  type HeadingFontSize,
+  type MindMapFontSize,
   type MindMapFont,
 } from "./fontToolbar";
 import { appendMenuFooterAction } from "./menuFooter";
@@ -54,6 +65,7 @@ import {
   renderPanelWidgets,
   type ChoiceOption,
   type PanelWidget,
+  type SizeStep,
 } from "./panelWidgets";
 import { mountSecondaryMenu } from "./secondaryMenu";
 import {
@@ -160,6 +172,19 @@ const previewWith =
   model.preview
     ? (value) => model.preview?.(value === null ? null : build(value))
     : undefined;
+
+const headingSizeSteps: SizeStep[] = MIND_MAP_FONT_SIZES.map((name) => ({
+  label: fontSizeShortLabel(name),
+  value: HEADING_STEP_PT[name],
+}));
+
+const bodySizeSteps: SizeStep[] = BODY_STEP_PT.map((pt, index) => ({
+  label: fontSizeShortLabel(MIND_MAP_FONT_SIZES[index]),
+  value: pt,
+}));
+
+const nearestHeadingStepOf = (size: HeadingFontSize): MindMapFontSize =>
+  typeof size === "number" ? nearestHeadingStep(size) : size;
 
 const FONT_SECTION_ORDER: FontCategory[] = ["default", "sans", "serif", "cjk"];
 
@@ -423,15 +448,13 @@ export const createTextToolbar = (
                 previewWith(model, (font: MindMapFont) => ({ font })),
               ),
               {
-                kind: "slider",
+                kind: "size",
                 label: t.fontSizeSection(),
                 value: pxToPt(clampBodyFontSizePx(values.fontSize)),
-                min: BODY_FONT_SIZE_RANGE.min,
-                max: BODY_FONT_SIZE_RANGE.max,
-                step: BODY_FONT_SIZE_STEP,
-                editable: true,
-                inputStep: BODY_FONT_SIZE_INPUT_STEP,
-                formatValue: (pt: number) => `${pt}pt`,
+                steps: bodySizeSteps,
+                min: BODY_FONT_SIZE_PT_RANGE.min,
+                max: BODY_FONT_SIZE_PT_RANGE.max,
+                customLabel: t.sizeCustom(),
                 onChange: (size) => {
                   model.update({ fontSize: ptToPx(size) });
                 },
@@ -490,20 +513,37 @@ export const createTextToolbar = (
               t,
               previewHeading(id as HeadingId, "font"),
             ),
-            {
-              kind: "slider",
-              label: t.fontSizeSection(),
-              value: fontSizeToSliderIndex(style.fontSize),
-              min: 0,
-              max: MIND_MAP_FONT_SIZES.length - 1,
-              formatValue: (index) =>
-                fontSizeLabel(sliderIndexToFontSize(index)),
-              onChange: (index) => {
-                updateHeading(id as HeadingId, {
-                  fontSize: sliderIndexToFontSize(index),
-                });
-              },
-            },
+            model.scope === "slides"
+              ? {
+                  kind: "slider",
+                  label: t.fontSizeSection(),
+                  value: fontSizeToSliderIndex(
+                    nearestHeadingStepOf(style.fontSize),
+                  ),
+                  min: 0,
+                  max: MIND_MAP_FONT_SIZES.length - 1,
+                  formatValue: (index: number) =>
+                    fontSizeLabel(sliderIndexToFontSize(index)),
+                  onChange: (index: number) => {
+                    updateHeading(id as HeadingId, {
+                      fontSize: sliderIndexToFontSize(index),
+                    });
+                  },
+                }
+              : {
+                  kind: "size",
+                  label: t.fontSizeSection(),
+                  value: pxToPt(headingSizePx(style.fontSize)),
+                  steps: headingSizeSteps,
+                  min: HEADING_FONT_SIZE_PT_RANGE.min,
+                  max: HEADING_FONT_SIZE_PT_RANGE.max,
+                  customLabel: t.sizeCustom(),
+                  onChange: (size: number) => {
+                    updateHeading(id as HeadingId, {
+                      fontSize: canonicalHeadingSize(size * PX_PER_PT),
+                    });
+                  },
+                },
             {
               kind: "color",
               sectionLabel: t.color(),

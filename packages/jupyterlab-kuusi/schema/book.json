@@ -32,16 +32,26 @@
           ]
         },
         "fontSize": {
-          "type": "string",
-          "enum": [
-            "xxs",
-            "xs",
-            "sm",
-            "md",
-            "lg",
-            "xl",
-            "xxl"
-          ]
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "xxs",
+                "xs",
+                "sm",
+                "md",
+                "lg",
+                "xl",
+                "xxl"
+              ]
+            },
+            {
+              "type": "number",
+              "minimum": 8,
+              "maximum": 96
+            }
+          ],
+          "description": "A size step, or a custom size in CSS px."
         },
         "color": {
           "type": "string",
@@ -187,7 +197,10 @@
     "fontSize": {
       "title": "Book body font size",
       "description": "Body size in points. Older named sizes (xs, sm, ...) are still read.",
-      "type": ["number", "string"],
+      "type": [
+        "number",
+        "string"
+      ],
       "minimum": 8,
       "maximum": 37.5,
       "default": 15
@@ -511,7 +524,10 @@
       "title": "Book page number start",
       "description": "Number from the first spread, or skip the first and start on spread 2.",
       "type": "string",
-      "enum": ["first", "second"],
+      "enum": [
+        "first",
+        "second"
+      ],
       "default": "first"
     }
   },
