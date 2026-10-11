@@ -248,6 +248,12 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   headingNumberingRomanTitle: () =>
     t.__("Chapters as I, II, III, sections as 1.1"),
   chapterBreak: () => t.__("New page before"),
+  headingNumberStart: () => t.__("Start numbering at"),
+  headingNumberStartH1: () => t.__("Heading 1"),
+  headingNumberStartH1Title: () => t.__("Heading 1 is the first numbered level"),
+  headingNumberStartH2: () => t.__("Heading 2"),
+  headingNumberStartH2Title: () =>
+    t.__("Leave Heading 1 (the document title) unnumbered and start at Heading 2"),
   headingNumberDepth: () => t.__("Numbered levels"),
   headingNumberDepthH1: () => t.__("Heading 1"),
   headingNumberDepthH1Title: () => t.__("Number only Heading 1"),

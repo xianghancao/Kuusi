@@ -949,6 +949,16 @@
       ],
       "default": "none"
     },
+    "headingNumberStart": {
+      "title": "Heading number start",
+      "description": "First heading level that gets a number; H2 leaves the document title (H1) unnumbered.",
+      "type": "string",
+      "enum": [
+        "h1",
+        "h2"
+      ],
+      "default": "h1"
+    },
     "headingNumberDepth": {
       "title": "Heading number depth",
       "description": "Heading levels that get a number: H1 only, H1 and H2, or all.",

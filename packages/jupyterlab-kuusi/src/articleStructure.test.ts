@@ -43,6 +43,21 @@ test("number depth limits which levels carry a number", () => {
   assert.deepEqual(headingNumberLabels([1, 2, 3], "decimal", "h2"), ["1", "1.1", ""]);
 });
 
+test("start at H2 leaves the title unnumbered", () => {
+  assert.deepEqual(
+    headingNumberLabels([1, 2, 3, 2], "decimal", "all", "h2"),
+    ["", "1", "1.1", "2"],
+  );
+  assert.deepEqual(
+    headingNumberLabels([1, 2, 2], "roman", "all", "h2"),
+    ["", "I", "II"],
+  );
+  assert.deepEqual(
+    headingNumberLabels([1, 2, 3, 4], "decimal", "h2", "h2"),
+    ["", "1", "1.1", ""],
+  );
+});
+
 test("none yields empty labels", () => {
   assert.deepEqual(headingNumberLabels([1, 2], "none"), ["", ""]);
 });

@@ -7,6 +7,7 @@ import { resolvePageNumberDisplay, type PageNumberStart } from "./pageNumberStar
 import { pageIndexAt } from "./pdfOutline";
 
 export type HeadingNumbering = "none" | "decimal" | "roman";
+export type HeadingNumberStart = "h1" | "h2";
 export type HeadingNumberDepth = "h1" | "h2" | "all";
 export type ChapterBreak = "none" | "h1" | "h2";
 
@@ -20,6 +21,8 @@ export const TOC_DEPTH_RANGE = { min: 1, max: 4 } as const;
 
 export const isHeadingNumbering = (v: unknown): v is HeadingNumbering =>
   typeof v === "string" && (HEADING_NUMBERINGS as readonly string[]).includes(v);
+export const isHeadingNumberStart = (v: unknown): v is HeadingNumberStart =>
+  v === "h1" || v === "h2";
 export const isHeadingNumberDepth = (v: unknown): v is HeadingNumberDepth =>
   v === "h1" || v === "h2" || v === "all";
 export const isChapterBreak = (v: unknown): v is ChapterBreak =>
@@ -72,16 +75,25 @@ export const headingNumberLabels = (
   levels: readonly number[],
   mode: HeadingNumbering,
   depth: HeadingNumberDepth = "all",
+  start: HeadingNumberStart = "h1",
 ): string[] => {
   if (mode === "none") {
     return levels.map(() => "");
   }
 
-  const base = levels.length > 0 ? Math.min(...levels) : 1;
+  // Headings above the start level (typically the document title) get no
+  // number; the shallowest numbered level is the chapter level.
+  const first = start === "h2" ? 2 : 1;
+  const numbered = levels.filter((level) => level >= first);
+  const base = numbered.length > 0 ? Math.min(...numbered) : first;
   const counters = [0, 0, 0, 0, 0, 0];
   const maxLevels = depth === "h1" ? 1 : depth === "h2" ? 2 : 6;
 
   return levels.map((level) => {
+    if (level < first) {
+      return "";
+    }
+
     const index = Math.min(6, Math.max(1, level)) - 1;
     counters[index] += 1;
 
@@ -151,6 +163,7 @@ export type StructureSettings = {
   codeLineNumbers: boolean;
   headingNumbering: HeadingNumbering;
   headingNumberDepth: HeadingNumberDepth;
+  headingNumberStart: HeadingNumberStart;
   chapterBreak: ChapterBreak;
   tocShow: boolean;
   tocDepth: number;
@@ -231,6 +244,7 @@ export const applyStructure = (
     headings.map((h) => Number(h.tagName.slice(1))),
     settings.headingNumbering,
     settings.headingNumberDepth,
+    settings.headingNumberStart,
   );
   headings.forEach((h, i) => {
     if (labels[i]) {
