@@ -999,7 +999,7 @@
       "title": "Show contents title",
       "description": "Show the heading above the contents list.",
       "type": "boolean",
-      "default": true
+      "default": false
     },
     "tocTitle": {
       "title": "Contents title",

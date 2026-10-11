@@ -544,7 +544,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tocShow: false,
   tocDepth: 3,
   tocTitle: "",
-  tocShowTitle: true,
+  tocShowTitle: false,
   coverPage: false,
   coverTitle: "",
   coverAuthor: "",
