@@ -1145,9 +1145,9 @@ const fillStructureSection = (
           title: t.headingNumberingDecimalTitle(),
         },
         {
-          value: "chinese",
-          label: t.headingNumberingChinese(),
-          title: t.headingNumberingChineseTitle(),
+          value: "roman",
+          label: t.headingNumberingRoman(),
+          title: t.headingNumberingRomanTitle(),
         },
       ],
       onChange: (value) => {

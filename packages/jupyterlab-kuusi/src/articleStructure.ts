@@ -6,13 +6,13 @@
 import { resolvePageNumberDisplay, type PageNumberStart } from "./pageNumberStart";
 import { pageIndexAt } from "./pdfOutline";
 
-export type HeadingNumbering = "none" | "decimal" | "chinese";
+export type HeadingNumbering = "none" | "decimal" | "roman";
 export type ChapterBreak = "none" | "h1" | "h2";
 
 export const HEADING_NUMBERINGS: readonly HeadingNumbering[] = [
   "none",
   "decimal",
-  "chinese",
+  "roman",
 ];
 export const CHAPTER_BREAKS: readonly ChapterBreak[] = ["none", "h1", "h2"];
 export const TOC_DEPTH_RANGE = { min: 1, max: 4 } as const;
@@ -26,27 +26,39 @@ export const NUMBER_ATTR = "data-kuusi-num";
 export const PAGE_BREAK_ATTR = "data-kuusi-page-break";
 export const TOC_CLASS = "jp-KuusiArticle-toc";
 
-const DIGITS = "零一二三四五六七八九";
+const ROMAN_NUMERALS: ReadonlyArray<readonly [number, string]> = [
+  [1000, "M"],
+  [900, "CM"],
+  [500, "D"],
+  [400, "CD"],
+  [100, "C"],
+  [90, "XC"],
+  [50, "L"],
+  [40, "XL"],
+  [10, "X"],
+  [9, "IX"],
+  [5, "V"],
+  [4, "IV"],
+  [1, "I"],
+];
 
-/** 1 → 一, 10 → 十, 21 → 二十一, 100 → 一百 (enough for chapter counters). */
-export const chineseNumeral = (n: number): string => {
-  const value = Math.max(0, Math.floor(n));
+/** 1 → I, 4 → IV, 14 → XIV (chapter counters; falls back to digits past 3999). */
+export const romanNumeral = (n: number): string => {
+  let rest = Math.max(0, Math.floor(n));
 
-  if (value < 10) {
-    return DIGITS[value];
+  if (rest === 0 || rest >= 4000) {
+    return String(rest);
   }
 
-  if (value < 20) {
-    return `十${value % 10 === 0 ? "" : DIGITS[value % 10]}`;
+  let out = "";
+  for (const [value, symbol] of ROMAN_NUMERALS) {
+    while (rest >= value) {
+      out += symbol;
+      rest -= value;
+    }
   }
 
-  if (value < 100) {
-    const tens = Math.floor(value / 10);
-    const ones = value % 10;
-    return `${DIGITS[tens]}十${ones === 0 ? "" : DIGITS[ones]}`;
-  }
-
-  return String(value);
+  return out;
 };
 
 /**
@@ -76,8 +88,8 @@ export const headingNumberLabels = (
       .slice(base - 1, index + 1)
       .filter((count, i, all) => count > 0 || i === all.length - 1);
 
-    if (mode === "chinese" && path.length === 1) {
-      return `第${chineseNumeral(path[0])}章`;
+    if (mode === "roman" && path.length === 1) {
+      return romanNumeral(path[0]);
     }
 
     return path.join(".");

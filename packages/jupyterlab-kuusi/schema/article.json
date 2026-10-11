@@ -921,11 +921,12 @@
     },
     "headingNumbering": {
       "title": "Heading numbering",
-      "description": "Number headings 1 / 1.1, or 第一章 / 1.1.",
+      "description": "Number headings 1 / 1.1, or I / 1.1 (\"chinese\" is the old name for \"roman\").",
       "type": "string",
       "enum": [
         "none",
         "decimal",
+        "roman",
         "chinese"
       ],
       "default": "none"

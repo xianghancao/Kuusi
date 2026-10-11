@@ -242,9 +242,9 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   headingNumberingNoneTitle: () => t.__("Headings keep their written text"),
   headingNumberingDecimal: () => t.__("1, 1.1"),
   headingNumberingDecimalTitle: () => t.__("Number headings 1, 1.1, 1.1.1"),
-  headingNumberingChinese: () => t.__("第一章, 1.1"),
-  headingNumberingChineseTitle: () =>
-    t.__("Chapters as 第一章, sections as 1.1"),
+  headingNumberingRoman: () => t.__("I, 1.1"),
+  headingNumberingRomanTitle: () =>
+    t.__("Chapters as I, II, III, sections as 1.1"),
   chapterBreak: () => t.__("New page before"),
   chapterBreakNone: () => t.__("None"),
   chapterBreakNoneTitle: () => t.__("Headings flow on without a page break"),

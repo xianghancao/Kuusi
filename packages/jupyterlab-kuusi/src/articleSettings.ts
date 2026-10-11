@@ -316,7 +316,7 @@ export type ArticleSettings = {
   showTextCount: boolean;
   showPageCount: boolean;
   showFileSize: boolean;
-  /** Prefix headings with 1 / 1.1 or 第一章 / 1.1 (shared by contents + PDF bookmarks). */
+  /** Prefix headings with 1 / 1.1 or I / 1.1 (shared by contents + PDF bookmarks). */
   headingNumbering: HeadingNumbering;
   /** Start every H1 (or H1/H2) on a new page. */
   chapterBreak: ChapterBreak;
@@ -1360,9 +1360,13 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       typeof raw.showFileSize === "boolean"
         ? raw.showFileSize
         : defaults.showFileSize,
-    headingNumbering: isHeadingNumbering(raw.headingNumbering)
-      ? raw.headingNumbering
-      : defaults.headingNumbering,
+    // "chinese" (第一章) was replaced by Roman chapter numbers.
+    headingNumbering:
+      (raw.headingNumbering as unknown) === "chinese"
+        ? "roman"
+        : isHeadingNumbering(raw.headingNumbering)
+          ? raw.headingNumbering
+          : defaults.headingNumbering,
     chapterBreak: isChapterBreak(raw.chapterBreak)
       ? raw.chapterBreak
       : defaults.chapterBreak,
