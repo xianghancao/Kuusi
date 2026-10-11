@@ -72,6 +72,32 @@ const styleSheetsHtml = (): string =>
     })
     .join("\n");
 
+/**
+ * Names for the Chinese fallback fonts. When a page falls back to a font by
+ * itself, the system may pick one of its hidden fonts (names starting with a
+ * dot), which the PDF writer cannot embed: the Han characters then print
+ * blank. Naming a real font in the stack avoids that.
+ */
+const CJK_FALLBACK =
+  '"PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC"';
+
+const addCjkFallbacks = (el: HTMLElement): void => {
+  const names: string[] = [];
+  for (let i = 0; i < el.style.length; i += 1) {
+    const name = el.style[i];
+    if (name.startsWith("--") && name.endsWith("font-family")) {
+      names.push(name);
+    }
+  }
+
+  names.forEach((name) => {
+    const value = el.style.getPropertyValue(name).trim();
+    if (value && !value.includes("PingFang SC")) {
+      el.style.setProperty(name, `${value}, ${CJK_FALLBACK}`);
+    }
+  });
+};
+
 const escapeAttr = (value: string): string =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 
@@ -229,6 +255,7 @@ const buildPrintHtml = (
           `top:${-origin.y - index * stride}px;width:${deskWidth}px;` +
           "height:auto;overflow:visible;margin:0;transform:none;" +
           "display:block;contain:none;";
+        addCjkFallbacks(copy);
       }
 
       parent.appendChild(copy);
