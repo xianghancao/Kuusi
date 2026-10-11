@@ -246,6 +246,13 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   headingNumberingRomanTitle: () =>
     t.__("Chapters as I, II, III, sections as 1.1"),
   chapterBreak: () => t.__("New page before"),
+  headingNumberDepth: () => t.__("Numbered levels"),
+  headingNumberDepthH1: () => t.__("Heading 1"),
+  headingNumberDepthH1Title: () => t.__("Number only Heading 1"),
+  headingNumberDepthH2: () => t.__("Heading 1–2"),
+  headingNumberDepthH2Title: () => t.__("Number Heading 1 and Heading 2"),
+  headingNumberDepthAll: () => t.__("All levels"),
+  headingNumberDepthAllTitle: () => t.__("Number every heading level"),
   chapterBreakNone: () => t.__("None"),
   chapterBreakNoneTitle: () => t.__("Headings flow on without a page break"),
   chapterBreakH1: () => t.__("Heading 1"),

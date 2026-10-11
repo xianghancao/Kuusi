@@ -82,8 +82,10 @@ import type { ArticlePaperOrientation, ArticlePaperSize } from "./articlePaper";
 import {
   TOC_DEPTH_RANGE,
   isChapterBreak,
+  isHeadingNumberDepth,
   isHeadingNumbering,
   type ChapterBreak,
+  type HeadingNumberDepth,
   type HeadingNumbering,
 } from "./articleStructure";
 export type { ChapterBreak, HeadingNumbering } from "./articleStructure";
@@ -318,6 +320,8 @@ export type ArticleSettings = {
   showFileSize: boolean;
   /** Prefix headings with 1 / 1.1 or I / 1.1 (shared by contents + PDF bookmarks). */
   headingNumbering: HeadingNumbering;
+  /** Which heading levels carry a number: H1 only, H1–H2, or all. */
+  headingNumberDepth: HeadingNumberDepth;
   /** Start every H1 (or H1/H2) on a new page. */
   chapterBreak: ChapterBreak;
   /** Contents page at the start of the document. */
@@ -380,6 +384,7 @@ type ArticleUserOnlyKey =
   | "showPageCount"
   | "showFileSize"
   | "headingNumbering"
+  | "headingNumberDepth"
   | "chapterBreak"
   | "tocShow"
   | "tocDepth"
@@ -525,6 +530,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   showPageCount: false,
   showFileSize: false,
   headingNumbering: "none",
+  headingNumberDepth: "all",
   chapterBreak: "none",
   tocShow: false,
   tocDepth: 3,
@@ -1379,6 +1385,9 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
         : isHeadingNumbering(raw.headingNumbering)
           ? raw.headingNumbering
           : defaults.headingNumbering,
+    headingNumberDepth: isHeadingNumberDepth(raw.headingNumberDepth)
+      ? raw.headingNumberDepth
+      : defaults.headingNumberDepth,
     chapterBreak: isChapterBreak(raw.chapterBreak)
       ? raw.chapterBreak
       : defaults.chapterBreak,
@@ -2012,6 +2021,7 @@ export class ArticleSettingsManager {
         "showPageCount",
         "showFileSize",
         "headingNumbering",
+        "headingNumberDepth",
         "chapterBreak",
         "tocShow",
         "tocDepth",

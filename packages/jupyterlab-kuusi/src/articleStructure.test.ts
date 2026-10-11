@@ -38,6 +38,11 @@ test("roman numbering labels chapters", () => {
   ]);
 });
 
+test("number depth limits which levels carry a number", () => {
+  assert.deepEqual(headingNumberLabels([1, 2, 3, 1], "decimal", "h1"), ["1", "", "", "2"]);
+  assert.deepEqual(headingNumberLabels([1, 2, 3], "decimal", "h2"), ["1", "1.1", ""]);
+});
+
 test("none yields empty labels", () => {
   assert.deepEqual(headingNumberLabels([1, 2], "none"), ["", ""]);
 });

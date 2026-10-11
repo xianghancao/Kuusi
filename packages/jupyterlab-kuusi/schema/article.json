@@ -949,6 +949,17 @@
       ],
       "default": "none"
     },
+    "headingNumberDepth": {
+      "title": "Heading number depth",
+      "description": "Heading levels that get a number: H1 only, H1 and H2, or all.",
+      "type": "string",
+      "enum": [
+        "h1",
+        "h2",
+        "all"
+      ],
+      "default": "all"
+    },
     "chapterBreak": {
       "title": "Chapter page break",
       "description": "Start every H1 (or H1 and H2) on a new page.",

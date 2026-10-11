@@ -58,7 +58,7 @@ import {
   type HeadingNumbering,
   type PageNumberStart,
 } from "./articleSettings";
-import { TOC_DEPTH_RANGE } from "./articleStructure";
+import { TOC_DEPTH_RANGE, type HeadingNumberDepth } from "./articleStructure";
 
 type PageSection =
   | "layout"
@@ -500,6 +500,7 @@ const ARTICLE_PAGE_KEYS = [
   "pageFirstDifferent",
   "tableRepeatHeader",
   "headingNumbering",
+  "headingNumberDepth",
   "chapterBreak",
   "tocShow",
   "tocDepth",
@@ -1196,6 +1197,34 @@ const fillStructureSection = (
       ],
       onChange: (value) => {
         void manager.update({ headingNumbering: value as HeadingNumbering });
+        rebuild();
+      },
+    },
+    {
+      kind: "choice",
+      sectionLabel: t.headingNumberDepth(),
+      value: settings.headingNumberDepth,
+      options: [
+        {
+          value: "h1",
+          label: t.headingNumberDepthH1(),
+          title: t.headingNumberDepthH1Title(),
+        },
+        {
+          value: "h2",
+          label: t.headingNumberDepthH2(),
+          title: t.headingNumberDepthH2Title(),
+        },
+        {
+          value: "all",
+          label: t.headingNumberDepthAll(),
+          title: t.headingNumberDepthAllTitle(),
+        },
+      ],
+      onChange: (value) => {
+        void manager.update({
+          headingNumberDepth: value as HeadingNumberDepth,
+        });
         rebuild();
       },
     },
