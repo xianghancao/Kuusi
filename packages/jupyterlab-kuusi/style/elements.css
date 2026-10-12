@@ -110,3 +110,18 @@
   border-top-color: color-mix(in srgb, currentColor 48%, transparent);
   border-top-width: 2.5px;
 }
+
+/* —— Custom quote colors (Elements → Quote) —— */
+
+[data-kuusi-quote-bg] blockquote {
+  background: var(--kuusi-custom-quote-bg) !important;
+}
+
+[data-kuusi-quote-fg] blockquote,
+[data-kuusi-quote-fg] blockquote :is(p, li, span, em, strong) {
+  color: var(--kuusi-custom-quote-fg) !important;
+}
+
+[data-kuusi-quote-bar] blockquote {
+  border-left-color: var(--kuusi-custom-quote-bar) !important;
+}

@@ -75,7 +75,9 @@ import {
 } from "./elementChromeSettings";
 import {
   isPageNumberStart,
+  isPageNumberStyle,
   type PageNumberStart,
+  type PageNumberStyle,
 } from "./pageNumberStart";
 import { isPaperSize, paperDimensions } from "./articlePaper";
 import type { ArticlePaperOrientation, ArticlePaperSize } from "./articlePaper";
@@ -194,7 +196,7 @@ export type ArticleBackgroundPattern =
   | "lines"
   | "notebook";
 export type ArticleHeaderAlign = TextAlign;
-export type ArticlePageNumber = "none" | "page" | "page-of-total";
+export type ArticlePageNumber = "none" | PageNumberStyle;
 export type ArticlePageNumberPosition = "header" | "footer";
 export type ArticleHeaderLevel = HeadingLevel;
 export type ArticleHeaderId = HeadingId;
@@ -298,6 +300,10 @@ export type ArticleSettings = {
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
+  codeBackground: string;
+  blockquoteBackground: string;
+  blockquoteColor: string;
+  blockquoteBarColor: string;
   headers: ArticleHeaders;
   /** Running header text for paged layout; supports {title}, {page}, {pages}. */
   pageHeaderText: string;
@@ -373,6 +379,10 @@ export type ArticleSettings = {
 /** Page furniture and code chrome are per-user, not part of a theme preset. */
 type ArticleUserOnlyKey =
   | "codeFrameColor"
+  | "codeBackground"
+  | "blockquoteBackground"
+  | "blockquoteColor"
+  | "blockquoteBarColor"
   | "imageBorderColor"
   | "pageHeaderText"
   | "pageHeaderAlign"
@@ -517,6 +527,10 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
+  codeBackground: "",
+  blockquoteBackground: "",
+  blockquoteColor: "",
+  blockquoteBarColor: "",
   headers: themeHeaders("notebook", "left", {
     h1: "xxl",
     h2: "xl",
@@ -1105,7 +1119,7 @@ const isHeaderAlign = (value: unknown): value is ArticleHeaderAlign =>
   value === "left" || value === "center" || value === "right";
 
 const isPageNumber = (value: unknown): value is ArticlePageNumber =>
-  value === "none" || value === "page" || value === "page-of-total";
+  value === "none" || isPageNumberStyle(value);
 
 const isPageNumberPosition = (
   value: unknown,
@@ -1337,6 +1351,10 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       ? raw.blockquoteWeight
       : defaults.blockquoteWeight,
     hrWeight: isRuleWeight(raw.hrWeight) ? raw.hrWeight : defaults.hrWeight,
+    codeBackground: isColor(raw.codeBackground) ? raw.codeBackground : defaults.codeBackground,
+    blockquoteBackground: isColor(raw.blockquoteBackground) ? raw.blockquoteBackground : defaults.blockquoteBackground,
+    blockquoteColor: isColor(raw.blockquoteColor) ? raw.blockquoteColor : defaults.blockquoteColor,
+    blockquoteBarColor: isColor(raw.blockquoteBarColor) ? raw.blockquoteBarColor : defaults.blockquoteBarColor,
     headers,
     pageHeaderText: normalizePageText(
       raw.pageHeaderText,
@@ -1689,6 +1707,10 @@ export const applyArticleAppearance = (
     listStyle: settings.listStyle,
     blockquoteWeight: settings.blockquoteWeight,
     hrWeight: settings.hrWeight,
+    codeBackground: settings.codeBackground,
+    blockquoteBackground: settings.blockquoteBackground,
+    blockquoteColor: settings.blockquoteColor,
+    blockquoteBarColor: settings.blockquoteBarColor,
   });
   host.style.setProperty(
     "--kuusi-article-code-radius",
@@ -2017,6 +2039,10 @@ export class ArticleSettingsManager {
         "listStyle",
         "blockquoteWeight",
         "hrWeight",
+        "codeBackground",
+        "blockquoteBackground",
+        "blockquoteColor",
+        "blockquoteBarColor",
         "imageAlign",
         "imageWrap",
         "imageBorderStyle",

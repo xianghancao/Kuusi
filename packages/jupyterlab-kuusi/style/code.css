@@ -313,3 +313,13 @@
   .hljs-link {
   color: var(--jp-mirror-editor-link-color);
 }
+
+/* Custom code background (Elements → Code → Background): beats the palette,
+   the code style wash and the slide tints. */
+[data-kuusi-code-bg] :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown, .jp-KuusiMarkdownSlides-slide) pre,
+[data-kuusi-code-bg] .jp-KuusiNotebookMindMap-cellNode pre,
+[data-kuusi-code-bg]
+  .jp-KuusiNotebookMindMap-cellNode.jp-CodeCell
+  :is(.jp-InputArea-editor, .cm-editor, .cm-content, .cm-scroller) {
+  background: var(--kuusi-custom-code-bg) !important;
+}

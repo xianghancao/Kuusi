@@ -36,6 +36,10 @@ SHARED_KEYS = [
     "codeStyle",
     "codeFrame",
     "codeFrameColor",
+    "codeBackground",
+    "blockquoteBackground",
+    "blockquoteColor",
+    "blockquoteBarColor",
     "codeFrameRadius",
     "codeFrameBorder",
     "codeFrameWidth",
@@ -126,6 +130,22 @@ VIEW_META: dict[str, dict[str, Any]] = {
             "codeFrameColor": {
                 "title": "Article code frame color",
                 "description": "CSS hex color, or empty to follow the page foreground.",
+            },
+            "codeBackground": {
+                "title": "Article code background color",
+                "description": "Background of fenced code blocks, as a CSS color; empty keeps the code theme's own.",
+            },
+            "blockquoteBackground": {
+                "title": "Article quote background color",
+                "description": "Background of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
+            "blockquoteColor": {
+                "title": "Article quote text color",
+                "description": "Text color of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
+            "blockquoteBarColor": {
+                "title": "Article quote bar color",
+                "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own.",
             },
             "codeFrameRadius": {
                 "title": "Article code corner radius",
@@ -236,6 +256,22 @@ VIEW_META: dict[str, dict[str, Any]] = {
                 "title": "Slides code frame color",
                 "description": "CSS hex color, or empty to follow the slide foreground.",
             },
+            "codeBackground": {
+                "title": "Slides code background color",
+                "description": "Background of fenced code blocks, as a CSS color; empty keeps the code theme's own.",
+            },
+            "blockquoteBackground": {
+                "title": "Slides quote background color",
+                "description": "Background of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
+            "blockquoteColor": {
+                "title": "Slides quote text color",
+                "description": "Text color of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
+            "blockquoteBarColor": {
+                "title": "Slides quote bar color",
+                "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
             "codeFrameRadius": {
                 "title": "Slides code corner radius",
                 "description": "Corner radius of code blocks, in px (0–24).",
@@ -340,6 +376,22 @@ VIEW_META: dict[str, dict[str, Any]] = {
             "codeFrameColor": {
                 "title": "Mind map code frame color",
                 "description": "CSS hex color, or empty to follow the node foreground.",
+            },
+            "codeBackground": {
+                "title": "Mind Map code background color",
+                "description": "Background of fenced code blocks, as a CSS color; empty keeps the code theme's own.",
+            },
+            "blockquoteBackground": {
+                "title": "Mind Map quote background color",
+                "description": "Background of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
+            "blockquoteColor": {
+                "title": "Mind Map quote text color",
+                "description": "Text color of block quotes, as a CSS color; empty keeps the quote weight's own.",
+            },
+            "blockquoteBarColor": {
+                "title": "Mind Map quote bar color",
+                "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own.",
             },
             "codeFrameRadius": {
                 "title": "Mind map code corner radius",

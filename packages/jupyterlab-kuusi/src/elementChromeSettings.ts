@@ -36,6 +36,11 @@ export type ElementChromeSettings = {
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
+  /** Custom colors; empty keeps the theme's own. */
+  codeBackground?: string;
+  blockquoteBackground?: string;
+  blockquoteColor?: string;
+  blockquoteBarColor?: string;
 };
 
 export const DEFAULT_ELEMENT_CHROME: ElementChromeSettings = {
@@ -52,4 +57,20 @@ export const applyElementChromeAppearance = (
   host.dataset.kuusiListStyle = settings.listStyle;
   host.dataset.kuusiBlockquoteWeight = settings.blockquoteWeight;
   host.dataset.kuusiHrWeight = settings.hrWeight;
+
+  const custom: Array<[string, string, string | undefined]> = [
+    ["kuusiCodeBg", "--kuusi-custom-code-bg", settings.codeBackground],
+    ["kuusiQuoteBg", "--kuusi-custom-quote-bg", settings.blockquoteBackground],
+    ["kuusiQuoteFg", "--kuusi-custom-quote-fg", settings.blockquoteColor],
+    ["kuusiQuoteBar", "--kuusi-custom-quote-bar", settings.blockquoteBarColor],
+  ];
+  custom.forEach(([flag, property, value]) => {
+    if (value) {
+      host.dataset[flag] = "1";
+      host.style.setProperty(property, value);
+    } else {
+      delete host.dataset[flag];
+      host.style.removeProperty(property);
+    }
+  });
 };

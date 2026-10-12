@@ -11,7 +11,7 @@ import type {
   ArticleSettingsManager,
 } from "./articleSettings";
 import { paperDimensions } from "./articlePaper";
-import { resolvePageNumberDisplay } from "./pageNumberStart";
+import { formatPageNumberText, resolvePageNumberDisplay } from "./pageNumberStart";
 import {
   PAGE_BREAK_ATTR,
   TOC_CLASS,
@@ -543,10 +543,11 @@ const decorateSheet = (
   }
 
   if (settings.pageNumber !== "none" && numbered.show) {
-    const label =
-      settings.pageNumber === "page-of-total"
-        ? `${numbered.page} / ${numbered.pages}`
-        : String(numbered.page);
+    const label = formatPageNumberText(
+      settings.pageNumber,
+      numbered.page,
+      numbered.pages,
+    );
     (settings.pageNumberPosition === "header" ? header : footer)[
       settings.pageNumberAlign
     ].push(label);

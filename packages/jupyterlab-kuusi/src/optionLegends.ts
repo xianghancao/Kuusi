@@ -167,11 +167,25 @@ export const legendColumns = (columns: string): HTMLElement =>
 export const legendPageNumberFormat = (format: string): HTMLElement => {
   const children = [sheet(10, 1, 20, 24), ...bars(13, 5, 14, 4, 3.4)];
 
-  if (format === "page") {
-    children.push(label(20, 22.6, "3", { fill: ACCENT, "font-weight": 600 }));
-  } else if (format === "page-of-total") {
+  const sample: Record<string, string> = {
+    page: "3",
+    "page-of-total": "3 / 12",
+    dashes: "– 3 –",
+    bracket: "[3]",
+    word: "Page 3",
+    "word-of-total": "3 of 12",
+    "roman-lower": "iii",
+    "roman-upper": "III",
+  };
+  const text = sample[format];
+
+  if (text) {
     children.push(
-      label(20, 22.6, "3 / 12", { fill: ACCENT, "font-weight": 600, "font-size": 5 }),
+      label(20, 22.6, text, {
+        fill: ACCENT,
+        "font-weight": 600,
+        ...(text.length > 1 ? { "font-size": 5 } : {}),
+      }),
     );
   }
 

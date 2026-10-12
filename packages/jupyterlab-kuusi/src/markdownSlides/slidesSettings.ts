@@ -202,6 +202,10 @@ export type SlidesSettings = {
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
+  codeBackground: string;
+  blockquoteBackground: string;
+  blockquoteColor: string;
+  blockquoteBarColor: string;
   imageWidth: ImageWidth;
   imageAlign: ImageAlign;
   imageWrap: ImageWrap;
@@ -543,6 +547,10 @@ export const DEFAULT_SLIDES_SETTINGS: SlidesSettings = {
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
+  codeBackground: "",
+  blockquoteBackground: "",
+  blockquoteColor: "",
+  blockquoteBarColor: "",
   imageWidth: "wide",
   imageAlign: "center",
   imageWrap: "none",
@@ -739,6 +747,18 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
       ? raw.blockquoteWeight
       : defaults.blockquoteWeight,
     hrWeight: isRuleWeight(raw.hrWeight) ? raw.hrWeight : defaults.hrWeight,
+    codeBackground: isTypographyColor(raw.codeBackground)
+      ? raw.codeBackground
+      : defaults.codeBackground,
+    blockquoteBackground: isTypographyColor(raw.blockquoteBackground)
+      ? raw.blockquoteBackground
+      : defaults.blockquoteBackground,
+    blockquoteColor: isTypographyColor(raw.blockquoteColor)
+      ? raw.blockquoteColor
+      : defaults.blockquoteColor,
+    blockquoteBarColor: isTypographyColor(raw.blockquoteBarColor)
+      ? raw.blockquoteBarColor
+      : defaults.blockquoteBarColor,
     imageWidth: isImageWidth(raw.imageWidth)
       ? raw.imageWidth
       : defaults.imageWidth,
@@ -817,6 +837,10 @@ export const applySlidesAppearance = (
     listStyle: settings.listStyle,
     blockquoteWeight: settings.blockquoteWeight,
     hrWeight: settings.hrWeight,
+    codeBackground: settings.codeBackground,
+    blockquoteBackground: settings.blockquoteBackground,
+    blockquoteColor: settings.blockquoteColor,
+    blockquoteBarColor: settings.blockquoteBarColor,
   });
   host.dataset.kuusiSlidesShowNav = settings.showNavButtons ? "1" : "0";
   // Under-stage counter is view chrome (with nav), not the on-slide footer page.
@@ -1013,6 +1037,10 @@ const SLIDES_SETTING_KEYS: Array<keyof SlidesSettings> = [
   "listStyle",
   "blockquoteWeight",
   "hrWeight",
+  "codeBackground",
+  "blockquoteBackground",
+  "blockquoteColor",
+  "blockquoteBarColor",
   "imageWidth",
   "imageAlign",
   "imageWrap",

@@ -1019,6 +1019,36 @@ const getPageNumberFormats = (
         label: t.pageNumberPageOfTotal(),
         title: t.pageNumberPageOfTotalTitle(),
       },
+      {
+        value: "dashes",
+        label: t.pageNumberDashes(),
+        title: t.pageNumberDashesTitle(),
+      },
+      {
+        value: "bracket",
+        label: t.pageNumberBracket(),
+        title: t.pageNumberBracketTitle(),
+      },
+      {
+        value: "word",
+        label: t.pageNumberWord(),
+        title: t.pageNumberWordTitle(),
+      },
+      {
+        value: "word-of-total",
+        label: t.pageNumberWordOfTotal(),
+        title: t.pageNumberWordOfTotalTitle(),
+      },
+      {
+        value: "roman-lower",
+        label: t.pageNumberRomanLower(),
+        title: t.pageNumberRomanLowerTitle(),
+      },
+      {
+        value: "roman-upper",
+        label: t.pageNumberRomanUpper(),
+        title: t.pageNumberRomanUpperTitle(),
+      },
     ] as const
   ).map((option) => ({
     ...option,

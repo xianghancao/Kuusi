@@ -121,6 +121,10 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   listStyle: DEFAULT_TYPOGRAPHY_VALUES.listStyle,
   blockquoteWeight: DEFAULT_TYPOGRAPHY_VALUES.blockquoteWeight,
   hrWeight: DEFAULT_TYPOGRAPHY_VALUES.hrWeight,
+  codeBackground: DEFAULT_TYPOGRAPHY_VALUES.codeBackground,
+  blockquoteBackground: DEFAULT_TYPOGRAPHY_VALUES.blockquoteBackground,
+  blockquoteColor: DEFAULT_TYPOGRAPHY_VALUES.blockquoteColor,
+  blockquoteBarColor: DEFAULT_TYPOGRAPHY_VALUES.blockquoteBarColor,
   imageWidth: DEFAULT_TYPOGRAPHY_VALUES.imageWidth,
   imageAlign: DEFAULT_TYPOGRAPHY_VALUES.imageAlign,
   imageWrap: DEFAULT_TYPOGRAPHY_VALUES.imageWrap,
@@ -493,6 +497,10 @@ const MIND_MAP_TYPOGRAPHY_KEYS: Array<keyof MindMapTypographyFields> = [
   "listStyle",
   "blockquoteWeight",
   "hrWeight",
+  "codeBackground",
+  "blockquoteBackground",
+  "blockquoteColor",
+  "blockquoteBarColor",
   "imageWidth",
   "imageAlign",
   "imageWrap",
@@ -577,6 +585,10 @@ export const applyMindMapTypography = (
     listStyle: settings.listStyle,
     blockquoteWeight: settings.blockquoteWeight,
     hrWeight: settings.hrWeight,
+    codeBackground: settings.codeBackground,
+    blockquoteBackground: settings.blockquoteBackground,
+    blockquoteColor: settings.blockquoteColor,
+    blockquoteBarColor: settings.blockquoteBarColor,
   });
   scene.dataset.kuusiImageWidth = settings.imageWidth;
   scene.dataset.kuusiImageAlign = settings.imageAlign;

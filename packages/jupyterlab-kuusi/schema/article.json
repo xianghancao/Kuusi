@@ -671,12 +671,18 @@
     },
     "pageNumber": {
       "title": "Article page numbers",
-      "description": "Page number format in paged layout: none, \"3\", or \"3 / 12\".",
+      "description": "Page number format in paged layout: none, 3, 3 / 12, – 3 –, [3], Page 3, Page 3 of 12, iii or III.",
       "type": "string",
       "enum": [
         "none",
         "page",
-        "page-of-total"
+        "page-of-total",
+        "dashes",
+        "bracket",
+        "word",
+        "word-of-total",
+        "roman-lower",
+        "roman-upper"
       ],
       "default": "none"
     },
@@ -1018,6 +1024,30 @@
       "default": "",
       "title": "Article bold color",
       "description": "Color for bold (**strong**) body text. Empty inherits the body color."
+    },
+    "codeBackground": {
+      "type": "string",
+      "default": "",
+      "title": "Article code background color",
+      "description": "Background of fenced code blocks, as a CSS color; empty keeps the code theme's own."
+    },
+    "blockquoteBackground": {
+      "type": "string",
+      "default": "",
+      "title": "Article quote background color",
+      "description": "Background of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "blockquoteColor": {
+      "type": "string",
+      "default": "",
+      "title": "Article quote text color",
+      "description": "Text color of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "blockquoteBarColor": {
+      "type": "string",
+      "default": "",
+      "title": "Article quote bar color",
+      "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own."
     }
   },
   "additionalProperties": false

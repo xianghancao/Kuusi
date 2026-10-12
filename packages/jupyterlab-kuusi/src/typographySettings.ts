@@ -107,6 +107,10 @@ export type TypographyValues = {
   blockquoteWeight: RuleWeight;
   /** Horizontal-rule weight. */
   hrWeight: RuleWeight;
+  codeBackground: string;
+  blockquoteBackground: string;
+  blockquoteColor: string;
+  blockquoteBarColor: string;
   imageWidth: ImageWidth;
   imageAlign: ImageAlign;
   imageWrap: ImageWrap;
@@ -327,6 +331,10 @@ export const DEFAULT_TYPOGRAPHY_VALUES: TypographyValues = {
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
+  codeBackground: "",
+  blockquoteBackground: "",
+  blockquoteColor: "",
+  blockquoteBarColor: "",
   imageWidth: "wide",
   imageAlign: "center",
   imageWrap: "none",
@@ -434,6 +442,18 @@ export const normalizeTypographyValues = (
       ? raw.blockquoteWeight
       : fallback.blockquoteWeight,
     hrWeight: isRuleWeight(raw.hrWeight) ? raw.hrWeight : fallback.hrWeight,
+    codeBackground: isTypographyColor(raw.codeBackground)
+      ? raw.codeBackground
+      : fallback.codeBackground,
+    blockquoteBackground: isTypographyColor(raw.blockquoteBackground)
+      ? raw.blockquoteBackground
+      : fallback.blockquoteBackground,
+    blockquoteColor: isTypographyColor(raw.blockquoteColor)
+      ? raw.blockquoteColor
+      : fallback.blockquoteColor,
+    blockquoteBarColor: isTypographyColor(raw.blockquoteBarColor)
+      ? raw.blockquoteBarColor
+      : fallback.blockquoteBarColor,
     imageWidth: isImageWidth(raw.imageWidth)
       ? raw.imageWidth
       : fallback.imageWidth,

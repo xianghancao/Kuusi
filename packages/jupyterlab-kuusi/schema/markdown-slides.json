@@ -631,6 +631,30 @@
       "default": "",
       "title": "Slides bold color",
       "description": "Color for bold (**strong**) body text. Empty inherits the body color."
+    },
+    "codeBackground": {
+      "type": "string",
+      "default": "",
+      "title": "Slides code background color",
+      "description": "Background of fenced code blocks, as a CSS color; empty keeps the code theme's own."
+    },
+    "blockquoteBackground": {
+      "type": "string",
+      "default": "",
+      "title": "Slides quote background color",
+      "description": "Background of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "blockquoteColor": {
+      "type": "string",
+      "default": "",
+      "title": "Slides quote text color",
+      "description": "Text color of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "blockquoteBarColor": {
+      "type": "string",
+      "default": "",
+      "title": "Slides quote bar color",
+      "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own."
     }
   },
   "additionalProperties": false

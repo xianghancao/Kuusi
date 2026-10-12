@@ -1132,6 +1132,30 @@
         "last"
       ],
       "default": "selected"
+    },
+    "codeBackground": {
+      "type": "string",
+      "default": "",
+      "title": "Mind Map code background color",
+      "description": "Background of fenced code blocks, as a CSS color; empty keeps the code theme's own."
+    },
+    "blockquoteBackground": {
+      "type": "string",
+      "default": "",
+      "title": "Mind Map quote background color",
+      "description": "Background of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "blockquoteColor": {
+      "type": "string",
+      "default": "",
+      "title": "Mind Map quote text color",
+      "description": "Text color of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "blockquoteBarColor": {
+      "type": "string",
+      "default": "",
+      "title": "Mind Map quote bar color",
+      "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own."
     }
   },
   "additionalProperties": false,

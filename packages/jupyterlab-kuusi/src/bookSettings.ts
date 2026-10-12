@@ -234,6 +234,10 @@ export const DEFAULT_BOOK_SETTINGS: BookSettings = {
   listStyle: ARTICLE_THEME_PRESETS.essay.listStyle,
   blockquoteWeight: ARTICLE_THEME_PRESETS.essay.blockquoteWeight,
   hrWeight: ARTICLE_THEME_PRESETS.essay.hrWeight,
+  codeBackground: "",
+  blockquoteBackground: "",
+  blockquoteColor: "",
+  blockquoteBarColor: "",
   imageWidth: ARTICLE_THEME_PRESETS.essay.imageWidth,
   imageAlign: ARTICLE_THEME_PRESETS.essay.imageAlign,
   imageWrap: ARTICLE_THEME_PRESETS.essay.imageWrap,
@@ -408,6 +412,14 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
     hrWeight: isRuleWeight(source.hrWeight)
       ? source.hrWeight
       : defaults.hrWeight,
+    codeBackground:
+      typeof source.codeBackground === "string" ? source.codeBackground : defaults.codeBackground,
+    blockquoteBackground:
+      typeof source.blockquoteBackground === "string" ? source.blockquoteBackground : defaults.blockquoteBackground,
+    blockquoteColor:
+      typeof source.blockquoteColor === "string" ? source.blockquoteColor : defaults.blockquoteColor,
+    blockquoteBarColor:
+      typeof source.blockquoteBarColor === "string" ? source.blockquoteBarColor : defaults.blockquoteBarColor,
     imageWidth: isImageWidth(source.imageWidth)
       ? source.imageWidth
       : defaults.imageWidth,
@@ -494,6 +506,10 @@ export const bookSettingsToArticle = (
   listStyle: settings.listStyle,
   blockquoteWeight: settings.blockquoteWeight,
   hrWeight: settings.hrWeight,
+  codeBackground: settings.codeBackground,
+  blockquoteBackground: settings.blockquoteBackground,
+  blockquoteColor: settings.blockquoteColor,
+  blockquoteBarColor: settings.blockquoteBarColor,
   imageWidth: settings.imageWidth as ImageWidth,
   imageAlign: settings.imageAlign as ImageAlign,
   imageWrap: settings.imageWrap as ImageWrap,

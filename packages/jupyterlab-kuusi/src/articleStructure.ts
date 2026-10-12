@@ -32,40 +32,8 @@ export const NUMBER_ATTR = "data-kuusi-num";
 export const PAGE_BREAK_ATTR = "data-kuusi-page-break";
 export const TOC_CLASS = "jp-KuusiArticle-toc";
 
-const ROMAN_NUMERALS: ReadonlyArray<readonly [number, string]> = [
-  [1000, "M"],
-  [900, "CM"],
-  [500, "D"],
-  [400, "CD"],
-  [100, "C"],
-  [90, "XC"],
-  [50, "L"],
-  [40, "XL"],
-  [10, "X"],
-  [9, "IX"],
-  [5, "V"],
-  [4, "IV"],
-  [1, "I"],
-];
-
-/** 1 → I, 4 → IV, 14 → XIV (chapter counters; falls back to digits past 3999). */
-export const romanNumeral = (n: number): string => {
-  let rest = Math.max(0, Math.floor(n));
-
-  if (rest === 0 || rest >= 4000) {
-    return String(rest);
-  }
-
-  let out = "";
-  for (const [value, symbol] of ROMAN_NUMERALS) {
-    while (rest >= value) {
-      out += symbol;
-      rest -= value;
-    }
-  }
-
-  return out;
-};
+export { romanNumeral } from "./pageNumberStart";
+import { romanNumeral } from "./pageNumberStart";
 
 /**
  * Label per heading level list. Levels that never appear (h1 → h3) are

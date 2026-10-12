@@ -364,6 +364,22 @@
       "minimum": 0,
       "maximum": 32,
       "default": 0
+    },
+    "codeBackground": {
+      "type": "string",
+      "default": ""
+    },
+    "blockquoteBackground": {
+      "type": "string",
+      "default": ""
+    },
+    "blockquoteColor": {
+      "type": "string",
+      "default": ""
+    },
+    "blockquoteBarColor": {
+      "type": "string",
+      "default": ""
     }
   }
 }

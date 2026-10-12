@@ -141,6 +141,7 @@ type CodeSection =
   | "family"
   | "size"
   | "style"
+  | "background"
   | "frame"
   | "corner"
   | "stroke"
@@ -746,6 +747,22 @@ const fillCodeSection = (
     return;
   }
 
+  if (id === "background") {
+    renderPanelWidgets(panel, [
+      {
+        kind: "color",
+        sectionLabel: t.codeBackground(),
+        value: values.codeBackground,
+        swatches: APPEARANCE_COLOR_SWATCHES,
+        includeDefaultSwatch: true,
+        onChange: (codeBackground) => {
+          model.update({ codeBackground });
+        },
+      },
+    ]);
+    return;
+  }
+
   if (id === "frame") {
     renderPanelWidgets(panel, [
       {
@@ -814,6 +831,7 @@ const CODE_SECTIONS: CodeSection[] = [
   "family",
   "size",
   "style",
+  "background",
   "frame",
   "corner",
   "stroke",
@@ -852,6 +870,7 @@ export const createCodeToolbar = (
           { id: "family", label: t.font() },
           { id: "size", label: t.fontSizeSection() },
           { id: "style", label: t.style() },
+          { id: "background", label: t.codeBackground() },
           { id: "frame", label: t.slidesCodeFrame() },
           { id: "corner", label: t.corner() },
           { id: "stroke", label: t.border() },
@@ -1318,6 +1337,36 @@ const fillQuotePanel = (
       onChange: (value) => {
         model.update({ blockquoteWeight: value as RuleWeight });
         rebuild();
+      },
+    },
+    {
+      kind: "color",
+      sectionLabel: t.quoteBackground(),
+      value: values.blockquoteBackground,
+      swatches: APPEARANCE_COLOR_SWATCHES,
+      includeDefaultSwatch: true,
+      onChange: (blockquoteBackground) => {
+        model.update({ blockquoteBackground });
+      },
+    },
+    {
+      kind: "color",
+      sectionLabel: t.quoteColor(),
+      value: values.blockquoteColor,
+      swatches: APPEARANCE_COLOR_SWATCHES,
+      includeDefaultSwatch: true,
+      onChange: (blockquoteColor) => {
+        model.update({ blockquoteColor });
+      },
+    },
+    {
+      kind: "color",
+      sectionLabel: t.quoteBarColor(),
+      value: values.blockquoteBarColor,
+      swatches: APPEARANCE_COLOR_SWATCHES,
+      includeDefaultSwatch: true,
+      onChange: (blockquoteBarColor) => {
+        model.update({ blockquoteBarColor });
       },
     },
     {

@@ -363,6 +363,26 @@
       "type": "string",
       "default": ""
     },
+    "codeBackground": {
+      "title": "Book code background color",
+      "type": "string",
+      "default": ""
+    },
+    "blockquoteBackground": {
+      "title": "Book quote background color",
+      "type": "string",
+      "default": ""
+    },
+    "blockquoteColor": {
+      "title": "Book quote text color",
+      "type": "string",
+      "default": ""
+    },
+    "blockquoteBarColor": {
+      "title": "Book quote bar color",
+      "type": "string",
+      "default": ""
+    },
     "codeFrameRadius": {
       "title": "Book code corner radius",
       "type": "number",
