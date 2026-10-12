@@ -2644,3 +2644,54 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
   justify-content: space-between;
   padding: 6px 10px;
 }
+
+/* “…” menu: cursor-line number section. */
+.jp-KuusiMoreMenu-lineNumber {
+  border-top: 1px solid var(--jp-border-color2);
+  margin-top: 6px;
+  padding: 8px 10px 4px;
+}
+
+.jp-KuusiMoreMenu-heading {
+  color: var(--jp-ui-font-color2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+/* Markdown editor: how the cursor line's number is marked (Kuusi green unless
+   a color is chosen). "default" leaves the editor theme alone. */
+body[data-kuusi-active-line="off"] .jp-KuusiMarkdownEditor .cm-activeLineGutter {
+  background-color: transparent !important;
+  color: inherit;
+  font-weight: inherit;
+}
+
+body[data-kuusi-active-line="highlight"] .jp-KuusiMarkdownEditor .cm-activeLineGutter {
+  background-color: color-mix(
+    in srgb,
+    var(--kuusi-active-line-color, var(--jp-brand-color1, #2f5d3a)) 22%,
+    transparent
+  ) !important;
+  color: var(--kuusi-active-line-color, var(--jp-brand-color1, #2f5d3a));
+}
+
+body[data-kuusi-active-line="bold"] .jp-KuusiMarkdownEditor .cm-activeLineGutter {
+  background-color: transparent !important;
+  color: var(--kuusi-active-line-color, var(--jp-brand-color1, #2f5d3a));
+  font-weight: 700;
+}
+
+body[data-kuusi-active-line="bar"] .jp-KuusiMarkdownEditor .cm-activeLineGutter {
+  background-color: transparent !important;
+  box-shadow: inset 3px 0 0 var(--kuusi-active-line-color, var(--jp-brand-color1, #2f5d3a));
+  color: var(--kuusi-active-line-color, var(--jp-brand-color1, #2f5d3a));
+}
+
+/* Only a chosen color recolors the default style too. */
+body[data-kuusi-active-line="default"][style*="--kuusi-active-line-color"] .jp-KuusiMarkdownEditor .cm-activeLineGutter {
+  background-color: color-mix(in srgb, var(--kuusi-active-line-color) 22%, transparent) !important;
+  color: var(--kuusi-active-line-color);
+}

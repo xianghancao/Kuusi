@@ -226,6 +226,13 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   close: () => t.__("Close"),
   community: () => t.__("Community"),
   autoReload: () => t.__("Auto reload"),
+  lineNumberHighlight: () => t.__("Cursor line number"),
+  lineNumberColor: () => t.__("Color"),
+  lineStyleDefault: () => t.__("Default"),
+  lineStyleHighlight: () => t.__("Highlight"),
+  lineStyleBold: () => t.__("Bold"),
+  lineStyleBar: () => t.__("Bar"),
+  lineStyleOff: () => t.__("Off"),
   autoReloadTitle: () =>
     t.__("Re-read the file when it changes on disk (skipped while there are unsaved edits)"),
   moreOptions: () => t.__("More options"),

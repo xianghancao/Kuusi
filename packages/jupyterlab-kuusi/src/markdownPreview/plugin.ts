@@ -24,6 +24,11 @@ import { articleIcon } from "../kuusiIcon";
 import { kuusiLauncherMarkdownIcon } from "../launcherIcons";
 import { applyKuusiTabIcon } from "../kuusiTabIcon";
 import {
+  activeLineChanged,
+  loadActiveLineSettings,
+  type ActiveLineStyle,
+} from "../activeLineSettings";
+import {
   getNotebookAutoReloadEnabled,
   registerNotebookAutoReloadListener,
   setNotebookAutoReloadEnabled,
@@ -184,6 +189,15 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
       try {
         const settings = await settingRegistry.load(PLUGIN_ID);
         const editorValue = settings.get("autoReload").composite;
+
+        loadActiveLineSettings({
+          style: settings.get("activeLineStyle").composite as ActiveLineStyle,
+          color: settings.get("activeLineColor").composite as string,
+        });
+        activeLineChanged.connect((_, next) => {
+          void settings.set("activeLineStyle", next.style);
+          void settings.set("activeLineColor", next.color);
+        });
 
         defaultEditorLivePreview =
           typeof editorValue === "boolean" ? editorValue : true;

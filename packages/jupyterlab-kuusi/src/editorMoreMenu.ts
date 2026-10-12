@@ -10,6 +10,13 @@ import {
   openKuusiDropdownMenu,
 } from "./formatToolbar";
 import { createKuusiTranslator } from "./kuusiI18n";
+import {
+  getActiveLineSettings,
+  setActiveLineSettings,
+  type ActiveLineStyle,
+} from "./activeLineSettings";
+import { APPEARANCE_COLOR_SWATCHES } from "./colorPicker";
+import { renderPanelWidgets } from "./panelWidgets";
 import { createAutoReloadSwitch } from "./markdownPreview/autoReloadSwitch";
 import {
   getNotebookAutoReloadEnabled,
@@ -60,6 +67,52 @@ class KuusiMoreMenuWidget extends Widget {
       t.autoReload(),
     );
     menu.appendChild(row.node);
+
+    if (markdownOnly) {
+      const section = document.createElement("div");
+      section.className = "jp-KuusiMoreMenu-lineNumber";
+      const heading = document.createElement("div");
+      heading.className = "jp-KuusiMoreMenu-heading";
+      heading.textContent = t.lineNumberHighlight();
+      section.appendChild(heading);
+      const controls = document.createElement("div");
+      section.appendChild(controls);
+      const draw = (): void => {
+        const current = getActiveLineSettings();
+        controls.replaceChildren();
+        renderPanelWidgets(controls, [
+          {
+            kind: "choice",
+            value: current.style,
+            options: (
+              [
+                ["default", t.lineStyleDefault()],
+                ["highlight", t.lineStyleHighlight()],
+                ["bold", t.lineStyleBold()],
+                ["bar", t.lineStyleBar()],
+                ["off", t.lineStyleOff()],
+              ] as const
+            ).map(([value, label]) => ({ value, label, title: label })),
+            onChange: (value) => {
+              setActiveLineSettings({ style: value as ActiveLineStyle });
+              draw();
+            },
+          },
+          {
+            kind: "color",
+            sectionLabel: t.lineNumberColor(),
+            value: current.color,
+            swatches: APPEARANCE_COLOR_SWATCHES,
+            includeDefaultSwatch: true,
+            onChange: (color) => {
+              setActiveLineSettings({ color });
+            },
+          },
+        ]);
+      };
+      draw();
+      menu.appendChild(section);
+    }
 
     const onChanged = (
       _: unknown,
