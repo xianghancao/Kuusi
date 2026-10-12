@@ -23,12 +23,18 @@ export const createKuusiEditorRenderButton = (
 ): ToolbarButton => {
   const t = createKuusiTranslator();
 
-  return new ToolbarButton({
+  const button: ToolbarButton = new ToolbarButton({
     className: KUUSI_BUTTON_CLASS,
     label: t.view(),
     tooltip: t.openRenderViewBesideEditor(),
     onClick: () => {
       const path = getPath();
+
+      // Lab marks a clicked toolbar button as pressed (it then looks sunken);
+      // this one is an action, not a toggle.
+      window.setTimeout(() => {
+        button.pressed = false;
+      }, 0);
 
       if (!path || !getWorkspaceKind(path)) {
         return;
@@ -37,6 +43,8 @@ export const createKuusiEditorRenderButton = (
       openKuusiSplitWorkspace(app, docManager, path);
     },
   });
+
+  return button;
 };
 
 const bindEditorButtonVisibility = (

@@ -2619,3 +2619,9 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
   margin-top: 8px;
   min-height: 1.4em;
 }
+
+/* The View button opens a view; it is not a toggle, so never draw it sunken. */
+.jp-KuusiNotebookOpenButton.jp-ToolbarButtonComponent[aria-pressed="true"] {
+  background: transparent;
+  box-shadow: none;
+}
