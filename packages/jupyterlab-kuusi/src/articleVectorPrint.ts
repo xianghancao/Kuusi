@@ -587,7 +587,28 @@ export const measurePrintLinks = async (
       return links;
     });
 
-    return { widthPx: built.width, heightPx: built.height, pages };
+    const pageEls = Array.from(
+      doc.querySelectorAll<HTMLElement>(`.${PAGE_CLASS}`),
+    );
+    const anchors: PdfPageLinks["anchors"] = {};
+    doc.querySelectorAll<HTMLElement>('span[id^="kuusi-h-"]').forEach((marker) => {
+      const page = marker.closest<HTMLElement>(`.${PAGE_CLASS}`);
+      const index = page ? pageEls.indexOf(page) : -1;
+
+      if (!page || index < 0 || marker.id in anchors) {
+        return;
+      }
+
+      const origin = page.getBoundingClientRect();
+      const spot = marker.getBoundingClientRect();
+      anchors[marker.id] = {
+        page: index,
+        x: Math.max(0, spot.left - origin.left),
+        y: Math.max(0, spot.top - origin.top),
+      };
+    });
+
+    return { widthPx: built.width, heightPx: built.height, anchors, pages };
   } finally {
     frame.remove();
   }

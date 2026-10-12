@@ -30,6 +30,8 @@ export type PdfLinkRect = {
 export type PdfPageLinks = {
   widthPx: number;
   heightPx: number;
+  /** Where each heading anchor sits: page index and px from the page's top-left. */
+  anchors: Record<string, { page: number; x: number; y: number }>;
   /** Per page, in order. */
   pages: PdfLinkRect[][];
 };
@@ -117,17 +119,72 @@ export const addBookmarksToPdf = (
   const destsId = Number(/\/Dests\s+(\d+)\s+0\s+R/.exec(catalog ?? "")?.[1]);
   const dests = Number.isFinite(destsId) ? objectBody(text, destsId) : null;
 
-  if (!catalog || !dests) {
+  if (!catalog) {
     return null;
   }
 
-  // `/name [page 0 R /XYZ x y 0]` → explicit destination arrays.
+  // Page objects in order (the page tree may be nested).
+  const pagesId = Number(/\/Pages\s+(\d+)\s+0\s+R/.exec(catalog)?.[1]);
+  const pageIds: number[] = [];
+  const collectPages = (id: number, depth: number): void => {
+    const body = objectBody(text, id);
+
+    if (!body || depth > 8) {
+      return;
+    }
+
+    const kids = /\/Kids\s*\[([^\]]*)\]/.exec(body)?.[1];
+
+    if (kids === undefined || !/\/Type\s*\/Pages/.test(body)) {
+      pageIds.push(id);
+      return;
+    }
+
+    [...kids.matchAll(/(\d+)\s+0\s+R/g)].forEach((m) =>
+      collectPages(Number(m[1]), depth + 1),
+    );
+  };
+
+  if (Number.isFinite(pagesId)) {
+    collectPages(pagesId, 0);
+  }
+
+  const mediaBox = (pageId: number): { width: number; height: number } | null => {
+    const body = objectBody(text, pageId) ?? "";
+    const box =
+      /\/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]/.exec(
+        body,
+      ) ??
+      /\/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]/.exec(
+        objectBody(text, pagesId) ?? "",
+      );
+
+    return box
+      ? { width: Number(box[3]) - Number(box[1]), height: Number(box[4]) - Number(box[2]) }
+      : null;
+  };
+
+  // `/name [page 0 R /XYZ x y 0]` → explicit destination arrays. Chrome writes
+  // these; the macOS print path drops them, so fall back to the measured spots.
   const table = new Map<string, string>();
   const entry = /\/([^\s/<>[\]()]+)\s*(\[[^\]]*\])/g;
   let found: RegExpExecArray | null;
 
-  while ((found = entry.exec(dests)) !== null) {
+  while (dests !== null && (found = entry.exec(dests)) !== null) {
     table.set(found[1], found[2]);
+  }
+
+  if (links) {
+    Object.entries(links.anchors).forEach(([name, spot]) => {
+      const pageId = pageIds[spot.page];
+      const box = pageId === undefined ? null : mediaBox(pageId);
+
+      if (!table.has(name) && box) {
+        const x = (spot.x * box.width) / links.widthPx;
+        const y = box.height - (spot.y * box.height) / links.heightPx;
+        table.set(name, `[${pageId} 0 R /XYZ ${x.toFixed(2)} ${y.toFixed(2)} 0]`);
+      }
+    });
   }
 
   // Contents-page links are written as named destinations (`/Dest /name`) that
@@ -220,10 +277,6 @@ export const addBookmarksToPdf = (
   });
 
   if (links) {
-    const pagesId = Number(/\/Pages\s+(\d+)\s+0\s+R/.exec(catalog)?.[1]);
-    const pagesBody = Number.isFinite(pagesId) ? objectBody(text, pagesId) : null;
-    const kids = /\/Kids\s*\[([^\]]*)\]/.exec(pagesBody ?? "")?.[1] ?? "";
-    const pageIds = [...kids.matchAll(/(\d+)\s+0\s+R/g)].map((m) => Number(m[1]));
     const escapeString = (value: string): string =>
       encodeURI(value).replace(/[\\()]/g, (c) => `\\${c}`);
 
@@ -235,11 +288,9 @@ export const addBookmarksToPdf = (
         return;
       }
 
-      const box = /\/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]/.exec(
-        pageBody,
-      );
-      const widthPt = box ? Number(box[3]) - Number(box[1]) : 0;
-      const heightPt = box ? Number(box[4]) - Number(box[2]) : 0;
+      const box = mediaBox(pageId);
+      const widthPt = box?.width ?? 0;
+      const heightPt = box?.height ?? 0;
 
       if (widthPt <= 0 || heightPt <= 0) {
         return;
