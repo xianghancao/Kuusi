@@ -71,7 +71,7 @@ import {
   getNotebookAutoReloadEnabled,
   registerNotebookAutoReloadListener,
 } from "./notebookAutoReloadRegistry";
-import { registerNotebookAutoReloadToolbarFactories } from "./notebookAutoReloadToolbar";
+import { registerKuusiEditorMoreMenu } from "./editorMoreMenu";
 import {
   NotebookMindMapDocumentWidget,
   NotebookMindMapWidgetFactory,
@@ -585,7 +585,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       bindNotebookEditorFormatBars(panel);
     });
 
-    registerNotebookAutoReloadToolbarFactories(toolbarRegistry);
+    registerKuusiEditorMoreMenu(app, toolbarRegistry);
 
     registerMindMapToolbarFactories(
       toolbarRegistry,

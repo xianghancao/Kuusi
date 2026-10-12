@@ -11,11 +11,16 @@
         "name": "kuusi-render-export",
         "label": "Export",
         "rank": 2
+      },
+      {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
       }
     ],
     "Editor": [
       {
-        "name": "md-auto-reload",
+        "name": "kuusi-more",
         "rank": 55
       }
     ]

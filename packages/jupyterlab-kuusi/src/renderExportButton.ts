@@ -33,6 +33,12 @@ import {
   printArticleVector,
 } from "./articleVectorPrint";
 import { addBookmarksToPdf } from "./pdfBookmarks";
+import { createAutoReloadSwitch } from "./markdownPreview/autoReloadSwitch";
+import {
+  getMarkdownLivePreviewEnabled,
+  markdownLivePreviewChanged,
+  setMarkdownLivePreviewEnabled,
+} from "./markdownPreview/livePreviewRegistry";
 import {
   ensureKuusiRenderViewSwitcherOnToolbar,
   KUUSI_RENDER_VIEW_SWITCHER_ITEM,
@@ -47,6 +53,7 @@ import {
 } from "./renderRasterExport";
 
 export const KUUSI_RENDER_EXPORT_ITEM = "kuusi-render-export";
+export const KUUSI_RENDER_SYNC_ITEM = "kuusi-render-sync";
 
 const MIND_MAP_FACTORIES = new Set([
   FACTORY_KUUSI_NOTEBOOK,
@@ -845,6 +852,103 @@ export class KuusiRenderExportWidget extends Widget {
   }
 }
 
+/**
+ * “Sync” menu beside Export (Markdown files only): holds Live preview, which
+ * keeps this view in step with the Markdown editor while you type.
+ */
+export class KuusiRenderSyncWidget extends Widget {
+  constructor(widget: IDocumentWidget) {
+    super();
+    this.addClass("jp-KuusiRenderExport");
+
+    const t = createKuusiTranslator();
+    const dropdown = document.createElement("div");
+    dropdown.className = "jp-KuusiFormatDropdown jp-KuusiRenderExport-dropdown";
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "jp-KuusiRenderExport-trigger";
+    trigger.setAttribute("aria-haspopup", "menu");
+    trigger.setAttribute("aria-label", t.sync());
+    trigger.title = t.syncTitle();
+    trigger.textContent = t.sync();
+
+    const menu = document.createElement("div");
+    menu.className =
+      "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu--fixed jp-KuusiRenderExport-menu jp-KuusiRenderSync-menu";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", t.sync());
+    menu.dataset.kuusiPortal = "true";
+
+    const path = (): string => widget.context.path;
+    const row = createAutoReloadSwitch(
+      getMarkdownLivePreviewEnabled(path()),
+      "jp-KuusiRenderSync-live",
+      t.livePreviewTitle(),
+      (enabled) => {
+        setMarkdownLivePreviewEnabled(path(), enabled);
+      },
+      t.livePreview(),
+    );
+    menu.appendChild(row.node);
+
+    const onChanged = (
+      _: unknown,
+      change: { path: string; enabled: boolean },
+    ): void => {
+      if (change.path === path()) {
+        row.setEnabled(change.enabled);
+      }
+    };
+    markdownLivePreviewChanged.connect(onChanged);
+
+    // Only for Markdown files (notebooks have no editor-typing sync).
+    const updateVisibility = (): void => {
+      this.setHidden(PathExt.extname(path()).toLowerCase() !== ".md");
+    };
+    updateVisibility();
+    widget.context.pathChanged.connect(updateVisibility);
+
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = menu.classList.contains("is-open");
+      closeKuusiDropdownMenus(this.node);
+
+      if (!isOpen) {
+        row.setEnabled(getMarkdownLivePreviewEnabled(path()));
+        openKuusiDropdownMenu(menu, widget.node);
+      }
+    });
+
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target;
+      if (!(target instanceof Node) || this.node.contains(target)) {
+        return;
+      }
+
+      const el = target instanceof Element ? target : target.parentElement;
+      if (el?.closest(".jp-KuusiFormatDropdown-menu.is-open")) {
+        return;
+      }
+
+      closeKuusiDropdownMenus(this.node);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    this.disposed.connect(() => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      markdownLivePreviewChanged.disconnect(onChanged);
+      widget.context.pathChanged.disconnect(updateVisibility);
+    });
+    widget.disposed.connect(() => {
+      this.dispose();
+    });
+
+    dropdown.append(trigger, menu);
+    this.node.appendChild(dropdown);
+  }
+}
+
 export const createKuusiRenderExport = (
   app: JupyterFrontEnd,
   widget: IDocumentWidget,
@@ -869,6 +973,11 @@ export const ensureKuusiRenderExportOnToolbar = (
     index,
     KUUSI_RENDER_EXPORT_ITEM,
     createKuusiRenderExport(app, widget, factoryName),
+  );
+  widget.toolbar.insertItem(
+    index + 1,
+    KUUSI_RENDER_SYNC_ITEM,
+    new KuusiRenderSyncWidget(widget),
   );
 };
 
@@ -897,6 +1006,11 @@ export const registerKuusiRenderExportToolbars = (
       factoryName,
       KUUSI_RENDER_EXPORT_ITEM,
       (widget) => createKuusiRenderExport(app, widget, factoryName),
+    );
+    toolbarRegistry.addFactory<IDocumentWidget>(
+      factoryName,
+      KUUSI_RENDER_SYNC_ITEM,
+      (widget) => new KuusiRenderSyncWidget(widget),
     );
   });
 };

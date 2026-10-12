@@ -2625,3 +2625,22 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
   background: transparent;
   box-shadow: none;
 }
+
+.jp-Toolbar-item[data-jp-item-name="kuusi-render-export"] +
+.jp-Toolbar-item[data-jp-item-name="kuusi-render-sync"] {
+  margin-left: 2px;
+}
+
+/* Sync menu: one switch row. */
+.jp-KuusiRenderSync-menu {
+  min-width: 190px;
+  padding: 6px 4px;
+}
+
+.jp-KuusiRenderSync-live {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 6px 10px;
+}

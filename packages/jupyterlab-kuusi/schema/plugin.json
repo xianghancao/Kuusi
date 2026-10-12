@@ -12,7 +12,7 @@
         "rank": 41
       },
       {
-        "name": "kuusi-notebook-auto-reload",
+        "name": "kuusi-more",
         "rank": 42
       }
     ],
@@ -25,6 +25,11 @@
         "name": "kuusi-render-export",
         "label": "Export",
         "rank": 2
+      },
+      {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
       },
       {
         "name": "save",
@@ -63,6 +68,11 @@
         "rank": 2
       },
       {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
+      },
+      {
         "name": "save",
         "rank": 10
       },
@@ -83,6 +93,11 @@
         "rank": 2
       },
       {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
+      },
+      {
         "name": "spacer",
         "type": "spacer",
         "rank": 100
@@ -97,6 +112,11 @@
         "name": "kuusi-render-export",
         "label": "Export",
         "rank": 2
+      },
+      {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
       },
       {
         "name": "save",
@@ -163,6 +183,11 @@
         "rank": 2
       },
       {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
+      },
+      {
         "name": "spacer",
         "type": "spacer",
         "rank": 100
@@ -179,6 +204,11 @@
         "rank": 2
       },
       {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
+      },
+      {
         "name": "spacer",
         "type": "spacer",
         "rank": 100
@@ -193,6 +223,11 @@
         "name": "kuusi-render-export",
         "label": "Export",
         "rank": 2
+      },
+      {
+        "name": "kuusi-render-sync",
+        "label": "Sync",
+        "rank": 3
       },
       {
         "name": "spacer",

@@ -48,7 +48,7 @@ body {
 .jp-KuusiDefaultOpeners,
 .jp-KuusiNotebookOpenButton,
 .jp-KuusiSettings-dialogBody,
-.jp-FileEditor-Document:has([data-jp-item-name="md-auto-reload"]),
+.jp-FileEditor-Document:has([data-jp-item-name="kuusi-more"]),
 .jp-FileEditor-Document:has([data-jp-item-name="kuusi-open-render"]),
 .jp-FileEditor-Document.jp-KuusiMarkdownEditorDocument,
 .jp-FileEditor-Document.jp-KuusiEditorFormatHost,

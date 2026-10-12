@@ -23,7 +23,16 @@ import {
 import { articleIcon } from "../kuusiIcon";
 import { kuusiLauncherMarkdownIcon } from "../launcherIcons";
 import { applyKuusiTabIcon } from "../kuusiTabIcon";
-import { createAutoReloadSwitch } from "./autoReloadSwitch";
+import {
+  getNotebookAutoReloadEnabled,
+  registerNotebookAutoReloadListener,
+  setNotebookAutoReloadEnabled,
+} from "../notebookAutoReloadRegistry";
+import {
+  getMarkdownLivePreviewEnabled,
+  setMarkdownLivePreviewDefault,
+  setMarkdownLivePreviewEnabled,
+} from "./livePreviewRegistry";
 import {
   type MdSyncContext,
 } from "./mdSync";
@@ -181,6 +190,8 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
       } catch {
         defaultEditorLivePreview = true;
       }
+
+      setMarkdownLivePreviewDefault(defaultEditorLivePreview);
     };
 
     void loadSettings();
@@ -238,7 +249,12 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
 
       if (!state) {
         state = {
-          enabled: defaultEditorLivePreview,
+          get enabled(): boolean {
+            return getMarkdownLivePreviewEnabled(widget.context.path);
+          },
+          set enabled(next: boolean) {
+            setMarkdownLivePreviewEnabled(widget.context.path, next);
+          },
           timer: null,
         };
         editorLivePreviewStates.set(widget, state);
@@ -279,13 +295,15 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
       let state = previewAutoReloadStates.get(widget);
 
       if (!state) {
-        let enabled = true;
+        const path = (): string => widget.context.path;
         const handle = attachDiskAutoReload(widget.context, contents, {
-          getEnabled: () => enabled,
+          getEnabled: () => getNotebookAutoReloadEnabled(path()),
         });
+        const unregister = registerNotebookAutoReloadListener(path(), handle);
         state = {
           enabled: true,
           dispose: () => {
+            unregister();
             handle.dispose();
             previewAutoReloadStates.delete(widget);
           },
@@ -293,12 +311,10 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
             handle.syncPolling();
           },
         };
-        // Keep enabled flag on the state object so the switch can mutate it.
         Object.defineProperty(state, "enabled", {
-          get: () => enabled,
+          get: () => getNotebookAutoReloadEnabled(path()),
           set: (next: boolean) => {
-            enabled = next;
-            handle.syncPolling();
+            setNotebookAutoReloadEnabled(path(), next);
           },
           enumerable: true,
           configurable: true,
@@ -311,44 +327,6 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
 
       return state;
     };
-
-    toolbarRegistry.addFactory<IDocumentWidget<FileEditor>>(
-      "Editor",
-      "md-auto-reload",
-      (widget) => {
-        const state = getEditorLivePreviewState(widget);
-        const wrap = createAutoReloadSwitch(
-          state.enabled,
-          "jp-KuusiMdPreview-autoReload",
-          "Update Article / preview while typing in the Markdown editor",
-          (enabled) => {
-            state.enabled = enabled;
-
-            if (!enabled && state.timer !== null) {
-              window.clearTimeout(state.timer);
-              state.timer = null;
-            }
-          },
-          "Live preview",
-        );
-
-        const updateVisibility = (): void => {
-          wrap.setHidden(
-            !shouldUseKuusiForMarkdown() || !isMarkdownPath(widget.context.path),
-          );
-        };
-
-        updateVisibility();
-        widget.context.pathChanged.connect(updateVisibility);
-        const openersSub = onDefaultOpenersStateChanged(updateVisibility);
-        wrap.disposed.connect(() => {
-          widget.context.pathChanged.disconnect(updateVisibility);
-          openersSub.disconnect();
-        });
-
-        return wrap;
-      },
-    );
 
     const applyKuusiMarkdownTabIcon = (
       widget: IDocumentWidget<FileEditor> | MarkdownDocument,
@@ -369,6 +347,9 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
       widget: IDocumentWidget<FileEditor>,
     ): void => {
       applyKuusiMarkdownTabIcon(widget);
+      // “Live preview” is switched in the view's Sync menu; the editor does the
+      // syncing, so its typing listener is attached here.
+      getEditorLivePreviewState(widget);
       bindMarkdownActiveLineGutter(widget);
       bindFileEditorFormatBars(widget);
       bindMarkdownEditorRenderSync(app, docManager, widget, mdSyncContext);

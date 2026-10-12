@@ -225,6 +225,15 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   openCommunityEmail: () => t.__("Email Kuusi"),
   close: () => t.__("Close"),
   community: () => t.__("Community"),
+  autoReload: () => t.__("Auto reload"),
+  autoReloadTitle: () =>
+    t.__("Re-read the file when it changes on disk (skipped while there are unsaved edits)"),
+  moreOptions: () => t.__("More options"),
+  sync: () => t.__("Sync"),
+  syncTitle: () => t.__("Keep this view in step with the editor"),
+  livePreview: () => t.__("Live preview"),
+  livePreviewTitle: () =>
+    t.__("Update this view while you type in the Markdown editor"),
   feedback: () => t.__("Feedback"),
   feedbackIntro: () =>
     t.__("Tell us what is broken or what you would like. It opens an email in your own mail program; nothing is uploaded."),
