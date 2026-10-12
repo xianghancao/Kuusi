@@ -33,6 +33,7 @@ import {
   DEFAULT_MIND_MAP_FONT,
   DEFAULT_MIND_MAP_FONT_SIZE,
   FONT_OPTIONS,
+  migrateFont,
   normalizeBodyFontSizePx,
   normalizeCodeFontSize,
   normalizeHeadingFontSize,
@@ -179,7 +180,10 @@ export const migrateLetterSpacingToPt = (value: number): number =>
 export const migrateParagraphMeasureToPt = (value: number): number =>
   migrateEmToPt(value, LEGACY_PARAGRAPH_EM_MAX);
 
-const FONT_VALUES = new Set<string>(FONT_OPTIONS.map((option) => option.value));
+const FONT_VALUES = new Set<string>([
+  ...FONT_OPTIONS.map((option) => option.value),
+  "system-ui",
+]);
 
 export const isTypographyFont = (value: unknown): value is MindMapFont =>
   typeof value === "string" && FONT_VALUES.has(value);
@@ -258,7 +262,7 @@ export const normalizeHeadingStyle = (
     value && typeof value === "object" ? (value as Partial<HeadingStyle>) : {};
 
   return {
-    font: isTypographyFont(raw.font) ? raw.font : fallback.font,
+    font: isTypographyFont(raw.font) ? migrateFont(raw.font) : fallback.font,
     fontSize: normalizeHeadingFontSize(raw.fontSize) ?? fallback.fontSize,
     color: isTypographyColor(raw.color) ? raw.color : fallback.color,
     align: isTextAlign(raw.align) ? raw.align : fallback.align,
@@ -360,7 +364,7 @@ export const normalizeTypographyValues = (
       : {};
 
   return {
-    font: isTypographyFont(raw.font) ? raw.font : fallback.font,
+    font: isTypographyFont(raw.font) ? migrateFont(raw.font) : fallback.font,
     fontSize: normalizeBodyFontSizePx(raw.fontSize, fallback.fontSize),
     color: isTypographyColor(raw.color) ? raw.color : fallback.color,
     strongColor: isTypographyColor(raw.strongColor)

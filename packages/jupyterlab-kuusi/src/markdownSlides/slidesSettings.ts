@@ -11,6 +11,7 @@ import {
   type BodyFontSizePx,
   type MindMapFont,
   type MindMapFontSize,
+  migrateFont,
 } from "../fontToolbar";
 import {
   CODE_BORDER_RANGE,
@@ -301,7 +302,7 @@ export const SLIDES_THEME_PRESETS: Record<SlidesTheme, SlidesThemeChrome> = {
   night: {
     padding: "loose",
     contentAlign: "center",
-    font: "system-ui",
+    font: "helvetica",
     fontSize: 16,
     lineHeight: 1.5,
     letterSpacing: 0.2,
@@ -311,7 +312,7 @@ export const SLIDES_THEME_PRESETS: Record<SlidesTheme, SlidesThemeChrome> = {
     paragraphIndent: 0,
     paragraphAlign: "left",
     linkStyle: "accent",
-    headers: slidesHeadings("system-ui", "left", "xxl", "xl"),
+    headers: slidesHeadings("helvetica", "left", "xxl", "xl"),
     accentColor: "",
     showHeader: false,
     showFooter: true,
@@ -455,7 +456,7 @@ export const SLIDES_THEME_PRESETS: Record<SlidesTheme, SlidesThemeChrome> = {
   berlin: {
     padding: "compact",
     contentAlign: "top",
-    font: "system-ui",
+    font: "helvetica",
     fontSize: 14,
     lineHeight: 1.4,
     letterSpacing: 0.1,
@@ -465,7 +466,7 @@ export const SLIDES_THEME_PRESETS: Record<SlidesTheme, SlidesThemeChrome> = {
     paragraphIndent: 0,
     paragraphAlign: "left",
     linkStyle: "accent",
-    headers: slidesHeadings("system-ui", "left", "xl", "lg"),
+    headers: slidesHeadings("helvetica", "left", "xl", "lg"),
     accentColor: "",
     showHeader: false,
     showFooter: true,
@@ -477,7 +478,7 @@ export const SLIDES_THEME_PRESETS: Record<SlidesTheme, SlidesThemeChrome> = {
   copenhagen: {
     padding: "loose",
     contentAlign: "top",
-    font: "system-ui",
+    font: "helvetica",
     fontSize: 14,
     lineHeight: 1.5,
     letterSpacing: 0.2,
@@ -487,7 +488,7 @@ export const SLIDES_THEME_PRESETS: Record<SlidesTheme, SlidesThemeChrome> = {
     paragraphIndent: 0,
     paragraphAlign: "left",
     linkStyle: "default",
-    headers: slidesHeadings("system-ui", "left", "xl", "lg"),
+    headers: slidesHeadings("helvetica", "left", "xl", "lg"),
     accentColor: "",
     showHeader: true,
     showFooter: true,
@@ -631,7 +632,7 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
     contentAlign: isContentAlign(raw.contentAlign)
       ? raw.contentAlign
       : defaults.contentAlign,
-    font: isTypographyFont(raw.font) ? raw.font : defaults.font,
+    font: isTypographyFont(raw.font) ? migrateFont(raw.font) : defaults.font,
     fontSize: normalizeBodyFontSizePx(raw.fontSize, defaults.fontSize),
     lineHeight: normalizeInRange(
       raw.lineHeight,

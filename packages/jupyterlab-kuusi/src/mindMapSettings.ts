@@ -31,6 +31,7 @@ import {
   type BodyFontSizePx,
   type MindMapFont,
   isFontValue,
+  migrateFont,
 } from "./fontToolbar";
 import { DEFAULT_MIND_MAP_THEME, normalizeMindMapTheme, type MindMapTheme } from "./styleToolbar";
 import {
@@ -377,14 +378,14 @@ export const normalizeMindMapUserSettings = (
     : null;
 
   const legacyFont = isFont((raw as { font?: unknown }).font)
-    ? ((raw as { font: MindMapFont }).font)
+    ? migrateFont((raw as { font: MindMapFont }).font)
     : null;
   const legacyFontSize = normalizeBodyFontSizePx(
     (raw as { fontSize?: unknown }).fontSize,
     defaults.displayFontSize,
   );
   const displayFont = isFont(raw.displayFont)
-    ? raw.displayFont
+    ? migrateFont(raw.displayFont)
     : (legacyFont ?? defaults.displayFont);
   const displayFontSize = normalizeBodyFontSizePx(
     raw.displayFontSize ?? legacyFontSize,
@@ -408,7 +409,7 @@ export const normalizeMindMapUserSettings = (
   return {
     theme: normalizeMindMapTheme(raw.theme) ?? defaults.theme,
     editFont: isFont(raw.editFont)
-      ? raw.editFont
+      ? migrateFont(raw.editFont)
       : (legacyFont ?? defaults.editFont),
     displayFont,
     editFontSize: normalizeBodyFontSizePx(

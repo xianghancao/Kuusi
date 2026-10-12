@@ -15,6 +15,7 @@ import {
   type MindMapFont,
   type MindMapFontSize,
   isFontValue,
+  migrateFont,
 } from "./fontToolbar";
 import {
   CODE_BORDER_RANGE,
@@ -611,7 +612,7 @@ const headersFromLegacyTitle = (raw: {
   titleFontSize?: unknown;
   titleAlign?: unknown;
 }): ArticleHeaders | null => {
-  const font = isFont(raw.titleFont) ? raw.titleFont : null;
+  const font = isFont(raw.titleFont) ? migrateFont(raw.titleFont) : null;
   const fontSize = normalizeHeadingFontSize(raw.titleFontSize);
   const align = isHeaderAlign(raw.titleAlign) ? raw.titleAlign : null;
 
@@ -843,7 +844,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     background: "ink",
     backgroundPattern: "none",
     viewBackground: "ink",
-    font: "system-ui",
+    font: "helvetica",
     fontSize: 16,
     color: "",
     strongColor: "",
@@ -864,7 +865,7 @@ export const ARTICLE_THEME_PRESETS: Record<
       imageRadius: 6,
       paperShadow: false,
     }),
-    headers: themeHeaders("system-ui", "left", {
+    headers: themeHeaders("helvetica", "left", {
       h1: "xl",
       h2: "lg",
       h3: "md",
@@ -928,7 +929,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     background: "theme",
     backgroundPattern: "plain",
     viewBackground: "theme",
-    font: "system-ui",
+    font: "helvetica",
     fontSize: 14,
     color: "",
     strongColor: "",
@@ -950,7 +951,7 @@ export const ARTICLE_THEME_PRESETS: Record<
       paperBorderWidth: 0,
       paperShadow: false,
     }),
-    headers: themeHeaders("system-ui", "left", {
+    headers: themeHeaders("helvetica", "left", {
       h1: "lg",
       h2: "md",
       h3: "sm",
@@ -1180,7 +1181,7 @@ const normalizeHeaderStyle = (
       : {};
 
   return {
-    font: isFont(raw.font) ? raw.font : fallback.font,
+    font: isFont(raw.font) ? migrateFont(raw.font) : fallback.font,
     fontSize: normalizeHeadingFontSize(raw.fontSize) ?? fallback.fontSize,
     color: isColor(raw.color) ? raw.color : fallback.color,
     align: isHeaderAlign(raw.align) ? raw.align : fallback.align,
@@ -1289,7 +1290,7 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
     viewBackgroundColor: isColor(raw.viewBackgroundColor)
       ? raw.viewBackgroundColor
       : defaults.viewBackgroundColor,
-    font: isFont(raw.font) ? raw.font : defaults.font,
+    font: isFont(raw.font) ? migrateFont(raw.font) : defaults.font,
     fontSize: normalizeBodyFontSizePx(raw.fontSize, defaults.fontSize),
     color: isColor(raw.color) ? raw.color : defaults.color,
     strongColor: isColor(raw.strongColor) ? raw.strongColor : defaults.strongColor,

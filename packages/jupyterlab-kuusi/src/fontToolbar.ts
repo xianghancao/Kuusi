@@ -327,6 +327,14 @@ export type FontOption = {
   previewFamily: string;
 };
 
+/**
+ * “System UI” is no longer offered: macOS prints that font as outlines (no
+ * selectable text, bigger PDFs). Saved settings that still name it become
+ * Helvetica Neue, the closest embeddable look.
+ */
+export const migrateFont = <T>(value: T): T =>
+  (value === "system-ui" ? ("helvetica" as unknown as T) : value);
+
 export const FONT_OPTIONS: FontOption[] = [
   {
     value: "notebook",
@@ -335,14 +343,6 @@ export const FONT_OPTIONS: FontOption[] = [
     category: "default",
     previewFamily:
       "var(--jp-content-font-family, var(--jp-ui-font-family, system-ui))",
-  },
-  {
-    value: "system-ui",
-    label: "System UI",
-    title: "System sans-serif UI font",
-    category: "sans",
-    previewFamily:
-      'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
   {
     value: "arial",
@@ -445,11 +445,16 @@ export const FONT_VALUES: readonly MindMapFont[] = FONT_OPTIONS.map(
 );
 
 export const isFontValue = (value: unknown): value is MindMapFont =>
-  typeof value === "string" && (FONT_VALUES as readonly string[]).includes(value);
+  value === "system-ui" ||
+  (typeof value === "string" && (FONT_VALUES as readonly string[]).includes(value));
 
-const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = Object.fromEntries(
-  FONT_OPTIONS.map((option) => [option.value, option.previewFamily]),
-) as Record<MindMapFont, string>;
+const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = {
+  ...(Object.fromEntries(
+    FONT_OPTIONS.map((option) => [option.value, option.previewFamily]),
+  ) as Record<MindMapFont, string>),
+  // Legacy value: same look as its replacement.
+  "system-ui": '"Helvetica Neue", Helvetica, Arial, sans-serif',
+};
 
 export const mindMapFontFamilyCss = (font: MindMapFont): string =>
   FONT_FAMILY_BY_VALUE[font];

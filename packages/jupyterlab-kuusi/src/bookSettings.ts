@@ -32,6 +32,7 @@ import {
   normalizeCodeFontSize,
   type MindMapFont,
   isFontValue,
+  migrateFont,
 } from "./fontToolbar";
 import {
   CODE_BORDER_RANGE,
@@ -312,7 +313,7 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
       typeof source.viewBackgroundColor === "string"
         ? source.viewBackgroundColor
         : defaults.viewBackgroundColor,
-    font: isFont(source.font) ? source.font : defaults.font,
+    font: isFont(source.font) ? migrateFont(source.font) : defaults.font,
     fontSize:
       normalizeBodyFontSizePx(source.fontSize, defaults.fontSize),
     color: typeof source.color === "string" ? source.color : defaults.color,
