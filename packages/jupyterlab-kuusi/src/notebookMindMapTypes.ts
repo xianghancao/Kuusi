@@ -78,6 +78,7 @@ export const appearanceEquals = (
   left.edgeMinWidth === right.edgeMinWidth &&
   left.edgeBranchColors === right.edgeBranchColors &&
   left.nodeFillColor === right.nodeFillColor &&
+  left.nodeFillTransparency === right.nodeFillTransparency &&
   left.nodeBorderStyle === right.nodeBorderStyle &&
   left.nodeBorderWidth === right.nodeBorderWidth &&
   left.nodeBorderColor === right.nodeBorderColor &&

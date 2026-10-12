@@ -68,6 +68,8 @@ export type AppearanceSettings = {
   edgeBranchColors: EdgeBranchColors;
   /** Default node fill for the whole map; empty uses theme. */
   nodeFillColor: string;
+  /** Transparency of every node fill (map-wide, level and per-node), in percent. */
+  nodeFillTransparency: number;
   nodeBorderStyle: BorderLineStyle;
   nodeBorderWidth: string;
   nodeBorderColor: string;
@@ -107,6 +109,7 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   edgeMinWidth: "1pt",
   edgeBranchColors: "off",
   nodeFillColor: "",
+  nodeFillTransparency: 0,
   nodeBorderStyle: "solid",
   nodeBorderWidth: "1px",
   nodeBorderColor: "",
@@ -437,6 +440,12 @@ export const applyAppearanceToScene = (
   setVar("--kuusi-edge-width", settings.edgeWidth);
   setVar("--kuusi-edge-color", settings.edgeColor);
   setVar("--kuusi-node-background", settings.nodeFillColor);
+  setVar(
+    "--kuusi-node-fill-opacity",
+    settings.nodeFillTransparency > 0
+      ? `${100 - settings.nodeFillTransparency}%`
+      : "",
+  );
   setVar("--kuusi-node-foreground", nodeForeground);
   setVar("--kuusi-node-border-width", settings.nodeBorderWidth);
   setVar("--kuusi-node-border-color", settings.nodeBorderColor);
@@ -1173,6 +1182,18 @@ export const fillNodeAppearanceMenu = (
             onChange: (color) => {
               patch({ nodeFillColor: color });
               onRebuild();
+            },
+          },
+          {
+            kind: "slider",
+            label: t.nodeFillTransparency(),
+            value: settings.nodeFillTransparency,
+            min: 0,
+            max: 100,
+            step: 5,
+            formatValue: (value: number) => `${Math.round(value)}%`,
+            onChange: (nodeFillTransparency: number) => {
+              patch({ nodeFillTransparency });
             },
           },
         ];

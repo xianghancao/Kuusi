@@ -936,6 +936,14 @@
           "description": "Default fill for mind map nodes. Empty uses the theme. Per-node overrides use cell metadata.",
           "default": ""
         },
+        "nodeFillTransparency": {
+          "type": "number",
+          "title": "Map node fill transparency",
+          "description": "Transparency of mind map node fills in percent (0 = opaque, 100 = see-through).",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0
+        },
         "nodeBorderStyle": {
           "type": "string",
           "enum": [

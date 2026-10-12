@@ -839,6 +839,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   nodeAppearance: () =>
     t.__("Node width, fill, border, and selection glow"),
   nodeFillDefault: () => t.__("Map fill"),
+  nodeFillTransparency: () => t.__("Fill transparency"),
   nodeFillSelected: () => t.__("Selected fill"),
   nodeFillSelectHint: () =>
     t.__("Select a node to set a custom fill"),
@@ -880,6 +881,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   arrowStyle: () => t.__("Arrow style"),
   fill: () => t.__("Fill"),
   border: () => t.__("Border"),
+  borderWidth: () => t.__("Border width"),
   corner: () => t.__("Corner"),
   selection: () => t.__("Selection"),
   tree: () => t.__("Tree"),
@@ -1011,10 +1013,10 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   slidesNext: () => t.__("Next slide"),
   slidesBody: () => t.__("Slide type"),
   slidesCode: () => t.__("Code"),
-  slidesCodeFrame: () => t.__("Frame"),
+  slidesCodeFrame: () => t.__("Border"),
   slidesCodeFrameTitle: () =>
     t.__("Draw a border around fenced code blocks"),
-  slidesCodeFrameColor: () => t.__("Frame color"),
+  slidesCodeFrameColor: () => t.__("Border color"),
   slidesChrome: () => t.__("Chrome"),
   slidesPageChrome: () => t.__("Page"),
   slidesHeaderTitle: () =>

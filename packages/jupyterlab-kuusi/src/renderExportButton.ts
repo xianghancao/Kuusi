@@ -547,10 +547,7 @@ const downloadSourceFile = async (
 
 const downloadRenderedHtml = async (widget: IDocumentWidget): Promise<void> => {
   // A paged Article keeps its pages exactly as laid out on screen.
-  const pagesHtml = buildArticlePagesHtml(
-    widget,
-    PathExt.basename(widget.context.path),
-  );
+  const pagesHtml = buildArticlePagesHtml(widget, documentStem(widget));
 
   if (pagesHtml) {
     const pagesStem = PathExt.basename(
@@ -585,6 +582,13 @@ const downloadRenderedHtml = async (widget: IDocumentWidget): Promise<void> => {
   );
   Notification.success(`Downloaded ${stem}.html.`, { autoClose: 2500 });
 };
+
+/** File name without folder or extension (`notes.ipynb` → `notes`). */
+const documentStem = (widget: IDocumentWidget): string =>
+  PathExt.basename(
+    widget.context.path,
+    PathExt.extname(widget.context.path),
+  );
 
 const createMenuItem = (
   label: string,
@@ -670,7 +674,7 @@ export class KuusiRenderExportWidget extends Widget {
         t.exportPdfVectorTitle(),
         () => {
           closeMenu();
-          printArticleVector(widget, PathExt.basename(widget.context.path))
+          printArticleVector(widget, documentStem(widget))
             .then((printed) => {
               if (!printed) {
                 Notification.warning(t.exportNothing(), { autoClose: 3500 });

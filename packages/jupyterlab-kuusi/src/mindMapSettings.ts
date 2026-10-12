@@ -302,6 +302,11 @@ const normalizeAppearance = (value: unknown): AppearanceSettings => {
       typeof appearance.nodeFillColor === "string"
         ? appearance.nodeFillColor
         : defaults.nodeFillColor,
+    nodeFillTransparency:
+      typeof appearance.nodeFillTransparency === "number" &&
+      Number.isFinite(appearance.nodeFillTransparency)
+        ? Math.min(100, Math.max(0, Math.round(appearance.nodeFillTransparency)))
+        : defaults.nodeFillTransparency,
     nodeBorderStyle: isBorderLineStyle(appearance.nodeBorderStyle)
       ? appearance.nodeBorderStyle
       : defaults.nodeBorderStyle,

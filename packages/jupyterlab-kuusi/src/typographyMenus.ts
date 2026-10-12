@@ -805,7 +805,7 @@ const fillCodeSection = (
   if (id === "stroke") {
     renderPanelWidgets(panel, [
       slider(
-        t.border(),
+        t.borderWidth(),
         pxToPtLength(values.codeFrameBorder),
         PT_RANGES.codeBorder,
         formatPtLength,
@@ -873,7 +873,7 @@ export const createCodeToolbar = (
           { id: "background", label: t.codeBackground() },
           { id: "frame", label: t.slidesCodeFrame() },
           { id: "corner", label: t.corner() },
-          { id: "stroke", label: t.border() },
+          { id: "stroke", label: t.borderWidth() },
           { id: "width", label: t.width() },
         ],
         getActive: section.get,
@@ -1057,7 +1057,7 @@ const fillImageSection = (
       },
     },
     slider(
-      t.border(),
+      t.borderWidth(),
       pxToPtLength(values.imageBorderWidth),
       PT_RANGES.imageBorder,
       formatPtLength,

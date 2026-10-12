@@ -1558,7 +1558,11 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
 }
 
 .jp-KuusiNotebookMindMap-cellNode {
-  background: var(--kuusi-node-background);
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-background) var(--kuusi-node-fill-opacity, 100%),
+    transparent
+  );
   border-color: var(--kuusi-node-border-color);
   border-radius: var(--kuusi-node-border-radius);
   border-style: solid;
@@ -1631,7 +1635,11 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   .jp-KuusiNotebookMindMap-cellNode.is-selected,
 .jp-KuusiMindMapNotebook-scene
   .jp-KuusiNotebookMindMap-cellNode.jp-mod-active {
-  background: var(--kuusi-node-background);
+  background: color-mix(
+    in srgb,
+    var(--kuusi-node-background) var(--kuusi-node-fill-opacity, 100%),
+    transparent
+  );
 }
 
 .jp-KuusiNotebookMindMap-cellNode.has-children {
