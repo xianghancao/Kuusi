@@ -51,6 +51,7 @@ import {
   type ArticleColumnRuleStyle,
   autoPageMarginsMm,
   DEFAULT_ARTICLE_SETTINGS,
+  PAGE_NUMBER_FONT_SIZE_RANGE,
   type ArticleSettings,
   type ArticleSettingsManager,
   type ArticleTheme,
@@ -1646,6 +1647,17 @@ const fillFurnitureSection = (
         rebuild();
       },
     },
+    numberSlider(
+      t.pageNumberSize(),
+      settings.pageNumberFontSize,
+      PAGE_NUMBER_FONT_SIZE_RANGE.min,
+      PAGE_NUMBER_FONT_SIZE_RANGE.max,
+      PAGE_NUMBER_FONT_SIZE_RANGE.step,
+      (value) => `${value} pt`,
+      (pageNumberFontSize) => {
+        void manager.update({ pageNumberFontSize });
+      },
+    ),
     {
       kind: "choice",
       sectionLabel: t.pageNumberStart(),

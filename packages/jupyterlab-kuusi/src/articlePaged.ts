@@ -463,9 +463,12 @@ const fillPageTokens = (
     .replace(/\{pages\}/g, pages)
     .replace(/\{page\}/g, page);
 
+/** Text, or the page number (sized on its own). */
+type SlotItem = string | { number: string; size: number };
+
 const createBand = (
   edge: "header" | "footer",
-  slots: Record<ArticleHeaderAlign, string[]>,
+  slots: Record<ArticleHeaderAlign, SlotItem[]>,
   height: number,
   padLeft: number,
   padRight: number,
@@ -490,7 +493,22 @@ const createBand = (
   SLOT_ALIGNS.forEach((align) => {
     const slot = document.createElement("span");
     slot.className = `jp-KuusiArticle-pageSlot jp-KuusiArticle-pageSlot--${align}`;
-    slot.textContent = slots[align].join(" · ");
+    slots[align].forEach((item, index) => {
+      if (index > 0) {
+        slot.appendChild(document.createTextNode(" · "));
+      }
+
+      if (typeof item === "string") {
+        slot.appendChild(document.createTextNode(item));
+        return;
+      }
+
+      const number = document.createElement("span");
+      number.className = "jp-KuusiArticle-pageNumber";
+      number.style.fontSize = `${item.size}pt`;
+      number.textContent = item.number;
+      slot.appendChild(number);
+    });
     band.appendChild(slot);
   });
 
@@ -505,7 +523,7 @@ const decorateSheet = (
   physicalTotal: number,
   margins: { top: number; bottom: number; left: number; right: number },
 ): void => {
-  const emptySlots = (): Record<ArticleHeaderAlign, string[]> => ({
+  const emptySlots = (): Record<ArticleHeaderAlign, SlotItem[]> => ({
     left: [],
     center: [],
     right: [],
@@ -550,11 +568,11 @@ const decorateSheet = (
     );
     (settings.pageNumberPosition === "header" ? header : footer)[
       settings.pageNumberAlign
-    ].push(label);
+    ].push({ number: label, size: settings.pageNumberFontSize });
   }
 
   if (settings.pageHeaderMirror && physicalIndex % 2 === 1) {
-    const flip = (slots: Record<ArticleHeaderAlign, string[]>): void => {
+    const flip = (slots: Record<ArticleHeaderAlign, SlotItem[]>): void => {
       [slots.left, slots.right] = [slots.right, slots.left];
     };
     flip(header);

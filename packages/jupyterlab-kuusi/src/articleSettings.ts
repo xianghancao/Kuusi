@@ -198,6 +198,9 @@ export type ArticleBackgroundPattern =
   | "lines"
   | "notebook";
 export type ArticleHeaderAlign = TextAlign;
+/** Page number size, in pt. */
+export const PAGE_NUMBER_FONT_SIZE_RANGE = { min: 6, max: 24, step: 0.5 } as const;
+
 export type ArticlePageNumber = "none" | PageNumberStyle;
 export type ArticlePageNumberPosition = "header" | "footer";
 export type ArticleHeaderLevel = HeadingLevel;
@@ -327,6 +330,8 @@ export type ArticleSettings = {
   pageNumberAlign: ArticleHeaderAlign;
   /** Number from the first sheet, or skip the first and start on sheet 2. */
   pageNumberStart: PageNumberStart;
+  /** Page number font size in pt. */
+  pageNumberFontSize: number;
   showTextCount: boolean;
   showPageCount: boolean;
   showFileSize: boolean;
@@ -402,6 +407,7 @@ type ArticleUserOnlyKey =
   | "pageNumberPosition"
   | "pageNumberAlign"
   | "pageNumberStart"
+  | "pageNumberFontSize"
   | "viewBackgroundColor"
   | "paperBorderColor"
   | "showTextCount"
@@ -559,6 +565,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   pageNumberPosition: "footer",
   pageNumberAlign: "center",
   pageNumberStart: "first",
+  pageNumberFontSize: 9,
   showTextCount: false,
   showPageCount: false,
   showFileSize: false,
@@ -1412,6 +1419,11 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
     pageNumberStart: isPageNumberStart(raw.pageNumberStart)
       ? raw.pageNumberStart
       : defaults.pageNumberStart,
+    pageNumberFontSize: normalizeInRange(
+      raw.pageNumberFontSize,
+      PAGE_NUMBER_FONT_SIZE_RANGE,
+      defaults.pageNumberFontSize,
+    ),
     showTextCount:
       typeof raw.showTextCount === "boolean"
         ? raw.showTextCount
@@ -2079,6 +2091,7 @@ export class ArticleSettingsManager {
         "pageNumberPosition",
         "pageNumberAlign",
         "pageNumberStart",
+        "pageNumberFontSize",
         "viewBackgroundColor",
         "paperBorderWidth",
         "paperBorderColor",

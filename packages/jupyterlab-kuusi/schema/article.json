@@ -710,6 +710,14 @@
       ],
       "default": "none"
     },
+    "pageNumberFontSize": {
+      "title": "Article page number size",
+      "description": "Font size of the page number in paged layout, in pt (6–24).",
+      "type": "number",
+      "minimum": 6,
+      "maximum": 24,
+      "default": 9
+    },
     "pageNumberPosition": {
       "title": "Article page number position",
       "type": "string",

@@ -747,6 +747,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   pageNumberRomanLowerTitle: () => t.__("Lower-case Roman numerals (i, ii, iii…)"),
   pageNumberRomanUpper: () => t.__("III"),
   pageNumberRomanUpperTitle: () => t.__("Upper-case Roman numerals (I, II, III…)"),
+  pageNumberSize: () => t.__("Size"),
   pageNumberPosition: () => t.__("Position"),
   pageNumberInHeader: () => t.__("Header"),
   pageNumberInHeaderTitle: () => t.__("Top margin of each page"),
@@ -904,11 +905,21 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   exportPdfTitle: () =>
     t.__("Download this view as a PDF file (one page per page or slide)"),
   exportPdfSourceTitle: () => t.__("Download the PDF file"),
-  exportPdfVector: () => t.__("PDF (vector, no bookmarks)…"),
+  exportPdfVector: () => t.__("PDF…"),
   exportPdfVectorTitle: () =>
     t.__(
-      "Open the print dialog and choose “Save as PDF”: sharp, selectable text, but no bookmarks",
+      "Open the print dialog and choose “Save as PDF”: sharp text that stays selectable",
     ),
+  exportAddBookmarks: () => t.__("Add bookmarks and links…"),
+  exportAddBookmarksTitle: () =>
+    t.__(
+      "Pick the PDF you saved: headings become bookmarks (the reader's contents sidebar) and the contents page links jump to their page",
+    ),
+  exportBookmarksHint: () =>
+    t.__("Saved a PDF? Add bookmarks and working contents links for PDF readers such as Preview."),
+  exportBookmarksFailed: () =>
+    t.__("Could not add bookmarks: pick the PDF saved from this view's PDF… export."),
+  exportBookmarksDone: (name: string) => t.__("Saved %1 with bookmarks.", name),
   exportImage: (format: string) => t.__("%1 image", format),
   exportImageTitle: (format: string, scope: string) =>
     t.__("Download %1 as a %2 image", scope, format),

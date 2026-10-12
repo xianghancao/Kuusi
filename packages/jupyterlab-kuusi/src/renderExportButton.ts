@@ -28,8 +28,11 @@ import { scheduleDocumentToolbarRelayout } from "./documentToolbarLayout";
 import {
   articleVectorPdfAvailable,
   buildArticlePagesHtml,
+  collectArticleOutline,
+  measurePrintLinks,
   printArticleVector,
 } from "./articleVectorPrint";
+import { addBookmarksToPdf } from "./pdfBookmarks";
 import {
   ensureKuusiRenderViewSwitcherOnToolbar,
   KUUSI_RENDER_VIEW_SWITCHER_ITEM,
@@ -590,6 +593,19 @@ const documentStem = (widget: IDocumentWidget): string =>
     PathExt.extname(widget.context.path),
   );
 
+/** Ask for a PDF file (must be called from a click). Null when cancelled. */
+const pickPdfFile = (): Promise<File | null> =>
+  new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf,.pdf";
+    input.addEventListener("change", () => resolve(input.files?.[0] ?? null), {
+      once: true,
+    });
+    input.addEventListener("cancel", () => resolve(null), { once: true });
+    input.click();
+  });
+
 const createMenuItem = (
   label: string,
   title: string,
@@ -660,43 +676,85 @@ export class KuusiRenderExportWidget extends Widget {
     {
       const scope = imageScopeFor(factoryName, t);
 
-      // PDF: page images with a bookmark per heading. A paged Article also
-      // offers real-text pages through the system print dialog, which cannot
-      // carry bookmarks.
-      menu.appendChild(
-        createMenuItem(t.exportPdf(), t.exportPdfTitle(), () => {
-          closeMenu();
+      // A paged Article exports a vector PDF (real text, through the system
+      // print dialog) and can add bookmarks to the saved file afterwards. Other
+      // views have the page-image PDF. Pages exist only after the menu is
+      // built, so the items are refreshed when the menu opens.
+      const addBookmarks = (): void => {
+        const bookmarks = collectArticleOutline(widget);
+
+        if (!bookmarks || bookmarks.length === 0) {
+          Notification.warning(t.exportNothing(), { autoClose: 3500 });
+          return;
+        }
+
+        void pickPdfFile().then(async (file) => {
+          if (!file) {
+            return;
+          }
+
+          const links = await measurePrintLinks(widget);
+          const result = addBookmarksToPdf(
+            new Uint8Array(await file.arrayBuffer()),
+            bookmarks,
+            links,
+          );
+
+          if (!result) {
+            Notification.error(t.exportBookmarksFailed(), { autoClose: 6000 });
+            return;
+          }
+
+          triggerDownload(new Blob([result as unknown as BlobPart], { type: "application/pdf" }), file.name);
+          Notification.success(t.exportBookmarksDone(file.name), {
+            autoClose: 4000,
+          });
+        });
+      };
+      const pdfItem = createMenuItem(t.exportPdf(), t.exportPdfTitle(), () => {
+        closeMenu();
+
+        if (!articleVectorPdfAvailable(widget)) {
           runExclusive(() => exportRenderedPdf(widget, t));
-        }),
-      );
-      const vectorItem = createMenuItem(
-        t.exportPdfVector(),
-        t.exportPdfVectorTitle(),
+          return;
+        }
+
+        printArticleVector(widget, documentStem(widget))
+          .then((printed) => {
+            if (!printed) {
+              Notification.warning(t.exportNothing(), { autoClose: 3500 });
+              return;
+            }
+
+            Notification.info(t.exportBookmarksHint(), {
+              autoClose: 20000,
+              actions: [
+                { label: t.exportAddBookmarks(), callback: addBookmarks },
+              ],
+            });
+          })
+          .catch((error) => {
+            Notification.error(
+              error instanceof Error ? error.message : "Could not export PDF.",
+              { autoClose: 4000 },
+            );
+          });
+      });
+      const bookmarkItem = createMenuItem(
+        t.exportAddBookmarks(),
+        t.exportAddBookmarksTitle(),
         () => {
           closeMenu();
-          printArticleVector(widget, documentStem(widget))
-            .then((printed) => {
-              if (!printed) {
-                Notification.warning(t.exportNothing(), { autoClose: 3500 });
-              }
-            })
-            .catch((error) => {
-              Notification.error(
-                error instanceof Error
-                  ? error.message
-                  : "Could not export PDF.",
-                { autoClose: 4000 },
-              );
-            });
+          addBookmarks();
         },
       );
-      // Pages exist only after the menu is built: show it when the menu opens.
-      vectorItem.style.display = "none";
-      menu.appendChild(vectorItem);
+      bookmarkItem.style.display = "none";
+      menu.append(pdfItem, bookmarkItem);
       this._refreshPdfItems = () => {
-        vectorItem.style.display = articleVectorPdfAvailable(widget)
-          ? ""
-          : "none";
+        const vector = articleVectorPdfAvailable(widget);
+        pdfItem.textContent = vector ? t.exportPdfVector() : t.exportPdf();
+        pdfItem.title = vector ? t.exportPdfVectorTitle() : t.exportPdfTitle();
+        bookmarkItem.style.display = vector ? "" : "none";
       };
 
       RASTER_IMAGE_FORMATS.forEach((format) => {

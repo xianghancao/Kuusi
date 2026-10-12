@@ -2,6 +2,7 @@ import type { IDocumentWidget } from "@jupyterlab/docregistry";
 
 import { PAGE_GAP_PX } from "./articlePaged";
 import { contentHeadings } from "./articleStructure";
+import type { PdfBookmark, PdfLinkRect, PdfPageLinks } from "./pdfBookmarks";
 
 /** Classes the scoped Article selectors hang off (`.jp-Document.jp-KuusiMarkdownArticle …`). */
 const SCOPE_CLASS = /^(jp-Kuusi|jp-Document$)/;
@@ -34,6 +35,42 @@ const findPagedArticle = (widget: IDocumentWidget): PagedArticle | null => {
 };
 
 /** True when the open view is a paged Article that can print page by page. */
+/** The Article's headings as PDF bookmarks (titles with their heading numbers). */
+export const collectArticleOutline = (
+  widget: IDocumentWidget,
+): PdfBookmark[] | null => {
+  const article = findPagedArticle(widget);
+
+  if (!article) {
+    return null;
+  }
+
+  const headings = contentHeadings(article.pages);
+  const levels = headings.map((h) => Number(h.tagName.slice(1)));
+  const base = levels.length > 0 ? Math.min(...levels) : 1;
+
+  return headings.flatMap((heading, index) => {
+    const title = (heading.textContent ?? "")
+      .replace(/¶\s*$/u, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!title) {
+      return [];
+    }
+
+    const number = heading.getAttribute("data-kuusi-num");
+
+    return [
+      {
+        title: number ? `${number}  ${title}` : title,
+        level: levels[index] - base + 1,
+        anchor: `kuusi-h-${index}`,
+      },
+    ];
+  });
+};
+
 export const articleVectorPdfAvailable = (widget: IDocumentWidget): boolean =>
   findPagedArticle(widget) !== null;
 
@@ -121,7 +158,8 @@ const linkClone = (
   clone: HTMLElement,
   anchors: Map<Element, string>,
   targets: string[],
-): HTMLElement => {
+  startsOnThisPage: (heading: HTMLElement) => boolean,
+): Node => {
   const livePairs: HTMLElement[] = [
     ...(live.matches(HEADING_SELECTOR) ? [live] : []),
     ...Array.from(live.querySelectorAll<HTMLElement>(HEADING_SELECTOR)),
@@ -130,11 +168,25 @@ const linkClone = (
     ...(clone.matches(HEADING_SELECTOR) ? [clone] : []),
     ...Array.from(clone.querySelectorAll<HTMLElement>(HEADING_SELECTOR)),
   ];
+  // An empty inline marker at the start of each heading carries the
+  // destination (inside the heading, so a forced page break before it cannot
+  // leave the marker on the previous page; the heading keeps its own id).
   livePairs.forEach((heading, index) => {
     const anchor = anchors.get(heading);
-    if (anchor && clonePairs[index]) {
-      clonePairs[index].id = anchor;
+    const copy = clonePairs[index];
+
+    // One destination per heading: only the clone of the page it starts on
+    // (a block that is copied into several page clones would repeat the id).
+    if (!anchor || !copy || !startsOnThisPage(heading)) {
+      return;
     }
+
+    const marker = document.createElement("span");
+    marker.id = anchor;
+    marker.setAttribute("aria-hidden", "true");
+    marker.style.cssText =
+      "display:inline-block;width:0;height:0;overflow:hidden;vertical-align:top;";
+    copy.insertBefore(marker, copy.firstChild);
   });
 
   const toLink = (row: HTMLElement): HTMLElement => {
@@ -163,6 +215,7 @@ const linkClone = (
   clone.querySelectorAll<HTMLElement>(TOC_ROW).forEach((row) => {
     row.replaceWith(toLink(row));
   });
+
   return clone;
 };
 
@@ -193,6 +246,10 @@ const clonePageContent = (
       pieces: rects.length,
     };
   };
+  const startsOnThisPage = (heading: HTMLElement): boolean => {
+    const top = spanOf(heading).top;
+    return top >= pageTop - 1 && top < pageTop + pageHeight;
+  };
 
   for (const child of Array.from(pages.childNodes)) {
     if (!(child instanceof HTMLElement)) {
@@ -215,7 +272,13 @@ const clonePageContent = (
 
     if (!flows) {
       target.appendChild(
-        linkClone(child, child.cloneNode(true) as HTMLElement, anchors, targets),
+        linkClone(
+          child,
+          child.cloneNode(true) as HTMLElement,
+          anchors,
+          targets,
+          startsOnThisPage,
+        ),
       );
       continue;
     }
@@ -227,7 +290,13 @@ const clonePageContent = (
 
     if (near) {
       target.appendChild(
-        linkClone(child, child.cloneNode(true) as HTMLElement, anchors, targets),
+        linkClone(
+          child,
+          child.cloneNode(true) as HTMLElement,
+          anchors,
+          targets,
+          startsOnThisPage,
+        ),
       );
     } else {
       // Same tag and classes, so the break rules (keep headings with the next
@@ -261,7 +330,7 @@ const buildPrintHtml = (
   // Anchor id per heading, in the order the contents rows count them.
   const anchors = new Map<Element, string>();
   const targets = contentHeadings(pages).map((heading, index) => {
-    const id = heading.id || `kuusi-h-${index}`;
+    const id = `kuusi-h-${index}`;
     anchors.set(heading, id);
     return id;
   });
@@ -442,4 +511,78 @@ export const printArticleVector = async (
   win.print();
   window.setTimeout(cleanup, 120_000);
   return true;
+};
+
+/**
+ * Where every link sits on each printed page (px from the page's top-left),
+ * measured on the same page-by-page document that gets printed. Used to put
+ * clickable links back into a saved PDF that lost or never had them.
+ */
+export const measurePrintLinks = async (
+  widget: IDocumentWidget,
+): Promise<PdfPageLinks | null> => {
+  const article = findPagedArticle(widget);
+  const built = article ? buildPrintHtml(article, "links") : null;
+
+  if (!built) {
+    return null;
+  }
+
+  const frame = document.createElement("iframe");
+  frame.setAttribute("aria-hidden", "true");
+  frame.tabIndex = -1;
+  frame.style.cssText = `position:fixed;left:-10000px;top:0;width:${built.width + 80}px;height:${built.height}px;border:0;visibility:hidden;`;
+  document.body.appendChild(frame);
+
+  try {
+    const doc = frame.contentDocument;
+
+    if (!doc) {
+      return null;
+    }
+
+    doc.open();
+    doc.write(built.html);
+    doc.close();
+    await waitForPrintAssets(doc);
+    await new Promise((resolve) => window.setTimeout(resolve, 100));
+
+    const pages = Array.from(
+      doc.querySelectorAll<HTMLElement>(`.${PAGE_CLASS}`),
+    ).map((page) => {
+      const origin = page.getBoundingClientRect();
+      const links: PdfLinkRect[] = [];
+
+      page.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
+        const href = a.getAttribute("href") ?? "";
+        const target = href.startsWith("#kuusi-h-")
+          ? { anchor: href.slice(1) }
+          : /^(https?:|mailto:)/i.test(href)
+            ? { uri: a.href }
+            : null;
+
+        if (!target) {
+          return;
+        }
+
+        Array.from(a.getClientRects()).forEach((r) => {
+          if (r.width > 1 && r.height > 1) {
+            links.push({
+              x: r.left - origin.left,
+              y: r.top - origin.top,
+              width: r.width,
+              height: r.height,
+              ...target,
+            });
+          }
+        });
+      });
+
+      return links;
+    });
+
+    return { widthPx: built.width, heightPx: built.height, pages };
+  } finally {
+    frame.remove();
+  }
 };
