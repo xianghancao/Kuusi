@@ -234,12 +234,22 @@
   /* Desk scrolls when the fixed sheet is larger than the pane (or zoomed). */
   overflow: auto;
   /* Extra inset so the sheet's edge + surround shadow are not clipped. */
-  padding: max(
-      36px,
-      calc(var(--kuusi-article-paper-shadow-width, 28px) + 8px)
-    )
-    max(36px, calc(var(--kuusi-article-paper-shadow-width, 28px) + 8px))
+  --kuusi-article-desk-pad-y: max(
+    36px,
+    calc(var(--kuusi-article-paper-shadow-width, 28px) + 8px)
+  );
+  --kuusi-article-desk-pad-x: var(--kuusi-article-desk-pad-y);
+  padding: var(--kuusi-article-desk-pad-y) var(--kuusi-article-desk-pad-x)
     max(56px, calc(var(--kuusi-article-paper-shadow-width, 28px) + 28px));
+}
+
+/* Lab's viewer positions the page from padding it measured at its first layout,
+   which can be before this padding applied (page flush with the top edge). Pin
+   the page inside the desk padding instead. */
+.jp-KuusiArticle-paper[data-kuusi-article-page-layout="paged"]:not([data-kuusi-article-fullscreen="1"])
+  :is(.jp-RenderedMarkdown, .jp-RenderedMySTMarkdown) {
+  left: var(--kuusi-article-desk-pad-x) !important;
+  top: var(--kuusi-article-desk-pad-y) !important;
 }
 
 /* Sheets are drawn by articlePaged.ts behind the flow, one per page. */

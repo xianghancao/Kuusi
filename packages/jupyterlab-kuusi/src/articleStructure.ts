@@ -210,6 +210,41 @@ export const clearStructure = (rendered: HTMLElement): void => {
     .forEach((node) => node.removeAttribute(PAGE_BREAK_ATTR));
 };
 
+/**
+ * Scroll only the Article desk to `target`. `scrollIntoView` also scrolls
+ * every ancestor that can scroll, and shifted the whole Lab shell up (the
+ * menu bar ended above the window).
+ */
+const scrollDeskTo = (target: HTMLElement): void => {
+  const desk = target.closest<HTMLElement>(".jp-KuusiArticle-paper");
+
+  if (!desk) {
+    return;
+  }
+
+  const deskRect = desk.getBoundingClientRect();
+  const rect = target.getBoundingClientRect();
+  const strip =
+    desk.dataset.kuusiArticleFullscreen === "1" &&
+    desk.dataset.kuusiArticlePageScroll !== "vertical";
+
+  if (strip) {
+    desk.scrollTo({
+      left: Math.max(
+        0,
+        desk.scrollLeft + rect.left - deskRect.left - (desk.clientWidth - rect.width) / 2,
+      ),
+      behavior: "smooth",
+    });
+    return;
+  }
+
+  desk.scrollTo({
+    top: Math.max(0, desk.scrollTop + rect.top - deskRect.top - 24),
+    behavior: "smooth",
+  });
+};
+
 const tocRow = (entry: TocEntry, base: number): HTMLElement => {
   const row = document.createElement("div");
   row.className = `${TOC_CLASS} ${TOC_CLASS}Row`;
@@ -314,7 +349,9 @@ export const applyStructure = (
     row.setAttribute("role", "link");
     row.tabIndex = 0;
     const jump = (): void => {
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (target) {
+        scrollDeskTo(target);
+      }
     };
     row.addEventListener("click", jump);
     row.addEventListener("keydown", (event) => {
