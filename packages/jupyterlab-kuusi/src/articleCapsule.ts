@@ -142,7 +142,25 @@ const mountArticleHeader = (
   });
   // Fullscreen vertical scrolling: outline and page thumbnails on the left.
   const sidebar = mountArticleSidebar({ host: widget.node, t });
+  // Lab's viewer places the rendered page inside the desk's padding, but its
+  // layout measures that padding only on a fit request. If the Article padding
+  // is applied after the first fit, the page sits flush with the top edge (no
+  // page margin), so ask for a fit once the padding is in place.
+  const refreshViewerLayout = (): void => {
+    window.requestAnimationFrame(() => {
+      if (widget.isDisposed) {
+        return;
+      }
+
+      widget.content?.fit();
+      // The page moved inside the desk: centre the zoomed page again.
+      window.setTimeout(() => renderChrome?.syncZoomTarget(), 120);
+    });
+  };
+  refreshViewerLayout();
+  window.setTimeout(refreshViewerLayout, 400);
   const settingsConnection = manager.changed.connect(() => {
+    refreshViewerLayout();
     syncPaperScrollAxis(fullscreenActive);
     syncScrollAxisButton();
   });
