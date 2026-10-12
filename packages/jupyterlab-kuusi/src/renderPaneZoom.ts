@@ -8,8 +8,11 @@
 
 /** Lowest zoom the sash may drive (manual − can go lower). */
 export const PANE_ZOOM_MIN = 40;
-/** Highest zoom the sash may drive (manual + can go higher). */
-export const PANE_ZOOM_MAX = 100;
+/**
+ * Highest zoom the sash may drive: as high as the zoom control goes, so
+ * pulling the divider to widen the view keeps enlarging the page.
+ */
+export const PANE_ZOOM_MAX = 200;
 
 type PaneFitPair = {
   viewport: HTMLElement;
@@ -114,8 +117,8 @@ const resolvePaneFitPair = (host: HTMLElement): PaneFitPair | null => {
     }
     // Paged A4/Letter is ~297mm tall — typical Jupyter panes are shorter, so
     // height-limited fit never reaches 100%. The sash usually changes width;
-    // fit to page width so widening can drive zoom up to 100% (tall pages
-    // scroll inside the desk, same as an oversized sheet at 100%).
+    // fit to page width so widening can keep driving zoom up (tall pages
+    // scroll inside the desk, same as an oversized sheet).
     return {
       viewport: articlePaper,
       subject: rendered,
