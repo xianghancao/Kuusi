@@ -119,6 +119,9 @@ const styleSheetsHtml = (): string =>
 const CJK_FALLBACK =
   '"PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC"';
 
+/** Fonts a PDF can embed as real text (the system UI font cannot be). */
+const PRINT_FONTS = `Arial, "Helvetica Neue", Helvetica, ${CJK_FALLBACK}, sans-serif`;
+
 const addCjkFallbacks = (el: HTMLElement): void => {
   const names: string[] = [];
   for (let i = 0; i < el.style.length; i += 1) {
@@ -416,6 +419,9 @@ const buildPrintHtml = (
     "html,body{margin:0;height:auto!important;overflow:visible!important;" +
     "-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
     "body{background:#e8e8e8!important;padding:24px 0}" +
+    // macOS prints the system UI font (San Francisco) as outlines: no selectable
+    // text and a larger file. Name embeddable fonts instead.
+    `html,body{--jp-content-font-family:${PRINT_FONTS}!important;--jp-ui-font-family:${PRINT_FONTS}!important}` +
     `.${PAGE_CLASS}{margin:0 auto 24px!important;box-shadow:0 1px 6px rgb(0 0 0 / 25%)}` +
     `.${PAGE_CLASS} .jp-KuusiArticle-pageSheet{box-shadow:none!important;clip-path:none!important}` +
     `.${PAGE_CLASS} a.jp-KuusiArticle-tocRow,.${PAGE_CLASS} a.jp-KuusiArticle-tocRow *{color:inherit!important;text-decoration:none!important}` +
