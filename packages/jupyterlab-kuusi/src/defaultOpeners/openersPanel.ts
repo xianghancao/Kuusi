@@ -8,6 +8,13 @@ import {
   normalizeEnabledRenderViews,
 } from "../renderViewOrder";
 
+/** Maturity of the views that are not finished yet (Mind Map is stable). */
+const VIEW_STAGES: Record<string, "beta" | "experimental" | undefined> = {
+  article: "beta",
+  book: "experimental",
+  slides: "experimental",
+};
+
 const viewLabels = (): Record<string, string> => {
   const trans = getKuusiBundle();
 
@@ -73,6 +80,25 @@ const createViewOrderSection = (manager: DefaultOpenersManager): HTMLElement => 
       const label = document.createElement("span");
       label.className = "jp-KuusiViewOrder-label";
       label.textContent = `${index + 1}. ${labels[id] ?? id}`;
+
+      // Views that are still being tested say so next to their name.
+      const stage = VIEW_STAGES[id];
+      let badge: HTMLElement | null = null;
+
+      if (stage) {
+        badge = document.createElement("span");
+        badge.className = `jp-KuusiViewOrder-badge jp-KuusiViewOrder-badge--${stage}`;
+        badge.textContent =
+          stage === "beta" ? trans.__("Beta") : trans.__("Experimental");
+        badge.title =
+          stage === "beta"
+            ? trans.__("Still being tested: expect rough edges.")
+            : trans.__("Experimental: likely to have bugs and to change.");
+      }
+
+      if (badge) {
+        label.appendChild(badge);
+      }
 
       const makeButton = (text: string, aria: string, delta: number) => {
         const btn = document.createElement("button");

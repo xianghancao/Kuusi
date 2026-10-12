@@ -2548,3 +2548,24 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
 .jp-KuusiToolbarCluster .is-toolbar-overflowed {
   display: none !important;
 }
+
+/* Maturity tag next to a view name in Settings → Default files → Views. */
+.jp-KuusiViewOrder-badge {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  margin-left: 8px;
+  padding: 2px 7px;
+  vertical-align: 1px;
+}
+
+.jp-KuusiViewOrder-badge--beta {
+  color: var(--jp-brand-color1, #2f5d3a);
+}
+
+.jp-KuusiViewOrder-badge--experimental {
+  color: var(--jp-warn-color1, #f9a825);
+}
