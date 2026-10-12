@@ -5,6 +5,8 @@ export type MindMapFont =
   | "helvetica"
   | "segoe-ui"
   | "verdana"
+  | "tahoma"
+  | "trebuchet"
   | "georgia"
   | "times"
   | "palatino"
@@ -327,15 +329,19 @@ export type FontOption = {
   previewFamily: string;
 };
 
-export const DEFAULT_TEXT_FONT: MindMapFont = "helvetica";
+export const DEFAULT_TEXT_FONT: MindMapFont = "arial";
 
 /**
  * Neither “System UI” nor “Notebook” is offered any more: macOS prints those
- * system fonts as outlines. Saved settings that still name them become Helvetica
- * Neue. Mind Map keeps `notebook` for its own “match the notebook font” switch.
+ * system fonts as outlines (and Helvetica Neue / Segoe UI exist on only one of Mac
+ * and Windows). Saved settings that still name them become Arial
+ * (on every Mac and Windows PC, and embeddable in a PDF). Mind Map keeps `notebook` for its own “match the notebook font” switch.
  */
 export const migrateFont = <T>(value: T, keepNotebook = false): T =>
-  value === "system-ui" || (value === "notebook" && !keepNotebook)
+  value === "system-ui" ||
+  value === "helvetica" ||
+  value === "segoe-ui" ||
+  (value === "notebook" && !keepNotebook)
     ? (DEFAULT_TEXT_FONT as unknown as T)
     : value;
 
@@ -348,25 +354,25 @@ export const FONT_OPTIONS: FontOption[] = [
     previewFamily: "Arial, Helvetica, sans-serif",
   },
   {
-    value: "helvetica",
-    label: "Helvetica Neue",
-    title: "Helvetica Neue sans-serif",
-    category: "sans",
-    previewFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-  },
-  {
-    value: "segoe-ui",
-    label: "Segoe UI",
-    title: "Segoe UI sans-serif",
-    category: "sans",
-    previewFamily: '"Segoe UI", Tahoma, sans-serif',
-  },
-  {
     value: "verdana",
     label: "Verdana",
     title: "Verdana sans-serif",
     category: "sans",
     previewFamily: "Verdana, Geneva, sans-serif",
+  },
+  {
+    value: "tahoma",
+    label: "Tahoma",
+    title: "Tahoma sans-serif",
+    category: "sans",
+    previewFamily: "Tahoma, Geneva, sans-serif",
+  },
+  {
+    value: "trebuchet",
+    label: "Trebuchet MS",
+    title: "Trebuchet MS sans-serif",
+    category: "sans",
+    previewFamily: '"Trebuchet MS", Helvetica, sans-serif',
   },
   {
     value: "georgia",
@@ -443,6 +449,8 @@ export const FONT_VALUES: readonly MindMapFont[] = FONT_OPTIONS.map(
 export const isFontValue = (value: unknown): value is MindMapFont =>
   value === "system-ui" ||
   value === "notebook" ||
+  value === "helvetica" ||
+  value === "segoe-ui" ||
   (typeof value === "string" && (FONT_VALUES as readonly string[]).includes(value));
 
 const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = {
@@ -450,7 +458,9 @@ const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = {
     FONT_OPTIONS.map((option) => [option.value, option.previewFamily]),
   ) as Record<MindMapFont, string>),
   // Legacy value: same look as its replacement.
-  "system-ui": '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  "system-ui": "Arial, Helvetica, sans-serif",
+  helvetica: "Arial, Helvetica, sans-serif",
+  "segoe-ui": "Arial, Helvetica, sans-serif",
   // Not offered in the lists; Mind Map's “match notebook font” still uses it.
   notebook:
     "var(--jp-content-font-family, var(--jp-ui-font-family, system-ui))",

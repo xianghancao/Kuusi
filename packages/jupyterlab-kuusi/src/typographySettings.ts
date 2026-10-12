@@ -184,6 +184,8 @@ const FONT_VALUES = new Set<string>([
   ...FONT_OPTIONS.map((option) => option.value),
   "system-ui",
   "notebook",
+  "helvetica",
+  "segoe-ui",
 ]);
 
 export const isTypographyFont = (value: unknown): value is MindMapFont =>

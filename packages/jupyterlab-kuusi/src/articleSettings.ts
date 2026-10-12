@@ -797,7 +797,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     background: "newspaper",
     backgroundPattern: "none",
     viewBackground: "newspaper",
-    font: "helvetica",
+    font: "arial",
     fontSize: 13,
     color: "",
     strongColor: "",
@@ -822,7 +822,7 @@ export const ARTICLE_THEME_PRESETS: Record<
       paperBorderWidth: 0,
       paperShadowWidth: 16,
     }),
-    headers: themeHeaders("helvetica", "center", {
+    headers: themeHeaders("arial", "center", {
       h1: "xxl",
       h2: "xl",
       h3: "lg",
@@ -844,7 +844,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     background: "ink",
     backgroundPattern: "none",
     viewBackground: "ink",
-    font: "helvetica",
+    font: "arial",
     fontSize: 16,
     color: "",
     strongColor: "",
@@ -865,7 +865,7 @@ export const ARTICLE_THEME_PRESETS: Record<
       imageRadius: 6,
       paperShadow: false,
     }),
-    headers: themeHeaders("helvetica", "left", {
+    headers: themeHeaders("arial", "left", {
       h1: "xl",
       h2: "lg",
       h3: "md",
@@ -929,7 +929,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     background: "theme",
     backgroundPattern: "plain",
     viewBackground: "theme",
-    font: "helvetica",
+    font: "arial",
     fontSize: 14,
     color: "",
     strongColor: "",
@@ -951,7 +951,7 @@ export const ARTICLE_THEME_PRESETS: Record<
       paperBorderWidth: 0,
       paperShadow: false,
     }),
-    headers: themeHeaders("helvetica", "left", {
+    headers: themeHeaders("arial", "left", {
       h1: "lg",
       h2: "md",
       h3: "sm",
