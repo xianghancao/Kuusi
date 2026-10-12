@@ -26,6 +26,24 @@
   vertical-align: top;
 }
 
+/* Fixed-width columns: a long path or URL (no spaces) must wrap inside its cell,
+   not run over the next column and row. */
+.jp-KuusiArticle-paper :is(th, td),
+.jp-KuusiBook-paper :is(th, td),
+.jp-KuusiMarkdownSlides :is(th, td),
+.jp-KuusiMindMapNotebook-scene :is(th, td) {
+  overflow-wrap: anywhere;
+}
+
+.jp-KuusiArticle-paper :is(th, td) code,
+.jp-KuusiBook-paper :is(th, td) code,
+.jp-KuusiMarkdownSlides :is(th, td) code,
+.jp-KuusiMindMapNotebook-scene :is(th, td) code {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 /* JupyterLab colours the table with its own (light-theme dark) font colour; follow
    the page instead so dark papers such as Night stay readable. */
 .jp-KuusiArticle-paper .jp-RenderedHTMLCommon table,
