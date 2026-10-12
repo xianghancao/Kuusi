@@ -327,23 +327,19 @@ export type FontOption = {
   previewFamily: string;
 };
 
+export const DEFAULT_TEXT_FONT: MindMapFont = "helvetica";
+
 /**
- * “System UI” is no longer offered: macOS prints that font as outlines (no
- * selectable text, bigger PDFs). Saved settings that still name it become
- * Helvetica Neue, the closest embeddable look.
+ * Neither “System UI” nor “Notebook” is offered any more: macOS prints those
+ * system fonts as outlines. Saved settings that still name them become Helvetica
+ * Neue. Mind Map keeps `notebook` for its own “match the notebook font” switch.
  */
-export const migrateFont = <T>(value: T): T =>
-  (value === "system-ui" ? ("helvetica" as unknown as T) : value);
+export const migrateFont = <T>(value: T, keepNotebook = false): T =>
+  value === "system-ui" || (value === "notebook" && !keepNotebook)
+    ? (DEFAULT_TEXT_FONT as unknown as T)
+    : value;
 
 export const FONT_OPTIONS: FontOption[] = [
-  {
-    value: "notebook",
-    label: "Notebook",
-    title: "Use the notebook default font",
-    category: "default",
-    previewFamily:
-      "var(--jp-content-font-family, var(--jp-ui-font-family, system-ui))",
-  },
   {
     value: "arial",
     label: "Arial",
@@ -446,6 +442,7 @@ export const FONT_VALUES: readonly MindMapFont[] = FONT_OPTIONS.map(
 
 export const isFontValue = (value: unknown): value is MindMapFont =>
   value === "system-ui" ||
+  value === "notebook" ||
   (typeof value === "string" && (FONT_VALUES as readonly string[]).includes(value));
 
 const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = {
@@ -454,6 +451,9 @@ const FONT_FAMILY_BY_VALUE: Record<MindMapFont, string> = {
   ) as Record<MindMapFont, string>),
   // Legacy value: same look as its replacement.
   "system-ui": '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  // Not offered in the lists; Mind Map's “match notebook font” still uses it.
+  notebook:
+    "var(--jp-content-font-family, var(--jp-ui-font-family, system-ui))",
 };
 
 export const mindMapFontFamilyCss = (font: MindMapFont): string =>

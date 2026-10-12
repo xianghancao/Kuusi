@@ -30,7 +30,7 @@ import {
 } from "./tableSettings";
 import {
   DEFAULT_BODY_FONT_SIZE_PX,
-  DEFAULT_MIND_MAP_FONT,
+  DEFAULT_TEXT_FONT,
   DEFAULT_MIND_MAP_FONT_SIZE,
   FONT_OPTIONS,
   migrateFont,
@@ -183,6 +183,7 @@ export const migrateParagraphMeasureToPt = (value: number): number =>
 const FONT_VALUES = new Set<string>([
   ...FONT_OPTIONS.map((option) => option.value),
   "system-ui",
+  "notebook",
 ]);
 
 export const isTypographyFont = (value: unknown): value is MindMapFont =>
@@ -248,7 +249,7 @@ export const normalizeInRange = (
 export const makeHeadingStyle = (
   partial: Partial<HeadingStyle> = {},
 ): HeadingStyle => ({
-  font: partial.font ?? DEFAULT_MIND_MAP_FONT,
+  font: partial.font ?? DEFAULT_TEXT_FONT,
   fontSize: partial.fontSize ?? DEFAULT_MIND_MAP_FONT_SIZE,
   color: partial.color ?? "",
   align: partial.align ?? "left",
@@ -311,7 +312,7 @@ export const makeFlatHeadingStyles = (
 
 /** Neutral shared defaults. Article / Slides override line-height and heading steps. */
 export const DEFAULT_TYPOGRAPHY_VALUES: TypographyValues = {
-  font: DEFAULT_MIND_MAP_FONT,
+  font: DEFAULT_TEXT_FONT,
   fontSize: DEFAULT_BODY_FONT_SIZE_PX,
   color: "",
   strongColor: "",

@@ -2,7 +2,7 @@ import type { ISettingRegistry } from "@jupyterlab/settingregistry";
 import type { JSONValue } from "@lumino/coreutils";
 
 import {
-  DEFAULT_MIND_MAP_FONT,
+  DEFAULT_TEXT_FONT,
   mindMapFontFamilyCss,
   normalizeBodyFontSizePx,
   nearestHeadingStep,
@@ -942,7 +942,7 @@ export const applySlidesAppearance = (
     setOrRemove(
       host,
       `--kuusi-slides-${id}-font-family`,
-      style.font === DEFAULT_MIND_MAP_FONT ? "" : mindMapFontFamilyCss(style.font),
+      style.font === DEFAULT_TEXT_FONT ? "" : mindMapFontFamilyCss(style.font),
     );
     setOrRemove(host, `--kuusi-slides-${id}-color`, style.color);
     host.style.setProperty(`--kuusi-slides-${id}-align`, style.align);

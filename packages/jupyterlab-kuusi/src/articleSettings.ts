@@ -2,7 +2,7 @@ import type { ISettingRegistry } from "@jupyterlab/settingregistry";
 import type { JSONValue } from "@lumino/coreutils";
 import {
   DEFAULT_BODY_FONT_SIZE_PX,
-  DEFAULT_MIND_MAP_FONT,
+  DEFAULT_TEXT_FONT,
   DEFAULT_MIND_MAP_FONT_SIZE,
   bodyFontSizeCss,
   mindMapFontFamilyCss,
@@ -458,7 +458,7 @@ export const articleHeaderId = (level: ArticleHeaderLevel): ArticleHeaderId =>
 const makeHeader = (
   partial: Partial<ArticleHeaderStyle> = {},
 ): ArticleHeaderStyle => ({
-  font: partial.font ?? DEFAULT_MIND_MAP_FONT,
+  font: partial.font ?? DEFAULT_TEXT_FONT,
   fontSize: partial.fontSize ?? DEFAULT_MIND_MAP_FONT_SIZE,
   color: partial.color ?? "",
   align: partial.align ?? "left",
@@ -513,7 +513,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   backgroundPattern: "none",
   viewBackground: "theme",
   viewBackgroundColor: "",
-  font: DEFAULT_MIND_MAP_FONT,
+  font: DEFAULT_TEXT_FONT,
   fontSize: DEFAULT_BODY_FONT_SIZE_PX,
   color: "",
   strongColor: "",

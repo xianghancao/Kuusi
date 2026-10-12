@@ -378,14 +378,14 @@ export const normalizeMindMapUserSettings = (
     : null;
 
   const legacyFont = isFont((raw as { font?: unknown }).font)
-    ? migrateFont((raw as { font: MindMapFont }).font)
+    ? migrateFont((raw as { font: MindMapFont }).font, true)
     : null;
   const legacyFontSize = normalizeBodyFontSizePx(
     (raw as { fontSize?: unknown }).fontSize,
     defaults.displayFontSize,
   );
   const displayFont = isFont(raw.displayFont)
-    ? migrateFont(raw.displayFont)
+    ? migrateFont(raw.displayFont, true)
     : (legacyFont ?? defaults.displayFont);
   const displayFontSize = normalizeBodyFontSizePx(
     raw.displayFontSize ?? legacyFontSize,
@@ -409,7 +409,7 @@ export const normalizeMindMapUserSettings = (
   return {
     theme: normalizeMindMapTheme(raw.theme) ?? defaults.theme,
     editFont: isFont(raw.editFont)
-      ? migrateFont(raw.editFont)
+      ? migrateFont(raw.editFont, true)
       : (legacyFont ?? defaults.editFont),
     displayFont,
     editFontSize: normalizeBodyFontSizePx(
