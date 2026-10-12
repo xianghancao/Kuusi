@@ -235,6 +235,10 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   contentsShowTitle: () =>
     t.__("Insert a table of contents with page numbers at the start"),
   contentsDepth: () => t.__("Heading levels"),
+  tableHeaderRowAlign: () => t.__("Header row alignment"),
+  tableHeaderColumnAlign: () => t.__("Header column alignment"),
+  tableAlignAuto: () => t.__("Auto"),
+  tableAlignAutoTitle: () => t.__("Keep the table style's own alignment"),
   codeBackground: () => t.__("Code background"),
   quoteBackground: () => t.__("Quote background"),
   quoteColor: () => t.__("Quote text color"),

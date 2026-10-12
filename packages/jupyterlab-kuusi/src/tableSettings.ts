@@ -35,6 +35,19 @@ const TABLE_STYLE_SET = new Set<string>(TABLE_STYLES);
 export const isTableStyle = (value: unknown): value is TableStyle =>
   typeof value === "string" && TABLE_STYLE_SET.has(value);
 
+/** Header text alignment; auto keeps the table style's own (centered header row). */
+export type TableAlign = "auto" | "left" | "center" | "right";
+
+export const TABLE_ALIGNS: readonly TableAlign[] = [
+  "auto",
+  "left",
+  "center",
+  "right",
+];
+
+export const isTableAlign = (value: unknown): value is TableAlign =>
+  typeof value === "string" && (TABLE_ALIGNS as readonly string[]).includes(value);
+
 export type TableAppearanceSettings = {
   tableStyle: TableStyle;
   /** Rule / grid stroke in pt. */
@@ -43,6 +56,8 @@ export type TableAppearanceSettings = {
   tableTransparency: number;
   tableHeaderRowBold: boolean;
   tableHeaderColumnBold: boolean;
+  tableHeaderRowAlign: TableAlign;
+  tableHeaderColumnAlign: TableAlign;
 };
 
 export const DEFAULT_TABLE_APPEARANCE: TableAppearanceSettings = {
@@ -51,6 +66,8 @@ export const DEFAULT_TABLE_APPEARANCE: TableAppearanceSettings = {
   tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: true,
   tableHeaderColumnBold: false,
+  tableHeaderRowAlign: "auto",
+  tableHeaderColumnAlign: "auto",
 };
 
 /** Stamp table palette onto a render host (shared data attrs for one CSS file). */
@@ -65,6 +82,8 @@ export const applyTableAppearance = (
   host.dataset.kuusiTableHeaderColBold = settings.tableHeaderColumnBold
     ? "1"
     : "0";
+  host.dataset.kuusiTableHeaderRowAlign = settings.tableHeaderRowAlign;
+  host.dataset.kuusiTableHeaderColAlign = settings.tableHeaderColumnAlign;
   host.style.setProperty(
     "--kuusi-table-fill",
     `${100 - settings.tableTransparency}%`,

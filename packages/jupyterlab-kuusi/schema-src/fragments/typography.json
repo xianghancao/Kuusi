@@ -380,6 +380,26 @@
     "blockquoteBarColor": {
       "type": "string",
       "default": ""
+    },
+    "tableHeaderRowAlign": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "auto"
+    },
+    "tableHeaderColumnAlign": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "auto"
     }
   }
 }

@@ -446,6 +446,18 @@
       "title": "Bold table first column",
       "description": "Make the first column (row headers) bold."
     },
+    "tableHeaderRowAlign": {
+      "title": "Book table header row alignment",
+      "type": "string",
+      "enum": ["auto", "left", "center", "right"],
+      "default": "auto"
+    },
+    "tableHeaderColumnAlign": {
+      "title": "Book table header column alignment",
+      "type": "string",
+      "enum": ["auto", "left", "center", "right"],
+      "default": "auto"
+    },
     "listStyle": {
       "type": "string",
       "enum": [

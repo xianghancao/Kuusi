@@ -24,6 +24,7 @@ import {
 import {
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
+  isTableAlign,
   isTableStyle,
 } from "./tableSettings";
 import {
@@ -231,6 +232,8 @@ export const DEFAULT_BOOK_SETTINGS: BookSettings = {
   tableTransparency: ARTICLE_THEME_PRESETS.essay.tableTransparency,
   tableHeaderRowBold: ARTICLE_THEME_PRESETS.essay.tableHeaderRowBold,
   tableHeaderColumnBold: ARTICLE_THEME_PRESETS.essay.tableHeaderColumnBold,
+  tableHeaderRowAlign: "auto",
+  tableHeaderColumnAlign: "auto",
   listStyle: ARTICLE_THEME_PRESETS.essay.listStyle,
   blockquoteWeight: ARTICLE_THEME_PRESETS.essay.blockquoteWeight,
   hrWeight: ARTICLE_THEME_PRESETS.essay.hrWeight,
@@ -403,6 +406,12 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
       typeof source.tableHeaderColumnBold === "boolean"
         ? source.tableHeaderColumnBold
         : defaults.tableHeaderColumnBold,
+    tableHeaderRowAlign: isTableAlign(source.tableHeaderRowAlign)
+      ? source.tableHeaderRowAlign
+      : defaults.tableHeaderRowAlign,
+    tableHeaderColumnAlign: isTableAlign(source.tableHeaderColumnAlign)
+      ? source.tableHeaderColumnAlign
+      : defaults.tableHeaderColumnAlign,
     listStyle: isListStyle(source.listStyle)
       ? source.listStyle
       : defaults.listStyle,
@@ -503,6 +512,8 @@ export const bookSettingsToArticle = (
   tableTransparency: settings.tableTransparency,
   tableHeaderRowBold: settings.tableHeaderRowBold,
   tableHeaderColumnBold: settings.tableHeaderColumnBold,
+  tableHeaderRowAlign: settings.tableHeaderRowAlign,
+  tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
   listStyle: settings.listStyle,
   blockquoteWeight: settings.blockquoteWeight,
   hrWeight: settings.hrWeight,

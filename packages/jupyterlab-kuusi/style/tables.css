@@ -210,3 +210,29 @@
 [data-kuusi-table-style="ruled"] tr:first-child > th {
   border-bottom: var(--kuusi-table-border-width, 0.75pt) solid currentColor;
 }
+
+/* Header alignment (Elements → Table → Headers); "auto" sets no attribute rule. */
+[data-kuusi-table-header-col-align="left"] tbody tr > :first-child {
+  text-align: left !important;
+}
+
+[data-kuusi-table-header-col-align="center"] tbody tr > :first-child {
+  text-align: center !important;
+}
+
+[data-kuusi-table-header-col-align="right"] tbody tr > :first-child {
+  text-align: right !important;
+}
+
+[data-kuusi-table-header-row-align="left"] :is(thead th, thead td, tr:first-child > th) {
+  text-align: left !important;
+}
+
+[data-kuusi-table-header-row-align="center"] :is(thead th, thead td, tr:first-child > th) {
+  text-align: center !important;
+}
+
+[data-kuusi-table-header-row-align="right"] :is(thead th, thead td, tr:first-child > th) {
+  text-align: right !important;
+}
+

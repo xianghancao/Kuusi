@@ -118,6 +118,8 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   tableTransparency: DEFAULT_TYPOGRAPHY_VALUES.tableTransparency,
   tableHeaderRowBold: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderColumnBold,
+  tableHeaderRowAlign: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderRowAlign,
+  tableHeaderColumnAlign: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderColumnAlign,
   listStyle: DEFAULT_TYPOGRAPHY_VALUES.listStyle,
   blockquoteWeight: DEFAULT_TYPOGRAPHY_VALUES.blockquoteWeight,
   hrWeight: DEFAULT_TYPOGRAPHY_VALUES.hrWeight,
@@ -494,6 +496,8 @@ const MIND_MAP_TYPOGRAPHY_KEYS: Array<keyof MindMapTypographyFields> = [
   "tableTransparency",
   "tableHeaderRowBold",
   "tableHeaderColumnBold",
+  "tableHeaderRowAlign",
+  "tableHeaderColumnAlign",
   "listStyle",
   "blockquoteWeight",
   "hrWeight",
@@ -580,6 +584,8 @@ export const applyMindMapTypography = (
     tableTransparency: settings.tableTransparency,
     tableHeaderRowBold: settings.tableHeaderRowBold,
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
+    tableHeaderRowAlign: settings.tableHeaderRowAlign,
+    tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
   });
   applyElementChromeAppearance(scene, {
     listStyle: settings.listStyle,

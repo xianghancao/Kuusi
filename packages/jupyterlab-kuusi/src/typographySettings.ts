@@ -23,7 +23,9 @@ import {
   DEFAULT_TABLE_TRANSPARENCY,
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
+  isTableAlign,
   isTableStyle,
+  type TableAlign,
   type TableStyle,
 } from "./tableSettings";
 import {
@@ -101,6 +103,8 @@ export type TypographyValues = {
   tableTransparency: number;
   tableHeaderRowBold: boolean;
   tableHeaderColumnBold: boolean;
+  tableHeaderRowAlign: TableAlign;
+  tableHeaderColumnAlign: TableAlign;
   /** List spacing density. */
   listStyle: ListStyle;
   /** Blockquote rule weight. */
@@ -328,6 +332,8 @@ export const DEFAULT_TYPOGRAPHY_VALUES: TypographyValues = {
   tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
+  tableHeaderRowAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderRowAlign,
+  tableHeaderColumnAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnAlign,
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
@@ -437,6 +443,12 @@ export const normalizeTypographyValues = (
       typeof raw.tableHeaderColumnBold === "boolean"
         ? raw.tableHeaderColumnBold
         : fallback.tableHeaderColumnBold,
+    tableHeaderRowAlign: isTableAlign(raw.tableHeaderRowAlign)
+      ? raw.tableHeaderRowAlign
+      : fallback.tableHeaderRowAlign,
+    tableHeaderColumnAlign: isTableAlign(raw.tableHeaderColumnAlign)
+      ? raw.tableHeaderColumnAlign
+      : fallback.tableHeaderColumnAlign,
     listStyle: isListStyle(raw.listStyle) ? raw.listStyle : fallback.listStyle,
     blockquoteWeight: isRuleWeight(raw.blockquoteWeight)
       ? raw.blockquoteWeight

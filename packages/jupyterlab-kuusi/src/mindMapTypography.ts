@@ -51,6 +51,8 @@ export const mindMapSettingsToTypography = (
   tableTransparency: settings.tableTransparency,
   tableHeaderRowBold: settings.tableHeaderRowBold,
   tableHeaderColumnBold: settings.tableHeaderColumnBold,
+  tableHeaderRowAlign: settings.tableHeaderRowAlign,
+  tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
   listStyle: settings.listStyle,
   blockquoteWeight: settings.blockquoteWeight,
   hrWeight: settings.hrWeight,

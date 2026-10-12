@@ -60,7 +60,9 @@ import {
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
   applyTableAppearance,
+  isTableAlign,
   isTableStyle,
+  type TableAlign,
   type TableStyle,
 } from "./tableSettings";
 import {
@@ -297,6 +299,8 @@ export type ArticleSettings = {
   tableTransparency: number;
   tableHeaderRowBold: boolean;
   tableHeaderColumnBold: boolean;
+  tableHeaderRowAlign: TableAlign;
+  tableHeaderColumnAlign: TableAlign;
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
@@ -379,6 +383,8 @@ export type ArticleSettings = {
 /** Page furniture and code chrome are per-user, not part of a theme preset. */
 type ArticleUserOnlyKey =
   | "codeFrameColor"
+  | "tableHeaderRowAlign"
+  | "tableHeaderColumnAlign"
   | "codeBackground"
   | "blockquoteBackground"
   | "blockquoteColor"
@@ -524,6 +530,8 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
+  tableHeaderRowAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderRowAlign,
+  tableHeaderColumnAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnAlign,
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
@@ -1346,6 +1354,12 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       typeof raw.tableHeaderColumnBold === "boolean"
         ? raw.tableHeaderColumnBold
         : defaults.tableHeaderColumnBold,
+    tableHeaderRowAlign: isTableAlign(raw.tableHeaderRowAlign)
+      ? raw.tableHeaderRowAlign
+      : defaults.tableHeaderRowAlign,
+    tableHeaderColumnAlign: isTableAlign(raw.tableHeaderColumnAlign)
+      ? raw.tableHeaderColumnAlign
+      : defaults.tableHeaderColumnAlign,
     listStyle: isListStyle(raw.listStyle) ? raw.listStyle : defaults.listStyle,
     blockquoteWeight: isRuleWeight(raw.blockquoteWeight)
       ? raw.blockquoteWeight
@@ -1702,6 +1716,8 @@ export const applyArticleAppearance = (
     tableTransparency: settings.tableTransparency,
     tableHeaderRowBold: settings.tableHeaderRowBold,
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
+    tableHeaderRowAlign: settings.tableHeaderRowAlign,
+    tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
   });
   applyElementChromeAppearance(host, {
     listStyle: settings.listStyle,
@@ -2036,6 +2052,8 @@ export class ArticleSettingsManager {
         "tableTransparency",
         "tableHeaderRowBold",
         "tableHeaderColumnBold",
+        "tableHeaderRowAlign",
+        "tableHeaderColumnAlign",
         "listStyle",
         "blockquoteWeight",
         "hrWeight",

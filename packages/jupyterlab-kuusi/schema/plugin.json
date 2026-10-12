@@ -599,6 +599,30 @@
       "title": "Bold table first column",
       "description": "Make the first column (row headers) bold."
     },
+    "tableHeaderRowAlign": {
+      "title": "Mind Map table header row alignment",
+      "description": "Text alignment of the table header row; auto keeps the table style's own.",
+      "type": "string",
+      "enum": [
+        "auto",
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "auto"
+    },
+    "tableHeaderColumnAlign": {
+      "title": "Mind Map table header column alignment",
+      "description": "Text alignment of the first column; auto keeps the table style's own.",
+      "type": "string",
+      "enum": [
+        "auto",
+        "left",
+        "center",
+        "right"
+      ],
+      "default": "auto"
+    },
     "listStyle": {
       "type": "string",
       "enum": [

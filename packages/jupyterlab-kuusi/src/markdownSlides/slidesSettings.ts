@@ -67,7 +67,9 @@ import {
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
   applyTableAppearance,
+  isTableAlign,
   isTableStyle,
+  type TableAlign,
   type TableStyle,
 } from "../tableSettings";
 import {
@@ -199,6 +201,8 @@ export type SlidesSettings = {
   tableTransparency: number;
   tableHeaderRowBold: boolean;
   tableHeaderColumnBold: boolean;
+  tableHeaderRowAlign: TableAlign;
+  tableHeaderColumnAlign: TableAlign;
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
@@ -544,6 +548,8 @@ export const DEFAULT_SLIDES_SETTINGS: SlidesSettings = {
   tableTransparency: DEFAULT_TABLE_TRANSPARENCY,
   tableHeaderRowBold: DEFAULT_TABLE_APPEARANCE.tableHeaderRowBold,
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
+  tableHeaderRowAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderRowAlign,
+  tableHeaderColumnAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnAlign,
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
@@ -742,6 +748,12 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
       typeof raw.tableHeaderColumnBold === "boolean"
         ? raw.tableHeaderColumnBold
         : defaults.tableHeaderColumnBold,
+    tableHeaderRowAlign: isTableAlign(raw.tableHeaderRowAlign)
+      ? raw.tableHeaderRowAlign
+      : defaults.tableHeaderRowAlign,
+    tableHeaderColumnAlign: isTableAlign(raw.tableHeaderColumnAlign)
+      ? raw.tableHeaderColumnAlign
+      : defaults.tableHeaderColumnAlign,
     listStyle: isListStyle(raw.listStyle) ? raw.listStyle : defaults.listStyle,
     blockquoteWeight: isRuleWeight(raw.blockquoteWeight)
       ? raw.blockquoteWeight
@@ -832,6 +844,8 @@ export const applySlidesAppearance = (
     tableTransparency: settings.tableTransparency,
     tableHeaderRowBold: settings.tableHeaderRowBold,
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
+    tableHeaderRowAlign: settings.tableHeaderRowAlign,
+    tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
   });
   applyElementChromeAppearance(host, {
     listStyle: settings.listStyle,
@@ -1034,6 +1048,8 @@ const SLIDES_SETTING_KEYS: Array<keyof SlidesSettings> = [
   "tableTransparency",
   "tableHeaderRowBold",
   "tableHeaderColumnBold",
+  "tableHeaderRowAlign",
+  "tableHeaderColumnAlign",
   "listStyle",
   "blockquoteWeight",
   "hrWeight",

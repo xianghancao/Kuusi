@@ -10,7 +10,7 @@ import {
   type CodeFont,
   type CodeTheme,
 } from "./codeThemes";
-import { type TableStyle } from "./tableSettings";
+import { type TableAlign, type TableStyle } from "./tableSettings";
 import {
   type ListStyle,
   type RuleWeight,
@@ -1150,6 +1150,13 @@ const getTableStyleOptionsRaw = (t: KuusiTranslator): ChoiceOption[] => [
   },
 ];
 
+const getTableAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
+  { value: "auto", label: t.tableAlignAuto(), title: t.tableAlignAutoTitle() },
+  { value: "left", label: t.alignLeft(), title: t.alignLeft() },
+  { value: "center", label: t.alignCenter(), title: t.alignCenter() },
+  { value: "right", label: t.alignRight(), title: t.alignRight() },
+];
+
 const getTableStyleOptions = (t: KuusiTranslator): ChoiceOption[] =>
   withLegend(getTableStyleOptionsRaw(t), legendTableStyle);
 
@@ -1219,6 +1226,26 @@ const fillTableSection = (
       value: values.tableHeaderColumnBold,
       onChange: (tableHeaderColumnBold) => {
         model.update({ tableHeaderColumnBold });
+        rebuild();
+      },
+    },
+    {
+      kind: "choice",
+      sectionLabel: t.tableHeaderRowAlign(),
+      value: values.tableHeaderRowAlign,
+      options: getTableAlignOptions(t),
+      onChange: (value) => {
+        model.update({ tableHeaderRowAlign: value as TableAlign });
+        rebuild();
+      },
+    },
+    {
+      kind: "choice",
+      sectionLabel: t.tableHeaderColumnAlign(),
+      value: values.tableHeaderColumnAlign,
+      options: getTableAlignOptions(t),
+      onChange: (value) => {
+        model.update({ tableHeaderColumnAlign: value as TableAlign });
         rebuild();
       },
     },
