@@ -10,6 +10,6 @@ export const KUUSI_DISCOURSE_URL =
 
 export const KUUSI_X_URL = "https://x.com/KussiMindMap";
 
-export const KUUSI_COMMUNITY_EMAIL = "kuusi.mindmap@google.com";
+export const KUUSI_COMMUNITY_EMAIL = "kuusi.mindmap@gmail.com";
 
 export const KUUSI_PRODUCT_LABEL = `Kuusi v${KUUSI_VERSION}`;

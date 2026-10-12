@@ -2569,3 +2569,53 @@ body[data-jp-theme-light="false"] .jp-KuusiDefaultOpeners-settingsBtn {
 .jp-KuusiViewOrder-badge--experimental {
   color: var(--jp-warn-color1, #f9a825);
 }
+
+/* Settings → Feedback. */
+.jp-KuusiFeedback-text {
+  background: var(--jp-layout-color0);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: var(--jp-ui-font-color1);
+  font: inherit;
+  margin: 6px 0;
+  min-height: 110px;
+  padding: 8px 10px;
+  resize: vertical;
+  width: 100%;
+}
+
+.jp-KuusiFeedback-info {
+  color: var(--jp-ui-font-color2);
+  display: block;
+  font-size: 12px;
+  margin: 2px 0 8px;
+}
+
+.jp-KuusiFeedback-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.jp-KuusiFeedback-send,
+.jp-KuusiFeedback-copy {
+  background: transparent;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  padding: 5px 12px;
+}
+
+.jp-KuusiFeedback-send {
+  background: var(--jp-brand-color1, #2f5d3a);
+  border-color: var(--jp-brand-color1, #2f5d3a);
+  color: #fff;
+}
+
+.jp-KuusiFeedback-status {
+  color: var(--jp-ui-font-color2);
+  font-size: 12px;
+  margin-top: 8px;
+  min-height: 1.4em;
+}

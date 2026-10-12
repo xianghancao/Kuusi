@@ -225,6 +225,18 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   openCommunityEmail: () => t.__("Email Kuusi"),
   close: () => t.__("Close"),
   community: () => t.__("Community"),
+  feedback: () => t.__("Feedback"),
+  feedbackIntro: () =>
+    t.__("Tell us what is broken or what you would like. It opens an email in your own mail program; nothing is uploaded."),
+  feedbackPlaceholder: () => t.__("Your message…"),
+  feedbackIncludeInfo: () => t.__("Add the Kuusi version and browser info"),
+  feedbackSend: () => t.__("Send by email"),
+  feedbackCopy: () => t.__("Copy message"),
+  feedbackEmpty: () => t.__("Write a message first."),
+  feedbackOpened: (address: string) =>
+    t.__("Your mail program should open. If nothing happens, use Copy message and send it to %1.", address),
+  feedbackCopied: (address: string) => t.__("Copied. Paste it into an email to %1.", address),
+  feedbackCopyFailed: () => t.__("Could not copy; select the text and copy it yourself."),
   defaultFiles: () => t.__("Default files"),
   groupSurface: () => t.__("Surface"),
   groupFurniture: () => t.__("Header & footer"),

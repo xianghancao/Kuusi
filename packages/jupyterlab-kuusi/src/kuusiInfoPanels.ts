@@ -310,3 +310,105 @@ export const createKuusiUpgradePanel = (t: KuusiTranslator): HTMLElement => {
 
   return panel;
 };
+
+/** Longest message put into a mailto: link (mail clients cut long ones off). */
+const FEEDBACK_MAX_CHARS = 1500;
+
+/**
+ * Feedback form: the message is sent by the reader's own mail program (a
+ * mailto: link), or copied if no mail program opens. Nothing is uploaded and
+ * no document content is included; version and system info are optional.
+ */
+export const createKuusiFeedbackPanel = (t: KuusiTranslator): HTMLElement => {
+  const panel = document.createElement("div");
+  panel.className = "jp-KuusiProductDropdown-communityPanel jp-KuusiFeedback";
+
+  const intro = document.createElement("p");
+  intro.className = "jp-KuusiProductDropdown-aboutText";
+  intro.textContent = t.feedbackIntro();
+
+  const area = document.createElement("textarea");
+  area.className = "jp-KuusiFeedback-text";
+  area.rows = 6;
+  area.maxLength = FEEDBACK_MAX_CHARS;
+  area.placeholder = t.feedbackPlaceholder();
+  area.setAttribute("aria-label", t.feedback());
+
+  const infoLabel = document.createElement("label");
+  infoLabel.className = "jp-KuusiFeedback-info";
+  const info = document.createElement("input");
+  info.type = "checkbox";
+  info.checked = true;
+  infoLabel.append(info, document.createTextNode(` ${t.feedbackIncludeInfo()}`));
+
+  const status = document.createElement("div");
+  status.className = "jp-KuusiFeedback-status";
+  status.setAttribute("aria-live", "polite");
+
+  const compose = (): string => {
+    const lines = [area.value.trim()];
+
+    if (info.checked) {
+      lines.push(
+        "",
+        "--",
+        `Kuusi ${KUUSI_VERSION}`,
+        navigator.userAgent,
+      );
+    }
+
+    return lines.join("\n");
+  };
+
+  const send = document.createElement("button");
+  send.type = "button";
+  send.className = "jp-KuusiFeedback-send";
+  send.textContent = t.feedbackSend();
+  send.addEventListener("click", (event) => {
+    event.stopPropagation();
+
+    if (!area.value.trim()) {
+      status.textContent = t.feedbackEmpty();
+      area.focus();
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href =
+      `mailto:${KUUSI_COMMUNITY_EMAIL}?subject=${encodeURIComponent(`Kuusi ${KUUSI_VERSION} feedback`)}` +
+      `&body=${encodeURIComponent(compose())}`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    status.textContent = t.feedbackOpened(KUUSI_COMMUNITY_EMAIL);
+  });
+
+  const copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "jp-KuusiFeedback-copy";
+  copy.textContent = t.feedbackCopy();
+  copy.addEventListener("click", (event) => {
+    event.stopPropagation();
+
+    if (!area.value.trim()) {
+      status.textContent = t.feedbackEmpty();
+      area.focus();
+      return;
+    }
+
+    void writeClipboard(`To: ${KUUSI_COMMUNITY_EMAIL}\n\n${compose()}`).then(
+      (ok) => {
+        status.textContent = ok
+          ? t.feedbackCopied(KUUSI_COMMUNITY_EMAIL)
+          : t.feedbackCopyFailed();
+      },
+    );
+  });
+
+  const buttons = document.createElement("div");
+  buttons.className = "jp-KuusiFeedback-buttons";
+  buttons.append(send, copy);
+
+  panel.append(intro, area, infoLabel, buttons, status);
+  return panel;
+};

@@ -6,6 +6,7 @@ import type { KuusiTranslator } from "./kuusiI18n";
 import {
   createKuusiAboutPanel,
   createKuusiCommunityPanel,
+  createKuusiFeedbackPanel,
   createKuusiRepositoryPanel,
   createKuusiUpgradePanel,
   createKuusiVersionPanel,
@@ -25,6 +26,7 @@ type SettingsSection =
   | "version"
   | "upgrade"
   | "community"
+  | "feedback"
   | "repository"
   | "about";
 
@@ -39,6 +41,7 @@ const SETTINGS_SECTIONS: Array<{
   { id: "version", label: (t) => t.version(), versionTab: true },
   { id: "upgrade", label: (t) => t.upgrade() },
   { id: "community", label: (t) => t.community() },
+  { id: "feedback", label: (t) => t.feedback() },
   { id: "repository", label: (t) => t.repository() },
   { id: "about", label: (t) => t.about() },
 ];
@@ -77,6 +80,7 @@ const createSettingsShell = (
   versionRefs.panel.append(versionCard, versionStatus);
   const upgradePanel = createKuusiUpgradePanel(t);
   const communityPanel = createKuusiCommunityPanel(t);
+  const feedbackPanel = createKuusiFeedbackPanel(t);
   const repositoryPanel = createKuusiRepositoryPanel(t);
   const aboutPanel = createKuusiAboutPanel(t);
 
@@ -85,6 +89,7 @@ const createSettingsShell = (
     version: versionRefs.panel,
     upgrade: upgradePanel,
     community: communityPanel,
+    feedback: feedbackPanel,
     repository: repositoryPanel,
     about: aboutPanel,
   };
