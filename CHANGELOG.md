@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [0.2.7] - 2026-10-08
+## [0.2.7] - 2026-10-12
 
 **Mind Map** is the default Kuusi view. **Article**, **Book** and **Slides** ship in the package but are switched off by default while they are in testing (turn them on under **Settings → Default files**; they carry a Beta / Experimental tag there). Release-tier gating is no longer applied to plugins, and the Live PDF, TeX, voice recorder, image hub, channel monitor, and ZIP tools are gone from this package (see **Removed**).
 
@@ -17,13 +17,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Article paged layout**: paper sheets with a desk gap; headings stay with the next block; orphan/widow lines; tall code, tables, and lists split across pages (tables repeat the header; numbered lists keep counting). Images and display math stay intact. Running header, footer, and page numbers on each sheet.
 - **Slides** view (Markdown and notebook): the same typography capsules as Article, plus page ratio / split / header & footer.
 - **Image** capsule (Article and Slides): alignment (left / center / right), wrap (block, left + wrap, right + wrap), size (natural / wide / full), and border (style, color, weight, corner).
-- **Export** on every render view: PDF, PNG, JPEG, WebP, print / vector PDF, HTML, and download of the source file.
+- **Export** on every render view: PDF, PNG, JPEG, WebP, HTML, and download of the source file (a paged Article's PDF is a real-text vector PDF; see Added).
 - **Editor ↔ view position sync**: moving the caret or active cell scrolls or pages an open Article / Slides / Mind Map; clicking the view (or changing slide) moves the editor without stealing focus.
 - Markdown **mind map**: drop an image onto a node; the file is saved next to the document.
 - Mind Map uses the same **Text / Paragraph / Elements** capsules as Article and Slides. Body cards take **Text → Body**; H1–H3 tree frames take **Text → H1–H3**; H4–H6 style titles inside a card. The source-edit font is under **Elements → Text**.
 - **Simplified Chinese UI**: domain `jupyterlab_kuusi` with zh_CN gettext catalogs. The chrome follows the JupyterLab language; a frontend map fills strings if the official locale loader misses the pack.
 - Theme menu: **Restore theme defaults** — reapplies this theme’s page, background, and appearance. Text and Headings stay as you left them.
-- **View menu settings** (Settings → Default files): choose which views appear in the view menu — Article, Book, Mind Map, Slides — and their left-to-right order. Article and Mind Map are on by default; the first enabled view opens by default.
+- **View menu settings** (Settings → Default files): choose which views appear in the view menu — Article, Book, Mind Map, Slides — and their left-to-right order. Only Mind Map is on by default (Article is tagged Beta, Book and Slides Experimental); the first enabled view opens by default.
 - **Capsule menus**: Esc closes an open menu and returns focus to its button; Up / Down / Home / End move between tabs; opening a menu moves focus into it; hover waits a moment before switching tabs; menu scroll position and focus survive a rebuild; open menus follow their button when the panel is resized and scroll when taller than the window.
 - **Page menus** group their long tab list (Layout · Surface · Header & footer · Display).
 - **Customized dot** on the Theme, Page, and (Mind Map) Layout buttons when settings differ from the theme defaults, plus **Reset page settings** at the bottom of those menus.
@@ -38,23 +38,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Mind Map — touch**: two-finger pinch zoom and pan; a card needs a short press before it drags (a swipe pans the canvas); larger resize and zoom targets on coarse pointers.
 - Mind Map canvas respects **prefers-reduced-motion**, and controls show keyboard focus rings.
 - **Article — contents page**: Page → Contents inserts a table of contents (dot leaders and page numbers that follow the page-number start) before the text; depth H1–H1…H4 and an optional title. The text after it starts on a new page.
-- **Article — heading numbers**: Page → Chapters numbers headings `1`, `1.1`, `1.1.1` or `第一章`, `1.1`; the numbers appear in the contents and the PDF bookmarks.
+- **Article — heading numbers**: Page → Chapters numbers headings `1`, `1.1`, `1.1.1` or `I`, `1.1` (Roman chapters), from Heading 1 or Heading 2, down to Heading 1, 1–2 or all levels; the numbers appear in the contents and the PDF bookmarks.
 - **Article — chapter page break**: start every Heading 1 (or Heading 1–2) on a new page.
 - **Article — PDF bookmarks**: exported PDFs carry a nested outline (one entry per heading, linked to its page) and the document title.
 - **Article — Chinese fonts**: 宋体, 黑体, 楷体 and 仿宋 under a new Chinese group in every font menu.
 - **Article — more paper**: A3, A5, B5 and Legal beside A4 and Letter; the PDF and print page size follow.
 - **Article — header & footer**: `{chapter}` and `{date}` placeholders, a rule line under the header and above the footer, and a different (empty) first page.
-- **Article — table headers**: Page → Layout → **Repeat table headers** turns header repetition on long tables on or off.
+- **Article — table headers**: Elements → Table → Headers → **Repeat table headers** turns header repetition on long tables on or off.
 - **Article — margins**: Page → Margins sets top, bottom, left and right margins in mm (Auto follows Padding) plus a binding gutter.
 - **Article — typesetting**: Page → Typesetting adds line-spacing presets (1 / 1.15 / 1.5 / 2), orphan / widow lines, hyphenation, and a first-line indent in characters for Chinese paragraphs.
-- **Article — cover page and watermark**: an optional title page (document name and date) before the contents, and diagonal watermark text on every page.
+- **Article — cover page and watermark**: an optional title page (its own Page → Cover page menu: title, author and date) before the contents, and diagonal watermark text on every page.
 - **Article — blocks**: code line numbers and tab width, image captions (“Figure N. alt text”), link footnotes (numbered links with an address list at the end), table text size and banded-row color.
 - **Article — PDF export**: Page → PDF export turns bookmarks on or off and picks image quality; mirrored header / footer alignment on even pages for bound documents.
+- **Article — vector PDF**: Export → **PDF…** prints the paged Article page by page as real text through the system print dialog (“Save as PDF”): sharp, selectable, small. **Add bookmarks and links…** then adds a bookmark tree, contents-page jumps and clickable hyperlinks to the saved file (a macOS print drops them). PDF/HTML file names no longer carry `.ipynb` / `.md`. Image export (PNG / JPEG / WebP) saves the page in view (Article), the open spread (Book) or the current slide.
+- **Article — contents**: contents rows are links (in the view and in the PDF); **Show title** and **Show Heading 1** switches.
+- **Article — heading numbers**: first numbered level (H1 or H2) and numbered depth (H1, H1–2, all).
+- **Article — page numbers**: eight formats (3, 3 / 12, – 3 –, [3], Page 3, Page 3 of 12, iii, III) and a font size.
+- **Elements**: code background color; quote background, text and bar colors; table header row / column alignment and background transparency; line numbers, tab width, image captions, table font size and band color, and link footnotes now live in Code / Image / Table / Links. The code and image outlines are both called **Border**.
+- **Text menu**: Body and H1–H6 sizes are a seven-step slider plus a point field (Slides keeps its own presets); fonts are a drop-down; fonts, colors and alignment preview live on hover. One text scale for Article, Book and Mind Map.
+- **Article themes** each set code, table, list, quote, rule, image and paper border / shadow too.
+- **Mind Map**: node fill transparency slider.
+- **Views**: a **Sync** menu beside Export (Markdown files) holds **Live preview**; the Markdown editor and notebook toolbars have a **⋯** menu with **Auto reload** and, in the Markdown editor, the cursor-line number style and color.
+- **Settings → Feedback**: write a message and send it by email to kuusi.mindmap@gmail.com (or copy it); nothing is uploaded.
+- **Pane zoom**: dragging the divider keeps enlarging Article, Book and Slides past 100% (up to 200%).
 
 ### Changed
 
 - **Body font size is shown and entered in points** (Article, Book, Slides, Mind Map): 12 pt is the same size as Word's 12 pt (16 px). Stored values stay in px, so existing settings look the same; the default 14 px now reads 10.5 pt, and the range is 6–28 pt.
-- **Launcher → Kuusi** shows **Mind Map**, **Article** and **Settings**. **Book** and **Slides** tiles appear only once you turn those views on under **Settings → Default files**.
+- **Launcher → Kuusi** shows **Mind Map** and **Settings**. **Book** and **Slides** tiles appear only once you turn those views on under **Settings → Default files**.
 - Article image width moved from Page → Images into the **Image** capsule.
 - **Article → Page**: Padding now reaches 8 rem (≈ 34 mm; it stopped at 17 mm) and shows its printed size in mm; leading starts at 0.9 (0.5 made lines overlap); Measure explains that it only applies to the scrolling layout, Paper that it switches to the paged layout, and Header / Footer list their placeholders. The Page menu is taller to fit its grouped tabs.
 - Export trigger matches the view-switcher pill (fully rounded).
@@ -69,6 +80,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Text** and **Headings** are one capsule on every view: the **Text** menu has **Body** (font, size, colors, tracking, leading) and **H1–H6**. On Mind Map, the node-editing font moved from Text to **Elements → Text**, so each view has one capsule fewer.
 - Kuusi Settings strings, the Mind Map cut / copy / paste tooltips, and the view-order panel are translated (zh_CN).
 - Mind Map: Cut moves focus to the neighbouring topic and re-seeds the root if the map empties; pasting code cells into a Markdown mind map keeps them as fenced Markdown instead of dropping them on save; **Ctrl/⌘+C** copies selected text inside a card instead of the whole subtree; clicking empty space in the capsule closes open menus.
+- **Fonts**: the default is Arial and the sans-serif list is Arial, Verdana, Tahoma and Trebuchet MS, all on both Mac and Windows. “System UI”, “Notebook”, Helvetica Neue and Segoe UI are no longer offered (macOS printed the system font as outlines, so PDFs had no selectable text); saved choices become Arial. Mind Map keeps its own “match the notebook font” switch.
+- **Article / Book / Slides are opt-in**: only Mind Map is on by default; the others carry Beta / Experimental tags in Settings.
 
 ### Fixed
 
@@ -82,6 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Article images and files with a literal `%` in the path (`50%.png`) resolve instead of failing.
 - Article source map no longer drifts: on a 1100-block document the old scanner lost 7 blocks and misaligned 413.
 - Mind Map Markdown toolbar paste no longer drops pasted code cells.
+- Article: the page keeps its top margin and sits centred in the desk; tables wrap long words, paths and links inside their cell; table text follows the page color on dark papers; the whole app no longer scrolls up when a contents row is clicked; the sidebar outline and thumbnails keep their scroll position; two-column pages scroll in fullscreen; the HTML export is no longer blank.
+- The **Kuusi View** button no longer stays sunken after a click; the contact address is `kuusi.mindmap@gmail.com` (it was `@google.com`).
 
 ### Removed
 
