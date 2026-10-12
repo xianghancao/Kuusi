@@ -656,46 +656,43 @@ export class KuusiRenderExportWidget extends Widget {
     {
       const scope = imageScopeFor(factoryName, t);
 
-      // A paged Article prints page by page as real text (the system dialog's
-      // “Save as PDF”); the screenshot PDF stays for bookmarks. Other views
-      // only have the screenshot PDF. Pages appear after the menu is built,
-      // so the choice is refreshed each time the menu opens.
-      const pdfItem = createMenuItem(t.exportPdf(), t.exportPdfTitle(), () => {
-        closeMenu();
-
-        if (!articleVectorPdfAvailable(widget)) {
-          runExclusive(() => exportRenderedPdf(widget, t));
-          return;
-        }
-
-        printArticleVector(widget, PathExt.basename(widget.context.path))
-          .then((printed) => {
-            if (!printed) {
-              Notification.warning(t.exportNothing(), { autoClose: 3500 });
-            }
-          })
-          .catch((error) => {
-            Notification.error(
-              error instanceof Error ? error.message : "Could not export PDF.",
-              { autoClose: 4000 },
-            );
-          });
-      });
-      const pdfImageItem = createMenuItem(
-        t.exportPdfImage(),
-        t.exportPdfImageTitle(),
-        () => {
+      // PDF: page images with a bookmark per heading. A paged Article also
+      // offers real-text pages through the system print dialog, which cannot
+      // carry bookmarks.
+      menu.appendChild(
+        createMenuItem(t.exportPdf(), t.exportPdfTitle(), () => {
           closeMenu();
           runExclusive(() => exportRenderedPdf(widget, t));
+        }),
+      );
+      const vectorItem = createMenuItem(
+        t.exportPdfVector(),
+        t.exportPdfVectorTitle(),
+        () => {
+          closeMenu();
+          printArticleVector(widget, PathExt.basename(widget.context.path))
+            .then((printed) => {
+              if (!printed) {
+                Notification.warning(t.exportNothing(), { autoClose: 3500 });
+              }
+            })
+            .catch((error) => {
+              Notification.error(
+                error instanceof Error
+                  ? error.message
+                  : "Could not export PDF.",
+                { autoClose: 4000 },
+              );
+            });
         },
       );
-      pdfImageItem.style.display = "none";
-      menu.append(pdfItem, pdfImageItem);
+      // Pages exist only after the menu is built: show it when the menu opens.
+      vectorItem.style.display = "none";
+      menu.appendChild(vectorItem);
       this._refreshPdfItems = () => {
-        const vector = articleVectorPdfAvailable(widget);
-        pdfItem.textContent = vector ? t.exportPdfVector() : t.exportPdf();
-        pdfItem.title = vector ? t.exportPdfVectorTitle() : t.exportPdfTitle();
-        pdfImageItem.style.display = vector ? "" : "none";
+        vectorItem.style.display = articleVectorPdfAvailable(widget)
+          ? ""
+          : "none";
       };
 
       RASTER_IMAGE_FORMATS.forEach((format) => {

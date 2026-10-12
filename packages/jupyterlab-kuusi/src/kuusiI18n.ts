@@ -882,14 +882,11 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   exportPdfTitle: () =>
     t.__("Download this view as a PDF file (one page per page or slide)"),
   exportPdfSourceTitle: () => t.__("Download the PDF file"),
-  exportPdfVector: () => t.__("PDF…"),
+  exportPdfVector: () => t.__("PDF (vector, no bookmarks)…"),
   exportPdfVectorTitle: () =>
     t.__(
-      "Open the print dialog and choose “Save as PDF”: pages as laid out here, with selectable text",
+      "Open the print dialog and choose “Save as PDF”: sharp, selectable text, but no bookmarks",
     ),
-  exportPdfImage: () => t.__("PDF (image, with bookmarks)"),
-  exportPdfImageTitle: () =>
-    t.__("Download a PDF made of page images, with a bookmark per heading"),
   exportImage: (format: string) => t.__("%1 image", format),
   exportImageTitle: (format: string, scope: string) =>
     t.__("Download %1 as a %2 image", scope, format),

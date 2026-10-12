@@ -42,6 +42,7 @@ const IMAGE_EXTENSION: Record<RasterImageFormat, string> = {
 
 const LOSSY_QUALITY = 0.92;
 const TARGET_PIXEL_RATIO = 2;
+const PDF_PIXEL_RATIO = 3;
 const MAX_CANVAS_SIDE = 16384;
 // Safari caps canvases at ~16.7M pixels; Chromium and Firefox allow far more.
 const MAX_CANVAS_AREA = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
@@ -96,6 +97,8 @@ interface CaptureSource {
   fontEmbedCSS?: string;
   /** Raise the pixel ratio so small on-screen frames still export crisply. */
   minOutputWidth?: number;
+  /** Floor for the pixel ratio (PDF pages are captured at least this sharp). */
+  minPixelRatio?: number;
 }
 
 interface PdfPage {
@@ -298,11 +301,12 @@ const pixelRatioFor = (
   width: number,
   height: number,
   minOutputWidth = 0,
+  minPixelRatio = TARGET_PIXEL_RATIO,
 ): number =>
   Math.max(
     0.25,
     Math.min(
-      Math.max(TARGET_PIXEL_RATIO, minOutputWidth / width),
+      Math.max(TARGET_PIXEL_RATIO, minPixelRatio, minOutputWidth / width),
       MAX_CANVAS_SIDE / width,
       MAX_CANVAS_SIDE / height,
       Math.sqrt(MAX_CANVAS_AREA / (width * height)),
@@ -327,7 +331,12 @@ const captureRegion = async (
     return await toCanvas(source.node, {
       width,
       height,
-      pixelRatio: pixelRatioFor(width, height, source.minOutputWidth),
+      pixelRatio: pixelRatioFor(
+        width,
+        height,
+        source.minOutputWidth,
+        source.minPixelRatio,
+      ),
       backgroundColor: source.background,
       fontEmbedCSS: source.fontEmbedCSS,
       imagePlaceholder: TRANSPARENT_PIXEL,
@@ -579,6 +588,8 @@ const articleTarget = (root: HTMLElement): RasterExportTarget => {
     },
     async pdfPages(visit, progress) {
       const { source, scale } = await prepare();
+      // About 290 dpi on A4 (2x was ~190 dpi, soft when zoomed in).
+      source.minPixelRatio = PDF_PIXEL_RATIO;
       const sheets = Array.from(
         root.querySelectorAll(`.${ARTICLE_PAGE_SHEET_CLASS}`),
       );
