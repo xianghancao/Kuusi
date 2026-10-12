@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [0.2.7] - 2026-10-08
 
-Opens **Article** and **Mind Map** to everyone as the default Kuusi views. **Book** and **Slides** ship in the package but are switched off by default (turn them on under **Settings → Default files**). Release-tier gating is no longer applied to plugins, and the Live PDF, TeX, voice recorder, image hub, channel monitor, and ZIP tools are gone from this package (see **Removed**).
+**Mind Map** is the default Kuusi view. **Article**, **Book** and **Slides** ship in the package but are switched off by default while they are in testing (turn them on under **Settings → Default files**; they carry a Beta / Experimental tag there). Release-tier gating is no longer applied to plugins, and the Live PDF, TeX, voice recorder, image hub, channel monitor, and ZIP tools are gone from this package (see **Removed**).
 
 ### Added
 

@@ -178,8 +178,8 @@ const launcherPlugin: JupyterFrontEndPlugin<void> = {
       mounted = true;
 
       // Always shown: the section header icon and Settings. The four view tiles
-      // follow Settings → Default files → views: Book and Slides are off by
-      // default, so they only appear once the user turns them on.
+      // follow Settings → Default files → views: only Mind Map is on by
+      // default; Article, Book and Slides appear once the user turns them on.
       const fixed = [
         { command: LAUNCHER_SECTION_COMMAND, rank: -100 },
         { command: OPEN_DEFAULT_OPENERS_SETTINGS_COMMAND, rank: 34 },

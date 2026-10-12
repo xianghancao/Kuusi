@@ -54,9 +54,8 @@ export const onRenderViewOrderChanged = (
   return { disconnect: () => changed.disconnect(handler) };
 };
 
-/** Views offered to users by default; Book / Slides stay opt-in in Settings. */
+/** Views offered to users by default; Article / Book / Slides are opt-in in Settings while they are in testing. */
 export const DEFAULT_ENABLED_RENDER_VIEWS: readonly KuusiRenderViewId[] = [
-  "article",
   "mindmap",
 ];
 

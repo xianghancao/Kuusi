@@ -19,10 +19,10 @@
     },
     "enabledViews": {
       "title": "Enabled views",
-      "description": "Views shown in the view menu. Book and Slides are off by default.",
+      "description": "Views shown in the view menu. Article, Book and Slides are off by default (still in testing); turn them on here.",
       "type": "array",
       "items": { "type": "string", "enum": ["article", "book", "mindmap", "slides"] },
-      "default": ["article", "mindmap"]
+      "default": ["mindmap"]
     },
     "viewOrder": {
       "title": "View button order",
