@@ -575,16 +575,87 @@ const articleTarget = (root: HTMLElement): RasterExportTarget => {
     };
   };
 
-  return {
-    imageSuffix: "",
-    async image() {
-      const { source } = await prepare();
-      return captureRegion(source, {
-        x: 0,
-        y: 0,
-        width: source.width,
-        height: source.height,
+  // What the reader is looking at: one page of a paged Article, the open
+  // spread of a Book, or the visible part of a continuous Article.
+  const currentPart = (
+    scale: number,
+  ): { region: Region; suffix: string } | null => {
+    const desk = root.closest<HTMLElement>(
+      ".jp-KuusiArticle-paper, .jp-KuusiBook-paper",
+    );
+
+    if (!desk) {
+      return null;
+    }
+
+    const view =
+      desk.querySelector<HTMLElement>(".jp-KuusiBook-stage") ?? desk;
+    const viewRect = view.getBoundingClientRect();
+    const visible = (el: Element): number => {
+      const r = el.getBoundingClientRect();
+      const w = Math.min(r.right, viewRect.right) - Math.max(r.left, viewRect.left);
+      const h = Math.min(r.bottom, viewRect.bottom) - Math.max(r.top, viewRect.top);
+      return w > 0 && h > 0 ? w * h : 0;
+    };
+    const sheets = Array.from(
+      root.querySelectorAll(`.${ARTICLE_PAGE_SHEET_CLASS}`),
+    );
+
+    if (sheets.length > 0 && !desk.classList.contains("jp-KuusiBook-paper")) {
+      let best = 0;
+      sheets.forEach((sheet, index) => {
+        if (visible(sheet) > visible(sheets[best])) {
+          best = index;
+        }
       });
+
+      return {
+        region: regionWithin(sheets[best], root, scale),
+        suffix: `-page-${best + 1}`,
+      };
+    }
+
+    const bounds = root.getBoundingClientRect();
+    const left = Math.max(bounds.left, viewRect.left);
+    const top = Math.max(bounds.top, viewRect.top);
+    const right = Math.min(bounds.right, viewRect.right);
+    const bottom = Math.min(bounds.bottom, viewRect.bottom);
+
+    if (right - left < 8 || bottom - top < 8) {
+      return null;
+    }
+
+    const isBook = view !== desk;
+
+    return {
+      region: {
+        x: (left - bounds.left) / scale,
+        y: (top - bounds.top) / scale,
+        width: (right - left) / scale,
+        height: (bottom - top) / scale,
+      },
+      suffix: isBook
+        ? `-page-${Math.round(view.scrollLeft / Math.max(1, view.clientWidth)) + 1}`
+        : "",
+    };
+  };
+
+  return {
+    get imageSuffix() {
+      return currentPart(screenScale(root, layoutSize(root).width))?.suffix ?? "";
+    },
+    async image() {
+      const { source, scale } = await prepare();
+      const part = currentPart(scale);
+      return captureRegion(
+        source,
+        part?.region ?? {
+          x: 0,
+          y: 0,
+          width: source.width,
+          height: source.height,
+        },
+      );
     },
     async pdfPages(visit, progress) {
       const { source, scale } = await prepare();

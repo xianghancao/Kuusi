@@ -626,7 +626,7 @@ export const ZH_CN: Record<string, string> = {
   "Download %1 as a %2 image": "将%1下载为 %2 图片",
   "the current slide": "当前幻灯片",
   "the whole mind map": "整张思维导图",
-  "the whole view": "整个视图",
+  "the current page": "当前页",
   "Exporting %1…": "正在导出 %1…",
   "Exporting %1… page %2 of %3": "正在导出 %1… 第 %2 / %3 页",
   "Downloaded %1.": "已下载 %1。",

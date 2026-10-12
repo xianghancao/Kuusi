@@ -925,7 +925,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
     t.__("Download %1 as a %2 image", scope, format),
   exportScopeSlide: () => t.__("the current slide"),
   exportScopeMindMap: () => t.__("the whole mind map"),
-  exportScopeView: () => t.__("the whole view"),
+  exportScopeView: () => t.__("the current page"),
   exportWorking: (name: string) => t.__("Exporting %1…", name),
   exportWorkingPage: (name: string, page: number, total: number) =>
     t.__("Exporting %1… page %2 of %3", name, page, total),
