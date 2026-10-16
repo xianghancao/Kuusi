@@ -46,6 +46,12 @@
       "type": "string",
       "default": ""
     },
+    "capsuleAutoCollapse": {
+      "title": "Auto collapse capsule",
+      "description": "Fold the view capsules (Article, Book, Slides, Mind Map) into a round Kuusi mark until the pointer reaches them.",
+      "type": "boolean",
+      "default": true
+    },
     "previewAutoReload": {
       "title": "Preview auto reload",
       "description": "When enabled, reload the Markdown preview when the file changes on disk.",

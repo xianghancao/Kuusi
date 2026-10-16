@@ -94,11 +94,21 @@ const offsetWithin = (
   return { x, y };
 };
 
+/**
+ * Narrow-screen rules (`@media (max-width: …)`) must not reach the page
+ * document: its pages have a fixed size, but the viewport it prints in can be
+ * narrower than the paper (print margins, a small preview pane), and the
+ * Article's own narrow rule then collapses two columns into one.
+ */
+const keepRuleForPages = (rule: CSSRule): boolean =>
+  !(rule instanceof CSSMediaRule && /max-width/i.test(rule.media.mediaText));
+
 const styleSheetsHtml = (): string =>
   Array.from(document.styleSheets)
     .map((sheet) => {
       try {
         return `<style>${Array.from(sheet.cssRules)
+          .filter(keepRuleForPages)
           .map((rule) => rule.cssText)
           .join("\n")}</style>`;
       } catch {
@@ -316,6 +326,24 @@ const clonePageContent = (
   }
 };
 
+/**
+ * Runs inside the printed document: the desk is placed from offsets measured
+ * on screen, which can differ from where the sheet really lands here (the pane
+ * was fullscreen, zoomed, ...). Slide each page's desk so its sheet sits
+ * exactly on the page — no desk colour strip beside it.
+ */
+const ALIGN_SCRIPT =
+  "(function(){document.querySelectorAll('." + PAGE_CLASS + "').forEach(function(p){" +
+  "var s=p.querySelector('.jp-KuusiArticle-pageSheet');" +
+  "var d=p.querySelector('[data-kuusi-article-fullscreen]');" +
+  "if(!s||!d)return;" +
+  "var a=p.getBoundingClientRect(),b=s.getBoundingClientRect();" +
+  "var dx=a.left-b.left,dy=a.top-b.top;" +
+  "if(Math.abs(dx)<.5&&Math.abs(dy)<.5)return;" +
+  "d.style.left=(parseFloat(d.style.left)||0)+dx+'px';" +
+  "d.style.top=(parseFloat(d.style.top)||0)+dy+'px';" +
+  "});})();";
+
 const buildPrintHtml = (
   article: PagedArticle,
   title: string,
@@ -418,7 +446,9 @@ const buildPrintHtml = (
     "<style>" +
     "html,body{margin:0;height:auto!important;overflow:visible!important;" +
     "-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
-    "body{background:#e8e8e8!important;padding:24px 0}" +
+    // Body is exactly one page wide: a wider print layout (dialog scale,
+    // paper size) must not centre the pages and push them off the sheet.
+    `body{background:#e8e8e8!important;padding:24px 0;width:${width}px;min-width:${width}px}` +
     // macOS prints the system UI font (San Francisco) as outlines: no selectable
     // text and a larger file. Name embeddable fonts instead.
     `html,body{--jp-content-font-family:${PRINT_FONTS}!important;--jp-ui-font-family:${PRINT_FONTS}!important}` +
@@ -431,9 +461,130 @@ const buildPrintHtml = (
     `.${PAGE_CLASS}:last-child{break-after:auto;page-break-after:auto}}` +
     `</style></head><body class="${escapeAttr(document.body.className)}">` +
     wrappers.join("") +
+    `<script>${ALIGN_SCRIPT}</script>` +
     "</body></html>";
 
   return { html, width, height };
+};
+
+/** Extra style / script that turns the page-by-page document into a thumbnail grid. */
+const overviewExtras = (width: number, current: number): { css: string; js: string } => ({
+  css:
+    "html,body{height:auto!important;overflow:auto!important}" +
+    "body{background:transparent!important;display:grid;" +
+    "grid-template-columns:repeat(var(--cols,4),var(--cell,200px));" +
+    "gap:20px 16px;justify-content:center;padding:6px 4px 28px!important;width:auto!important;min-width:0!important}" +
+    `.${PAGE_CLASS}{margin:0!important;zoom:var(--z,.25);cursor:pointer;` +
+    "box-shadow:0 2px 10px rgb(0 0 0 / 45%)!important;border-radius:3px;position:relative}" +
+    `.${PAGE_CLASS}:hover{outline:calc(2px / var(--z,.25)) solid rgb(255 255 255 / 75%)}` +
+    `.${PAGE_CLASS}.is-current{outline:calc(3px / var(--z,.25)) solid #4a7a55}` +
+    `.${PAGE_CLASS}::after{content:attr(data-n);position:absolute;right:calc(10px / var(--z,.25));` +
+    "bottom:calc(8px / var(--z,.25));font:calc(12px / var(--z,.25)) system-ui,sans-serif;" +
+    "padding:calc(2px / var(--z,.25)) calc(8px / var(--z,.25));border-radius:calc(10px / var(--z,.25));" +
+    "background:rgb(0 0 0 / 55%);color:#fff}",
+  js:
+    "(function(){var PW=" + width + ",CUR=" + current + ",GAP=16,TARGET=220;" +
+    "var pages=[].slice.call(document.querySelectorAll('." + PAGE_CLASS + "'));" +
+    "pages.forEach(function(p,i){p.setAttribute('data-n',String(i+1));if(i===CUR)p.classList.add('is-current');" +
+    "p.addEventListener('click',function(){parent.postMessage({kuusiOverviewPage:i},'*');});});" +
+    "function fit(){var w=document.documentElement.clientWidth-8;" +
+    "var cols=Math.max(1,Math.floor((w+GAP)/(TARGET+GAP)));" +
+    "var cell=(w-GAP*(cols-1))/cols;var s=document.documentElement.style;" +
+    "s.setProperty('--cols',cols);s.setProperty('--cell',cell+'px');s.setProperty('--z',cell/PW);}" +
+    "fit();addEventListener('resize',fit);" +
+    "addEventListener('keydown',function(e){if(e.key==='Escape'||e.key.toLowerCase()==='g'){" +
+    "parent.postMessage({kuusiOverviewClose:true},'*');}});" +
+    "var c=pages[CUR];if(c){c.scrollIntoView({block:'center'});}})();",
+});
+
+/**
+ * The paged Article as a grid of page thumbnails (same per-page document the
+ * PDF export prints, so every page shows its own content). Null when the view
+ * is not paged.
+ */
+export const buildArticleOverviewHtml = (
+  widget: IDocumentWidget,
+  title: string,
+  current: number,
+): { html: string; count: number } | null => {
+  const article = findPagedArticle(widget);
+  const built = article ? buildPrintHtml(article, title) : null;
+
+  if (!article || !built) {
+    return null;
+  }
+
+  const extras = overviewExtras(built.width, current);
+  const html = built.html
+    .replace("</head>", `<style>${extras.css}</style></head>`)
+    .replace("</body>", `<script>${extras.js}</script></body>`);
+
+  return { html, count: article.sheets.length };
+};
+
+/** Page the desk is showing now (0-based): the sheet nearest the desk's centre. */
+export const currentArticlePage = (widget: IDocumentWidget): number => {
+  const article = findPagedArticle(widget);
+
+  if (!article) {
+    return 0;
+  }
+
+  const rect = article.desk.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  let best = 0;
+  let bestDist = Number.POSITIVE_INFINITY;
+
+  article.sheets.forEach((sheet, index) => {
+    const r = sheet.getBoundingClientRect();
+    const dx = Math.max(r.left - cx, 0, cx - r.right);
+    const dy = Math.max(r.top - cy, 0, cy - r.bottom);
+    const dist = dx * dx + dy * dy;
+
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = index;
+    }
+  });
+
+  return best;
+};
+
+/** Scroll the Article desk so page `index` (0-based) is in view. */
+export const scrollArticleToPage = (
+  widget: IDocumentWidget,
+  index: number,
+): void => {
+  const article = findPagedArticle(widget);
+  const sheet = article?.sheets[index];
+
+  if (!article || !sheet) {
+    return;
+  }
+
+  const { desk } = article;
+  const deskRect = desk.getBoundingClientRect();
+  const rect = sheet.getBoundingClientRect();
+  const strip =
+    desk.dataset.kuusiArticleFullscreen === "1" &&
+    desk.dataset.kuusiArticlePageScroll !== "vertical";
+
+  if (strip) {
+    desk.scrollTo({
+      left: Math.max(
+        0,
+        desk.scrollLeft + rect.left - deskRect.left - (desk.clientWidth - rect.width) / 2,
+      ),
+      behavior: "smooth",
+    });
+    return;
+  }
+
+  desk.scrollTo({
+    top: Math.max(0, desk.scrollTop + rect.top - deskRect.top - 24),
+    behavior: "smooth",
+  });
 };
 
 const waitForPrintAssets = async (doc: Document): Promise<void> => {

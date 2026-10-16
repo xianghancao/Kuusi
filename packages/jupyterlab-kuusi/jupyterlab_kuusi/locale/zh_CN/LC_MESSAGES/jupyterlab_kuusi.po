@@ -3,8 +3,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: jupyterlab-kuusi\n"
-"POT-Creation-Date: 2026-10-03\n"
-"PO-Revision-Date: 2026-10-03\n"
+"POT-Creation-Date: 2026-10-16\n"
+"PO-Revision-Date: 2026-10-16\n"
 "Last-Translator: Kuusi\n"
 "Language-Team: Chinese (Simplified)\n"
 "Language: zh_CN\n"
@@ -12,6 +12,54 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Article"
+msgstr "文章"
+
+msgid "Mind Map"
+msgstr "思维导图"
+
+msgid "Slides"
+msgstr "幻灯片"
+
+msgid "Views and order"
+msgstr "视图与顺序"
+
+msgid "Choose which views appear in the view menu and their order, left to right. The first enabled view opens by default."
+msgstr "选择视图菜单中显示哪些视图及其从左到右的顺序。排在最前面且已启用的视图会默认打开。"
+
+msgid "Show"
+msgstr "显示"
+
+msgid "Beta"
+msgstr "测试版"
+
+msgid "Experimental"
+msgstr "实验功能"
+
+msgid "Still being tested: expect rough edges."
+msgstr "仍在测试中，可能有不完善之处。"
+
+msgid "Experimental: likely to have bugs and to change."
+msgstr "实验功能：很可能有 bug，并且会改动。"
+
+msgid "Move left"
+msgstr "左移"
+
+msgid "Move right"
+msgstr "右移"
+
+msgid "Notebooks (.ipynb)"
+msgstr "笔记本 (.ipynb)"
+
+msgid "Kuusi View: Article / Book / Mind Map / Slides"
+msgstr "Kuusi 视图：Article / Book / Mind Map / Slides"
+
+msgid "Markdown (.md)"
+msgstr "Markdown (.md)"
+
+msgid "Kuusi View: Article / Book / Slides / Mind Map"
+msgstr "Kuusi 视图：Article / Book / Slides / Mind Map"
 
 msgid "Insert a cell below"
 msgstr "在下方插入单元格"
@@ -39,12 +87,6 @@ msgstr "新建思维导图"
 
 msgid "Create a new notebook in this folder and open it as a mind map"
 msgstr "在此文件夹新建笔记本并以思维导图打开"
-
-msgid "Kuusi"
-msgstr "Kuusi"
-
-msgid "Open this notebook beside Kuusi (left: notebook, right: mind map)"
-msgstr "在 Kuusi 旁打开此笔记本（左：笔记本，右：思维导图）"
 
 msgid "Markdown editor"
 msgstr "Markdown 编辑器"
@@ -259,6 +301,99 @@ msgstr "XMind 式紧凑布局，主题间距最小"
 msgid "Boundary distance between sibling nodes"
 msgstr "兄弟节点之间的间距"
 
+msgid "More"
+msgstr "更多"
+
+msgid "Update with"
+msgstr "升级命令"
+
+msgid "Upgrade"
+msgstr "升级"
+
+msgid "How to upgrade"
+msgstr "如何升级"
+
+msgid "Kuusi updated to"
+msgstr "Kuusi 已更新到"
+
+msgid "Kuusi is a Python package. Upgrade it in the same environment that runs JupyterLab."
+msgstr "Kuusi 是一个 Python 包，请在运行 JupyterLab 的同一个环境里升级。"
+
+msgid "Install the latest version"
+msgstr "安装最新版本"
+
+msgid "Run this in a terminal:"
+msgstr "在终端里运行："
+
+msgid "conda, uv and other environments"
+msgstr "conda、uv 等其他环境"
+
+msgid "In a conda environment, activate it first, then use pip:"
+msgstr "在 conda 环境里，先激活环境，再用 pip："
+
+msgid "With uv:"
+msgstr "使用 uv："
+
+msgid "Restart JupyterLab"
+msgstr "重启 JupyterLab"
+
+msgid "Stop it (Ctrl+C in its terminal) and start it again, then reload the browser tab with a hard refresh. A cached copy would otherwise keep showing the old version."
+msgstr "在它的终端里按 Ctrl+C 停止后重新启动，然后强制刷新浏览器标签页。否则浏览器缓存会一直显示旧版本。"
+
+msgid "Hard refresh: Cmd+Shift+R"
+msgstr "强制刷新：Cmd+Shift+R"
+
+msgid "Hard refresh: Ctrl+Shift+R"
+msgstr "强制刷新：Ctrl+Shift+R"
+
+msgid "Check that it worked"
+msgstr "确认升级成功"
+
+msgid "jupyterlab-kuusi should be listed as enabled with the new version number. Settings → Version shows the same number."
+msgstr "jupyterlab-kuusi 应显示为 enabled，并带有新的版本号。设置 → Version 页显示的是同一个数字。"
+
+msgid "Still the old version?"
+msgstr "还是旧版本？"
+
+msgid "Make sure you restarted the JupyterLab that uses this environment. This prints the version pip installed:"
+msgstr "请确认重启的是使用这个环境的 JupyterLab。下面的命令会打印 pip 实际装的版本："
+
+msgid "Installed from source?"
+msgstr "是从源码安装的？"
+
+msgid "If you installed with pip install -e, update the repository and rebuild:"
+msgstr "如果你是用 pip install -e 安装的，请更新仓库并重新构建："
+
+msgid "Copy"
+msgstr "复制"
+
+msgid "Copied"
+msgstr "已复制"
+
+msgid "Previous page"
+msgstr "上一页"
+
+msgid "Next page"
+msgstr "下一页"
+
+msgid "Page"
+msgstr "页面"
+
+msgid "Show outline and pages"
+msgstr "显示目录和缩略图"
+
+msgid "Hide outline and pages"
+msgstr "隐藏目录和缩略图"
+
+msgid "Outline"
+msgstr "大纲"
+
+msgid "Thumbnails"
+msgstr "缩略图"
+
+msgid "No headings"
+msgstr "没有标题"
+
 msgid "Connector line appearance"
 msgstr "连线外观"
 
@@ -301,6 +436,18 @@ msgstr "开始放映"
 msgid "Stop slideshow"
 msgstr "停止放映"
 
+msgid "Horizontal swipe"
+msgstr "横向滑动"
+
+msgid "Swipe pages left and right (fullscreen)"
+msgstr "全屏时左右滑动翻页"
+
+msgid "Vertical swipe"
+msgstr "纵向滑动"
+
+msgid "Scroll pages up and down (fullscreen)"
+msgstr "全屏时上下滚动翻页"
+
 msgid "Appearance"
 msgstr "外观"
 
@@ -309,12 +456,6 @@ msgstr "关于"
 
 msgid "Kuusi is a Jupyter-native mind map view for notebooks—edit structure and content in one place."
 msgstr "Kuusi 是面向笔记本的 Jupyter 原生思维导图，可在同一处编辑结构与内容。"
-
-msgid "Copy"
-msgstr "复制"
-
-msgid "Copied"
-msgstr "已复制"
 
 msgid "Copy install command"
 msgstr "复制安装命令"
@@ -343,8 +484,239 @@ msgstr "关闭"
 msgid "Community"
 msgstr "社区"
 
+msgid "Auto reload"
+msgstr "自动重载"
+
+msgid "Auto collapse capsule"
+msgstr "自动收缩胶囊菜单"
+
+msgid "Fold the capsule into a round mark until the pointer reaches it"
+msgstr "平时收缩成圆形图标，鼠标移到上面时再展开"
+
+msgid "Cursor line number"
+msgstr "光标所在行的行号"
+
+msgid "Highlight"
+msgstr "高亮"
+
+msgid "Bold"
+msgstr "加粗"
+
+msgid "Bar"
+msgstr "竖条"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "Re-read the file when it changes on disk (skipped while there are unsaved edits)"
+msgstr "文件在磁盘上被改动时重新读取（有未保存的修改时跳过）"
+
+msgid "More options"
+msgstr "更多选项"
+
+msgid "Sync"
+msgstr "同步"
+
+msgid "Keep this view in step with the editor"
+msgstr "让此视图与编辑器保持同步"
+
+msgid "Live preview"
+msgstr "实时预览"
+
+msgid "Update this view while you type in the Markdown editor"
+msgstr "在 Markdown 编辑器里输入时实时更新此视图"
+
+msgid "Feedback"
+msgstr "反馈"
+
+msgid "Tell us what is broken or what you would like. It opens an email in your own mail program; nothing is uploaded."
+msgstr "告诉我们哪里有问题，或你希望增加什么。点击后会用你自己的邮件程序打开一封邮件，不会上传任何内容。"
+
+msgid "Your message…"
+msgstr "你的留言…"
+
+msgid "Add the Kuusi version and browser info"
+msgstr "附上 Kuusi 版本和浏览器信息"
+
+msgid "Send by email"
+msgstr "用邮件发送"
+
+msgid "Copy message"
+msgstr "复制留言"
+
+msgid "Write a message first."
+msgstr "请先写点内容。"
+
+msgid "Your mail program should open. If nothing happens, use Copy message and send it to %1."
+msgstr "邮件程序应该会打开。如果没有反应，请点“复制留言”，再发送到 %1。"
+
+msgid "Copied. Paste it into an email to %1."
+msgstr "已复制。请粘贴到发给 %1 的邮件里。"
+
+msgid "Could not copy; select the text and copy it yourself."
+msgstr "复制失败，请自己选中文字复制。"
+
 msgid "Default files"
 msgstr "默认打开方式"
+
+msgid "Surface"
+msgstr "纸面"
+
+msgid "Header & footer"
+msgstr "页眉和页脚"
+
+msgid "Structure"
+msgstr "结构"
+
+msgid "Contents"
+msgstr "目录"
+
+msgid "Chapters"
+msgstr "章节"
+
+msgid "Contents page"
+msgstr "目录页"
+
+msgid "Insert a table of contents with page numbers at the start"
+msgstr "在文档开头插入带页码的目录"
+
+msgid "Heading levels"
+msgstr "标题层级"
+
+msgid "Header row alignment"
+msgstr "表头行对齐"
+
+msgid "Header column alignment"
+msgstr "表头列对齐"
+
+msgid "Column width"
+msgstr "列宽"
+
+msgid "Auto fit"
+msgstr "自适应"
+
+msgid "Each column is as wide as its content needs"
+msgstr "每列宽度随内容自适应"
+
+msgid "Equal"
+msgstr "等宽"
+
+msgid "Every column gets the same width"
+msgstr "所有列宽度相同"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Keep the table style's own alignment"
+msgstr "沿用表格样式自带的对齐"
+
+msgid "Code background"
+msgstr "代码背景色"
+
+msgid "Quote background"
+msgstr "引用背景色"
+
+msgid "Quote text color"
+msgstr "引用文字颜色"
+
+msgid "Quote bar color"
+msgstr "引用竖线颜色"
+
+msgid "Show Heading 1"
+msgstr "显示一级标题"
+
+msgid "List Heading 1 (usually the document title) in the contents"
+msgstr "在目录中列出一级标题（通常是文档总标题）"
+
+msgid "Show title"
+msgstr "显示标题"
+
+msgid "Show a heading above the contents list"
+msgstr "在目录列表上方显示标题"
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Heading numbers"
+msgstr "标题编号"
+
+msgid "Headings keep their written text"
+msgstr "标题保持原文"
+
+msgid "1, 1.1"
+msgstr "1、1.1"
+
+msgid "Number headings 1, 1.1, 1.1.1"
+msgstr "标题编号为 1、1.1、1.1.1"
+
+msgid "I, 1.1"
+msgstr "I、1.1"
+
+msgid "Chapters as I, II, III, sections as 1.1"
+msgstr "章用罗马数字 I、II、III，节用 1.1"
+
+msgid "New page before"
+msgstr "另起一页"
+
+msgid "Start numbering at"
+msgstr "编号起始层级"
+
+msgid "Heading 1"
+msgstr "一级标题"
+
+msgid "Heading 1 is the first numbered level"
+msgstr "从一级标题开始编号"
+
+msgid "Heading 2"
+msgstr "二级标题"
+
+msgid "Leave Heading 1 (the document title) unnumbered and start at Heading 2"
+msgstr "一级标题（文档总标题）不编号，从二级标题开始"
+
+msgid "Numbered levels"
+msgstr "编号层级"
+
+msgid "Number only Heading 1"
+msgstr "只给一级标题编号"
+
+msgid "Heading 1–2"
+msgstr "一、二级标题"
+
+msgid "Number Heading 1 and Heading 2"
+msgstr "给一级和二级标题编号"
+
+msgid "All levels"
+msgstr "所有层级"
+
+msgid "Number every heading level"
+msgstr "每一级标题都编号"
+
+msgid "Headings flow on without a page break"
+msgstr "标题连续排版，不分页"
+
+msgid "Every Heading 1 starts a new page"
+msgstr "每个一级标题另起一页"
+
+msgid "Every Heading 1 and Heading 2 starts a new page"
+msgstr "每个一、二级标题另起一页"
+
+msgid "Page breaks and page numbers show in Paged layout"
+msgstr "分页与页码在分页版式下生效"
+
+msgid "Display"
+msgstr "显示"
+
+msgid "Reset page settings"
+msgstr "恢复页面默认"
+
+msgid "Restore this menu's settings to the current theme's defaults"
+msgstr "把此菜单的设置恢复为当前主题的默认值"
+
+msgid "Apply text style to all views"
+msgstr "文字样式应用到所有视图"
+
+msgid "Copy font, color, spacing and heading styles to Article, Book, Slides and Mind Map"
+msgstr "把字体、颜色、间距和标题样式复制到 Article、Book、Slides 和 Mind Map"
 
 msgid "Kuusi Settings"
 msgstr "Kuusi 设置"
@@ -364,14 +736,17 @@ msgstr "无衬线"
 msgid "Serif"
 msgstr "衬线"
 
+msgid "Chinese"
+msgstr "中文"
+
 msgid "Size"
 msgstr "字号"
 
+msgid "Custom"
+msgstr "自定义"
+
 msgid "Edit"
 msgstr "编辑"
-
-msgid "Display"
-msgstr "显示"
 
 msgid "Link"
 msgstr "关联"
@@ -424,14 +799,299 @@ msgstr "等宽"
 msgid "When on, every node uses the same width"
 msgstr "开启后所有节点使用相同宽度"
 
-msgid "Fit content"
-msgstr "适应内容"
-
 msgid "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)"
 msgstr "宽度随内容，上限为节点宽度；与等宽同时开启时，所有节点对齐最宽内容（仍受上限限制）"
 
 msgid "Node width"
 msgstr "节点宽度"
+
+msgid "Line width applies to the scrolling layout; paged sheets use the paper width."
+msgstr "行宽只在滚动版式下生效；分页版式使用纸张宽度。"
+
+msgid "Paper options use the paged layout and switch to it."
+msgstr "纸张选项属于分页版式，调整后会切换到分页。"
+
+msgid "Left and right margin. The top margin is 1.125× and the bottom 2× this value."
+msgstr "左右页边距；上边距为此值的 1.125 倍，下边距为 2 倍。"
+
+msgid "Placeholders: {title} document name, {chapter} current chapter, {date} today, {page} page number, {pages} page count."
+msgstr "占位符：{title} 文档名，{chapter} 当前章，{date} 今天日期，{page} 页码，{pages} 总页数。"
+
+msgid "Repeat table headers"
+msgstr "表头跨页重复"
+
+msgid "Repeat the header row on every page a long table spans"
+msgstr "长表格跨页时在每页重复表头行"
+
+msgid "Margins"
+msgstr "页边距"
+
+msgid "Typesetting"
+msgstr "排版"
+
+msgid "Blocks"
+msgstr "块元素"
+
+msgid "Watermark"
+msgstr "水印"
+
+msgid "PDF export"
+msgstr "PDF 导出"
+
+msgid "Top"
+msgstr "顶部"
+
+msgid "Bottom"
+msgstr "底部"
+
+msgid "Left"
+msgstr "左"
+
+msgid "Right"
+msgstr "右"
+
+msgid "Gutter"
+msgstr "装订线"
+
+msgid "Margins in mm; type a value to one decimal, or 0 to follow the theme again (Page → Padding in continuous layout). The gutter widens the left margin for binding."
+msgstr "单位毫米，可直接输入一位小数；输入 0 恢复跟随主题（连续版式下沿用 页面 → 内边距）。装订线加宽左边距用于装订。"
+
+msgid "Line spacing"
+msgstr "行距"
+
+msgid "Orphan / widow lines"
+msgstr "孤行 / 寡行行数"
+
+msgid "Hyphenation"
+msgstr "断字"
+
+msgid "Break long words at syllables (needs a language-aware browser)"
+msgstr "在音节处断开长单词"
+
+msgid "First-line indent"
+msgstr "首行缩进"
+
+msgid "Code line numbers"
+msgstr "代码行号"
+
+msgid "Code tab width"
+msgstr "代码制表符宽度"
+
+msgid "Image captions"
+msgstr "图片题注"
+
+msgid "Show the alt text under each image as “Figure N. …”"
+msgstr "在每张图片下以「图 N. …」显示替代文字"
+
+msgid "Link footnotes"
+msgstr "链接脚注"
+
+msgid "Number links in the text and list their addresses at the end"
+msgstr "给链接编号，并在文末列出地址"
+
+msgid "Scale"
+msgstr "缩放比例"
+
+msgid "Table text size"
+msgstr "表格文字大小"
+
+msgid "Table band color"
+msgstr "表格条纹颜色"
+
+msgid "Draw a line between the two columns"
+msgstr "在两栏之间画一条线"
+
+msgid "Rule thickness"
+msgstr "线条粗细"
+
+msgid "Rule color"
+msgstr "线条颜色"
+
+msgid "Rule style"
+msgstr "线条样式"
+
+msgid "Solid"
+msgstr "实线"
+
+msgid "Dashed"
+msgstr "虚线"
+
+msgid "Dotted"
+msgstr "点线"
+
+msgid "Double"
+msgstr "双线"
+
+msgid "Text"
+msgstr "正文"
+
+msgid "Bookmarks"
+msgstr "书签"
+
+msgid "One bookmark per heading in exported PDFs"
+msgstr "导出的 PDF 中每个标题一条书签"
+
+msgid "Image quality"
+msgstr "图像质量"
+
+msgid "Standard"
+msgstr "标准"
+
+msgid "High"
+msgstr "高"
+
+msgid "Cover page"
+msgstr "封面页"
+
+msgid "Cover title"
+msgstr "封面标题"
+
+msgid "Document name"
+msgstr "文档名"
+
+msgid "Author"
+msgstr "作者"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Today"
+msgstr "今天"
+
+msgid "A title page (document name and date) before the contents"
+msgstr "在目录前加标题页（文档名与日期）"
+
+msgid "Mirror on even pages"
+msgstr "偶数页镜像"
+
+msgid "Swap left and right alignment on even pages, as in a bound book"
+msgstr "偶数页左右对齐互换，适合装订成册"
+
+msgid "Figure"
+msgstr "图"
+
+msgid "Links"
+msgstr "链接"
+
+msgid "Rule line"
+msgstr "分隔线"
+
+msgid "Draw a thin line between this band and the text"
+msgstr "在此区域与正文之间画一条细线"
+
+msgid "Different first page"
+msgstr "首页不同"
+
+msgid "Leave header and footer text empty on the first page"
+msgstr "首页的页眉页脚文字留空"
+
+msgid "Font used while a node's source is open for editing."
+msgstr "编辑节点源码时使用的字体。"
+
+msgid "Zoom range"
+msgstr "缩放范围"
+
+msgid "Minimum zoom"
+msgstr "最小缩放"
+
+msgid "Maximum zoom"
+msgstr "最大缩放"
+
+msgid "Mouse wheel"
+msgstr "鼠标滚轮"
+
+msgid "Wheel pans"
+msgstr "滚轮平移"
+
+msgid "Scroll pans the map; Ctrl/⌘ + scroll or pinch zooms"
+msgstr "滚动平移画布；Ctrl/⌘ + 滚动或双指捏合缩放"
+
+msgid "Wheel zooms"
+msgstr "滚轮缩放"
+
+msgid "Scroll zooms the map; Shift + scroll pans"
+msgstr "滚动缩放画布；Shift + 滚动平移"
+
+msgid "Zoom speed"
+msgstr "缩放速度"
+
+msgid "On open"
+msgstr "打开时"
+
+msgid "Center selected node"
+msgstr "居中选中节点"
+
+msgid "Center root"
+msgstr "居中根节点"
+
+msgid "Fit whole map"
+msgstr "适应整张导图"
+
+msgid "Restore last view"
+msgstr "恢复上次视角"
+
+msgid "Levels"
+msgstr "层级"
+
+msgid "Level"
+msgstr "层级"
+
+msgid "Root"
+msgstr "根节点"
+
+msgid "Level 1"
+msgstr "第 1 层"
+
+msgid "Level 2"
+msgstr "第 2 层"
+
+msgid "Level 3+"
+msgstr "第 3 层及更深"
+
+msgid "Follow map"
+msgstr "跟随全局"
+
+msgid "Overrides the map-wide node style for this level. A node's own fill still wins."
+msgstr "覆盖此层级的全局节点样式；单个节点自己的填充色优先。"
+
+msgid "Taper"
+msgstr "渐细"
+
+msgid "Thinner toward the leaves"
+msgstr "越靠近叶子越细"
+
+msgid "Connector lines get thinner with each level away from the root"
+msgstr "连线离根节点每深一层就更细一些"
+
+msgid "Minimum width"
+msgstr "最小线宽"
+
+msgid "Branch colors"
+msgstr "分支着色"
+
+msgid "Overrides the line color; arrows follow the branch color."
+msgstr "会覆盖连线颜色；箭头跟随分支颜色。"
+
+msgid "Rainbow"
+msgstr "彩虹"
+
+msgid "Pastel"
+msgstr "粉彩"
+
+msgid "Mono"
+msgstr "单色"
+
+msgid "Horizontal padding"
+msgstr "水平内边距"
+
+msgid "Vertical padding"
+msgstr "垂直内边距"
+
+msgid "Fit to window"
+msgstr "适应窗口"
+
+msgid "Fit the whole map in the window (Shift+1)"
+msgstr "让整张导图适应窗口（Shift+1）"
 
 msgid "Max width"
 msgstr "最大宽度"
@@ -463,6 +1123,72 @@ msgstr "页面与思维导图控件"
 msgid "Article reading controls"
 msgstr "Article 阅读控件"
 
+msgid "Book reading controls"
+msgstr "Book 阅读控件"
+
+msgid "Book page"
+msgstr "Book 页面"
+
+msgid "Spread"
+msgstr "对开"
+
+msgid "One page at a time"
+msgstr "每次一页"
+
+msgid "Facing pages like an open book"
+msgstr "左右对开，像翻开的书"
+
+msgid "Previous pages"
+msgstr "上一页"
+
+msgid "Next pages"
+msgstr "下一页"
+
+msgid "Spine"
+msgstr "书脊间距"
+
+msgid "Spine rule"
+msgstr "书脊线"
+
+msgid "Draw a thin rule in the spine"
+msgstr "在书脊处画细线"
+
+msgid "No spine rule"
+msgstr "无书脊线"
+
+msgid "Columns"
+msgstr "栏数"
+
+msgid "Single reading column"
+msgstr "单栏阅读"
+
+msgid "Two reading columns"
+msgstr "双栏阅读"
+
+msgid "Three reading columns"
+msgstr "三栏阅读"
+
+msgid "Column gap"
+msgstr "栏距"
+
+msgid "Column fill"
+msgstr "栏填充"
+
+msgid "Balance text height across columns"
+msgstr "平衡各栏高度"
+
+msgid "Fill columns in order (newspaper style)"
+msgstr "按阅读顺序填栏（报纸式）"
+
+msgid "Column rule"
+msgstr "栏线"
+
+msgid "Draw a thin rule between columns"
+msgstr "在栏之间画细线"
+
+msgid "No rule between columns"
+msgstr "无栏线"
+
 msgid "Type"
 msgstr "类型"
 
@@ -475,38 +1201,38 @@ msgstr "Article 页面"
 msgid "Article theme"
 msgstr "Article 主题"
 
-msgid "Follow Jupyter defaults — 52rem column"
-msgstr "跟随 Jupyter 默认 — 52rem 栏宽"
+msgid "Jupyter reading column on ruled notebook paper"
+msgstr "Jupyter 阅读栏，笔记本横线纸"
 
 msgid "Essay"
 msgstr "随笔"
 
-msgid "Narrow serif column on warm paper"
-msgstr "暖色纸上的窄衬线栏"
+msgid "Narrow serif essay on warm sepia paper"
+msgstr "暖色褐色纸上的窄衬线随笔"
 
 msgid "Magazine"
 msgstr "杂志"
 
-msgid "Wide sans-serif column with centered titles"
-msgstr "宽无衬线栏，标题居中"
+msgid "Two-column newsprint with centered display titles"
+msgstr "双栏新闻纸，标题居中"
 
 msgid "Night"
 msgstr "夜间"
 
-msgid "Dark ink page with slightly larger type"
-msgstr "深色墨纸，字号略大"
+msgid "Dark ink page with larger type for low light"
+msgstr "深色墨纸，低光下更大字号"
 
 msgid "Academic"
 msgstr "学术"
 
-msgid "Serif column with restrained typography"
-msgstr "克制的衬线栏排版"
+msgid "Paged Times paper — justified body, restrained titles"
+msgstr "分页 Times 纸面 — 两端对齐正文、克制标题"
 
 msgid "Minimal"
 msgstr "极简"
 
-msgid "Clean sans column with generous whitespace"
-msgstr "干净的无衬线栏，留白充足"
+msgid "Narrow sans column with generous whitespace"
+msgstr "窄无衬线栏，留白充足"
 
 msgid "Code"
 msgstr "代码"
@@ -589,9 +1315,6 @@ msgstr "页眉"
 msgid "Alignment"
 msgstr "对齐"
 
-msgid "Left"
-msgstr "左"
-
 msgid "Left-align heading"
 msgstr "标题左对齐"
 
@@ -600,9 +1323,6 @@ msgstr "居中"
 
 msgid "Center heading"
 msgstr "标题居中"
-
-msgid "Right"
-msgstr "右"
 
 msgid "Right-align heading"
 msgstr "标题右对齐"
@@ -618,9 +1338,6 @@ msgstr "舒适的页边距"
 
 msgid "Open page margins"
 msgstr "更宽的页边距"
-
-msgid "Page"
-msgstr "页面"
 
 msgid "Leading"
 msgstr "行距"
@@ -648,9 +1365,6 @@ msgstr "字距"
 
 msgid "Letter spacing from 0em to 0.15em"
 msgstr "字距 0em 到 0.15em"
-
-msgid "Links"
-msgstr "链接"
 
 msgid "Theme default link appearance"
 msgstr "使用主题默认链接样式"
@@ -681,6 +1395,117 @@ msgstr "对比"
 
 msgid "Strong background for code blocks"
 msgstr "代码块使用更强对比底色"
+
+msgid "Table"
+msgstr "表格"
+
+msgid "Style"
+msgstr "样式"
+
+msgid "No borders — Word Plain Table"
+msgstr "无边框 — Word 纯净表格"
+
+msgid "Full grid — Word Table Grid"
+msgstr "全网格 — Word 网格表格"
+
+msgid "Lines"
+msgstr "横线"
+
+msgid "Horizontal rules only"
+msgstr "仅水平线"
+
+msgid "Banded"
+msgstr "斑马纹"
+
+msgid "Alternating row fill with header bar"
+msgstr "隔行底色 + 表头条"
+
+msgid "Booktabs"
+msgstr "三线表"
+
+msgid "LaTeX booktabs — thick outer rules, no verticals"
+msgstr "LaTeX booktabs — 粗外框线、无竖线"
+
+msgid "Ruled"
+msgstr "线框"
+
+msgid "Academic three-line table"
+msgstr "学术三线表"
+
+msgid "Border"
+msgstr "边框"
+
+msgid "Table background transparency"
+msgstr "表格背景透明度"
+
+msgid "Bold header row"
+msgstr "表头行加粗"
+
+msgid "Make the first row (column headers) bold"
+msgstr "首行（列标题）加粗"
+
+msgid "Bold first column"
+msgstr "首列加粗"
+
+msgid "Make the first column (row headers) bold"
+msgstr "首列（行标题）加粗"
+
+msgid "List"
+msgstr "列表"
+
+msgid "Tighter space between list items"
+msgstr "列表项间距更紧"
+
+msgid "Normal"
+msgstr "常规"
+
+msgid "Comfortable list item spacing"
+msgstr "舒适的列表项间距"
+
+msgid "Open space between list items"
+msgstr "更疏的列表项间距"
+
+msgid "Quote"
+msgstr "引用"
+
+msgid "Blockquote"
+msgstr "引用块"
+
+msgid "Divider"
+msgstr "分割线"
+
+msgid "Divider thickness"
+msgstr "分割线粗细"
+
+msgid "Preset"
+msgstr "预设"
+
+msgid "Divider line"
+msgstr "分割线样式"
+
+msgid "Divider color"
+msgstr "分割线颜色"
+
+msgid "Light"
+msgstr "轻"
+
+msgid "Thin, quiet rule"
+msgstr "细而克制的线"
+
+msgid "Standard emphasis"
+msgstr "标准强调"
+
+msgid "Strong"
+msgstr "重"
+
+msgid "Heavier rule with more presence"
+msgstr "更粗、更醒目的线"
+
+msgid "JupyterLab default syntax colors"
+msgstr "JupyterLab 默认语法配色"
+
+msgid "Blue keywords and deep string tones"
+msgstr "蓝色关键字与深色字符串"
 
 msgid "Column"
 msgstr "栏"
@@ -718,8 +1543,32 @@ msgstr "Letter"
 msgid "8.5 × 11 in"
 msgstr "8.5 × 11 in"
 
-msgid "Text"
-msgstr "正文"
+msgid "Portrait"
+msgstr "纵向"
+
+msgid "Tall page (switches to Paged)"
+msgstr "竖向页面（切换到分页）"
+
+msgid "Landscape"
+msgstr "横向"
+
+msgid "Wide page (switches to Paged)"
+msgstr "横向页面（切换到分页）"
+
+msgid "Edge color"
+msgstr "边缘颜色"
+
+msgid "Edge width"
+msgstr "边缘粗细"
+
+msgid "Shadow"
+msgstr "阴影"
+
+msgid "Drop shadow around the paper sheet"
+msgstr "纸张周围投下阴影"
+
+msgid "Shadow width"
+msgstr "阴影宽度"
 
 msgid "Text style"
 msgstr "正文样式"
@@ -750,9 +1599,6 @@ msgstr "演示控件"
 
 msgid "Look"
 msgstr "外观"
-
-msgid "Header & footer"
-msgstr "页眉和页脚"
 
 msgid "Article header, footer & page numbers"
 msgstr "Article 页眉、页脚与页码"
@@ -787,6 +1633,42 @@ msgstr "3 / 12"
 msgid "Page number and page count"
 msgstr "页码与总页数"
 
+msgid "– 3 –"
+msgstr "– 3 –"
+
+msgid "Page number between dashes"
+msgstr "页码两侧加短横线"
+
+msgid "[3]"
+msgstr "[3]"
+
+msgid "Page number in square brackets"
+msgstr "页码加方括号"
+
+msgid "Page 3"
+msgstr "Page 3"
+
+msgid "The word Page and the page number"
+msgstr "英文 Page 加页码"
+
+msgid "Page 3 of 12"
+msgstr "Page 3 of 12"
+
+msgid "The word Page, the page number and the page count"
+msgstr "英文 Page、页码和总页数"
+
+msgid "iii"
+msgstr "iii"
+
+msgid "Lower-case Roman numerals (i, ii, iii…)"
+msgstr "小写罗马数字（i、ii、iii…）"
+
+msgid "III"
+msgstr "III"
+
+msgid "Upper-case Roman numerals (I, II, III…)"
+msgstr "大写罗马数字（I、II、III…）"
+
 msgid "Position"
 msgstr "位置"
 
@@ -795,6 +1677,21 @@ msgstr "每页上边距"
 
 msgid "Bottom margin of each page"
 msgstr "每页下边距"
+
+msgid "Starts on"
+msgstr "起始于"
+
+msgid "First page"
+msgstr "首页"
+
+msgid "Number from the first page (1, 2, 3…)"
+msgstr "从首页开始编号（1、2、3…）"
+
+msgid "Second page"
+msgstr "第 2 页"
+
+msgid "Skip the first page; numbering begins on page 2 as 1"
+msgstr "首页不编号，从第 2 页起计为 1"
 
 msgid "Images"
 msgstr "图片"
@@ -844,32 +1741,17 @@ msgstr "右绕排"
 msgid "Image on the right; following text wraps on the left"
 msgstr "图片在右，后续文字在左侧环绕"
 
-msgid "Border"
-msgstr "边框"
-
 msgid "No frame around images"
 msgstr "图片无边框"
-
-msgid "Solid"
-msgstr "实线"
 
 msgid "Continuous line"
 msgstr "连续实线"
 
-msgid "Dashed"
-msgstr "虚线"
-
 msgid "Dashed line"
 msgstr "虚线"
 
-msgid "Dotted"
-msgstr "点线"
-
 msgid "Dotted line"
 msgstr "点线"
-
-msgid "Double"
-msgstr "双线"
 
 msgid "Two parallel lines"
 msgstr "两条平行线"
@@ -891,9 +1773,6 @@ msgstr "约 68rem — 杂志栏"
 
 msgid "Use the full pane width"
 msgstr "使用整个窗格宽度"
-
-msgid "Surface"
-msgstr "纸面"
 
 msgid "Theme"
 msgstr "主题"
@@ -922,9 +1801,6 @@ msgstr "薄雾"
 msgid "Cool light gray page with a soft haze"
 msgstr "浅冷灰，带一层薄雾"
 
-msgid "Lines"
-msgstr "横线"
-
 msgid "Horizontal ruled lines like notebook paper"
 msgstr "类似笔记本的横线"
 
@@ -951,6 +1827,9 @@ msgstr "节点宽度、填充、边框与选中光晕"
 
 msgid "Map fill"
 msgstr "图填充"
+
+msgid "Fill transparency"
+msgstr "填充透明度"
 
 msgid "Selected fill"
 msgstr "选中填充"
@@ -997,9 +1876,6 @@ msgstr "打开 GitHub 仓库"
 msgid "Repository"
 msgstr "仓库"
 
-msgid "Style"
-msgstr "样式"
-
 msgid "Route"
 msgstr "路径"
 
@@ -1012,9 +1888,6 @@ msgstr "把当前主题的页面、背景与外观恢复为默认"
 msgid "Soft"
 msgstr "柔和"
 
-msgid "Outline"
-msgstr "大纲"
-
 msgid "Board"
 msgstr "看板"
 
@@ -1026,6 +1899,9 @@ msgstr "疏密"
 
 msgid "Width"
 msgstr "宽度"
+
+msgid "Color for bold body text; empty inherits the body color"
+msgstr "加粗正文的颜色；空则跟随正文颜色"
 
 msgid "Arrow"
 msgstr "箭头"
@@ -1096,11 +1972,26 @@ msgstr "将此视图下载为 PDF（每页或每张幻灯片一页）"
 msgid "Download the PDF file"
 msgstr "下载 PDF 文件"
 
-msgid "Print / Vector PDF…"
-msgstr "打印 / 矢量 PDF…"
+msgid "PDF…"
+msgstr "PDF…"
 
-msgid "Open the system print dialog; choose “Save as PDF” for selectable text"
-msgstr "打开系统打印对话框；选择“存储为 PDF”可得到可选中文本"
+msgid "Open the print dialog and choose “Save as PDF”: sharp text that stays selectable"
+msgstr "打开打印对话框，选择“存储为 PDF”：文字清晰且可选中"
+
+msgid "Add bookmarks and links…"
+msgstr "添加书签和目录链接…"
+
+msgid "Pick the PDF you saved: headings become bookmarks (the reader's contents sidebar) and the contents page links jump to their page"
+msgstr "选择刚保存的 PDF：标题会成为书签（阅读器侧边栏里的目录），目录页的链接可跳转到对应页"
+
+msgid "Saved a PDF? Add bookmarks and working contents links for PDF readers such as Preview."
+msgstr "保存了 PDF？添加书签和目录链接后，Preview 等阅读器里才有目录导航和可点击的目录。"
+
+msgid "Could not add bookmarks: pick the PDF saved from this view's PDF… export."
+msgstr "无法添加书签：请选择从本视图“PDF…”导出保存的 PDF。"
+
+msgid "Saved %1 with bookmarks."
+msgstr "已保存带书签的 %1。"
 
 msgid "%1 image"
 msgstr "%1 图片"
@@ -1114,8 +2005,8 @@ msgstr "当前幻灯片"
 msgid "the whole mind map"
 msgstr "整张思维导图"
 
-msgid "the whole view"
-msgstr "整个视图"
+msgid "the current page"
+msgstr "当前页"
 
 msgid "Exporting %1…"
 msgstr "正在导出 %1…"
@@ -1156,62 +2047,62 @@ msgstr "幻灯片主题"
 msgid "Classic"
 msgstr "经典"
 
-msgid "White stage with dark text"
-msgstr "白底深色文字"
+msgid "White stage — notebook type, balanced chrome"
+msgstr "白底舞台 — notebook 字体，均衡控件"
 
-msgid "Dark stage for projector rooms"
-msgstr "适合投影的深色舞台"
+msgid "Dark projector stage — larger type, centered content"
+msgstr "深色投影舞台 — 更大字号，内容居中"
 
 msgid "Forest"
 msgstr "森林"
 
-msgid "Deep green stage with light text"
-msgstr "深绿舞台，浅色文字"
+msgid "Deep green stage with warm serif type"
+msgstr "深绿舞台，暖色衬线字体"
 
 msgid "Ocean"
 msgstr "海洋"
 
-msgid "Blue stage with light text"
-msgstr "蓝色舞台，浅色文字"
+msgid "Blue stage — centered sans titles and progress"
+msgstr "蓝色舞台 — 居中无衬线标题与进度条"
 
 msgid "Slate"
 msgstr "岩灰"
 
-msgid "Cool gray modern stage"
-msgstr "冷灰现代舞台"
+msgid "Cool gray modern stage — compact, flat chrome"
+msgstr "冷灰现代舞台 — 紧凑扁平控件"
 
-msgid "Warm paper stage with dark text"
-msgstr "暖色纸舞台，深色文字"
+msgid "Warm paper stage with reading-friendly serif"
+msgstr "暖色纸舞台，易读衬线字体"
 
 msgid "Metropolis"
 msgstr "Metropolis"
 
-msgid "Beamer-inspired flat modern theme with accent bar"
-msgstr "Beamer 风格的扁平现代主题，带强调条"
+msgid "Flat modern Beamer look — compact, progress bar"
+msgstr "扁平现代 Beamer 风 — 紧凑，带进度条"
 
 msgid "Madrid"
 msgstr "Madrid"
 
-msgid "Beamer-inspired header bar and structured footer"
-msgstr "Beamer 风格的顶栏与结构化页脚"
+msgid "Structured Beamer look — header bar and footer"
+msgstr "结构化 Beamer 风 — 顶栏与页脚"
 
 msgid "Berlin"
 msgstr "Berlin"
 
-msgid "Beamer-inspired accent rail and cool slate stage"
-msgstr "Beamer 风格的强调边条与冷灰舞台"
+msgid "Cool slate Beamer look — accent rail, compact"
+msgstr "冷灰 Beamer 风 — 强调边条，紧凑"
 
 msgid "Copenhagen"
 msgstr "Copenhagen"
 
-msgid "Beamer-inspired light theme with subtle structure"
-msgstr "Beamer 风格的浅色主题，结构克制"
+msgid "Light Beamer look — airy padding, quiet chrome"
+msgstr "浅色 Beamer 风 — 疏朗边距，控件克制"
 
 msgid "Singapore"
 msgstr "Singapore"
 
-msgid "Beamer-inspired bold accent and clean stage"
-msgstr "Beamer 风格的大胆强调色与干净舞台"
+msgid "Bold Beamer look — centered titles, strong accent"
+msgstr "大胆 Beamer 风 — 居中标题，强调色鲜明"
 
 msgid "Slides layout"
 msgstr "幻灯片布局"
@@ -1242,9 +2133,6 @@ msgstr "列表"
 
 msgid "Tighter spacing between list items"
 msgstr "列表项间距更紧"
-
-msgid "Normal"
-msgstr "常规"
 
 msgid "Default list item spacing"
 msgstr "默认列表项间距"
@@ -1306,35 +2194,50 @@ msgstr "下一张"
 msgid "Slide type"
 msgstr "幻灯片类型"
 
-msgid "Frame"
-msgstr "边框"
-
 msgid "Draw a border around fenced code blocks"
 msgstr "为围栏代码块加上边框"
-
-msgid "Frame color"
-msgstr "边框颜色"
 
 msgid "Chrome"
 msgstr "界面框"
 
-msgid "Show the slide header bar with the section title"
-msgstr "显示带章节标题的幻灯片顶栏"
+msgid "Show the slide header bar"
+msgstr "显示幻灯片顶栏"
+
+msgid "Header text"
+msgstr "页眉文字"
+
+msgid "Use the nearest H1 at or before this slide"
+msgstr "使用本页及之前最近的一级标题"
+
+msgid "Use the nearest H2 at or before this slide"
+msgstr "使用本页及之前最近的二级标题"
+
+msgid "Heading 3"
+msgstr "三级标题"
+
+msgid "Use the nearest H3 at or before this slide"
+msgstr "使用本页及之前最近的三级标题"
+
+msgid "Use a fixed custom header string"
+msgstr "使用固定的自定义页眉文字"
+
+msgid "Custom text"
+msgstr "自定义文字"
+
+msgid "Text shown in the slide header bar"
+msgstr "显示在幻灯片顶栏的文字"
+
+msgid "Header text…"
+msgstr "页眉文字…"
 
 msgid "Align"
 msgstr "对齐"
-
-msgid "Top"
-msgstr "顶部"
 
 msgid "Align slide content to the top"
 msgstr "幻灯片内容靠上"
 
 msgid "Vertically center slide content"
 msgstr "幻灯片内容垂直居中"
-
-msgid "Bottom"
-msgstr "底部"
 
 msgid "Align slide content to the bottom"
 msgstr "幻灯片内容靠下"
@@ -1357,8 +2260,68 @@ msgstr "在舞台下方显示上一张 / 下一张按钮"
 msgid "Page number"
 msgstr "页码"
 
-msgid "Show the current slide index in the footer and nav"
-msgstr "在页脚与导航中显示当前幻灯片序号"
+msgid "Show the page number on the slide footer"
+msgstr "在幻灯片页脚显示页码"
+
+msgid "3 – 12"
+msgstr "3 – 12"
+
+msgid "Page number and count separated by an en dash"
+msgstr "页码与总页数用短破折号分隔"
+
+msgid "Soft glow under the progress bar"
+msgstr "进度条下方的柔和光晕"
+
+msgid "Command-mode cell bar"
+msgstr "命令模式单元格左侧条"
+
+msgid "Auto reload by default"
+msgstr "默认自动重载"
+
+msgid "Reload notebooks and Markdown views when the file changes on disk. Each file can still be switched in its … menu."
+msgstr "文件在磁盘上变化时自动重载笔记本和 Markdown 视图。每个文件仍可在其「…」菜单中单独开关。"
+
+msgid "Selected cell border"
+msgstr "选中单元格边框"
+
+msgid "The bar beside the selected cell (command mode) and the border round it are set separately. Empty keeps JupyterLab's colors."
+msgstr "命令模式下选中单元格左侧的条，和单元格四周的边框，颜色分别设置。留空则保持 JupyterLab 默认颜色。"
+
+msgid "Color of the bar beside the selected cell while the notebook is in command mode."
+msgstr "笔记本处于命令模式时，选中单元格左侧条的颜色。"
+
+msgid "Text size"
+msgstr "文字大小"
+
+msgid "Page overview"
+msgstr "页面总览"
+
+msgid "Overview of all pages (G)"
+msgstr "所有页面总览（G）"
+
+msgid "Header style"
+msgstr "页眉样式"
+
+msgid "Footer style"
+msgstr "页脚样式"
+
+msgid "Footer text"
+msgstr "页脚文字"
+
+msgid "Tokens: {title} {chapter} {section} {subsection} {page} {total} {date}. Empty shows the deck title."
+msgstr "可用变量：{title} {chapter} {section} {subsection} {page} {total} {date}。留空则显示文档标题。"
+
+msgid "Slide overview"
+msgstr "幻灯片总览"
+
+msgid "Bar height"
+msgstr "条的高度"
+
+msgid "Bar color"
+msgstr "条的颜色"
+
+msgid "Opacity"
+msgstr "透明度"
 
 msgid "Show the slide footer bar"
 msgstr "显示幻灯片页脚栏"
@@ -1369,17 +2332,11 @@ msgstr "进度"
 msgid "Show a progress bar for deck position"
 msgstr "显示演示进度条"
 
-msgid "Shadow"
-msgstr "阴影"
-
 msgid "Drop shadow around the slide stage"
 msgstr "舞台周围投下阴影"
 
 msgid "Render view"
 msgstr "渲染视图"
-
-msgid "Article"
-msgstr "文章"
 
 msgid "Rendered Markdown preview"
 msgstr "渲染后的 Markdown 预览"
@@ -1387,17 +2344,11 @@ msgstr "渲染后的 Markdown 预览"
 msgid "Rendered notebook article"
 msgstr "渲染后的笔记本文章"
 
-msgid "Mind Map"
-msgstr "思维导图"
-
 msgid "Kuusi Markdown mind map"
 msgstr "Kuusi Markdown 思维导图"
 
 msgid "Kuusi notebook mind map"
 msgstr "Kuusi 笔记本思维导图"
-
-msgid "Slides"
-msgstr "幻灯片"
 
 msgid "Live Markdown slides"
 msgstr "实时 Markdown 幻灯片"
@@ -1405,11 +2356,107 @@ msgstr "实时 Markdown 幻灯片"
 msgid "Live notebook slides"
 msgstr "实时笔记本幻灯片"
 
+msgid "Show the number of mind map nodes in the bottom-right corner"
+msgstr "在右下角显示思维导图节点数量"
+
+msgid "Fit content"
+msgstr "适应内容"
+
+msgid "Live Markdown slides (split on --- or H1)"
+msgstr "实时 Markdown 幻灯片（按 --- 或一级标题拆分）"
+
 msgid "Kuusi Live PDF preview (compile to refresh)"
 msgstr "Kuusi 实时 PDF 预览（编译后刷新）"
+
+msgid "Follow Jupyter defaults — 52rem column"
+msgstr "跟随 Jupyter 默认 — 52rem 栏宽"
+
+msgid "Narrow serif column on warm paper"
+msgstr "暖色纸上的窄衬线栏"
+
+msgid "Wide sans-serif column with centered titles"
+msgstr "宽无衬线栏，标题居中"
+
+msgid "Dark ink page with slightly larger type"
+msgstr "深色墨纸，字号略大"
+
+msgid "Serif column with restrained typography"
+msgstr "克制的衬线栏排版"
+
+msgid "Clean sans column with generous whitespace"
+msgstr "干净的无衬线栏，留白充足"
+
+msgid "Print / Vector PDF…"
+msgstr "打印 / 矢量 PDF…"
+
+msgid "Open the system print dialog; choose “Save as PDF” for selectable text"
+msgstr "打开系统打印对话框；选择“存储为 PDF”可得到可选中文本"
+
+msgid "the whole view"
+msgstr "整个视图"
+
+msgid "White stage with dark text"
+msgstr "白底深色文字"
+
+msgid "Dark stage for projector rooms"
+msgstr "适合投影的深色舞台"
+
+msgid "Deep green stage with light text"
+msgstr "深绿舞台，浅色文字"
+
+msgid "Blue stage with light text"
+msgstr "蓝色舞台，浅色文字"
+
+msgid "Cool gray modern stage"
+msgstr "冷灰现代舞台"
+
+msgid "Warm paper stage with dark text"
+msgstr "暖色纸舞台，深色文字"
+
+msgid "Beamer-inspired flat modern theme with accent bar"
+msgstr "Beamer 风格的扁平现代主题，带强调条"
+
+msgid "Beamer-inspired header bar and structured footer"
+msgstr "Beamer 风格的顶栏与结构化页脚"
+
+msgid "Beamer-inspired accent rail and cool slate stage"
+msgstr "Beamer 风格的强调边条与冷灰舞台"
+
+msgid "Beamer-inspired light theme with subtle structure"
+msgstr "Beamer 风格的浅色主题，结构克制"
+
+msgid "Beamer-inspired bold accent and clean stage"
+msgstr "Beamer 风格的大胆强调色与干净舞台"
+
+msgid "Frame"
+msgstr "边框"
+
+msgid "Frame color"
+msgstr "边框颜色"
+
+msgid "Show the slide header bar with the section title"
+msgstr "显示带章节标题的幻灯片顶栏"
+
+msgid "Show the current slide index in the footer and nav"
+msgstr "在页脚与导航中显示当前幻灯片序号"
 
 msgid "Plain Markdown source editor"
 msgstr "纯文本 Markdown 编辑器"
 
-msgid "Live Markdown slides (split on --- or H1)"
-msgstr "实时 Markdown 幻灯片（按 --- 或一级标题拆分）"
+msgid "Kuusi"
+msgstr "Kuusi"
+
+msgid "Open this notebook beside Kuusi (left: notebook, right: mind map)"
+msgstr "在 Kuusi 旁打开此笔记本（左：笔记本，右：思维导图）"
+
+msgid "File types"
+msgstr "文件类型"
+
+msgid "Placeholders: {title} document name, {page} page number, {pages} page count."
+msgstr "占位符：{title} 文档名，{page} 页码，{pages} 总页数。"
+
+msgid "Choose which file types should use Kuusi when opened from the file browser."
+msgstr "选择从文件浏览器打开时，哪些文件类型使用 Kuusi。"
+
+msgid "Paste as child of selection (subtree or plain text)"
+msgstr "粘贴为所选主题的子节点（子树或纯文本）"

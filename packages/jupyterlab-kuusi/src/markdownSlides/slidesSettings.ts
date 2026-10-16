@@ -20,6 +20,7 @@ import {
   HEADING_LEVELS,
   IMAGE_BORDER_RANGE,
   IMAGE_RADIUS_RANGE,
+  IMAGE_SCALE_RANGE,
   LETTER_SPACING_RANGE,
   PARAGRAPH_INDENT_RANGE,
   PARAGRAPH_SPACING_RANGE,
@@ -69,13 +70,20 @@ import {
   TABLE_TRANSPARENCY_RANGE,
   applyTableAppearance,
   isTableAlign,
+  isTableColumnWidth,
   isTableStyle,
   type TableAlign,
+  type TableColumnWidth,
   type TableStyle,
 } from "../tableSettings";
 import {
   DEFAULT_BLOCKQUOTE_WEIGHT,
   DEFAULT_HR_WEIGHT,
+  DEFAULT_HR_STYLE,
+  DEFAULT_HR_THICKNESS,
+  HR_THICKNESS_RANGE,
+  isRuleLineStyle,
+  type RuleLineStyle,
   DEFAULT_LIST_STYLE,
   applyElementChromeAppearance,
   isListStyle,
@@ -137,6 +145,12 @@ export type SlidesPageNumberStyle = "page" | "page-of-total" | "dash";
 export type SlidesFont = MindMapFont;
 export type SlidesFontSize = BodyFontSizePx;
 
+export const SLIDES_CHROME_FONT_SIZE_RANGE: NumberRange = { min: 8, max: 32, step: 1 };
+export const SLIDES_HEADER_HEIGHT_RANGE: NumberRange = { min: 20, max: 80, step: 2 };
+export const SLIDES_FOOTER_RULE_RANGE: NumberRange = { min: 0, max: 6, step: 1 };
+export const SLIDES_PROGRESS_HEIGHT_RANGE: NumberRange = { min: 1, max: 16, step: 1 };
+export const SLIDES_CHROME_OPACITY_RANGE: NumberRange = { min: 10, max: 100, step: 5 };
+
 export const SLIDES_LINE_HEIGHT_RANGE: NumberRange = {
   min: 0.9,
   max: 2.4,
@@ -179,7 +193,41 @@ export type SlidesSettings = {
   headerSource: SlidesHeaderSource;
   /** Used when headerSource is "custom". */
   headerCustomText: string;
+  /** Header bar height in px. */
+  headerHeight: number;
+  /** Header font; empty follows the slide font. */
+  headerFont: SlidesFont | "";
+  /** Header text size in px. */
+  headerFontSize: number;
+  /** Footer text template; empty shows the deck title. */
+  footerText: string;
+  /** Footer font; empty follows the slide font. */
+  footerFont: SlidesFont | "";
+  /** Footer text size in px. */
+  footerFontSize: number;
+  /** Header bar color; empty follows the accent color. */
+  headerColor: string;
+  /** Header text color; empty is white. */
+  headerTextColor: string;
+  /** Header bar opacity, % (10–100). */
+  headerOpacity: number;
+  /** Footer divider line thickness in px (0 hides it). */
+  footerRuleWidth: number;
+  /** Footer text color; empty follows the theme. */
+  footerColor: string;
+  /** Footer strip background; empty is transparent. */
+  footerBackground: string;
+  /** Footer opacity, % (10–100). */
+  footerOpacity: number;
   showFooter: boolean;
+  /** Progress bar thickness in px. */
+  progressHeight: number;
+  /** Progress bar color; empty follows the accent color. */
+  progressColor: string;
+  /** Progress bar opacity, % (10–100). */
+  progressOpacity: number;
+  /** Soft glow under the progress bar. */
+  progressShadow: boolean;
   showProgress: boolean;
   stageShadow: boolean;
   codeStyle: CodeStyle;
@@ -204,9 +252,13 @@ export type SlidesSettings = {
   tableHeaderColumnBold: boolean;
   tableHeaderRowAlign: TableAlign;
   tableHeaderColumnAlign: TableAlign;
+  tableColumnWidth: TableColumnWidth;
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
+  hrThickness: number;
+  hrColor: string;
+  hrStyle: RuleLineStyle;
   codeBackground: string;
   blockquoteBackground: string;
   blockquoteColor: string;
@@ -218,6 +270,7 @@ export type SlidesSettings = {
   imageBorderWidth: number;
   imageBorderColor: string;
   imageRadius: number;
+  imageScale: number;
   showTextCount: boolean;
   showPageCount: boolean;
   showFileSize: boolean;
@@ -536,6 +589,23 @@ export const DEFAULT_SLIDES_SETTINGS: SlidesSettings = {
   pageNumberStart: "first",
   headerSource: "h1",
   headerCustomText: "",
+  headerHeight: 32,
+  headerFont: "",
+  headerFontSize: 13,
+  footerFont: "",
+  footerText: "",
+  footerFontSize: 11,
+  progressHeight: 3,
+  progressColor: "",
+  progressOpacity: 100,
+  progressShadow: false,
+  headerColor: "",
+  headerTextColor: "",
+  headerOpacity: 100,
+  footerRuleWidth: 1,
+  footerColor: "",
+  footerBackground: "",
+  footerOpacity: 100,
   codeTheme: DEFAULT_CODE_THEME,
   codeFont: DEFAULT_CODE_FONT,
   codeFontSize: DEFAULT_CODE_FONT_SIZE,
@@ -551,9 +621,13 @@ export const DEFAULT_SLIDES_SETTINGS: SlidesSettings = {
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
   tableHeaderRowAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderRowAlign,
   tableHeaderColumnAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnAlign,
+  tableColumnWidth: DEFAULT_TABLE_APPEARANCE.tableColumnWidth,
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
+  hrThickness: DEFAULT_HR_THICKNESS,
+  hrColor: "",
+  hrStyle: DEFAULT_HR_STYLE,
   codeBackground: "",
   blockquoteBackground: "",
   blockquoteColor: "",
@@ -565,6 +639,7 @@ export const DEFAULT_SLIDES_SETTINGS: SlidesSettings = {
   imageBorderWidth: 1,
   imageBorderColor: "",
   imageRadius: 0,
+  imageScale: 100,
   showTextCount: false,
   showPageCount: false,
   showFileSize: false,
@@ -701,7 +776,73 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
       typeof raw.headerCustomText === "string"
         ? raw.headerCustomText
         : defaults.headerCustomText,
+    headerFont: isTypographyFont(raw.headerFont)
+      ? migrateFont(raw.headerFont)
+      : defaults.headerFont,
+    headerFontSize: normalizeInRange(
+      raw.headerFontSize,
+      SLIDES_CHROME_FONT_SIZE_RANGE,
+      defaults.headerFontSize,
+    ),
+    footerText:
+      typeof raw.footerText === "string"
+        ? raw.footerText.slice(0, 200)
+        : defaults.footerText,
+    footerFont: isTypographyFont(raw.footerFont)
+      ? migrateFont(raw.footerFont)
+      : defaults.footerFont,
+    footerFontSize: normalizeInRange(
+      raw.footerFontSize,
+      SLIDES_CHROME_FONT_SIZE_RANGE,
+      defaults.footerFontSize,
+    ),
+    headerHeight: normalizeInRange(
+      raw.headerHeight,
+      SLIDES_HEADER_HEIGHT_RANGE,
+      defaults.headerHeight,
+    ),
+    headerColor: isTypographyColor(raw.headerColor)
+      ? raw.headerColor
+      : defaults.headerColor,
+    headerTextColor: isTypographyColor(raw.headerTextColor)
+      ? raw.headerTextColor
+      : defaults.headerTextColor,
+    headerOpacity: normalizeInRange(
+      raw.headerOpacity,
+      SLIDES_CHROME_OPACITY_RANGE,
+      defaults.headerOpacity,
+    ),
+    footerRuleWidth: normalizeInRange(
+      raw.footerRuleWidth,
+      SLIDES_FOOTER_RULE_RANGE,
+      defaults.footerRuleWidth,
+    ),
+    footerColor: isTypographyColor(raw.footerColor)
+      ? raw.footerColor
+      : defaults.footerColor,
+    footerBackground: isTypographyColor(raw.footerBackground)
+      ? raw.footerBackground
+      : defaults.footerBackground,
+    footerOpacity: normalizeInRange(
+      raw.footerOpacity,
+      SLIDES_CHROME_OPACITY_RANGE,
+      defaults.footerOpacity,
+    ),
     showFooter: normalizeBoolean(raw.showFooter, defaults.showFooter),
+    progressHeight: normalizeInRange(
+      raw.progressHeight,
+      SLIDES_PROGRESS_HEIGHT_RANGE,
+      defaults.progressHeight,
+    ),
+    progressColor: isTypographyColor(raw.progressColor)
+      ? raw.progressColor
+      : defaults.progressColor,
+    progressOpacity: normalizeInRange(
+      raw.progressOpacity,
+      SLIDES_CHROME_OPACITY_RANGE,
+      defaults.progressOpacity,
+    ),
+    progressShadow: normalizeBoolean(raw.progressShadow, defaults.progressShadow),
     showProgress: normalizeBoolean(raw.showProgress, defaults.showProgress),
     stageShadow: normalizeBoolean(raw.stageShadow, defaults.stageShadow),
     codeStyle: isCodeStyle(raw.codeStyle) ? raw.codeStyle : defaults.codeStyle,
@@ -755,11 +896,17 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
     tableHeaderColumnAlign: isTableAlign(raw.tableHeaderColumnAlign)
       ? raw.tableHeaderColumnAlign
       : defaults.tableHeaderColumnAlign,
+    tableColumnWidth: isTableColumnWidth(raw.tableColumnWidth)
+      ? raw.tableColumnWidth
+      : defaults.tableColumnWidth,
     listStyle: isListStyle(raw.listStyle) ? raw.listStyle : defaults.listStyle,
     blockquoteWeight: isRuleWeight(raw.blockquoteWeight)
       ? raw.blockquoteWeight
       : defaults.blockquoteWeight,
     hrWeight: isRuleWeight(raw.hrWeight) ? raw.hrWeight : defaults.hrWeight,
+    hrThickness: normalizeInRange(raw.hrThickness, HR_THICKNESS_RANGE, defaults.hrThickness),
+    hrColor: isTypographyColor(raw.hrColor) ? raw.hrColor : defaults.hrColor,
+    hrStyle: isRuleLineStyle(raw.hrStyle) ? raw.hrStyle : defaults.hrStyle,
     codeBackground: isTypographyColor(raw.codeBackground)
       ? raw.codeBackground
       : defaults.codeBackground,
@@ -794,6 +941,11 @@ export const normalizeSlidesSettings = (value: unknown): SlidesSettings => {
       raw.imageRadius,
       IMAGE_RADIUS_RANGE,
       defaults.imageRadius,
+    ),
+    imageScale: normalizeInRange(
+      raw.imageScale,
+      IMAGE_SCALE_RANGE,
+      defaults.imageScale,
     ),
     showTextCount: normalizeBoolean(raw.showTextCount, defaults.showTextCount),
     showPageCount: normalizeBoolean(raw.showPageCount, defaults.showPageCount),
@@ -847,11 +999,15 @@ export const applySlidesAppearance = (
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
     tableHeaderRowAlign: settings.tableHeaderRowAlign,
     tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
+    tableColumnWidth: settings.tableColumnWidth,
   });
   applyElementChromeAppearance(host, {
     listStyle: settings.listStyle,
     blockquoteWeight: settings.blockquoteWeight,
     hrWeight: settings.hrWeight,
+    hrThickness: settings.hrThickness,
+    hrColor: settings.hrColor,
+    hrStyle: settings.hrStyle,
     codeBackground: settings.codeBackground,
     blockquoteBackground: settings.blockquoteBackground,
     blockquoteColor: settings.blockquoteColor,
@@ -909,6 +1065,56 @@ export const applySlidesAppearance = (
   setOrRemove(host, "--kuusi-slides-page-fg", settings.textColor);
   setOrRemove(host, "--kuusi-slides-strong-color", settings.strongColor);
   setOrRemove(host, "--kuusi-slides-accent", settings.accentColor);
+  host.style.setProperty("--kuusi-slides-header-h", `${settings.headerHeight}px`);
+  host.style.setProperty(
+    "--kuusi-slides-header-fs",
+    `${settings.headerFontSize}px`,
+  );
+  host.style.setProperty(
+    "--kuusi-slides-footer-fs",
+    `${settings.footerFontSize}px`,
+  );
+  setOrRemove(
+    host,
+    "--kuusi-slides-header-ff",
+    settings.headerFont ? mindMapFontFamilyCss(settings.headerFont) : "",
+  );
+  setOrRemove(
+    host,
+    "--kuusi-slides-footer-ff",
+    settings.footerFont ? mindMapFontFamilyCss(settings.footerFont) : "",
+  );
+  setOrRemove(host, "--kuusi-slides-header-bg", settings.headerColor);
+  setOrRemove(host, "--kuusi-slides-header-fg", settings.headerTextColor);
+  host.style.setProperty(
+    "--kuusi-slides-header-opacity",
+    String(settings.headerOpacity / 100),
+  );
+  host.style.setProperty(
+    "--kuusi-slides-footer-rule",
+    `${settings.footerRuleWidth}px`,
+  );
+  setOrRemove(host, "--kuusi-slides-footer-fg", settings.footerColor);
+  host.style.setProperty(
+    "--kuusi-slides-progress-h",
+    `${settings.progressHeight}px`,
+  );
+  setOrRemove(host, "--kuusi-slides-progress-bg", settings.progressColor);
+  host.style.setProperty(
+    "--kuusi-slides-progress-opacity",
+    String(settings.progressOpacity / 100),
+  );
+  host.style.setProperty(
+    "--kuusi-slides-progress-shadow",
+    settings.progressShadow
+      ? "0 0 8px var(--kuusi-slides-progress-bg, var(--kuusi-slides-accent, #2f5d3a))"
+      : "none",
+  );
+  setOrRemove(host, "--kuusi-slides-footer-bg", settings.footerBackground);
+  host.style.setProperty(
+    "--kuusi-slides-footer-opacity",
+    String(settings.footerOpacity / 100),
+  );
   setOrRemove(host, "--kuusi-slides-code-border-color", settings.codeFrameColor);
   host.style.setProperty(
     "--kuusi-slides-image-border-width",
@@ -921,6 +1127,10 @@ export const applySlidesAppearance = (
   host.style.setProperty(
     "--kuusi-slides-image-radius",
     `${settings.imageRadius}px`,
+  );
+  host.style.setProperty(
+    "--kuusi-slides-image-scale",
+    String(settings.imageScale / 100),
   );
   setOrRemove(
     host,
@@ -981,6 +1191,23 @@ export const slidesSettingsNeedOverflowReflow = (
     previous.showHeader !== next.showHeader ||
     previous.headerSource !== next.headerSource ||
     previous.headerCustomText !== next.headerCustomText ||
+    previous.headerHeight !== next.headerHeight ||
+    previous.headerFont !== next.headerFont ||
+    previous.headerFontSize !== next.headerFontSize ||
+    previous.footerFont !== next.footerFont ||
+    previous.footerText !== next.footerText ||
+    previous.footerFontSize !== next.footerFontSize ||
+    previous.progressHeight !== next.progressHeight ||
+    previous.progressColor !== next.progressColor ||
+    previous.progressOpacity !== next.progressOpacity ||
+    previous.progressShadow !== next.progressShadow ||
+    previous.headerColor !== next.headerColor ||
+    previous.headerTextColor !== next.headerTextColor ||
+    previous.headerOpacity !== next.headerOpacity ||
+    previous.footerRuleWidth !== next.footerRuleWidth ||
+    previous.footerColor !== next.footerColor ||
+    previous.footerBackground !== next.footerBackground ||
+    previous.footerOpacity !== next.footerOpacity ||
     previous.showFooter !== next.showFooter ||
     previous.showProgress !== next.showProgress ||
     previous.showPageNumber !== next.showPageNumber ||
@@ -1001,6 +1228,7 @@ export const slidesSettingsNeedOverflowReflow = (
     previous.imageBorderStyle !== next.imageBorderStyle ||
     previous.imageBorderWidth !== next.imageBorderWidth ||
     previous.imageRadius !== next.imageRadius ||
+    previous.imageScale !== next.imageScale ||
     previous.ratio !== next.ratio ||
     previous.theme !== next.theme
   );
@@ -1032,6 +1260,23 @@ const SLIDES_SETTING_KEYS: Array<keyof SlidesSettings> = [
   "showHeader",
   "headerSource",
   "headerCustomText",
+  "headerHeight",
+  "headerFont",
+  "headerFontSize",
+  "footerFont",
+  "footerText",
+  "footerFontSize",
+  "progressHeight",
+  "progressColor",
+  "progressOpacity",
+  "progressShadow",
+  "headerColor",
+  "headerTextColor",
+  "headerOpacity",
+  "footerRuleWidth",
+  "footerColor",
+  "footerBackground",
+  "footerOpacity",
   "showFooter",
   "showProgress",
   "stageShadow",
@@ -1051,9 +1296,13 @@ const SLIDES_SETTING_KEYS: Array<keyof SlidesSettings> = [
   "tableHeaderColumnBold",
   "tableHeaderRowAlign",
   "tableHeaderColumnAlign",
+  "tableColumnWidth",
   "listStyle",
   "blockquoteWeight",
   "hrWeight",
+  "hrThickness",
+  "hrColor",
+  "hrStyle",
   "codeBackground",
   "blockquoteBackground",
   "blockquoteColor",
@@ -1065,6 +1314,7 @@ const SLIDES_SETTING_KEYS: Array<keyof SlidesSettings> = [
   "imageBorderWidth",
   "imageBorderColor",
   "imageRadius",
+  "imageScale",
   "showTextCount",
   "showPageCount",
   "showFileSize",

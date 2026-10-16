@@ -13,7 +13,24 @@ export type DiskAutoReloadOptions = {
    * external writes.
    */
   suppressFileChangedRevert?: boolean;
+  /**
+   * Called before a revert; the returned function runs after it, to put the
+   * caret / selection / scroll position back (a revert rebuilds the editors).
+   */
+  captureViewState?: () => (() => void) | null;
 };
+
+/** JSON with sorted keys, so key order never decides whether two models match. */
+const stableStringify = (value: unknown): string =>
+  JSON.stringify(value, (_key, val: unknown) =>
+    val && typeof val === "object" && !Array.isArray(val)
+      ? Object.fromEntries(
+          Object.entries(val as Record<string, unknown>).sort(([a], [b]) =>
+            a < b ? -1 : a > b ? 1 : 0,
+          ),
+        )
+      : val,
+  );
 
 export type DiskAutoReloadHandle = {
   syncPolling: () => void;
@@ -45,6 +62,33 @@ export const attachDiskAutoReload = (
     options.onLastModified?.(lastModified);
   };
 
+  /**
+   * A changed timestamp is not a changed file: sync clients, indexers and
+   * backups touch files after a local save. Reverting then rebuilt the editors
+   * and sent the caret back to the first line, so compare the content first.
+   */
+  const diskMatchesModel = async (): Promise<boolean> => {
+    try {
+      const disk = await contents.get(context.path, { content: true });
+      const model = context.model as unknown as {
+        toJSON?: () => unknown;
+        toString?: () => string;
+      };
+
+      if (disk.format === "json" && typeof model.toJSON === "function") {
+        return stableStringify(disk.content) === stableStringify(model.toJSON());
+      }
+
+      if (typeof disk.content === "string" && typeof model.toString === "function") {
+        return disk.content === model.toString();
+      }
+    } catch {
+      // Unreadable right now: fall through to a normal revert.
+    }
+
+    return false;
+  };
+
   const reloadFromDisk = async (): Promise<void> => {
     if (
       performance.now() < suppressRevertUntil ||
@@ -56,10 +100,18 @@ export const attachDiskAutoReload = (
       return;
     }
 
+    if (await diskMatchesModel()) {
+      refreshLastModified();
+      return;
+    }
+
+    const restoreView = options.captureViewState?.() ?? null;
+
     try {
       await context.revert();
       refreshLastModified();
       options.onReverted?.();
+      restoreView?.();
     } catch {
       // Ignore transient errors while the file is being rewritten.
     }

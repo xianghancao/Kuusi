@@ -4,6 +4,7 @@ import { PathExt } from "@jupyterlab/coreutils";
 import type { MarkdownDocument } from "@jupyterlab/markdownviewer";
 
 import {
+  createArticleFurnitureToolbar,
   createArticlePageToolbar,
   createArticleThemeToolbar,
   createArticleTypographyModel,
@@ -20,6 +21,7 @@ import {
 import { closeKuusiDropdownMenus } from "./formatToolbar";
 import { createKuusiTranslator } from "./kuusiI18n";
 import { articleIcon } from "./kuusiIcon";
+import { mountArticleOverview } from "./articleOverview";
 import {
   mountCssZoomRenderChrome,
   type ArticlePageScrollAxis,
@@ -68,7 +70,10 @@ const mountArticleHeader = (
         id: "brand",
         group: "brand",
         order: 10,
-        create: () => createViewCapsuleLogo(articleIcon, t.articleControls()),
+        create: () => createViewCapsuleLogo(articleIcon, t.articleControls(), {
+          root: widget.node,
+          t,
+        }),
       },
       {
         id: "theme",
@@ -81,6 +86,12 @@ const mountArticleHeader = (
         group: "appearance",
         order: 20,
         create: () => createArticlePageToolbar(widget.node, manager, t),
+      },
+      {
+        id: "furniture",
+        group: "appearance",
+        order: 25,
+        create: () => createArticleFurnitureToolbar(widget.node, manager, t),
       },
       ...createTypographyCapsuleItems(widget.node, typography, t),
     ],
@@ -112,7 +123,16 @@ const mountArticleHeader = (
   };
   syncPaperScrollAxis(false);
 
+  const overview = mountArticleOverview(
+    widget,
+    () => widget.title.label.replace(/\.[^.]+$/, ""),
+    t,
+  );
+  widget.disposed.connect(() => overview.dispose());
+
   renderChrome = mountCssZoomRenderChrome(widget, widget.node, t, {
+    onOverview: () => overview.toggle(),
+    overviewLabel: t.articleOverviewTitle(),
     showTextCount: manager.settings.showTextCount,
     showPageCount: manager.settings.showPageCount,
     showFileSize: manager.settings.showFileSize,

@@ -65,6 +65,11 @@ const syncPagedZoomOrigin = (target: HTMLElement): void => {
   const paged =
     desk?.classList.contains("jp-KuusiArticle-paper") === true &&
     desk.getAttribute("data-kuusi-article-page-layout") === "paged";
+  // Book: the opening is fixed-size with `margin: 0 auto`, so it sits at the
+  // desk's left edge once it is wider than the pane; same shrink-offset fix.
+  const bookSpread =
+    target.classList.contains("jp-KuusiBook-stage") &&
+    desk?.classList.contains("jp-KuusiBook-paper") === true;
 
   // The fullscreen page strip positions itself (see articlePager.ts).
   const strip =
@@ -72,7 +77,7 @@ const syncPagedZoomOrigin = (target: HTMLElement): void => {
     desk.dataset.kuusiArticlePageScroll !== "vertical" &&
     target.classList.contains("is-kuusi-article-page-scroll-x");
 
-  if (!desk || !paged || strip) {
+  if (!desk || !(paged || bookSpread) || strip) {
     target.style.removeProperty("transform-origin");
     return;
   }
@@ -290,6 +295,9 @@ export type RenderViewChromeOptions = {
   onLayout?: () => void;
   /** Adds a "fit to window" button beside the zoom controls. */
   onFit?: () => void;
+  /** Adds a page-overview (thumbnail grid) button before the corner action. */
+  onOverview?: () => void;
+  overviewLabel?: string;
   onActiveChange?: (active: boolean) => void;
   onCloseMenus?: () => void;
   getDocumentWidget?: () => Widget | null;
@@ -708,32 +716,20 @@ export const mountRenderViewChrome = (
     cluster.append(statsCapsule);
   }
 
-  let scrollAxisBtn: HTMLButtonElement | null = null;
   let scrollAxisWrap: HTMLElement | null = null;
+  const scrollAxisButtons = new Map<ArticlePageScrollAxis, HTMLButtonElement>();
 
   const syncScrollAxisButton = (): void => {
-    if (!scrollAxisBtn || !options.getPageScrollAxis) {
+    if (scrollAxisButtons.size === 0 || !options.getPageScrollAxis) {
       return;
     }
-    const axis = options.getPageScrollAxis();
-    const horizontal = axis !== "vertical";
-    scrollAxisBtn.dataset.kuusiScrollAxis = horizontal
-      ? "horizontal"
-      : "vertical";
-    scrollAxisBtn.setAttribute(
-      "aria-pressed",
-      horizontal ? "true" : "false",
-    );
-    scrollAxisBtn.title = horizontal
-      ? t.articleScrollHorizontalTitle()
-      : t.articleScrollVerticalTitle();
-    scrollAxisBtn.setAttribute(
-      "aria-label",
-      horizontal
-        ? t.articleScrollHorizontal()
-        : t.articleScrollVertical(),
-    );
-    scrollAxisBtn.textContent = horizontal ? "↔" : "↕";
+
+    const axis = options.getPageScrollAxis() === "vertical" ? "vertical" : "horizontal";
+    scrollAxisButtons.forEach((button, id) => {
+      const active = id === axis;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
   };
 
   if (
@@ -741,30 +737,73 @@ export const mountRenderViewChrome = (
     options.getPageScrollAxis &&
     options.setPageScrollAxis
   ) {
+    // Two buttons, one per direction (fullscreen only): pick how pages swipe.
     scrollAxisWrap = document.createElement("div");
     scrollAxisWrap.className =
       "jp-KuusiCornerControl jp-KuusiArticle-scrollAxis";
     scrollAxisWrap.hidden = true;
 
-    scrollAxisBtn = document.createElement("button");
-    scrollAxisBtn.type = "button";
-    scrollAxisBtn.className =
-      "jp-KuusiCornerBtn jp-KuusiArticle-scrollAxis-btn";
-    scrollAxisBtn.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      options.onCloseMenus?.();
-      const next: ArticlePageScrollAxis =
-        options.getPageScrollAxis?.() === "vertical"
-          ? "horizontal"
-          : "vertical";
-      options.setPageScrollAxis?.(next);
-      syncScrollAxisButton();
-    });
-    scrollAxisWrap.appendChild(scrollAxisBtn);
+    const makeAxisButton = (
+      axis: ArticlePageScrollAxis,
+      glyph: string,
+      label: string,
+      title: string,
+    ): void => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `jp-KuusiCornerBtn jp-KuusiArticle-scrollAxis-btn is-${axis}`;
+      button.textContent = glyph;
+      button.title = title;
+      button.setAttribute("aria-label", label);
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        options.onCloseMenus?.();
+
+        if (options.getPageScrollAxis?.() !== axis) {
+          options.setPageScrollAxis?.(axis);
+        }
+
+        syncScrollAxisButton();
+      });
+      scrollAxisButtons.set(axis, button);
+      scrollAxisWrap?.appendChild(button);
+    };
+
+    makeAxisButton(
+      "horizontal",
+      "↔",
+      t.articleScrollHorizontal(),
+      t.articleScrollHorizontalTitle(),
+    );
+    makeAxisButton(
+      "vertical",
+      "↕",
+      t.articleScrollVertical(),
+      t.articleScrollVerticalTitle(),
+    );
     syncScrollAxisButton();
     // Place beside zoom, before the fullscreen / play control.
     cluster.append(scrollAxisWrap);
+  }
+
+  if (options.onOverview) {
+    const overviewWrap = document.createElement("div");
+    overviewWrap.className = "jp-KuusiCornerControl jp-KuusiOverviewControl";
+    const overviewBtn = document.createElement("button");
+    overviewBtn.type = "button";
+    overviewBtn.className = "jp-KuusiCornerBtn jp-KuusiOverviewBtn";
+    overviewBtn.textContent = "▦";
+    overviewBtn.title = options.overviewLabel ?? "";
+    overviewBtn.setAttribute("aria-label", options.overviewLabel ?? "Overview");
+    overviewBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      options.onCloseMenus?.();
+      options.onOverview?.();
+    });
+    overviewWrap.appendChild(overviewBtn);
+    cluster.append(overviewWrap);
   }
 
   // Standalone glass pill — same corner button on every view (fullscreen / play).

@@ -111,6 +111,31 @@
   border-top-width: 2.5px;
 }
 
+/* Divider overrides (Elements → Divider): line style, thickness and color.
+   Explicit user choices, so they beat JupyterLab's own `hr` rule. */
+[data-kuusi-hr-style="dashed"] hr {
+  border-top-style: dashed !important;
+}
+
+[data-kuusi-hr-style="dotted"] hr {
+  border-top-style: dotted !important;
+}
+
+[data-kuusi-hr-style="double"] hr {
+  border-top-style: double !important;
+  /* A double rule needs at least 3px to show both lines. */
+  border-top-width: max(3px, var(--kuusi-custom-hr-width, 0px)) !important;
+}
+
+[data-kuusi-hr-thickness]:not([data-kuusi-hr-style="double"]) hr {
+  border-top-width: var(--kuusi-custom-hr-width) !important;
+}
+
+[data-kuusi-hr-color] hr {
+  border-top-color: var(--kuusi-custom-hr-color) !important;
+  opacity: 1;
+}
+
 /* —— Custom quote colors (Elements → Quote) —— */
 
 [data-kuusi-quote-bg] blockquote {

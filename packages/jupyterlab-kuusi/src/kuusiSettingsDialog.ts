@@ -2,6 +2,8 @@ import { Dialog, showDialog } from "@jupyterlab/apputils";
 import { Widget } from "@lumino/widgets";
 import type { DefaultOpenersManager } from "./defaultOpeners/defaultOpenersManager";
 import { createDefaultOpenersPanel } from "./defaultOpeners/openersPanel";
+import { renderPanelWidgets } from "./panelWidgets";
+import { APPEARANCE_COLOR_SWATCHES, appendColorPickerSection } from "./colorPicker";
 import type { KuusiTranslator } from "./kuusiI18n";
 import {
   createKuusiAboutPanel,
@@ -23,6 +25,7 @@ import { applyKuusiVersionDisplay } from "./kuusiVersionUi";
 
 type SettingsSection =
   | "openers"
+  | "notebook"
   | "version"
   | "upgrade"
   | "community"
@@ -38,6 +41,7 @@ const SETTINGS_SECTIONS: Array<{
   versionTab?: boolean;
 }> = [
   { id: "openers", label: (t) => t.defaultFiles() },
+  { id: "notebook", label: (t) => t.notebookSettings() },
   { id: "version", label: (t) => t.version(), versionTab: true },
   { id: "upgrade", label: (t) => t.upgrade() },
   { id: "community", label: (t) => t.community() },
@@ -67,6 +71,46 @@ const createSettingsShell = (
   panel.setAttribute("role", "tabpanel");
 
   const openersPanel = createDefaultOpenersPanel(manager);
+  const notebookPanel = document.createElement("div");
+  const renderNotebookPanel = (): void => {
+    notebookPanel.replaceChildren();
+    renderPanelWidgets(notebookPanel, [
+      {
+        kind: "toggle",
+        label: t.autoReloadDefault(),
+        title: t.autoReloadDefaultTitle(),
+        value: manager.autoReloadDefault,
+        onChange: (enabled: boolean) => {
+          void manager.setAutoReloadDefault(enabled);
+        },
+      },
+    ]);
+    const intro = document.createElement("p");
+    intro.className = "jp-KuusiDefaultOpeners-intro";
+    intro.textContent = t.cellColorsHint();
+    notebookPanel.appendChild(intro);
+    appendColorPickerSection(
+      notebookPanel,
+      t.cellBarColor(),
+      manager.cellBarColor,
+      (color) => {
+        void manager.setCellBarColor(color).then(renderNotebookPanel);
+      },
+      APPEARANCE_COLOR_SWATCHES,
+      { includeDefaultSwatch: true },
+    );
+    appendColorPickerSection(
+      notebookPanel,
+      t.cellBorderColor(),
+      manager.cellBorderColor,
+      (color) => {
+        void manager.setCellBorderColor(color).then(renderNotebookPanel);
+      },
+      APPEARANCE_COLOR_SWATCHES,
+      { includeDefaultSwatch: true },
+    );
+  };
+  renderNotebookPanel();
   const versionRefs = createKuusiVersionPanel(t);
   // A status chip (and the upgrade command) under the two version rows.
   const versionStatus = document.createElement("div");
@@ -86,6 +130,7 @@ const createSettingsShell = (
 
   const panels: Record<SettingsSection, HTMLElement> = {
     openers: openersPanel,
+    notebook: notebookPanel,
     version: versionRefs.panel,
     upgrade: upgradePanel,
     community: communityPanel,

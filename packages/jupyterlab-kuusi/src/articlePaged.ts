@@ -80,6 +80,12 @@ const RENDER_ZOOM_VAR =
 /** An inline `style` with the view-zoom variable removed. */
 const styleWithoutZoom = (style: string | null): string =>
   (style ?? "").replace(RENDER_ZOOM_VAR, "").replace(/\s+/g, "");
+
+/** Lumino writes (and JupyterLab freezes / releases) these on every sash move. */
+const LUMINO_GEOMETRY = /(?:^|;)(?:left|top|width|height|max-width|max-height):[^;]*/g;
+
+const styleWithoutGeometry = (style: string | null): string =>
+  styleWithoutZoom(style).replace(LUMINO_GEOMETRY, "");
 const splitHtml = new WeakMap<HTMLElement, string>();
 const splitStart = new WeakMap<HTMLElement, string | null>();
 
@@ -131,6 +137,9 @@ type PageMetrics = {
  * widget node, with a scaled copy of the pages in the thumbnails. None of it is
  * article content; reacting to it would re-paginate in a loop.
  */
+/** The zoom / status controls repaint on every zoom step; they are not content. */
+const STATUS_CHROME_SELECTOR = '[class*="jp-KuusiNotebookMindMap-status"]';
+
 const PAGER_CHROME_SELECTOR =
   ".jp-KuusiArticle-pager, .jp-KuusiArticle-pagerSpacer, .jp-KuusiArticle-sidebar";
 
@@ -146,7 +155,7 @@ const isPagedChrome = (node: Node): boolean => {
     node.dataset.kuusiColumnsClone === "1" ||
     Boolean(
       node.closest(
-        `.${ARTICLE_PAGE_SHEET_CLASS}, [data-kuusi-columns-clone="1"], ${PAGER_CHROME_SELECTOR}`,
+        `.${ARTICLE_PAGE_SHEET_CLASS}, [data-kuusi-columns-clone="1"], ${PAGER_CHROME_SELECTOR}, ${STATUS_CHROME_SELECTOR}`,
       ),
     )
   );
@@ -1320,6 +1329,7 @@ const layoutDualColumnPages = (
       Math.ceil((inner + rowGap) / (metrics.contentHeight + rowGap) - 0.001),
     );
     rendered.style.minHeight = `${pages * metrics.stride - PAGE_GAP_PX}px`;
+    rendered.style.setProperty("--kuusi-article-pages-h", `${pages * metrics.stride - PAGE_GAP_PX}px`);
     appendPageSheets(rendered, pages, metrics, settings, title, style);
     return;
   }
@@ -1384,6 +1394,7 @@ const layoutDualColumnPages = (
 
   rendered.appendChild(stack);
   rendered.style.minHeight = `${pages * metrics.stride - PAGE_GAP_PX}px`;
+  rendered.style.setProperty("--kuusi-article-pages-h", `${pages * metrics.stride - PAGE_GAP_PX}px`);
   appendPageSheets(rendered, pages, metrics, settings, title, style);
 };
 
@@ -1484,6 +1495,7 @@ const layoutPages = (
     Math.floor(Math.max(0, contentEnd - 1) / metrics.stride) + 1,
   );
   rendered.style.minHeight = `${pages * metrics.stride - pageGap}px`;
+  rendered.style.setProperty("--kuusi-article-pages-h", `${pages * metrics.stride - pageGap}px`);
   appendPageSheets(rendered, pages, metrics, settings, title, style);
 };
 
@@ -1621,9 +1633,15 @@ export const bindArticlePagedLayout = (
           // View zoom is a CSS transform: it moves nothing in layout, so a
           // style change that only touched the zoom variable needs no re-page.
           // (The sash drags this variable every frame.)
+          // Same for the geometry Lumino writes on a widget's own node
+          // (width / height / left / top): the pages keep their physical
+          // size, so re-paging on every sash step only flashes a half-built
+          // layout while the pointer is held.
+          const strip = record.target.classList.contains("lm-Widget")
+            ? styleWithoutGeometry
+            : styleWithoutZoom;
           return (
-            styleWithoutZoom(record.oldValue) !==
-            styleWithoutZoom(record.target.getAttribute("style"))
+            strip(record.oldValue) !== strip(record.target.getAttribute("style"))
           );
         }
 

@@ -13,6 +13,7 @@ export type NotebookAutoReloadOptions = {
   getEnabled: () => boolean;
   onLastModified: (lastModified: string) => void;
   onReverted?: () => void;
+  captureViewState?: () => (() => void) | null;
 };
 
 export type NotebookAutoReloadHandle = DiskAutoReloadHandle;
@@ -29,6 +30,7 @@ export const attachNotebookAutoReload = (
       syncNotebookAutoReloadLastModified(context.path);
     },
     onReverted: options.onReverted,
+    captureViewState: options.captureViewState,
     suppressFileChangedRevert: true,
   };
 

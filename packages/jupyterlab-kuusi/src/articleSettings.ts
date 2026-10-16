@@ -62,13 +62,20 @@ import {
   TABLE_TRANSPARENCY_RANGE,
   applyTableAppearance,
   isTableAlign,
+  isTableColumnWidth,
   isTableStyle,
   type TableAlign,
+  type TableColumnWidth,
   type TableStyle,
 } from "./tableSettings";
 import {
   DEFAULT_BLOCKQUOTE_WEIGHT,
   DEFAULT_HR_WEIGHT,
+  DEFAULT_HR_STYLE,
+  DEFAULT_HR_THICKNESS,
+  HR_THICKNESS_RANGE,
+  isRuleLineStyle,
+  type RuleLineStyle,
   DEFAULT_LIST_STYLE,
   applyElementChromeAppearance,
   isListStyle,
@@ -305,9 +312,13 @@ export type ArticleSettings = {
   tableHeaderColumnBold: boolean;
   tableHeaderRowAlign: TableAlign;
   tableHeaderColumnAlign: TableAlign;
+  tableColumnWidth: TableColumnWidth;
   listStyle: ListStyle;
   blockquoteWeight: RuleWeight;
   hrWeight: RuleWeight;
+  hrThickness: number;
+  hrColor: string;
+  hrStyle: RuleLineStyle;
   codeBackground: string;
   blockquoteBackground: string;
   blockquoteColor: string;
@@ -333,6 +344,12 @@ export type ArticleSettings = {
   pageNumberStart: PageNumberStart;
   /** Page number font size in pt. */
   pageNumberFontSize: number;
+  /** Header / footer text font; empty follows the body font. */
+  pageFurnitureFont: ArticleFont | "";
+  /** Header / footer text size in pt. */
+  pageFurnitureSize: number;
+  /** Header / footer text color; empty is the faded page foreground. */
+  pageFurnitureColor: string;
   showTextCount: boolean;
   showPageCount: boolean;
   showFileSize: boolean;
@@ -376,6 +393,8 @@ export type ArticleSettings = {
   orphanLines: number;
   indentChars: number;
   tableFontPercent: number;
+  /** Image display scale, % of the size the Size option gives (10–100). */
+  imageScale: number;
   watermarkText: string;
   tableBandColor: string;
   columnRule: boolean;
@@ -391,10 +410,14 @@ type ArticleUserOnlyKey =
   | "codeFrameColor"
   | "tableHeaderRowAlign"
   | "tableHeaderColumnAlign"
+  | "tableColumnWidth"
   | "codeBackground"
   | "blockquoteBackground"
   | "blockquoteColor"
   | "blockquoteBarColor"
+  | "hrThickness"
+  | "hrColor"
+  | "hrStyle"
   | "imageBorderColor"
   | "pageHeaderText"
   | "pageHeaderAlign"
@@ -409,6 +432,9 @@ type ArticleUserOnlyKey =
   | "pageNumberAlign"
   | "pageNumberStart"
   | "pageNumberFontSize"
+  | "pageFurnitureFont"
+  | "pageFurnitureSize"
+  | "pageFurnitureColor"
   | "viewBackgroundColor"
   | "paperBorderColor"
   | "showTextCount"
@@ -442,6 +468,7 @@ type ArticleUserOnlyKey =
   | "orphanLines"
   | "indentChars"
   | "tableFontPercent"
+  | "imageScale"
   | "watermarkText"
   | "tableBandColor"
   | "columnRule"
@@ -539,9 +566,13 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
   tableHeaderRowAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderRowAlign,
   tableHeaderColumnAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnAlign,
+  tableColumnWidth: DEFAULT_TABLE_APPEARANCE.tableColumnWidth,
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
+  hrThickness: DEFAULT_HR_THICKNESS,
+  hrColor: "",
+  hrStyle: DEFAULT_HR_STYLE,
   codeBackground: "",
   blockquoteBackground: "",
   blockquoteColor: "",
@@ -567,6 +598,9 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   pageNumberAlign: "center",
   pageNumberStart: "first",
   pageNumberFontSize: 9,
+  pageFurnitureFont: "",
+  pageFurnitureSize: 9,
+  pageFurnitureColor: "",
   showTextCount: false,
   showPageCount: false,
   showFileSize: false,
@@ -598,6 +632,7 @@ export const DEFAULT_ARTICLE_SETTINGS: ArticleSettings = {
   orphanLines: 2,
   indentChars: 0,
   tableFontPercent: 100,
+  imageScale: 100,
   watermarkText: "",
   tableBandColor: "",
   columnRule: true,
@@ -928,7 +963,7 @@ export const ARTICLE_THEME_PRESETS: Record<
     imageWidth: "natural",
     background: "theme",
     backgroundPattern: "plain",
-    viewBackground: "theme",
+    viewBackground: "mist",
     font: "arial",
     fontSize: 14,
     color: "",
@@ -1368,11 +1403,17 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
     tableHeaderColumnAlign: isTableAlign(raw.tableHeaderColumnAlign)
       ? raw.tableHeaderColumnAlign
       : defaults.tableHeaderColumnAlign,
+    tableColumnWidth: isTableColumnWidth(raw.tableColumnWidth)
+      ? raw.tableColumnWidth
+      : defaults.tableColumnWidth,
     listStyle: isListStyle(raw.listStyle) ? raw.listStyle : defaults.listStyle,
     blockquoteWeight: isRuleWeight(raw.blockquoteWeight)
       ? raw.blockquoteWeight
       : defaults.blockquoteWeight,
     hrWeight: isRuleWeight(raw.hrWeight) ? raw.hrWeight : defaults.hrWeight,
+    hrThickness: normalizeInRange(raw.hrThickness, HR_THICKNESS_RANGE, defaults.hrThickness),
+    hrColor: isColor(raw.hrColor) ? raw.hrColor : defaults.hrColor,
+    hrStyle: isRuleLineStyle(raw.hrStyle) ? raw.hrStyle : defaults.hrStyle,
     codeBackground: isColor(raw.codeBackground) ? raw.codeBackground : defaults.codeBackground,
     blockquoteBackground: isColor(raw.blockquoteBackground) ? raw.blockquoteBackground : defaults.blockquoteBackground,
     blockquoteColor: isColor(raw.blockquoteColor) ? raw.blockquoteColor : defaults.blockquoteColor,
@@ -1420,6 +1461,17 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
     pageNumberStart: isPageNumberStart(raw.pageNumberStart)
       ? raw.pageNumberStart
       : defaults.pageNumberStart,
+    pageFurnitureFont: isFont(raw.pageFurnitureFont)
+      ? migrateFont(raw.pageFurnitureFont)
+      : defaults.pageFurnitureFont,
+    pageFurnitureSize: normalizeInRange(
+      raw.pageFurnitureSize,
+      PAGE_NUMBER_FONT_SIZE_RANGE,
+      defaults.pageFurnitureSize,
+    ),
+    pageFurnitureColor: isColor(raw.pageFurnitureColor)
+      ? raw.pageFurnitureColor
+      : defaults.pageFurnitureColor,
     pageNumberFontSize: normalizeInRange(
       raw.pageNumberFontSize,
       PAGE_NUMBER_FONT_SIZE_RANGE,
@@ -1518,6 +1570,10 @@ export const normalizeArticleSettings = (value: unknown): ArticleSettings => {
       typeof raw.indentChars === "number" && Number.isFinite(raw.indentChars)
         ? Math.min(4, Math.max(0, Math.round(raw.indentChars * 2) / 2))
         : defaults.indentChars,
+    imageScale:
+      typeof raw.imageScale === "number" && Number.isFinite(raw.imageScale)
+        ? Math.min(100, Math.max(10, Math.round(raw.imageScale)))
+        : defaults.imageScale,
     tableFontPercent:
       typeof raw.tableFontPercent === "number" && Number.isFinite(raw.tableFontPercent)
         ? Math.min(100, Math.max(60, Math.round(raw.tableFontPercent)))
@@ -1629,6 +1685,10 @@ export const applyArticleAppearance = (
     "--kuusi-article-table-font",
     `${settings.tableFontPercent}%`,
   );
+  host.style.setProperty(
+    "--kuusi-article-image-scale",
+    String(settings.imageScale / 100),
+  );
   if (settings.tableBandColor) {
     host.style.setProperty("--kuusi-table-band", settings.tableBandColor);
   } else {
@@ -1731,11 +1791,15 @@ export const applyArticleAppearance = (
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
     tableHeaderRowAlign: settings.tableHeaderRowAlign,
     tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
+    tableColumnWidth: settings.tableColumnWidth,
   });
   applyElementChromeAppearance(host, {
     listStyle: settings.listStyle,
     blockquoteWeight: settings.blockquoteWeight,
     hrWeight: settings.hrWeight,
+    hrThickness: settings.hrThickness,
+    hrColor: settings.hrColor,
+    hrStyle: settings.hrStyle,
     codeBackground: settings.codeBackground,
     blockquoteBackground: settings.blockquoteBackground,
     blockquoteColor: settings.blockquoteColor,
@@ -1793,6 +1857,26 @@ export const applyArticleAppearance = (
     "--kuusi-article-font-family",
     mindMapFontFamilyCss(settings.font),
   );
+  host.style.setProperty(
+    "--kuusi-article-furniture-size",
+    `${settings.pageFurnitureSize}pt`,
+  );
+  if (settings.pageFurnitureFont) {
+    host.style.setProperty(
+      "--kuusi-article-furniture-font",
+      mindMapFontFamilyCss(settings.pageFurnitureFont),
+    );
+  } else {
+    host.style.removeProperty("--kuusi-article-furniture-font");
+  }
+  if (settings.pageFurnitureColor) {
+    host.style.setProperty(
+      "--kuusi-article-furniture-color",
+      settings.pageFurnitureColor,
+    );
+  } else {
+    host.style.removeProperty("--kuusi-article-furniture-color");
+  }
   host.style.setProperty(
     "--kuusi-article-body-color",
     settings.color || "var(--kuusi-article-page-fg)",
@@ -2067,9 +2151,13 @@ export class ArticleSettingsManager {
         "tableHeaderColumnBold",
         "tableHeaderRowAlign",
         "tableHeaderColumnAlign",
+        "tableColumnWidth",
         "listStyle",
         "blockquoteWeight",
         "hrWeight",
+        "hrThickness",
+        "hrColor",
+        "hrStyle",
         "codeBackground",
         "blockquoteBackground",
         "blockquoteColor",
@@ -2093,6 +2181,9 @@ export class ArticleSettingsManager {
         "pageNumberAlign",
         "pageNumberStart",
         "pageNumberFontSize",
+        "pageFurnitureFont",
+        "pageFurnitureSize",
+        "pageFurnitureColor",
         "viewBackgroundColor",
         "paperBorderWidth",
         "paperBorderColor",
@@ -2129,6 +2220,7 @@ export class ArticleSettingsManager {
         "orphanLines",
         "indentChars",
         "tableFontPercent",
+        "imageScale",
         "watermarkText",
         "tableBandColor",
         "columnRule",

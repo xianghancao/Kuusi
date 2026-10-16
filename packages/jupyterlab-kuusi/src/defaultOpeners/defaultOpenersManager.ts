@@ -14,6 +14,7 @@ import {
   setDefaultOpenersState,
 } from "./defaultOpenersState";
 import { effectiveDefaultOpenersState } from "./openersStateForRelease";
+import { setNotebookAutoReloadDefault } from "../notebookAutoReloadRegistry";
 import {
   getEnabledRenderViews,
   getRenderViewOrder,
@@ -50,6 +51,37 @@ const buildDefaultViewers = (
   return next;
 };
 
+const CELL_BAR_VAR = "--kuusi-cell-bar-command";
+
+/** Colour of the bar beside the selected cell in command mode ("" = Jupyter's). */
+const applyCellBarColor = (color: unknown): void => {
+  const value = typeof color === "string" ? color.trim() : "";
+  const root = document.documentElement;
+
+  if (/^#[0-9a-f]{3,8}$/i.test(value)) {
+    root.style.setProperty(CELL_BAR_VAR, value);
+  } else {
+    root.style.removeProperty(CELL_BAR_VAR);
+  }
+};
+
+const CELL_BORDER_VAR = "--kuusi-cell-border";
+
+/** Colour of the ring round the selected cell ("" = Jupyter's own). */
+const applyCellBorderColor = (color: unknown): void => {
+  const value = typeof color === "string" ? color.trim() : "";
+  const root = document.documentElement;
+
+  if (/^#[0-9a-f]{3,8}$/i.test(value)) {
+    root.style.setProperty(CELL_BORDER_VAR, value);
+    // The editor's own border while editing uses this Jupyter variable.
+    root.style.setProperty("--jp-cell-editor-active-border-color", value);
+  } else {
+    root.style.removeProperty(CELL_BORDER_VAR);
+    root.style.removeProperty("--jp-cell-editor-active-border-color");
+  }
+};
+
 export class DefaultOpenersManager {
   private _registry: ISettingRegistry;
   private _docRegistry: DocumentRegistry;
@@ -78,6 +110,65 @@ export class DefaultOpenersManager {
 
   ready(): Promise<void> {
     return this._ready;
+  }
+
+  get cellBarColor(): string {
+    const value = this._kuusiSettings?.composite.cellBarColor;
+    return typeof value === "string" ? value : "";
+  }
+
+  get autoReloadDefault(): boolean {
+    const value = this._kuusiSettings?.composite.autoReloadDefault;
+    return typeof value === "boolean" ? value : true;
+  }
+
+  async setAutoReloadDefault(enabled: boolean): Promise<void> {
+    await this._ready;
+    setNotebookAutoReloadDefault(enabled);
+    this._updating = true;
+
+    try {
+      await this._registry.set(
+        DEFAULT_OPENERS_PLUGIN_ID,
+        "autoReloadDefault",
+        enabled,
+      );
+    } finally {
+      this._updating = false;
+    }
+  }
+
+  get cellBorderColor(): string {
+    const value = this._kuusiSettings?.composite.cellBorderColor;
+    return typeof value === "string" ? value : "";
+  }
+
+  async setCellBorderColor(color: string): Promise<void> {
+    await this._ready;
+    applyCellBorderColor(color);
+    this._updating = true;
+
+    try {
+      await this._registry.set(
+        DEFAULT_OPENERS_PLUGIN_ID,
+        "cellBorderColor",
+        color,
+      );
+    } finally {
+      this._updating = false;
+    }
+  }
+
+  async setCellBarColor(color: string): Promise<void> {
+    await this._ready;
+    applyCellBarColor(color);
+    this._updating = true;
+
+    try {
+      await this._registry.set(DEFAULT_OPENERS_PLUGIN_ID, "cellBarColor", color);
+    } finally {
+      this._updating = false;
+    }
   }
 
   async setViewOrder(order: string[]): Promise<void> {
@@ -156,6 +247,9 @@ export class DefaultOpenersManager {
     setDefaultOpenersState(this._state);
     setRenderViewOrder(this._kuusiSettings.composite.viewOrder);
     setEnabledRenderViews(this._kuusiSettings.composite.enabledViews);
+    applyCellBarColor(this._kuusiSettings.composite.cellBarColor);
+    applyCellBorderColor(this._kuusiSettings.composite.cellBorderColor);
+    setNotebookAutoReloadDefault(this.autoReloadDefault);
 
     // The docmanager plugin registers its settings transformer during app
     // startup; loading earlier rejects ("has no transformers yet").
@@ -175,6 +269,9 @@ export class DefaultOpenersManager {
 
       setRenderViewOrder(this._kuusiSettings!.composite.viewOrder);
       setEnabledRenderViews(this._kuusiSettings!.composite.enabledViews);
+      applyCellBarColor(this._kuusiSettings!.composite.cellBarColor);
+      applyCellBorderColor(this._kuusiSettings!.composite.cellBorderColor);
+      setNotebookAutoReloadDefault(this.autoReloadDefault);
 
       this._state = effectiveDefaultOpenersState(
         normalizeState(this._kuusiSettings!.composite as Record<string, unknown>),

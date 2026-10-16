@@ -121,9 +121,13 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   tableHeaderColumnBold: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderColumnBold,
   tableHeaderRowAlign: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderRowAlign,
   tableHeaderColumnAlign: DEFAULT_TYPOGRAPHY_VALUES.tableHeaderColumnAlign,
+  tableColumnWidth: DEFAULT_TYPOGRAPHY_VALUES.tableColumnWidth,
   listStyle: DEFAULT_TYPOGRAPHY_VALUES.listStyle,
   blockquoteWeight: DEFAULT_TYPOGRAPHY_VALUES.blockquoteWeight,
   hrWeight: DEFAULT_TYPOGRAPHY_VALUES.hrWeight,
+  hrThickness: DEFAULT_TYPOGRAPHY_VALUES.hrThickness,
+  hrColor: DEFAULT_TYPOGRAPHY_VALUES.hrColor,
+  hrStyle: DEFAULT_TYPOGRAPHY_VALUES.hrStyle,
   codeBackground: DEFAULT_TYPOGRAPHY_VALUES.codeBackground,
   blockquoteBackground: DEFAULT_TYPOGRAPHY_VALUES.blockquoteBackground,
   blockquoteColor: DEFAULT_TYPOGRAPHY_VALUES.blockquoteColor,
@@ -135,6 +139,7 @@ export const DEFAULT_MIND_MAP_USER_SETTINGS: MindMapUserSettings = {
   imageBorderWidth: DEFAULT_TYPOGRAPHY_VALUES.imageBorderWidth,
   imageBorderColor: DEFAULT_TYPOGRAPHY_VALUES.imageBorderColor,
   imageRadius: DEFAULT_TYPOGRAPHY_VALUES.imageRadius,
+  imageScale: DEFAULT_TYPOGRAPHY_VALUES.imageScale,
   layoutDensity: "normal",
   siblingGap: LAYOUT_SIBLING_GAP.default,
   childGap: LAYOUT_CHILD_GAP.default,
@@ -504,9 +509,13 @@ const MIND_MAP_TYPOGRAPHY_KEYS: Array<keyof MindMapTypographyFields> = [
   "tableHeaderColumnBold",
   "tableHeaderRowAlign",
   "tableHeaderColumnAlign",
+  "tableColumnWidth",
   "listStyle",
   "blockquoteWeight",
   "hrWeight",
+  "hrThickness",
+  "hrColor",
+  "hrStyle",
   "codeBackground",
   "blockquoteBackground",
   "blockquoteColor",
@@ -518,6 +527,7 @@ const MIND_MAP_TYPOGRAPHY_KEYS: Array<keyof MindMapTypographyFields> = [
   "imageBorderWidth",
   "imageBorderColor",
   "imageRadius",
+  "imageScale",
 ];
 
 /** Fields that change node size and need a mind-map relayout. */
@@ -592,11 +602,15 @@ export const applyMindMapTypography = (
     tableHeaderColumnBold: settings.tableHeaderColumnBold,
     tableHeaderRowAlign: settings.tableHeaderRowAlign,
     tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
+    tableColumnWidth: settings.tableColumnWidth,
   });
   applyElementChromeAppearance(scene, {
     listStyle: settings.listStyle,
     blockquoteWeight: settings.blockquoteWeight,
     hrWeight: settings.hrWeight,
+    hrThickness: settings.hrThickness,
+    hrColor: settings.hrColor,
+    hrStyle: settings.hrStyle,
     codeBackground: settings.codeBackground,
     blockquoteBackground: settings.blockquoteBackground,
     blockquoteColor: settings.blockquoteColor,
@@ -667,6 +681,10 @@ export const applyMindMapTypography = (
   scene.style.setProperty(
     "--kuusi-mindmap-image-radius",
     `${settings.imageRadius}px`,
+  );
+  scene.style.setProperty(
+    "--kuusi-mindmap-image-scale",
+    String(settings.imageScale / 100),
   );
   setOrRemove(scene, "--kuusi-mindmap-code-border-color", settings.codeFrameColor);
   setOrRemove(

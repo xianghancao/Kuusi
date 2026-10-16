@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Table column width** (Elements → Table): **Auto fit** sizes each column to its content (new default; JupyterLab's own tables were fixed equal columns), **Equal** gives every column the same width.
+- **Divider** (Elements → Quote): thickness slider (0 follows the weight preset), line style (solid, dashed, dotted, double) and color.
+- **Auto collapse capsule**: the Article, Book, Slides and Mind Map capsules fold into a round Kuusi mark and unfold when the pointer (or keyboard focus, or an open menu) reaches them. Turn it off from the capsule's logo menu (saved in settings, on by default).
+
+### Fixed
+
+- Notebook editor kept its old width after the split divider was dragged; it now follows the pane.
+- Saving a Markdown file no longer sends the editor's caret to line 1 while an Article / Book / Slides / Mind Map view is open.
+- Book: in a narrow pane the two-page spread was shifted right and its right page cut off; it is now centered in the pane at any width.
+- Holding the split divider made the Article text flash squeezed and garbled; the pages are no longer re-laid out on every divider step.
+
+### Changed
+
+- The default gap between the Article sheet and the edge of its view is halved.
+
 ## [0.2.7] - 2026-10-12
 
 **Mind Map** is the default Kuusi view. **Article**, **Book** and **Slides** ship in the package but are switched off by default while they are in testing (turn them on under **Settings → Default files**; they carry a Beta / Experimental tag there). Release-tier gating is no longer applied to plugins, and the Live PDF, TeX, voice recorder, image hub, channel monitor, and ZIP tools are gone from this package (see **Removed**).

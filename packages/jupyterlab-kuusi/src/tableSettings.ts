@@ -48,6 +48,18 @@ export const TABLE_ALIGNS: readonly TableAlign[] = [
 export const isTableAlign = (value: unknown): value is TableAlign =>
   typeof value === "string" && (TABLE_ALIGNS as readonly string[]).includes(value);
 
+/** Column sizing: auto fits each column to its content, equal gives every column the same width. */
+export type TableColumnWidth = "auto" | "equal";
+
+export const TABLE_COLUMN_WIDTHS: readonly TableColumnWidth[] = [
+  "auto",
+  "equal",
+];
+
+export const isTableColumnWidth = (value: unknown): value is TableColumnWidth =>
+  typeof value === "string" &&
+  (TABLE_COLUMN_WIDTHS as readonly string[]).includes(value);
+
 export type TableAppearanceSettings = {
   tableStyle: TableStyle;
   /** Rule / grid stroke in pt. */
@@ -58,6 +70,7 @@ export type TableAppearanceSettings = {
   tableHeaderColumnBold: boolean;
   tableHeaderRowAlign: TableAlign;
   tableHeaderColumnAlign: TableAlign;
+  tableColumnWidth: TableColumnWidth;
 };
 
 export const DEFAULT_TABLE_APPEARANCE: TableAppearanceSettings = {
@@ -68,6 +81,7 @@ export const DEFAULT_TABLE_APPEARANCE: TableAppearanceSettings = {
   tableHeaderColumnBold: false,
   tableHeaderRowAlign: "auto",
   tableHeaderColumnAlign: "auto",
+  tableColumnWidth: "auto",
 };
 
 /** Stamp table palette onto a render host (shared data attrs for one CSS file). */
@@ -84,6 +98,7 @@ export const applyTableAppearance = (
     : "0";
   host.dataset.kuusiTableHeaderRowAlign = settings.tableHeaderRowAlign;
   host.dataset.kuusiTableHeaderColAlign = settings.tableHeaderColumnAlign;
+  host.dataset.kuusiTableColumns = settings.tableColumnWidth;
   host.style.setProperty(
     "--kuusi-table-fill",
     `${100 - settings.tableTransparency}%`,

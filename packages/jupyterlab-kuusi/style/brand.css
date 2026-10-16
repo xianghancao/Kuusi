@@ -65,3 +65,30 @@ body {
   --jp-success-color1: var(--kuusi-brand-green);
   --jp-success-color2: var(--kuusi-brand-green-soft);
 }
+
+/* The cells of a plain notebook keep Jupyter's own accents. Remapping
+   --jp-brand-color1 to green turned the command-mode bar beside the selected
+   cell green too, the same colour as edit mode (--jp-success-color1), so the
+   two modes could no longer be told apart. */
+.jp-NotebookPanel.jp-KuusiEditorFormatHost .jp-Notebook,
+.jp-Notebook.jp-KuusiEditorFormatHost {
+  --jp-brand-color1: var(--md-blue-700, #1976d2);
+  --jp-brand-color2: var(--md-blue-300, #64b5f6);
+  --jp-brand-color3: var(--md-blue-100, #bbdefb);
+  --jp-success-color0: var(--md-green-700, #388e3c);
+  --jp-success-color1: var(--md-green-500, #4caf50);
+  --jp-success-color2: var(--md-green-300, #81c784);
+}
+
+/* Kuusi Settings → Notebook: colour of the bar beside the selected cell in
+   command mode (empty keeps JupyterLab's own colour). */
+.jp-Notebook:not(.jp-mod-editMode) .jp-Cell.jp-mod-active:not(.jp-mod-dirty) .jp-Collapser:not(:hover) {
+  background: var(--kuusi-cell-bar-command, var(--jp-brand-color1));
+}
+
+/* Kuusi Settings → Notebook: colour of the ring round the selected cell
+   (command mode focus ring); the editing border follows the Jupyter variable
+   the settings code overrides. Empty keeps JupyterLab's own colour. */
+.jp-Notebook.jp-mod-commandMode .jp-Cell.jp-mod-active:focus-visible {
+  box-shadow: 0 0 0 1px var(--kuusi-cell-border, var(--jp-focus-outline-color));
+}

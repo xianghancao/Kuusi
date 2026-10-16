@@ -40,6 +40,42 @@ body[data-jp-theme-light="false"] .jp-KuusiToolbarCluster {
   overflow: visible;
 }
 
+/* View capsules fold into a round Kuusi mark until the pointer (or keyboard
+   focus, or an open menu — `is-pinned`) reaches them. Same idea as the editor's
+   format pill. Switched by body[data-kuusi-capsule-collapse] (default on). */
+.jp-KuusiToolbarCluster--page {
+  transition:
+    max-width 200ms ease,
+    padding 160ms ease;
+}
+
+body:not([data-kuusi-capsule-collapse="off"])
+  .jp-KuusiToolbarCluster--page:not(:hover):not(:focus-within):not(.is-pinned) {
+  /* 30px = the capsule's own height (1px border + 3px padding + 22px mark),
+     so it folds to a circle without changing the header's height. */
+  box-sizing: border-box;
+  max-width: 30px;
+  overflow: hidden;
+  padding: 3px;
+}
+
+body:not([data-kuusi-capsule-collapse="off"])
+  .jp-KuusiToolbarCluster--page:not(:hover):not(:focus-within):not(.is-pinned)
+  > .jp-KuusiNotebookMindMap-header-brand {
+  padding: 0;
+}
+
+body:not([data-kuusi-capsule-collapse="off"])
+  .jp-KuusiToolbarCluster--page:not(:hover):not(:focus-within):not(.is-pinned)
+  > * {
+  flex-shrink: 0;
+}
+
+/* Logo menu (Auto collapse capsule). */
+.jp-KuusiCapsuleLogoDropdown-menu {
+  min-width: 220px;
+}
+
 /* Auto reload belongs on the tab's Notebook plugin toolbar, not the page pill. */
 .jp-KuusiToolbarCluster--page .jp-KuusiNotebook-autoReload,
 .jp-KuusiToolbarCluster--page [data-jp-item-name="kuusi-notebook-auto-reload"] {
@@ -2694,4 +2730,10 @@ body[data-kuusi-active-line="bar"] .jp-KuusiMarkdownEditor .cm-activeLineGutter 
 body[data-kuusi-active-line="default"][style*="--kuusi-active-line-color"] .jp-KuusiMarkdownEditor .cm-activeLineGutter {
   background-color: color-mix(in srgb, var(--kuusi-active-line-color) 22%, transparent) !important;
   color: var(--kuusi-active-line-color);
+}
+
+/* Colour swatches wrap inside the secondary-menu panels instead of running
+   past the panel's right edge (the row is nowrap in the plain dropdowns). */
+.jp-KuusiSecondaryMenu-panel .jp-KuusiFormatDropdown-optionRow.jp-KuusiFormatColorSwatches {
+  flex-wrap: wrap;
 }

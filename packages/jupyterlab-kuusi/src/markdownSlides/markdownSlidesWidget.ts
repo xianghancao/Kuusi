@@ -43,7 +43,7 @@ import {
   type SlidesSlideUnit,
 } from "./slidesSemantics";
 import { paginateSlideByFit } from "./slidesOverflow";
-import { resolveSlideHeaderText } from "./slidesHeader";
+import { fillSlideTokens, resolveSlideHeaderText } from "./slidesHeader";
 import {
   formatPageNumberLabel,
   resolvePageNumberDisplay,
@@ -165,6 +165,11 @@ export class MarkdownSlidesViewer extends Widget {
   private _lastFooterH = 36;
 
   private _lastProgressH = 4;
+  private _footerObserver: ResizeObserver | null = null;
+  private _overview: HTMLElement | null = null;
+  private _overviewToken = 0;
+  private _overviewObserver: ResizeObserver | null = null;
+  private _overviewFocus = 0;
 
   constructor(
     _context: DocumentRegistry.IContext<TextModel>,
@@ -215,6 +220,19 @@ export class MarkdownSlidesViewer extends Widget {
     this._footerPage.className = "jp-KuusiSlides-footerPage";
     this._footer.append(this._footerTitle, this._footerPage);
     this._stage.appendChild(this._footer);
+
+    // Font size / rule / padding change the footer's height after the first
+    // layout; keep the body's reserve equal to it.
+    if (typeof ResizeObserver !== "undefined") {
+      this._footerObserver = new ResizeObserver(() => {
+        const height = this._footer.offsetHeight;
+        if (height > 0) {
+          this._lastFooterH = height;
+          this._stage.style.setProperty("--kuusi-slides-footer-h", `${height}px`);
+        }
+      });
+      this._footerObserver.observe(this._footer);
+    }
 
     this._progress = document.createElement("div");
     this._progress.className = "jp-KuusiSlides-progress";
@@ -382,6 +400,8 @@ export class MarkdownSlidesViewer extends Widget {
   }
 
   dispose(): void {
+    this.closeOverview();
+    this._footerObserver?.disconnect();
     window.clearTimeout(this._resizeTimer);
     this._resizeObserver?.disconnect();
     this._resizeObserver = null;
@@ -723,19 +743,43 @@ export class MarkdownSlidesViewer extends Widget {
 
   private _syncFooter(slide: SlidesSlideUnit): void {
     const settings = this._effectiveSettings();
-    const deckWantsFooter =
-      this._meta.footer ?? Boolean(this._meta.shortTitle || this._meta.title);
+    // No deck title no longer hides the footer: the page number still belongs
+    // on every slide (only the footer's title text needs a title).
+    const deckWantsFooter = this._meta.footer ?? true;
     const slideWantsFooter = slide.footer;
     const deckAllows =
       slideWantsFooter !== undefined ? slideWantsFooter : deckWantsFooter;
     const isTitle = slide.layout === "title";
     const deckTitle = this._meta.shortTitle || this._meta.title || "";
-    const headerTitle = resolveSlideHeaderText(
-      settings.headerSource,
-      settings.headerCustomText,
-      this._slides.map((unit) => unit.source),
+    const slideSources = this._slides.map((unit) => unit.source);
+    const numbered = resolvePageNumberDisplay(
       this._index,
+      Math.max(1, this._slides.length),
+      settings.pageNumberStart,
     );
+    const tokens = {
+      title: deckTitle,
+      page: numbered.show ? String(numbered.page) : "",
+      total: String(numbered.pages),
+      slideSources,
+      index: this._index,
+    };
+    // A deck without a title still has a first H1: use it for {title}.
+    if (!tokens.title) {
+      tokens.title = fillSlideTokens("{chapter}", tokens);
+    }
+    const headerTitle = fillSlideTokens(
+      resolveSlideHeaderText(
+        settings.headerSource,
+        settings.headerCustomText,
+        slideSources,
+        this._index,
+      ),
+      tokens,
+    );
+    const footerText = settings.footerText.trim()
+      ? fillSlideTokens(settings.footerText, tokens)
+      : deckTitle;
 
     const showHeader =
       settings.showHeader && !isTitle && Boolean(headerTitle);
@@ -760,7 +804,7 @@ export class MarkdownSlidesViewer extends Widget {
     const showFooter =
       deckAllows &&
       !isTitle &&
-      ((settings.showFooter && Boolean(deckTitle)) || showPage);
+      ((settings.showFooter && Boolean(footerText)) || showPage);
 
     this._footer.hidden = !showFooter;
     this._stage.classList.toggle("has-stage-footer", showFooter);
@@ -769,14 +813,20 @@ export class MarkdownSlidesViewer extends Widget {
       return;
     }
 
-    if (this._footer.offsetHeight > 0) {
-      this._lastFooterH = this._footer.offsetHeight;
-    }
-
-    this._footerTitle.textContent = settings.showFooter ? deckTitle : "";
+    this._footerTitle.textContent = settings.showFooter ? footerText : "";
     this._footerTitle.hidden = !this._footerTitle.textContent;
     this._footerPage.hidden = !showPage || !pageLabel;
     this._footerPage.textContent = showPage && pageLabel ? pageLabel : "";
+
+    // The body keeps clear of the footer by its real height (font size, rule
+    // and padding all change it), not by a fixed guess.
+    if (this._footer.offsetHeight > 0) {
+      this._lastFooterH = this._footer.offsetHeight;
+      this._stage.style.setProperty(
+        "--kuusi-slides-footer-h",
+        `${this._footer.offsetHeight}px`,
+      );
+    }
   }
 
   private async _renderMarkdown(markdown: string): Promise<string> {
@@ -905,8 +955,206 @@ export class MarkdownSlidesViewer extends Widget {
     this._requestKeyboardFocus();
   };
 
+  /** Thumbnail grid of every slide (key G, or the corner button). */
+  get overviewOpen(): boolean {
+    return this._overview !== null;
+  }
+
+  toggleOverview(): void {
+    if (this._overview) {
+      this.closeOverview();
+    } else {
+      void this.openOverview();
+    }
+  }
+
+  closeOverview(): void {
+    this._overviewToken += 1;
+    this._overviewObserver?.disconnect();
+    this._overviewObserver = null;
+    this._overview?.remove();
+    this._overview = null;
+    this._requestKeyboardFocus();
+  }
+
+  async openOverview(): Promise<void> {
+    if (this._overview || this._slides.length === 0) {
+      return;
+    }
+
+    const token = ++this._overviewToken;
+    const t = createKuusiTranslator();
+    const settings = this._effectiveSettings();
+    const stageW = this._stage.clientWidth || 960;
+    const stageH = this._stage.clientHeight || 540;
+
+    const overlay = document.createElement("div");
+    overlay.className = "jp-KuusiSlides-overview";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", t.slidesOverview());
+    overlay.tabIndex = -1;
+
+    const bar = document.createElement("div");
+    bar.className = "jp-KuusiSlides-overviewBar";
+    const title = document.createElement("span");
+    title.textContent = `${t.slidesOverview()} · ${this._slides.length}`;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "jp-KuusiSlides-overviewClose";
+    close.textContent = "×";
+    close.title = t.close();
+    close.setAttribute("aria-label", t.close());
+    close.addEventListener("click", () => this.closeOverview());
+    bar.append(title, close);
+
+    const grid = document.createElement("div");
+    grid.className = "jp-KuusiSlides-overviewGrid";
+    overlay.append(bar, grid);
+
+    const thumbs: Array<{ box: HTMLElement; stage: HTMLElement }> = [];
+    const cells: HTMLButtonElement[] = [];
+
+    this._slides.forEach((slide, index) => {
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "jp-KuusiSlides-overviewCell";
+      cell.classList.toggle("is-current", index === this._index);
+      cell.setAttribute("aria-label", `${index + 1}`);
+      cell.addEventListener("click", () => {
+        this.closeOverview();
+        this._navigate(index);
+      });
+
+      const box = document.createElement("span");
+      box.className = "jp-KuusiSlides-overviewThumb";
+      box.style.aspectRatio = `${stageW} / ${stageH}`;
+
+      const stage = document.createElement("div");
+      stage.className = "jp-KuusiMarkdownSlides-stage jp-KuusiSlides-overviewStage";
+      stage.style.width = `${stageW}px`;
+      stage.style.height = `${stageH}px`;
+      const body = document.createElement("div");
+      body.className =
+        "jp-KuusiMarkdownSlides-slide jp-RenderedHTMLCommon jp-RenderedMarkdown";
+      body.dataset.kuusiSlidesLayout = slide.layout;
+      stage.appendChild(body);
+      box.appendChild(stage);
+
+      const label = document.createElement("span");
+      label.className = "jp-KuusiSlides-overviewNumber";
+      label.textContent = String(index + 1);
+
+      cell.append(box, label);
+      grid.appendChild(cell);
+      cells.push(cell);
+      thumbs.push({ box, stage });
+    });
+
+    this.node.appendChild(overlay);
+    this._overview = overlay;
+    this._overviewFocus = this._index;
+
+    const fit = (): void => {
+      thumbs.forEach(({ box, stage }) => {
+        const scale = box.clientWidth / stageW;
+        if (scale > 0) {
+          stage.style.transform = `scale(${scale})`;
+        }
+      });
+    };
+
+    if (typeof ResizeObserver !== "undefined") {
+      this._overviewObserver = new ResizeObserver(fit);
+      this._overviewObserver.observe(grid);
+    }
+    fit();
+    cells[this._index]?.focus({ preventScroll: true });
+    cells[this._index]?.scrollIntoView({ block: "center" });
+
+    for (let i = 0; i < this._slides.length; i += 1) {
+      if (token !== this._overviewToken || this.isDisposed) {
+        return;
+      }
+
+      const body = thumbs[i].stage.firstElementChild as HTMLElement;
+      try {
+        const html = await this._renderSlideHtml(this._slides[i], settings);
+        if (token !== this._overviewToken) {
+          return;
+        }
+        await this._mountSlideHtml(body, html);
+      } catch {
+        // A slide that fails to render stays an empty thumbnail.
+      }
+    }
+  }
+
+  private _onOverviewKey(event: KeyboardEvent): boolean {
+    const overlay = this._overview;
+    if (!overlay) {
+      return false;
+    }
+
+    const cells = Array.from(
+      overlay.querySelectorAll<HTMLButtonElement>(".jp-KuusiSlides-overviewCell"),
+    );
+    const cols = Math.max(
+      1,
+      getComputedStyle(
+        overlay.querySelector(".jp-KuusiSlides-overviewGrid") as HTMLElement,
+      ).gridTemplateColumns.split(" ").length,
+    );
+    const step: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowLeft: -1,
+      ArrowDown: cols,
+      ArrowUp: -cols,
+    };
+
+    if (event.key === "Escape" || event.key.toLowerCase() === "g") {
+      event.preventDefault();
+      this.closeOverview();
+      return true;
+    }
+
+    if (event.key in step) {
+      event.preventDefault();
+      this._overviewFocus = Math.max(
+        0,
+        Math.min(cells.length - 1, this._overviewFocus + step[event.key]),
+      );
+      cells[this._overviewFocus]?.focus();
+      return true;
+    }
+
+    if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      this._overviewFocus = event.key === "Home" ? 0 : cells.length - 1;
+      cells[this._overviewFocus]?.focus();
+      return true;
+    }
+
+    // Enter / Space activate the focused thumbnail (native button click).
+    return event.key === "Enter" || event.key === " ";
+  }
+
   private _onKeyDown = (event: KeyboardEvent): void => {
     if (event.defaultPrevented) {
+      return;
+    }
+
+    if (this._onOverviewKey(event)) {
+      return;
+    }
+
+    if (
+      event.key.toLowerCase() === "g" &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      this.toggleOverview();
       return;
     }
 

@@ -3,8 +3,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: jupyterlab-kuusi\n"
-"POT-Creation-Date: 2026-10-03\n"
-"PO-Revision-Date: 2026-10-03\n"
+"POT-Creation-Date: 2026-10-16\n"
+"PO-Revision-Date: 2026-10-16\n"
 "Last-Translator: Kuusi\n"
 "Language-Team: Chinese (Simplified)\n"
 "Language: zh_CN\n"
@@ -12,6 +12,57 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Article"
+msgstr ""
+
+msgid "Book"
+msgstr ""
+
+msgid "Mind Map"
+msgstr ""
+
+msgid "Slides"
+msgstr ""
+
+msgid "Views and order"
+msgstr ""
+
+msgid "Choose which views appear in the view menu and their order, left to right. The first enabled view opens by default."
+msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "Beta"
+msgstr ""
+
+msgid "Experimental"
+msgstr ""
+
+msgid "Still being tested: expect rough edges."
+msgstr ""
+
+msgid "Experimental: likely to have bugs and to change."
+msgstr ""
+
+msgid "Move left"
+msgstr ""
+
+msgid "Move right"
+msgstr ""
+
+msgid "Notebooks (.ipynb)"
+msgstr ""
+
+msgid "Kuusi View: Article / Book / Mind Map / Slides"
+msgstr ""
+
+msgid "Markdown (.md)"
+msgstr ""
+
+msgid "Kuusi View: Article / Book / Slides / Mind Map"
+msgstr ""
 
 msgid "Insert a cell below"
 msgstr ""
@@ -38,12 +89,6 @@ msgid "Add Mind Map"
 msgstr ""
 
 msgid "Create a new notebook in this folder and open it as a mind map"
-msgstr ""
-
-msgid "Kuusi"
-msgstr ""
-
-msgid "Open this notebook beside Kuusi (left: notebook, right: mind map)"
 msgstr ""
 
 msgid "Markdown editor"
@@ -208,7 +253,46 @@ msgstr ""
 msgid "Show node count"
 msgstr ""
 
-msgid "Show the number of mind map nodes in the bottom-right corner"
+msgid "Show the number of mind map nodes beside zoom"
+msgstr ""
+
+msgid "Show character / word count"
+msgstr ""
+
+msgid "Show character and word counts beside zoom"
+msgstr ""
+
+msgid "Show page count"
+msgstr ""
+
+msgid "Show the page or slide count beside zoom"
+msgstr ""
+
+msgid "Show file size"
+msgstr ""
+
+msgid "Show the document file size beside zoom"
+msgstr ""
+
+msgid "Nodes"
+msgstr ""
+
+msgid "chars"
+msgstr ""
+
+msgid "words"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "B"
+msgstr ""
+
+msgid "KB"
+msgstr ""
+
+msgid "MB"
 msgstr ""
 
 msgid "Boundary distance between parent and child nodes"
@@ -218,6 +302,99 @@ msgid "XMind-style compact map with minimal topic spacing"
 msgstr ""
 
 msgid "Boundary distance between sibling nodes"
+msgstr ""
+
+msgid "More"
+msgstr ""
+
+msgid "Update with"
+msgstr ""
+
+msgid "Upgrade"
+msgstr ""
+
+msgid "How to upgrade"
+msgstr ""
+
+msgid "Kuusi updated to"
+msgstr ""
+
+msgid "Kuusi is a Python package. Upgrade it in the same environment that runs JupyterLab."
+msgstr ""
+
+msgid "Install the latest version"
+msgstr ""
+
+msgid "Run this in a terminal:"
+msgstr ""
+
+msgid "conda, uv and other environments"
+msgstr ""
+
+msgid "In a conda environment, activate it first, then use pip:"
+msgstr ""
+
+msgid "With uv:"
+msgstr ""
+
+msgid "Restart JupyterLab"
+msgstr ""
+
+msgid "Stop it (Ctrl+C in its terminal) and start it again, then reload the browser tab with a hard refresh. A cached copy would otherwise keep showing the old version."
+msgstr ""
+
+msgid "Hard refresh: Cmd+Shift+R"
+msgstr ""
+
+msgid "Hard refresh: Ctrl+Shift+R"
+msgstr ""
+
+msgid "Check that it worked"
+msgstr ""
+
+msgid "jupyterlab-kuusi should be listed as enabled with the new version number. Settings → Version shows the same number."
+msgstr ""
+
+msgid "Still the old version?"
+msgstr ""
+
+msgid "Make sure you restarted the JupyterLab that uses this environment. This prints the version pip installed:"
+msgstr ""
+
+msgid "Installed from source?"
+msgstr ""
+
+msgid "If you installed with pip install -e, update the repository and rebuild:"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Previous page"
+msgstr ""
+
+msgid "Next page"
+msgstr ""
+
+msgid "Page"
+msgstr ""
+
+msgid "Show outline and pages"
+msgstr ""
+
+msgid "Hide outline and pages"
+msgstr ""
+
+msgid "Outline"
+msgstr ""
+
+msgid "Thumbnails"
+msgstr ""
+
+msgid "No headings"
 msgstr ""
 
 msgid "Connector line appearance"
@@ -262,6 +439,18 @@ msgstr ""
 msgid "Stop slideshow"
 msgstr ""
 
+msgid "Horizontal swipe"
+msgstr ""
+
+msgid "Swipe pages left and right (fullscreen)"
+msgstr ""
+
+msgid "Vertical swipe"
+msgstr ""
+
+msgid "Scroll pages up and down (fullscreen)"
+msgstr ""
+
 msgid "Appearance"
 msgstr ""
 
@@ -269,12 +458,6 @@ msgid "About"
 msgstr ""
 
 msgid "Kuusi is a Jupyter-native mind map view for notebooks—edit structure and content in one place."
-msgstr ""
-
-msgid "Copy"
-msgstr ""
-
-msgid "Copied"
 msgstr ""
 
 msgid "Copy install command"
@@ -304,7 +487,238 @@ msgstr ""
 msgid "Community"
 msgstr ""
 
+msgid "Auto reload"
+msgstr ""
+
+msgid "Auto collapse capsule"
+msgstr ""
+
+msgid "Fold the capsule into a round mark until the pointer reaches it"
+msgstr ""
+
+msgid "Cursor line number"
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Bold"
+msgstr ""
+
+msgid "Bar"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "Re-read the file when it changes on disk (skipped while there are unsaved edits)"
+msgstr ""
+
+msgid "More options"
+msgstr ""
+
+msgid "Sync"
+msgstr ""
+
+msgid "Keep this view in step with the editor"
+msgstr ""
+
+msgid "Live preview"
+msgstr ""
+
+msgid "Update this view while you type in the Markdown editor"
+msgstr ""
+
+msgid "Feedback"
+msgstr ""
+
+msgid "Tell us what is broken or what you would like. It opens an email in your own mail program; nothing is uploaded."
+msgstr ""
+
+msgid "Your message…"
+msgstr ""
+
+msgid "Add the Kuusi version and browser info"
+msgstr ""
+
+msgid "Send by email"
+msgstr ""
+
+msgid "Copy message"
+msgstr ""
+
+msgid "Write a message first."
+msgstr ""
+
+msgid "Your mail program should open. If nothing happens, use Copy message and send it to %1."
+msgstr ""
+
+msgid "Copied. Paste it into an email to %1."
+msgstr ""
+
+msgid "Could not copy; select the text and copy it yourself."
+msgstr ""
+
 msgid "Default files"
+msgstr ""
+
+msgid "Surface"
+msgstr ""
+
+msgid "Header & footer"
+msgstr ""
+
+msgid "Structure"
+msgstr ""
+
+msgid "Contents"
+msgstr ""
+
+msgid "Chapters"
+msgstr ""
+
+msgid "Contents page"
+msgstr ""
+
+msgid "Insert a table of contents with page numbers at the start"
+msgstr ""
+
+msgid "Heading levels"
+msgstr ""
+
+msgid "Header row alignment"
+msgstr ""
+
+msgid "Header column alignment"
+msgstr ""
+
+msgid "Column width"
+msgstr ""
+
+msgid "Auto fit"
+msgstr ""
+
+msgid "Each column is as wide as its content needs"
+msgstr ""
+
+msgid "Equal"
+msgstr ""
+
+msgid "Every column gets the same width"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "Keep the table style's own alignment"
+msgstr ""
+
+msgid "Code background"
+msgstr ""
+
+msgid "Quote background"
+msgstr ""
+
+msgid "Quote text color"
+msgstr ""
+
+msgid "Quote bar color"
+msgstr ""
+
+msgid "Show Heading 1"
+msgstr ""
+
+msgid "List Heading 1 (usually the document title) in the contents"
+msgstr ""
+
+msgid "Show title"
+msgstr ""
+
+msgid "Show a heading above the contents list"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Heading numbers"
+msgstr ""
+
+msgid "Headings keep their written text"
+msgstr ""
+
+msgid "1, 1.1"
+msgstr ""
+
+msgid "Number headings 1, 1.1, 1.1.1"
+msgstr ""
+
+msgid "I, 1.1"
+msgstr ""
+
+msgid "Chapters as I, II, III, sections as 1.1"
+msgstr ""
+
+msgid "New page before"
+msgstr ""
+
+msgid "Start numbering at"
+msgstr ""
+
+msgid "Heading 1"
+msgstr ""
+
+msgid "Heading 1 is the first numbered level"
+msgstr ""
+
+msgid "Heading 2"
+msgstr ""
+
+msgid "Leave Heading 1 (the document title) unnumbered and start at Heading 2"
+msgstr ""
+
+msgid "Numbered levels"
+msgstr ""
+
+msgid "Number only Heading 1"
+msgstr ""
+
+msgid "Heading 1–2"
+msgstr ""
+
+msgid "Number Heading 1 and Heading 2"
+msgstr ""
+
+msgid "All levels"
+msgstr ""
+
+msgid "Number every heading level"
+msgstr ""
+
+msgid "Headings flow on without a page break"
+msgstr ""
+
+msgid "Every Heading 1 starts a new page"
+msgstr ""
+
+msgid "Every Heading 1 and Heading 2 starts a new page"
+msgstr ""
+
+msgid "Page breaks and page numbers show in Paged layout"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "Reset page settings"
+msgstr ""
+
+msgid "Restore this menu's settings to the current theme's defaults"
+msgstr ""
+
+msgid "Apply text style to all views"
+msgstr ""
+
+msgid "Copy font, color, spacing and heading styles to Article, Book, Slides and Mind Map"
 msgstr ""
 
 msgid "Kuusi Settings"
@@ -325,13 +739,16 @@ msgstr ""
 msgid "Serif"
 msgstr ""
 
+msgid "Chinese"
+msgstr ""
+
 msgid "Size"
 msgstr ""
 
-msgid "Edit"
+msgid "Custom"
 msgstr ""
 
-msgid "Display"
+msgid "Edit"
 msgstr ""
 
 msgid "Link"
@@ -385,13 +802,298 @@ msgstr ""
 msgid "When on, every node uses the same width"
 msgstr ""
 
-msgid "Fit content"
-msgstr ""
-
 msgid "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)"
 msgstr ""
 
 msgid "Node width"
+msgstr ""
+
+msgid "Line width applies to the scrolling layout; paged sheets use the paper width."
+msgstr ""
+
+msgid "Paper options use the paged layout and switch to it."
+msgstr ""
+
+msgid "Left and right margin. The top margin is 1.125× and the bottom 2× this value."
+msgstr ""
+
+msgid "Placeholders: {title} document name, {chapter} current chapter, {date} today, {page} page number, {pages} page count."
+msgstr ""
+
+msgid "Repeat table headers"
+msgstr ""
+
+msgid "Repeat the header row on every page a long table spans"
+msgstr ""
+
+msgid "Margins"
+msgstr ""
+
+msgid "Typesetting"
+msgstr ""
+
+msgid "Blocks"
+msgstr ""
+
+msgid "Watermark"
+msgstr ""
+
+msgid "PDF export"
+msgstr ""
+
+msgid "Top"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Right"
+msgstr ""
+
+msgid "Gutter"
+msgstr ""
+
+msgid "Margins in mm; type a value to one decimal, or 0 to follow the theme again (Page → Padding in continuous layout). The gutter widens the left margin for binding."
+msgstr ""
+
+msgid "Line spacing"
+msgstr ""
+
+msgid "Orphan / widow lines"
+msgstr ""
+
+msgid "Hyphenation"
+msgstr ""
+
+msgid "Break long words at syllables (needs a language-aware browser)"
+msgstr ""
+
+msgid "First-line indent"
+msgstr ""
+
+msgid "Code line numbers"
+msgstr ""
+
+msgid "Code tab width"
+msgstr ""
+
+msgid "Image captions"
+msgstr ""
+
+msgid "Show the alt text under each image as “Figure N. …”"
+msgstr ""
+
+msgid "Link footnotes"
+msgstr ""
+
+msgid "Number links in the text and list their addresses at the end"
+msgstr ""
+
+msgid "Scale"
+msgstr ""
+
+msgid "Table text size"
+msgstr ""
+
+msgid "Table band color"
+msgstr ""
+
+msgid "Draw a line between the two columns"
+msgstr ""
+
+msgid "Rule thickness"
+msgstr ""
+
+msgid "Rule color"
+msgstr ""
+
+msgid "Rule style"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Dashed"
+msgstr ""
+
+msgid "Dotted"
+msgstr ""
+
+msgid "Double"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "Bookmarks"
+msgstr ""
+
+msgid "One bookmark per heading in exported PDFs"
+msgstr ""
+
+msgid "Image quality"
+msgstr ""
+
+msgid "Standard"
+msgstr ""
+
+msgid "High"
+msgstr ""
+
+msgid "Cover page"
+msgstr ""
+
+msgid "Cover title"
+msgstr ""
+
+msgid "Document name"
+msgstr ""
+
+msgid "Author"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Today"
+msgstr ""
+
+msgid "A title page (document name and date) before the contents"
+msgstr ""
+
+msgid "Mirror on even pages"
+msgstr ""
+
+msgid "Swap left and right alignment on even pages, as in a bound book"
+msgstr ""
+
+msgid "Figure"
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid "Rule line"
+msgstr ""
+
+msgid "Draw a thin line between this band and the text"
+msgstr ""
+
+msgid "Different first page"
+msgstr ""
+
+msgid "Leave header and footer text empty on the first page"
+msgstr ""
+
+msgid "Font used while a node's source is open for editing."
+msgstr ""
+
+msgid "Zoom range"
+msgstr ""
+
+msgid "Minimum zoom"
+msgstr ""
+
+msgid "Maximum zoom"
+msgstr ""
+
+msgid "Mouse wheel"
+msgstr ""
+
+msgid "Wheel pans"
+msgstr ""
+
+msgid "Scroll pans the map; Ctrl/⌘ + scroll or pinch zooms"
+msgstr ""
+
+msgid "Wheel zooms"
+msgstr ""
+
+msgid "Scroll zooms the map; Shift + scroll pans"
+msgstr ""
+
+msgid "Zoom speed"
+msgstr ""
+
+msgid "On open"
+msgstr ""
+
+msgid "Center selected node"
+msgstr ""
+
+msgid "Center root"
+msgstr ""
+
+msgid "Fit whole map"
+msgstr ""
+
+msgid "Restore last view"
+msgstr ""
+
+msgid "Levels"
+msgstr ""
+
+msgid "Level"
+msgstr ""
+
+msgid "Root"
+msgstr ""
+
+msgid "Level 1"
+msgstr ""
+
+msgid "Level 2"
+msgstr ""
+
+msgid "Level 3+"
+msgstr ""
+
+msgid "Follow map"
+msgstr ""
+
+msgid "Overrides the map-wide node style for this level. A node's own fill still wins."
+msgstr ""
+
+msgid "Taper"
+msgstr ""
+
+msgid "Thinner toward the leaves"
+msgstr ""
+
+msgid "Connector lines get thinner with each level away from the root"
+msgstr ""
+
+msgid "Minimum width"
+msgstr ""
+
+msgid "Branch colors"
+msgstr ""
+
+msgid "Overrides the line color; arrows follow the branch color."
+msgstr ""
+
+msgid "Rainbow"
+msgstr ""
+
+msgid "Pastel"
+msgstr ""
+
+msgid "Mono"
+msgstr ""
+
+msgid "Horizontal padding"
+msgstr ""
+
+msgid "Vertical padding"
+msgstr ""
+
+msgid "Fit to window"
+msgstr ""
+
+msgid "Fit the whole map in the window (Shift+1)"
 msgstr ""
 
 msgid "Max width"
@@ -424,6 +1126,87 @@ msgstr ""
 msgid "Article reading controls"
 msgstr ""
 
+msgid "Book reading controls"
+msgstr ""
+
+msgid "Book page"
+msgstr ""
+
+msgid "Spread"
+msgstr ""
+
+msgid "One"
+msgstr ""
+
+msgid "One page at a time"
+msgstr ""
+
+msgid "Two"
+msgstr ""
+
+msgid "Facing pages like an open book"
+msgstr ""
+
+msgid "Previous pages"
+msgstr ""
+
+msgid "Next pages"
+msgstr ""
+
+msgid "Spine"
+msgstr ""
+
+msgid "Spine rule"
+msgstr ""
+
+msgid "Draw a thin rule in the spine"
+msgstr ""
+
+msgid "No spine rule"
+msgstr ""
+
+msgid "Columns"
+msgstr ""
+
+msgid "Single reading column"
+msgstr ""
+
+msgid "Two reading columns"
+msgstr ""
+
+msgid "Three"
+msgstr ""
+
+msgid "Three reading columns"
+msgstr ""
+
+msgid "Column gap"
+msgstr ""
+
+msgid "Column fill"
+msgstr ""
+
+msgid "Balance"
+msgstr ""
+
+msgid "Balance text height across columns"
+msgstr ""
+
+msgid "Fill columns in order (newspaper style)"
+msgstr ""
+
+msgid "Column rule"
+msgstr ""
+
+msgid "On"
+msgstr ""
+
+msgid "Draw a thin rule between columns"
+msgstr ""
+
+msgid "No rule between columns"
+msgstr ""
+
 msgid "Type"
 msgstr ""
 
@@ -436,37 +1219,37 @@ msgstr ""
 msgid "Article theme"
 msgstr ""
 
-msgid "Follow Jupyter defaults — 52rem column"
+msgid "Jupyter reading column on ruled notebook paper"
 msgstr ""
 
 msgid "Essay"
 msgstr ""
 
-msgid "Narrow serif column on warm paper"
+msgid "Narrow serif essay on warm sepia paper"
 msgstr ""
 
 msgid "Magazine"
 msgstr ""
 
-msgid "Wide sans-serif column with centered titles"
+msgid "Two-column newsprint with centered display titles"
 msgstr ""
 
 msgid "Night"
 msgstr ""
 
-msgid "Dark ink page with slightly larger type"
+msgid "Dark ink page with larger type for low light"
 msgstr ""
 
 msgid "Academic"
 msgstr ""
 
-msgid "Serif column with restrained typography"
+msgid "Paged Times paper — justified body, restrained titles"
 msgstr ""
 
 msgid "Minimal"
 msgstr ""
 
-msgid "Clean sans column with generous whitespace"
+msgid "Narrow sans column with generous whitespace"
 msgstr ""
 
 msgid "Code"
@@ -550,9 +1333,6 @@ msgstr ""
 msgid "Alignment"
 msgstr ""
 
-msgid "Left"
-msgstr ""
-
 msgid "Left-align heading"
 msgstr ""
 
@@ -560,9 +1340,6 @@ msgid "Center"
 msgstr ""
 
 msgid "Center heading"
-msgstr ""
-
-msgid "Right"
 msgstr ""
 
 msgid "Right-align heading"
@@ -578,9 +1355,6 @@ msgid "Comfortable page margins"
 msgstr ""
 
 msgid "Open page margins"
-msgstr ""
-
-msgid "Page"
 msgstr ""
 
 msgid "Leading"
@@ -608,9 +1382,6 @@ msgid "Tracking"
 msgstr ""
 
 msgid "Letter spacing from 0em to 0.15em"
-msgstr ""
-
-msgid "Links"
 msgstr ""
 
 msgid "Theme default link appearance"
@@ -643,6 +1414,168 @@ msgstr ""
 msgid "Strong background for code blocks"
 msgstr ""
 
+msgid "Table"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "No borders — Word Plain Table"
+msgstr ""
+
+msgid "Full grid — Word Table Grid"
+msgstr ""
+
+msgid "Lines"
+msgstr ""
+
+msgid "Horizontal rules only"
+msgstr ""
+
+msgid "Banded"
+msgstr ""
+
+msgid "Alternating row fill with header bar"
+msgstr ""
+
+msgid "Booktabs"
+msgstr ""
+
+msgid "LaTeX booktabs — thick outer rules, no verticals"
+msgstr ""
+
+msgid "Ruled"
+msgstr ""
+
+msgid "Academic three-line table"
+msgstr ""
+
+msgid "Border"
+msgstr ""
+
+msgid "Table background transparency"
+msgstr ""
+
+msgid "Bold header row"
+msgstr ""
+
+msgid "Make the first row (column headers) bold"
+msgstr ""
+
+msgid "Bold first column"
+msgstr ""
+
+msgid "Make the first column (row headers) bold"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "Tighter space between list items"
+msgstr ""
+
+msgid "Normal"
+msgstr ""
+
+msgid "Comfortable list item spacing"
+msgstr ""
+
+msgid "Relaxed"
+msgstr ""
+
+msgid "Open space between list items"
+msgstr ""
+
+msgid "Quote"
+msgstr ""
+
+msgid "Blockquote"
+msgstr ""
+
+msgid "Divider"
+msgstr ""
+
+msgid "Divider thickness"
+msgstr ""
+
+msgid "Preset"
+msgstr ""
+
+msgid "Divider line"
+msgstr ""
+
+msgid "Divider color"
+msgstr ""
+
+msgid "Light"
+msgstr ""
+
+msgid "Thin, quiet rule"
+msgstr ""
+
+msgid "Standard emphasis"
+msgstr ""
+
+msgid "Strong"
+msgstr ""
+
+msgid "Heavier rule with more presence"
+msgstr ""
+
+msgid "Palette"
+msgstr ""
+
+msgid "JupyterLab default syntax colors"
+msgstr ""
+
+msgid "Python"
+msgstr ""
+
+msgid "Blue keywords and deep string tones"
+msgstr ""
+
+msgid "JavaScript"
+msgstr ""
+
+msgid "Red keywords with amber accents"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+msgid "RStudio-style blues and greens"
+msgstr ""
+
+msgid "Julia"
+msgstr ""
+
+msgid "Julia purple, green, and red accents"
+msgstr ""
+
+msgid "SQL"
+msgstr ""
+
+msgid "Classic SQL blue keywords"
+msgstr ""
+
+msgid "Rust"
+msgstr ""
+
+msgid "Warm rust orange keywords"
+msgstr ""
+
+msgid "MATLAB"
+msgstr ""
+
+msgid "Classic MATLAB blue and purple"
+msgstr ""
+
+msgid "Shell"
+msgstr ""
+
+msgid "Teal keywords for shell scripts"
+msgstr ""
+
 msgid "Column"
 msgstr ""
 
@@ -673,13 +1606,61 @@ msgstr ""
 msgid "210 × 297 mm"
 msgstr ""
 
+msgid "A3"
+msgstr ""
+
+msgid "297 × 420 mm"
+msgstr ""
+
+msgid "A5"
+msgstr ""
+
+msgid "148 × 210 mm"
+msgstr ""
+
+msgid "B5"
+msgstr ""
+
+msgid "176 × 250 mm"
+msgstr ""
+
+msgid "Legal"
+msgstr ""
+
+msgid "8.5 × 14 in"
+msgstr ""
+
 msgid "Letter"
 msgstr ""
 
 msgid "8.5 × 11 in"
 msgstr ""
 
-msgid "Text"
+msgid "Portrait"
+msgstr ""
+
+msgid "Tall page (switches to Paged)"
+msgstr ""
+
+msgid "Landscape"
+msgstr ""
+
+msgid "Wide page (switches to Paged)"
+msgstr ""
+
+msgid "Edge color"
+msgstr ""
+
+msgid "Edge width"
+msgstr ""
+
+msgid "Shadow"
+msgstr ""
+
+msgid "Drop shadow around the paper sheet"
+msgstr ""
+
+msgid "Shadow width"
 msgstr ""
 
 msgid "Text style"
@@ -710,9 +1691,6 @@ msgid "Presentation controls"
 msgstr ""
 
 msgid "Look"
-msgstr ""
-
-msgid "Header & footer"
 msgstr ""
 
 msgid "Article header, footer & page numbers"
@@ -748,6 +1726,42 @@ msgstr ""
 msgid "Page number and page count"
 msgstr ""
 
+msgid "– 3 –"
+msgstr ""
+
+msgid "Page number between dashes"
+msgstr ""
+
+msgid "[3]"
+msgstr ""
+
+msgid "Page number in square brackets"
+msgstr ""
+
+msgid "Page 3"
+msgstr ""
+
+msgid "The word Page and the page number"
+msgstr ""
+
+msgid "Page 3 of 12"
+msgstr ""
+
+msgid "The word Page, the page number and the page count"
+msgstr ""
+
+msgid "iii"
+msgstr ""
+
+msgid "Lower-case Roman numerals (i, ii, iii…)"
+msgstr ""
+
+msgid "III"
+msgstr ""
+
+msgid "Upper-case Roman numerals (I, II, III…)"
+msgstr ""
+
 msgid "Position"
 msgstr ""
 
@@ -755,6 +1769,21 @@ msgid "Top margin of each page"
 msgstr ""
 
 msgid "Bottom margin of each page"
+msgstr ""
+
+msgid "Starts on"
+msgstr ""
+
+msgid "First page"
+msgstr ""
+
+msgid "Number from the first page (1, 2, 3…)"
+msgstr ""
+
+msgid "Second page"
+msgstr ""
+
+msgid "Skip the first page; numbering begins on page 2 as 1"
 msgstr ""
 
 msgid "Images"
@@ -805,31 +1834,16 @@ msgstr ""
 msgid "Image on the right; following text wraps on the left"
 msgstr ""
 
-msgid "Border"
-msgstr ""
-
 msgid "No frame around images"
-msgstr ""
-
-msgid "Solid"
 msgstr ""
 
 msgid "Continuous line"
 msgstr ""
 
-msgid "Dashed"
-msgstr ""
-
 msgid "Dashed line"
 msgstr ""
 
-msgid "Dotted"
-msgstr ""
-
 msgid "Dotted line"
-msgstr ""
-
-msgid "Double"
 msgstr ""
 
 msgid "Two parallel lines"
@@ -851,9 +1865,6 @@ msgid "About 68rem — magazine column"
 msgstr ""
 
 msgid "Use the full pane width"
-msgstr ""
-
-msgid "Surface"
 msgstr ""
 
 msgid "Theme"
@@ -883,9 +1894,6 @@ msgstr ""
 msgid "Cool light gray page with a soft haze"
 msgstr ""
 
-msgid "Lines"
-msgstr ""
-
 msgid "Horizontal ruled lines like notebook paper"
 msgstr ""
 
@@ -911,6 +1919,9 @@ msgid "Node width, fill, border, and selection glow"
 msgstr ""
 
 msgid "Map fill"
+msgstr ""
+
+msgid "Fill transparency"
 msgstr ""
 
 msgid "Selected fill"
@@ -958,9 +1969,6 @@ msgstr ""
 msgid "Repository"
 msgstr ""
 
-msgid "Style"
-msgstr ""
-
 msgid "Route"
 msgstr ""
 
@@ -973,9 +1981,6 @@ msgstr ""
 msgid "Soft"
 msgstr ""
 
-msgid "Outline"
-msgstr ""
-
 msgid "Board"
 msgstr ""
 
@@ -986,6 +1991,9 @@ msgid "Density"
 msgstr ""
 
 msgid "Width"
+msgstr ""
+
+msgid "Color for bold body text; empty inherits the body color"
 msgstr ""
 
 msgid "Arrow"
@@ -1027,6 +2035,12 @@ msgstr ""
 msgid "Zoom"
 msgstr ""
 
+msgid "Zoom in"
+msgstr ""
+
+msgid "Zoom out"
+msgstr ""
+
 msgid "Adjust zoom (20%–200%)"
 msgstr ""
 
@@ -1051,10 +2065,25 @@ msgstr ""
 msgid "Download the PDF file"
 msgstr ""
 
-msgid "Print / Vector PDF…"
+msgid "PDF…"
 msgstr ""
 
-msgid "Open the system print dialog; choose “Save as PDF” for selectable text"
+msgid "Open the print dialog and choose “Save as PDF”: sharp text that stays selectable"
+msgstr ""
+
+msgid "Add bookmarks and links…"
+msgstr ""
+
+msgid "Pick the PDF you saved: headings become bookmarks (the reader's contents sidebar) and the contents page links jump to their page"
+msgstr ""
+
+msgid "Saved a PDF? Add bookmarks and working contents links for PDF readers such as Preview."
+msgstr ""
+
+msgid "Could not add bookmarks: pick the PDF saved from this view's PDF… export."
+msgstr ""
+
+msgid "Saved %1 with bookmarks."
 msgstr ""
 
 msgid "%1 image"
@@ -1069,7 +2098,7 @@ msgstr ""
 msgid "the whole mind map"
 msgstr ""
 
-msgid "the whole view"
+msgid "the current page"
 msgstr ""
 
 msgid "Exporting %1…"
@@ -1111,61 +2140,61 @@ msgstr ""
 msgid "Classic"
 msgstr ""
 
-msgid "White stage with dark text"
+msgid "White stage — notebook type, balanced chrome"
 msgstr ""
 
-msgid "Dark stage for projector rooms"
+msgid "Dark projector stage — larger type, centered content"
 msgstr ""
 
 msgid "Forest"
 msgstr ""
 
-msgid "Deep green stage with light text"
+msgid "Deep green stage with warm serif type"
 msgstr ""
 
 msgid "Ocean"
 msgstr ""
 
-msgid "Blue stage with light text"
+msgid "Blue stage — centered sans titles and progress"
 msgstr ""
 
 msgid "Slate"
 msgstr ""
 
-msgid "Cool gray modern stage"
+msgid "Cool gray modern stage — compact, flat chrome"
 msgstr ""
 
-msgid "Warm paper stage with dark text"
+msgid "Warm paper stage with reading-friendly serif"
 msgstr ""
 
 msgid "Metropolis"
 msgstr ""
 
-msgid "Beamer-inspired flat modern theme with accent bar"
+msgid "Flat modern Beamer look — compact, progress bar"
 msgstr ""
 
 msgid "Madrid"
 msgstr ""
 
-msgid "Beamer-inspired header bar and structured footer"
+msgid "Structured Beamer look — header bar and footer"
 msgstr ""
 
 msgid "Berlin"
 msgstr ""
 
-msgid "Beamer-inspired accent rail and cool slate stage"
+msgid "Cool slate Beamer look — accent rail, compact"
 msgstr ""
 
 msgid "Copenhagen"
 msgstr ""
 
-msgid "Beamer-inspired light theme with subtle structure"
+msgid "Light Beamer look — airy padding, quiet chrome"
 msgstr ""
 
 msgid "Singapore"
 msgstr ""
 
-msgid "Beamer-inspired bold accent and clean stage"
+msgid "Bold Beamer look — centered titles, strong accent"
 msgstr ""
 
 msgid "Slides layout"
@@ -1196,9 +2225,6 @@ msgid "Lists"
 msgstr ""
 
 msgid "Tighter spacing between list items"
-msgstr ""
-
-msgid "Normal"
 msgstr ""
 
 msgid "Default list item spacing"
@@ -1261,34 +2287,49 @@ msgstr ""
 msgid "Slide type"
 msgstr ""
 
-msgid "Frame"
-msgstr ""
-
 msgid "Draw a border around fenced code blocks"
-msgstr ""
-
-msgid "Frame color"
 msgstr ""
 
 msgid "Chrome"
 msgstr ""
 
-msgid "Show the slide header bar with the section title"
+msgid "Show the slide header bar"
+msgstr ""
+
+msgid "Header text"
+msgstr ""
+
+msgid "Use the nearest H1 at or before this slide"
+msgstr ""
+
+msgid "Use the nearest H2 at or before this slide"
+msgstr ""
+
+msgid "Heading 3"
+msgstr ""
+
+msgid "Use the nearest H3 at or before this slide"
+msgstr ""
+
+msgid "Use a fixed custom header string"
+msgstr ""
+
+msgid "Custom text"
+msgstr ""
+
+msgid "Text shown in the slide header bar"
+msgstr ""
+
+msgid "Header text…"
 msgstr ""
 
 msgid "Align"
-msgstr ""
-
-msgid "Top"
 msgstr ""
 
 msgid "Align slide content to the top"
 msgstr ""
 
 msgid "Vertically center slide content"
-msgstr ""
-
-msgid "Bottom"
 msgstr ""
 
 msgid "Align slide content to the bottom"
@@ -1312,7 +2353,67 @@ msgstr ""
 msgid "Page number"
 msgstr ""
 
-msgid "Show the current slide index in the footer and nav"
+msgid "Show the page number on the slide footer"
+msgstr ""
+
+msgid "3 – 12"
+msgstr ""
+
+msgid "Page number and count separated by an en dash"
+msgstr ""
+
+msgid "Soft glow under the progress bar"
+msgstr ""
+
+msgid "Command-mode cell bar"
+msgstr ""
+
+msgid "Auto reload by default"
+msgstr ""
+
+msgid "Reload notebooks and Markdown views when the file changes on disk. Each file can still be switched in its … menu."
+msgstr ""
+
+msgid "Selected cell border"
+msgstr ""
+
+msgid "The bar beside the selected cell (command mode) and the border round it are set separately. Empty keeps JupyterLab's colors."
+msgstr ""
+
+msgid "Color of the bar beside the selected cell while the notebook is in command mode."
+msgstr ""
+
+msgid "Text size"
+msgstr ""
+
+msgid "Page overview"
+msgstr ""
+
+msgid "Overview of all pages (G)"
+msgstr ""
+
+msgid "Header style"
+msgstr ""
+
+msgid "Footer style"
+msgstr ""
+
+msgid "Footer text"
+msgstr ""
+
+msgid "Tokens: {title} {chapter} {section} {subsection} {page} {total} {date}. Empty shows the deck title."
+msgstr ""
+
+msgid "Slide overview"
+msgstr ""
+
+msgid "Bar height"
+msgstr ""
+
+msgid "Bar color"
+msgstr ""
+
+msgid "Opacity"
 msgstr ""
 
 msgid "Show the slide footer bar"
@@ -1324,16 +2425,10 @@ msgstr ""
 msgid "Show a progress bar for deck position"
 msgstr ""
 
-msgid "Shadow"
-msgstr ""
-
 msgid "Drop shadow around the slide stage"
 msgstr ""
 
 msgid "Render view"
-msgstr ""
-
-msgid "Article"
 msgstr ""
 
 msgid "Rendered Markdown preview"
@@ -1342,7 +2437,10 @@ msgstr ""
 msgid "Rendered notebook article"
 msgstr ""
 
-msgid "Mind Map"
+msgid "Dual-column Markdown book"
+msgstr ""
+
+msgid "Dual-column notebook book"
 msgstr ""
 
 msgid "Kuusi Markdown mind map"
@@ -1351,20 +2449,8 @@ msgstr ""
 msgid "Kuusi notebook mind map"
 msgstr ""
 
-msgid "Slides"
-msgstr ""
-
 msgid "Live Markdown slides"
 msgstr ""
 
 msgid "Live notebook slides"
-msgstr ""
-
-msgid "Kuusi Live PDF preview (compile to refresh)"
-msgstr ""
-
-msgid "Plain Markdown source editor"
-msgstr ""
-
-msgid "Live Markdown slides (split on --- or H1)"
 msgstr ""

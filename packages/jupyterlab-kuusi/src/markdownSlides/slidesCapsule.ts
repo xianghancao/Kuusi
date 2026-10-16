@@ -16,6 +16,7 @@ import {
   type ViewCapsuleHeader,
 } from "../viewCapsule";
 import {
+  createSlidesHeaderFooterToolbar,
   createSlidesPageToolbar,
   createSlidesThemeToolbar,
   createSlidesTypographyModel,
@@ -85,7 +86,10 @@ const mountSlidesHeader = (
         id: "brand",
         group: "brand",
         order: 10,
-        create: () => createViewCapsuleLogo(slidesIcon, t.slidesControls()),
+        create: () => createViewCapsuleLogo(slidesIcon, t.slidesControls(), {
+          root: widget.node,
+          t,
+        }),
       },
       {
         id: "theme",
@@ -98,6 +102,12 @@ const mountSlidesHeader = (
         group: "appearance",
         order: 20,
         create: () => createSlidesPageToolbar(host, manager, t),
+      },
+      {
+        id: "furniture",
+        group: "appearance",
+        order: 25,
+        create: () => createSlidesHeaderFooterToolbar(host, manager, t),
       },
       ...createTypographyCapsuleItems(host, typography, t),
     ],
@@ -114,6 +124,13 @@ const mountSlidesHeader = (
 
   const renderChrome = mountCssZoomRenderChrome(widget, host, t, {
     cornerAction: "play",
+    onOverview: () => {
+      const viewer = (widget.content ?? widget) as unknown as {
+        toggleOverview?: () => void;
+      };
+      viewer.toggleOverview?.();
+    },
+    overviewLabel: t.slidesOverviewTitle(),
     documentClassName: "jp-KuusiMarkdownSlidesDocument",
     showTextCount: manager.settings.showTextCount,
     showPageCount: manager.settings.showPageCount,

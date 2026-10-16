@@ -2,6 +2,7 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from "@jupyterlab/application";
+import { refitAfterDockResize } from "./dockResizeRefit";
 import { createArticleTypographyModel } from "./articleMenus";
 import { createBookTypographyModel } from "./bookMenus";
 import { createMindMapTypographyModel } from "./mindMapMenus";
@@ -67,6 +68,7 @@ import {
   configureRenderPositionSync,
 } from "./renderPositionSync";
 import { attachNotebookAutoReload } from "./notebookAutoReload";
+import { captureNotebookViewState } from "./notebookViewState";
 import {
   getNotebookAutoReloadEnabled,
   registerNotebookAutoReloadListener,
@@ -566,6 +568,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
         const handle = attachNotebookAutoReload(panel.context, contents, {
           getEnabled: () => getNotebookAutoReloadEnabled(path),
           onLastModified: () => undefined,
+          captureViewState: () => captureNotebookViewState(panel),
         });
         const unregister = registerNotebookAutoReloadListener(path, handle);
 
@@ -579,10 +582,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
     notebookTracker.forEach((panel) => {
       attachClassicNotebookAutoReload(panel);
       bindNotebookEditorFormatBars(panel);
+      refitAfterDockResize(panel, panel.content, { pinWidth: true });
     });
     notebookTracker.widgetAdded.connect((_, panel) => {
       attachClassicNotebookAutoReload(panel);
       bindNotebookEditorFormatBars(panel);
+      refitAfterDockResize(panel, panel.content, { pinWidth: true });
     });
 
     registerKuusiEditorMoreMenu(app, toolbarRegistry);

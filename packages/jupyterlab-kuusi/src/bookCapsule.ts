@@ -66,7 +66,10 @@ const mountBookHeader = (
         id: "brand",
         group: "brand",
         order: 10,
-        create: () => createViewCapsuleLogo(bookIcon, t.bookControls()),
+        create: () => createViewCapsuleLogo(bookIcon, t.bookControls(), {
+          root: widget.node,
+          t,
+        }),
       },
       {
         id: "theme",

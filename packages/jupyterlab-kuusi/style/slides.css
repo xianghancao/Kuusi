@@ -272,6 +272,10 @@
   box-sizing: border-box;
   max-height: 55vh;
   max-width: 100%;
+  /* A width (100%, a percentage) with the height capped by max-height would
+     stretch the picture; letterbox it instead of squashing it. */
+  object-fit: contain;
+  zoom: var(--kuusi-slides-image-scale, 1);
 }
 
 .jp-KuusiMarkdownSlides[data-kuusi-slides-image-width="natural"] .jp-KuusiMarkdownSlides-slide img {
@@ -285,6 +289,14 @@
 .jp-KuusiMarkdownSlides[data-kuusi-slides-image-width="full"] .jp-KuusiMarkdownSlides-slide img {
   display: block;
   max-width: 100%;
+  width: calc(100% * var(--kuusi-slides-image-scale, 1));
+  zoom: 1;
+}
+
+.jp-KuusiMarkdownSlides[data-kuusi-slides-image-width="full"]
+  .jp-KuusiMarkdownSlides-slide
+  :is(figure, p:has(> img:only-child), p:has(> a:only-child > img))
+  img {
   width: 100%;
 }
 
@@ -293,7 +305,8 @@
   :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
   margin-inline: 0 auto;
   width: fit-content;
-  max-width: 100%;
+  /* The scale shrinks the wrapper so a percentage width resolves against it. */
+  max-width: calc(100% * var(--kuusi-slides-image-scale, 1));
 }
 
 .jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="none"][data-kuusi-slides-image-align="center"]
@@ -301,7 +314,8 @@
   :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
   margin-inline: auto;
   width: fit-content;
-  max-width: 100%;
+  /* The scale shrinks the wrapper so a percentage width resolves against it. */
+  max-width: calc(100% * var(--kuusi-slides-image-scale, 1));
 }
 
 .jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="none"][data-kuusi-slides-image-align="right"]
@@ -309,7 +323,8 @@
   :is(figure, p:has(> img:only-child), p:has(> a:only-child > img)) {
   margin-inline: auto 0;
   width: fit-content;
-  max-width: 100%;
+  /* The scale shrinks the wrapper so a percentage width resolves against it. */
+  max-width: calc(100% * var(--kuusi-slides-image-scale, 1));
 }
 
 .jp-KuusiMarkdownSlides[data-kuusi-slides-image-wrap="left"]
@@ -755,9 +770,14 @@ button.jp-KuusiMarkdownSlides-navBtn:disabled {
 }
 
 .jp-KuusiSlides-progress {
-  background: var(--kuusi-slides-accent, var(--jp-brand-color1, #2f5d3a));
+  background: var(
+    --kuusi-slides-progress-bg,
+    var(--kuusi-slides-accent, var(--jp-brand-color1, #2f5d3a))
+  );
   bottom: 0;
-  height: 3px;
+  box-shadow: var(--kuusi-slides-progress-shadow, none);
+  height: var(--kuusi-slides-progress-h, 3px);
+  opacity: var(--kuusi-slides-progress-opacity, 1);
   left: 0;
   pointer-events: none;
   position: absolute;
@@ -767,19 +787,26 @@ button.jp-KuusiMarkdownSlides-navBtn:disabled {
 
 .jp-KuusiSlides-stageHeader {
   align-items: center;
-  background: color-mix(
-    in srgb,
-    var(--kuusi-slides-accent, var(--jp-brand-color1, #2f5d3a)) 88%,
-    #000
+  background: var(
+    --kuusi-slides-header-bg,
+    color-mix(
+      in srgb,
+      var(--kuusi-slides-accent, var(--jp-brand-color1, #2f5d3a)) 88%,
+      #000
+    )
   );
   box-sizing: border-box;
-  color: #fff;
+  color: var(--kuusi-slides-header-fg, #fff);
   display: flex;
-  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
-  font-size: 13px;
+  font-family: var(
+    --kuusi-slides-header-ff,
+    var(--kuusi-chrome-font-family, var(--jp-ui-font-family))
+  );
+  font-size: var(--kuusi-slides-header-fs, 13px);
   font-weight: 600;
   left: 0;
-  min-height: 32px;
+  min-height: var(--kuusi-slides-header-h, 32px);
+  opacity: var(--kuusi-slides-header-opacity, 1);
   padding: 7px 16px;
   pointer-events: none;
   position: absolute;
@@ -801,22 +828,27 @@ button.jp-KuusiMarkdownSlides-navBtn:disabled {
 }
 
 .jp-KuusiMarkdownSlides-stage.has-stage-header .jp-KuusiMarkdownSlides-slide {
-  padding-top: calc(var(--kuusi-slides-padding, 2rem) + 28px);
+  padding-top: calc(var(--kuusi-slides-padding, 2rem) + var(--kuusi-slides-header-h, 32px) - 4px);
 }
 
 .jp-KuusiMarkdownSlides-stage.has-stage-footer .jp-KuusiMarkdownSlides-slide {
-  padding-bottom: calc(var(--kuusi-slides-padding, 2rem) + 22px);
+  padding-bottom: calc(var(--kuusi-slides-padding, 2rem) + var(--kuusi-slides-footer-h, 34px));
 }
 
 .jp-KuusiSlides-footer {
   align-items: center;
-  border-top: 1px solid color-mix(in srgb, var(--kuusi-slides-page-fg) 14%, transparent);
+  background: var(--kuusi-slides-footer-bg, transparent);
+  border-top: var(--kuusi-slides-footer-rule, 1px) solid color-mix(in srgb, var(--kuusi-slides-page-fg) 14%, transparent);
   bottom: 0;
+  opacity: var(--kuusi-slides-footer-opacity, 1);
   box-sizing: border-box;
   color: var(--kuusi-slides-footer-fg, #666);
   display: grid;
-  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
-  font-size: 11px;
+  font-family: var(
+    --kuusi-slides-footer-ff,
+    var(--kuusi-chrome-font-family, var(--jp-ui-font-family))
+  );
+  font-size: var(--kuusi-slides-footer-fs, 11px);
   gap: 12px;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   left: 0;
@@ -973,4 +1005,104 @@ button.jp-KuusiMarkdownSlides-navBtn:disabled {
 
 .jp-KuusiSlides-column > :first-child {
   margin-top: 0;
+}
+
+/* Slide overview: a grid of thumbnails over the stage (key G / corner button). */
+.jp-KuusiSlides-overview {
+  background: rgb(18 20 22 / 97%);
+  box-sizing: border-box;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  overflow: auto;
+  padding: 16px 20px 24px;
+  position: absolute;
+  z-index: 20;
+}
+
+.jp-KuusiSlides-overviewBar {
+  align-items: center;
+  display: flex;
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: 13px;
+  font-weight: 600;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  /* Clear of the view's logo button in the top-left corner. */
+  padding-left: 44px;
+}
+
+.jp-KuusiSlides-overviewClose {
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: inherit;
+  cursor: pointer;
+  font-size: 20px;
+  height: 28px;
+  line-height: 1;
+  width: 28px;
+}
+
+.jp-KuusiSlides-overviewClose:hover {
+  background: rgb(255 255 255 / 14%);
+}
+
+.jp-KuusiSlides-overviewGrid {
+  display: grid;
+  gap: 18px 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.jp-KuusiSlides-overviewCell {
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  text-align: center;
+}
+
+.jp-KuusiSlides-overviewThumb {
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px transparent, 0 2px 8px rgb(0 0 0 / 45%);
+  display: block;
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow 120ms ease;
+  width: 100%;
+}
+
+.jp-KuusiSlides-overviewCell:hover .jp-KuusiSlides-overviewThumb,
+.jp-KuusiSlides-overviewCell:focus-visible .jp-KuusiSlides-overviewThumb {
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 70%), 0 2px 8px rgb(0 0 0 / 45%);
+}
+
+.jp-KuusiSlides-overviewCell.is-current .jp-KuusiSlides-overviewThumb {
+  box-shadow: 0 0 0 3px var(--kuusi-brand-green-light, #4a7a55), 0 2px 8px rgb(0 0 0 / 45%);
+}
+
+.jp-KuusiSlides-overviewCell:focus {
+  outline: none;
+}
+
+.jp-KuusiSlides-overviewStage {
+  border-radius: 0;
+  box-shadow: none;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.jp-KuusiSlides-overviewNumber {
+  font-family: var(--kuusi-chrome-font-family, var(--jp-ui-font-family));
+  font-size: 12px;
+  opacity: 0.8;
 }

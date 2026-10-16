@@ -503,21 +503,34 @@ def write_po(path: Path, entries: dict[str, str], *, template: bool) -> None:
 
 
 def write_jed(path: Path, entries: dict[str, str]) -> None:
+    """JupyterLab's own catalog layout: a flat object with the header under "".
+
+    The server hands this object to the client as-is (`data[domain]`), and the
+    client reads `data[""].plural_forms` / `.language`. A Jed-style wrapper
+    (`locale_data`) or a `lang` key made the plugin fail to activate whenever a
+    Chinese language pack was in use, so Kuusi vanished from the menus.
+    """
     data = {
-        "domain": DOMAIN,
-        "locale_data": {
-            DOMAIN: {
-                "": {
-                    "domain": DOMAIN,
-                    "lang": "zh_CN",
-                    "plural_forms": "nplurals=1; plural=0;",
-                },
-                **{msgid: [None, msgstr] for msgid, msgstr in entries.items()},
-            }
+        "": {
+            "domain": DOMAIN,
+            "language": "zh_CN",
+            "plural_forms": "nplurals=1; plural=0;",
+            "version": DOMAIN,
         },
+        **{msgid: [msgstr] for msgid, msgstr in entries.items()},
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def read_existing_ts(path: Path) -> dict[str, str]:
+    """Entries already in the frontend map (added by hand since the last build)."""
+    if not path.exists():
+        return {}
+    text = path.read_text(encoding="utf-8")
+    start = text.index("{")
+    end = text.rindex("}")
+    return json.loads(text[start : end + 1])
 
 
 def write_ts(path: Path, entries: dict[str, str]) -> None:
@@ -551,15 +564,21 @@ def extract_source_strings() -> list[str]:
 
 
 def main() -> None:
+    for key, value in read_existing_ts(TS_PATH).items():
+        ZH_CN.setdefault(key, value)
     source = extract_source_strings()
     missing = [item for item in source if item not in ZH_CN]
     extra = [item for item in ZH_CN if item not in set(source)]
     if missing:
-        raise SystemExit("Missing translations:\n" + "\n".join(missing))
+        # Untranslated strings stay English; do not block the catalog build.
+        print("Untranslated source strings:", len(missing))
     if extra:
-        print("Unused catalog keys:", len(extra))
-    ordered = {key: ZH_CN[key] for key in source}
-    write_po(POT_PATH, ordered, template=True)
+        print("Catalog keys not found in source (kept):", len(extra))
+    # Source order first, then keys the extractor cannot see (built at runtime).
+    ordered = {key: ZH_CN[key] for key in source if key in ZH_CN}
+    for key, value in ZH_CN.items():
+        ordered.setdefault(key, value)
+    write_po(POT_PATH, {key: ZH_CN.get(key, "") for key in source}, template=True)
     write_po(LOCALE_DIR / "jupyterlab_kuusi.po", ordered, template=False)
     write_jed(LOCALE_DIR / "jupyterlab_kuusi.json", ordered)
     write_ts(TS_PATH, ordered)

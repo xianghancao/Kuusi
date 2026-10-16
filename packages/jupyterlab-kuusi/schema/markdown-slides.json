@@ -416,6 +416,124 @@
       "type": "string",
       "default": ""
     },
+    "headerHeight": {
+      "title": "Slide header height",
+      "description": "Height of the in-stage header bar in px.",
+      "type": "number",
+      "minimum": 20,
+      "maximum": 80,
+      "default": 32
+    },
+    "headerFont": {
+      "title": "Slide header font",
+      "description": "Font of the header bar text; empty follows the slide font.",
+      "type": "string",
+      "default": ""
+    },
+    "headerFontSize": {
+      "title": "Slide header text size",
+      "description": "Header text size in px.",
+      "type": "number",
+      "minimum": 8,
+      "maximum": 32,
+      "default": 13
+    },
+    "footerText": {
+      "title": "Slide footer text",
+      "description": "Footer template with {title}, {chapter}, {section}, {subsection}, {page}, {total} and {date}. Empty shows the deck title.",
+      "type": "string",
+      "default": ""
+    },
+    "footerFont": {
+      "title": "Slide footer font",
+      "description": "Font of the footer text and page number; empty follows the slide font.",
+      "type": "string",
+      "default": ""
+    },
+    "footerFontSize": {
+      "title": "Slide footer text size",
+      "description": "Footer text size in px.",
+      "type": "number",
+      "minimum": 8,
+      "maximum": 32,
+      "default": 11
+    },
+    "headerColor": {
+      "title": "Slide header color",
+      "description": "CSS hex color of the header bar, or empty to follow the accent color.",
+      "type": "string",
+      "default": ""
+    },
+    "headerTextColor": {
+      "title": "Slide header text color",
+      "description": "CSS hex color of the header text, or empty for white.",
+      "type": "string",
+      "default": ""
+    },
+    "headerOpacity": {
+      "title": "Slide header opacity",
+      "description": "Header bar opacity in percent.",
+      "type": "number",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 100
+    },
+    "footerRuleWidth": {
+      "title": "Slide footer divider width",
+      "description": "Thickness of the line above the footer in px (0 hides it).",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 6,
+      "default": 1
+    },
+    "footerColor": {
+      "title": "Slide footer text color",
+      "description": "CSS hex color of the footer text, or empty to follow the theme.",
+      "type": "string",
+      "default": ""
+    },
+    "footerBackground": {
+      "title": "Slide footer background",
+      "description": "CSS hex color behind the footer, or empty for none.",
+      "type": "string",
+      "default": ""
+    },
+    "footerOpacity": {
+      "title": "Slide footer opacity",
+      "description": "Footer opacity in percent.",
+      "type": "number",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 100
+    },
+    "progressHeight": {
+      "title": "Progress bar thickness",
+      "description": "Thickness of the progress bar in px.",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 16,
+      "default": 3
+    },
+    "progressColor": {
+      "title": "Progress bar color",
+      "description": "CSS hex color of the progress bar, or empty to follow the accent color.",
+      "type": "string",
+      "default": ""
+    },
+    "progressOpacity": {
+      "title": "Progress bar opacity",
+      "description": "Progress bar opacity in percent.",
+      "type": "number",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 100
+    },
+    "progressShadow": {
+      "title": "Progress bar glow",
+      "description": "Soft glow under the progress bar.",
+      "type": "boolean",
+      "default": false
+    },
     "showFooter": {
       "title": "Show footer bar",
       "description": "Show the Beamer-style footer strip on the stage.",
@@ -536,6 +654,16 @@
       ],
       "default": "auto"
     },
+    "tableColumnWidth": {
+      "title": "Slides table column width",
+      "description": "Table column sizing: auto fits each column to its content, equal gives every column the same width.",
+      "type": "string",
+      "enum": [
+        "auto",
+        "equal"
+      ],
+      "default": "auto"
+    },
     "listStyle": {
       "type": "string",
       "enum": [
@@ -568,6 +696,32 @@
       "default": "normal",
       "title": "Divider weight",
       "description": "Stroke weight for horizontal rules."
+    },
+    "hrThickness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 0,
+      "title": "Divider thickness",
+      "description": "Thickness of horizontal rules in px; 0 follows the divider weight."
+    },
+    "hrStyle": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "solid",
+      "title": "Divider line style",
+      "description": "Line style of horizontal rules."
+    },
+    "hrColor": {
+      "type": "string",
+      "default": "",
+      "title": "Divider color",
+      "description": "Color of horizontal rules, as a CSS color; empty keeps the divider weight's own."
     },
     "imageWidth": {
       "type": "string",
@@ -683,6 +837,14 @@
       "default": "",
       "title": "Slides quote bar color",
       "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "imageScale": {
+      "type": "number",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 100,
+      "title": "Slides image scale",
+      "description": "Display size of images as a percentage of the size chosen by Slides image width."
     }
   },
   "additionalProperties": false

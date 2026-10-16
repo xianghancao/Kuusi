@@ -664,6 +664,16 @@
       ],
       "default": "auto"
     },
+    "tableColumnWidth": {
+      "title": "Mind Map table column width",
+      "description": "Table column sizing: auto fits each column to its content, equal gives every column the same width.",
+      "type": "string",
+      "enum": [
+        "auto",
+        "equal"
+      ],
+      "default": "auto"
+    },
     "listStyle": {
       "type": "string",
       "enum": [
@@ -696,6 +706,32 @@
       "default": "normal",
       "title": "Divider weight",
       "description": "Stroke weight for horizontal rules."
+    },
+    "hrThickness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 0,
+      "title": "Divider thickness",
+      "description": "Thickness of horizontal rules in px; 0 follows the divider weight."
+    },
+    "hrStyle": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "dashed",
+        "dotted",
+        "double"
+      ],
+      "default": "solid",
+      "title": "Divider line style",
+      "description": "Line style of horizontal rules."
+    },
+    "hrColor": {
+      "type": "string",
+      "default": "",
+      "title": "Divider color",
+      "description": "Color of horizontal rules, as a CSS color; empty keeps the divider weight's own."
     },
     "imageWidth": {
       "type": "string",
@@ -1229,6 +1265,14 @@
       "default": "",
       "title": "Mind Map quote bar color",
       "description": "Color of the vertical bar of block quotes, as a CSS color; empty keeps the quote weight's own."
+    },
+    "imageScale": {
+      "type": "number",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 100,
+      "title": "Mind map image scale",
+      "description": "Display size of images as a percentage of the size chosen by Mind map image width."
     }
   },
   "additionalProperties": false,

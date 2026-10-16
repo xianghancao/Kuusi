@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { resolveSlideHeaderText } from "./slidesHeader";
+import { fillSlideTokens, resolveSlideHeaderText } from "./slidesHeader";
 
 describe("resolveSlideHeaderText", () => {
   const slides = [
@@ -27,5 +27,38 @@ describe("resolveSlideHeaderText", () => {
 
   it("returns empty when no matching heading exists", () => {
     assert.equal(resolveSlideHeaderText("h3", "", ["# Only H1"], 0), "");
+  });
+});
+
+describe("fillSlideTokens", () => {
+  const sources = [
+    "# Deck\n\nIntro",
+    "## Section A\n\nBody",
+    "### Detail\n\nMore",
+    "## Section B\n\nNext",
+  ];
+  const ctx = (index: number) => ({
+    title: "My talk",
+    page: String(index + 1),
+    total: "4",
+    slideSources: sources,
+    index,
+  });
+
+  it("fills title, running chapter / section and page numbers", () => {
+    assert.equal(
+      fillSlideTokens("{title} · {chapter} · {section} · {page}/{total}", ctx(2)),
+      "My talk · Deck · Section A · 3/4",
+    );
+  });
+
+  it("follows the running section across slides", () => {
+    assert.equal(fillSlideTokens("{section}", ctx(3)), "Section B");
+    assert.equal(fillSlideTokens("{subsection}", ctx(3)), "Detail");
+  });
+
+  it("treats {pages} as the total and drops unknown headings", () => {
+    assert.equal(fillSlideTokens("{page} of {pages}", ctx(0)), "1 of 4");
+    assert.equal(fillSlideTokens("[{section}]", ctx(0)), "[]");
   });
 });

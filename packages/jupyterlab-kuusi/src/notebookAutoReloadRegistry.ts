@@ -13,8 +13,37 @@ export const notebookAutoReloadChanged = new Signal<
   { path: string; enabled: boolean }
 >({});
 
+/** Kuusi Settings → Notebook: what a file without its own switch starts as. */
+let defaultEnabled = true;
+
 export const getNotebookAutoReloadEnabled = (path: string): boolean =>
-  enabledByPath.get(path) ?? true;
+  enabledByPath.get(path) ?? defaultEnabled;
+
+export const getNotebookAutoReloadDefault = (): boolean => defaultEnabled;
+
+/**
+ * Change the default for files the user has not switched themselves (the
+ * per-file switch in the … menu always wins). Open views follow at once.
+ */
+export const setNotebookAutoReloadDefault = (enabled: boolean): void => {
+  if (defaultEnabled === enabled) {
+    return;
+  }
+
+  defaultEnabled = enabled;
+
+  for (const [path, listeners] of listenersByPath) {
+    if (enabledByPath.has(path)) {
+      continue;
+    }
+
+    for (const listener of listeners) {
+      listener.syncPolling();
+    }
+
+    notebookAutoReloadChanged.emit({ path, enabled });
+  }
+};
 
 export const setNotebookAutoReloadEnabled = (
   path: string,
@@ -22,11 +51,13 @@ export const setNotebookAutoReloadEnabled = (
 ): void => {
   const previous = getNotebookAutoReloadEnabled(path);
 
+  // Remember an explicit choice even when it equals the default, so a later
+  // change of the default does not override it.
+  enabledByPath.set(path, enabled);
+
   if (previous === enabled) {
     return;
   }
-
-  enabledByPath.set(path, enabled);
 
   for (const listener of listenersByPath.get(path) ?? []) {
     listener.syncPolling();

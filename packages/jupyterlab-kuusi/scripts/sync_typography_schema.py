@@ -50,6 +50,7 @@ SHARED_KEYS = [
     "imageBorderWidth",
     "imageBorderColor",
     "imageRadius",
+    "imageScale",
 ]
 
 HEADER_COLOR_DESC = {
@@ -186,6 +187,10 @@ VIEW_META: dict[str, dict[str, Any]] = {
                 "title": "Article image corner radius",
                 "description": "Image corner radius in px (0–32).",
             },
+            "imageScale": {
+                "title": "Article image scale",
+                "description": "Display size of images as a percentage of the size chosen by Article image width.",
+            },
         },
     },
     "slides": {
@@ -312,6 +317,10 @@ VIEW_META: dict[str, dict[str, Any]] = {
                 "title": "Slides image corner radius",
                 "description": "Image corner radius in px (0–32).",
             },
+            "imageScale": {
+                "title": "Slides image scale",
+                "description": "Display size of images as a percentage of the size chosen by Slides image width.",
+            },
         },
     },
     "mindmap": {
@@ -430,6 +439,10 @@ VIEW_META: dict[str, dict[str, Any]] = {
             "imageRadius": {
                 "title": "Mind map image corner radius",
                 "description": "Image corner radius in px (0–32).",
+            },
+            "imageScale": {
+                "title": "Mind map image scale",
+                "description": "Display size of images as a percentage of the size chosen by Mind map image width.",
             },
         },
     },

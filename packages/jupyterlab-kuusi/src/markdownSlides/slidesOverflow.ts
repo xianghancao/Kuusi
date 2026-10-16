@@ -79,6 +79,24 @@ export const splitSlideIntoBlocks = (source: string): SlideBodyBlock[] => {
       continue;
     }
 
+    // MyST `:::{figure} src` / `:::{image} src`: options, a blank line and the
+    // caption all belong to one block, so the page break never falls inside.
+    const mystOpen = trimmed.match(/^(:{3,})\s*\{(?:figure|image)\}/i);
+    if (mystOpen) {
+      const chunk = [line];
+      i += 1;
+      while (i < lines.length) {
+        const cur = lines[i] ?? "";
+        chunk.push(cur);
+        i += 1;
+        if (new RegExp(`^:{${mystOpen[1].length},}\\s*$`).test(cur.trim())) {
+          break;
+        }
+      }
+      blocks.push({ kind: "content", text: chunk.join("\n") });
+      continue;
+    }
+
     if (/^:::\s*(block|alert|example|columns|column)\b/i.test(trimmed)) {
       const chunk = [line];
       let depth = 1;

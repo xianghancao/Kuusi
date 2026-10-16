@@ -96,6 +96,14 @@
       ],
       "default": 2
     },
+    "imageScale": {
+      "title": "Book image scale",
+      "description": "Display size of images as a percentage of the size chosen by Book image width.",
+      "type": "number",
+      "minimum": 10,
+      "maximum": 100,
+      "default": 100
+    },
     "columnGap": {
       "title": "Book spine gap",
       "description": "Space between facing pages, in rem (1–4).",
@@ -462,6 +470,15 @@
       "enum": ["auto", "left", "center", "right"],
       "default": "auto"
     },
+    "tableColumnWidth": {
+      "title": "Book table column width",
+      "type": "string",
+      "enum": [
+        "auto",
+        "equal"
+      ],
+      "default": "auto"
+    },
     "listStyle": {
       "type": "string",
       "enum": [
@@ -494,6 +511,27 @@
       "default": "light",
       "title": "Divider weight",
       "description": "Stroke weight for horizontal rules."
+    },
+    "hrThickness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 8,
+      "default": 0,
+      "title": "Divider thickness",
+      "description": "Thickness of horizontal rules in px; 0 follows the divider weight."
+    },
+    "hrStyle": {
+      "type": "string",
+      "enum": ["solid", "dashed", "dotted", "double"],
+      "default": "solid",
+      "title": "Divider line style",
+      "description": "Line style of horizontal rules."
+    },
+    "hrColor": {
+      "type": "string",
+      "default": "",
+      "title": "Divider color",
+      "description": "Color of horizontal rules, as a CSS color; empty keeps the divider weight's own."
     },
     "imageWidth": {
       "title": "Book image width",

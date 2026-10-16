@@ -17,6 +17,24 @@
       "type": "boolean",
       "default": true
     },
+    "cellBarColor": {
+      "title": "Command-mode cell bar color",
+      "description": "CSS hex color of the bar beside the selected notebook cell in command mode. Empty keeps JupyterLab's own color.",
+      "type": "string",
+      "default": ""
+    },
+    "autoReloadDefault": {
+      "title": "Auto reload by default",
+      "description": "Reload notebooks and Markdown views when the file changes on disk. Each file can still be switched in its … menu.",
+      "type": "boolean",
+      "default": true
+    },
+    "cellBorderColor": {
+      "title": "Selected cell border color",
+      "description": "CSS hex color of the border round the selected notebook cell. Empty keeps JupyterLab's own color.",
+      "type": "string",
+      "default": ""
+    },
     "enabledViews": {
       "title": "Enabled views",
       "description": "Views shown in the view menu. Article, Book and Slides are off by default (still in testing); turn them on here.",

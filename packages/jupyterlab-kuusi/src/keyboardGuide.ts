@@ -1,3 +1,4 @@
+import { createCapsuleCollapseRow } from "./capsuleCollapseRow";
 import type { KuusiTranslator } from "./kuusiI18n";
 import { closeKuusiDropdownMenus, openKuusiDropdownMenu } from "./formatToolbar";
 import { mindMapIcon } from "./kuusiIcon";
@@ -138,6 +139,8 @@ export const createMindMapShortcutMenu = (
     "jp-KuusiFormatDropdown-menu jp-KuusiFormatDropdown-menu-wide jp-KuusiGuideDropdown-menu";
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", t.keyboardShortcuts());
+  const collapseRow = createCapsuleCollapseRow(t);
+  menu.appendChild(collapseRow.node);
   appendKeyboardGuideContent(menu, t);
 
   trigger.addEventListener("click", (event) => {
@@ -145,6 +148,7 @@ export const createMindMapShortcutMenu = (
     const isOpen = menu.classList.contains("is-open");
     closeKuusiDropdownMenus(root);
     if (!isOpen) {
+      collapseRow.sync();
       openKuusiDropdownMenu(menu, root);
     }
   });

@@ -15,6 +15,10 @@ import {
 import type { Contents } from "@jupyterlab/services";
 import { IRenderMimeRegistry } from "@jupyterlab/rendermime";
 import { ISettingRegistry } from "@jupyterlab/settingregistry";
+import {
+  capsuleAutoCollapseChanged,
+  loadCapsuleAutoCollapse,
+} from "../capsuleCollapseSettings";
 import { attachDiskAutoReload } from "../diskAutoReload";
 import {
   onDefaultOpenersStateChanged,
@@ -198,6 +202,10 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
           void settings.set("activeLineStyle", next.style);
           void settings.set("activeLineColor", next.color);
         });
+        loadCapsuleAutoCollapse(settings.get("capsuleAutoCollapse").composite);
+        capsuleAutoCollapseChanged.connect((_, next) => {
+          void settings.set("capsuleAutoCollapse", next);
+        });
 
         defaultEditorLivePreview =
           typeof editorValue === "boolean" ? editorValue : true;
@@ -312,6 +320,9 @@ const markdownPreviewPlugin: JupyterFrontEndPlugin<void> = {
         const path = (): string => widget.context.path;
         const handle = attachDiskAutoReload(widget.context, contents, {
           getEnabled: () => getNotebookAutoReloadEnabled(path()),
+          // The preview shares the editor's context: reverting after a local
+          // save would replace the source and send the caret to line 1.
+          suppressFileChangedRevert: true,
         });
         const unregister = registerNotebookAutoReloadListener(path(), handle);
         state = {

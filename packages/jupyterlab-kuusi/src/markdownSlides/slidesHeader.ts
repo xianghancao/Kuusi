@@ -63,3 +63,50 @@ export const resolveSlideHeaderText = (
 
   return "";
 };
+
+/** Running heading of `level` at or before slide `index` ("" when none). */
+const runningHeading = (
+  level: number,
+  slideSources: readonly string[],
+  index: number,
+): string => {
+  const end = Math.max(0, Math.min(index, slideSources.length - 1));
+
+  for (let i = end; i >= 0; i -= 1) {
+    const text = headingTextInSource(slideSources[i] ?? "", level);
+    if (text) {
+      return text;
+    }
+  }
+
+  return "";
+};
+
+export type SlideTokenContext = {
+  /** Deck title. */
+  title: string;
+  /** Page label parts (the numbering start is already applied). */
+  page: string;
+  total: string;
+  slideSources: readonly string[];
+  index: number;
+};
+
+/**
+ * Fill `{title}`, `{chapter}` (nearest H1), `{section}` (nearest H2),
+ * `{subsection}` (nearest H3), `{page}`, `{total}` / `{pages}` and `{date}` in
+ * a header / footer template (the same tokens as the Article's page furniture).
+ */
+export const fillSlideTokens = (
+  template: string,
+  context: SlideTokenContext,
+): string =>
+  template
+    .replace(/\{title\}/g, context.title)
+    .replace(/\{chapter\}/g, runningHeading(1, context.slideSources, context.index))
+    .replace(/\{section\}/g, runningHeading(2, context.slideSources, context.index))
+    .replace(/\{subsection\}/g, runningHeading(3, context.slideSources, context.index))
+    .replace(/\{date\}/g, new Date().toLocaleDateString())
+    .replace(/\{(?:total|pages)\}/g, context.total)
+    .replace(/\{page\}/g, context.page)
+    .trim();

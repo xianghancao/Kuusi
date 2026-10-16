@@ -115,6 +115,21 @@ type ContainerNode = {
   body: string;
 };
 
+/** MyST `:::{figure} src` / `:::{image} src` (also as a backtick fence). */
+const MYST_IMAGE_OPEN_RE = /^(:{3,}|`{3,})\s*\{(figure|image)\}\s*(\S.*)$/i;
+
+const MYST_ALIGN = new Set(["left", "center", "right"]);
+
+/** A CSS length from a MyST `:width:`; a bare number is a pixel width. */
+const mystLength = (value: string | undefined): string | null => {
+  const v = (value ?? "").trim();
+  return /^\d+(?:\.\d+)?(?:%|px|em|rem|vw|cm|mm|in|pt)?$/.test(v)
+    ? /^\d+(?:\.\d+)?$/.test(v)
+      ? `${v}px`
+      : v
+    : null;
+};
+
 const OPEN_RE = /^:::\s*(block|alert|example|columns|column)(?:\s+(.*))?$/i;
 
 /** Survives Markdown parsing; replaced with rendered widget HTML afterward. */
@@ -289,7 +304,80 @@ export const expandPresentationContainers = async (
     return columns;
   };
 
+  // MyST figure / image directive: the slide parser has no MyST, so build the
+  // <figure> here (options :width: :align: :alt:, the rest is the caption).
+  const readMystImage = async (
+    start: number,
+    fence: string,
+    kind: string,
+    src: string,
+  ): Promise<{ html: string; nextIndex: number } | null> => {
+    const marker = fence[0];
+    let end = start + 1;
+    while (
+      end < lines.length &&
+      !new RegExp(`^\\${marker}{${fence.length},}\\s*$`).test(lines[end].trim())
+    ) {
+      end += 1;
+    }
+    if (end >= lines.length) {
+      return null;
+    }
+
+    const options: Record<string, string> = {};
+    let k = start + 1;
+    for (; k < end; k += 1) {
+      const opt = lines[k].trim().match(/^:([\w-]+):\s*(.*)$/);
+      if (!opt) {
+        break;
+      }
+      options[opt[1].toLowerCase()] = opt[2];
+    }
+    const caption = lines.slice(k, end).join("\n").trim();
+    const width = mystLength(options.width);
+    const align = MYST_ALIGN.has((options.align ?? "").toLowerCase())
+      ? options.align.toLowerCase()
+      : "center";
+    const style = [
+      width ? `width:${width}` : "",
+      align === "center"
+        ? "margin-left:auto;margin-right:auto"
+        : align === "right"
+          ? "margin-left:auto;margin-right:0"
+          : "margin-left:0;margin-right:auto",
+    ]
+      .filter(Boolean)
+      .join(";");
+    const imgTag = (imgStyle: string): string =>
+      `<img src="${escapeHtml(src.trim())}" alt="${escapeHtml(options.alt ?? "")}" style="${imgStyle}">`;
+    if (kind.toLowerCase() === "image" || !caption) {
+      return { html: `<p>${imgTag(style)}</p>`, nextIndex: end + 1 };
+    }
+    const img = imgTag("width:100%");
+    const captionHtml = (await renderMarkdown(caption)).replace(/^<p>|<\/p>\s*$/g, "");
+    return {
+      html: `<figure class="jp-KuusiSlides-figure" style="${style}">${img}<figcaption>${captionHtml}</figcaption></figure>`,
+      nextIndex: end + 1,
+    };
+  };
+
   while (i < lines.length) {
+    const myst = lines[i].trim().match(MYST_IMAGE_OPEN_RE);
+    if (myst) {
+      const parsedImage = await readMystImage(i, myst[1], myst[2], myst[3]);
+      if (parsedImage) {
+        if (output.length > 0 && output[output.length - 1].trim() !== "") {
+          output.push("");
+        }
+        const widgetIndex = widgets.length;
+        widgets.push(parsedImage.html);
+        output.push(widgetPlaceholder(widgetIndex));
+        output.push("");
+        i = parsedImage.nextIndex;
+        continue;
+      }
+    }
+
     const open = lines[i].trim().match(OPEN_RE);
     if (!open) {
       output.push(lines[i]);

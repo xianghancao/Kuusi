@@ -10,6 +10,11 @@ import {
 import {
   DEFAULT_BLOCKQUOTE_WEIGHT,
   DEFAULT_HR_WEIGHT,
+  DEFAULT_HR_STYLE,
+  DEFAULT_HR_THICKNESS,
+  HR_THICKNESS_RANGE,
+  isRuleLineStyle,
+  type RuleLineStyle,
   DEFAULT_LIST_STYLE,
   isListStyle,
   isRuleWeight,
@@ -24,8 +29,10 @@ import {
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
   isTableAlign,
+  isTableColumnWidth,
   isTableStyle,
   type TableAlign,
+  type TableColumnWidth,
   type TableStyle,
 } from "./tableSettings";
 import {
@@ -106,12 +113,16 @@ export type TypographyValues = {
   tableHeaderColumnBold: boolean;
   tableHeaderRowAlign: TableAlign;
   tableHeaderColumnAlign: TableAlign;
+  tableColumnWidth: TableColumnWidth;
   /** List spacing density. */
   listStyle: ListStyle;
   /** Blockquote rule weight. */
   blockquoteWeight: RuleWeight;
   /** Horizontal-rule weight. */
   hrWeight: RuleWeight;
+  hrThickness: number;
+  hrColor: string;
+  hrStyle: RuleLineStyle;
   codeBackground: string;
   blockquoteBackground: string;
   blockquoteColor: string;
@@ -124,6 +135,8 @@ export type TypographyValues = {
   /** Empty string follows the page foreground. */
   imageBorderColor: string;
   imageRadius: number;
+  /** Image display scale in % of the size the Size option gives. */
+  imageScale: number;
 };
 
 export type NumberRange = { min: number; max: number; step: number };
@@ -167,6 +180,7 @@ export const CODE_WIDTH_RANGE: NumberRange = { min: 40, max: 100, step: 5 };
 export { TABLE_BORDER_RANGE, TABLE_TRANSPARENCY_RANGE };
 export const IMAGE_BORDER_RANGE: NumberRange = { min: 0, max: 12, step: 1 };
 export const IMAGE_RADIUS_RANGE: NumberRange = { min: 0, max: 32, step: 1 };
+export const IMAGE_SCALE_RANGE: NumberRange = { min: 10, max: 100, step: 5 };
 
 /** Map a saved em value to pt when it still sits in the old em range. */
 export const migrateEmToPt = (
@@ -341,9 +355,13 @@ export const DEFAULT_TYPOGRAPHY_VALUES: TypographyValues = {
   tableHeaderColumnBold: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnBold,
   tableHeaderRowAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderRowAlign,
   tableHeaderColumnAlign: DEFAULT_TABLE_APPEARANCE.tableHeaderColumnAlign,
+  tableColumnWidth: DEFAULT_TABLE_APPEARANCE.tableColumnWidth,
   listStyle: DEFAULT_LIST_STYLE,
   blockquoteWeight: DEFAULT_BLOCKQUOTE_WEIGHT,
   hrWeight: DEFAULT_HR_WEIGHT,
+  hrThickness: DEFAULT_HR_THICKNESS,
+  hrColor: "",
+  hrStyle: DEFAULT_HR_STYLE,
   codeBackground: "",
   blockquoteBackground: "",
   blockquoteColor: "",
@@ -355,6 +373,7 @@ export const DEFAULT_TYPOGRAPHY_VALUES: TypographyValues = {
   imageBorderWidth: 1,
   imageBorderColor: "",
   imageRadius: 0,
+  imageScale: 100,
 };
 
 export const normalizeTypographyValues = (
@@ -456,11 +475,17 @@ export const normalizeTypographyValues = (
     tableHeaderColumnAlign: isTableAlign(raw.tableHeaderColumnAlign)
       ? raw.tableHeaderColumnAlign
       : fallback.tableHeaderColumnAlign,
+    tableColumnWidth: isTableColumnWidth(raw.tableColumnWidth)
+      ? raw.tableColumnWidth
+      : fallback.tableColumnWidth,
     listStyle: isListStyle(raw.listStyle) ? raw.listStyle : fallback.listStyle,
     blockquoteWeight: isRuleWeight(raw.blockquoteWeight)
       ? raw.blockquoteWeight
       : fallback.blockquoteWeight,
     hrWeight: isRuleWeight(raw.hrWeight) ? raw.hrWeight : fallback.hrWeight,
+    hrThickness: normalizeInRange(raw.hrThickness, HR_THICKNESS_RANGE, fallback.hrThickness),
+    hrColor: isTypographyColor(raw.hrColor) ? raw.hrColor : fallback.hrColor,
+    hrStyle: isRuleLineStyle(raw.hrStyle) ? raw.hrStyle : fallback.hrStyle,
     codeBackground: isTypographyColor(raw.codeBackground)
       ? raw.codeBackground
       : fallback.codeBackground,
@@ -495,6 +520,11 @@ export const normalizeTypographyValues = (
       raw.imageRadius,
       IMAGE_RADIUS_RANGE,
       fallback.imageRadius,
+    ),
+    imageScale: normalizeInRange(
+      raw.imageScale,
+      IMAGE_SCALE_RANGE,
+      fallback.imageScale,
     ),
   };
 };

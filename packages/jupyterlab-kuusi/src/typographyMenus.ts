@@ -10,9 +10,12 @@ import {
   type CodeFont,
   type CodeTheme,
 } from "./codeThemes";
-import { type TableAlign, type TableStyle } from "./tableSettings";
+import { type TableAlign,
+  type TableColumnWidth, type TableStyle } from "./tableSettings";
 import {
   type ListStyle,
+  HR_THICKNESS_RANGE,
+  type RuleLineStyle,
   type RuleWeight,
 } from "./elementChromeSettings";
 import { CAPSULE_MENU_SECONDARY, createCapsuleDropdown } from "./capsuleDropdown";
@@ -88,6 +91,7 @@ import {
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
   headingId,
+  IMAGE_SCALE_RANGE,
   updateHeadingStyle,
   type CodeStyle,
   type HeadingId,
@@ -128,14 +132,17 @@ export type TypographyModel = {
   tableRepeatHeader?: { get: () => boolean; set: (value: boolean) => void };
   /** View-specific controls appended to an Elements panel (Article only). */
   extras?: Partial<
-    Record<"code" | "image" | "table" | "links", () => PanelWidget[]>
+    Record<
+      "code" | "image" | "table" | "links" | "paragraph",
+      (rebuild?: () => void) => PanelWidget[]
+    >
   >;
   lineHeightRange: NumberRange;
   /** Present on Mind Map: Text menu adds Edit / Link tabs. */
   editMode?: TypographyEditMode;
 };
 
-type ParagraphSection = "spacing" | "indent" | "align";
+type ParagraphSection = "spacing" | "indent" | "align" | "typeset";
 type CodeSection =
   | "theme"
   | "family"
@@ -616,10 +623,17 @@ export const createParagraphToolbar = (
           { id: "spacing", label: t.paragraphSpacing() },
           { id: "indent", label: t.paragraphIndent() },
           { id: "align", label: t.alignment() },
+          ...(model.extras?.paragraph
+            ? [{ id: "typeset" as const, label: t.typesettingSection() }]
+            : []),
         ],
         getActive: () => {
           const raw = section.get();
-          return raw === "indent" || raw === "align" ? raw : "spacing";
+          return raw === "indent" ||
+            raw === "align" ||
+            (raw === "typeset" && model.extras?.paragraph)
+            ? raw
+            : "spacing";
         },
         setActive: section.set,
         fillSection: (id, panel) => {
@@ -633,6 +647,11 @@ export const createParagraphToolbar = (
                 (paragraphSpacing) => model.update({ paragraphSpacing }),
               ),
             ]);
+            return;
+          }
+
+          if (id === "typeset") {
+            renderPanelWidgets(panel, model.extras?.paragraph?.(rebuild) ?? []);
             return;
           }
 
@@ -1029,6 +1048,13 @@ const fillImageSection = (
           rebuild();
         },
       },
+      slider(
+        t.imageScale(),
+        values.imageScale,
+        IMAGE_SCALE_RANGE,
+        (value) => `${value}%`,
+        (imageScale) => model.update({ imageScale }),
+      ),
     ]);
     return;
   }
@@ -1157,6 +1183,26 @@ const getTableAlignOptions = (t: KuusiTranslator): ChoiceOption[] => [
   { value: "right", label: t.alignRight(), title: t.alignRight() },
 ];
 
+const getTableColumnWidthOptions = (t: KuusiTranslator): ChoiceOption[] => [
+  {
+    value: "auto",
+    label: t.tableColumnsAuto(),
+    title: t.tableColumnsAutoTitle(),
+  },
+  {
+    value: "equal",
+    label: t.tableColumnsEqual(),
+    title: t.tableColumnsEqualTitle(),
+  },
+];
+
+const getRuleLineStyleOptions = (t: KuusiTranslator): ChoiceOption[] => [
+  { value: "solid", label: t.hrStyleSolid(), title: t.hrStyleSolid() },
+  { value: "dashed", label: t.hrStyleDashed(), title: t.hrStyleDashed() },
+  { value: "dotted", label: t.hrStyleDotted(), title: t.hrStyleDotted() },
+  { value: "double", label: t.hrStyleDouble(), title: t.hrStyleDouble() },
+];
+
 const getTableStyleOptions = (t: KuusiTranslator): ChoiceOption[] =>
   withLegend(getTableStyleOptionsRaw(t), legendTableStyle);
 
@@ -1246,6 +1292,16 @@ const fillTableSection = (
       options: getTableAlignOptions(t),
       onChange: (value) => {
         model.update({ tableHeaderColumnAlign: value as TableAlign });
+        rebuild();
+      },
+    },
+    {
+      kind: "choice",
+      sectionLabel: t.tableColumnWidth(),
+      value: values.tableColumnWidth,
+      options: getTableColumnWidthOptions(t),
+      onChange: (value) => {
+        model.update({ tableColumnWidth: value as TableColumnWidth });
         rebuild();
       },
     },
@@ -1404,6 +1460,33 @@ const fillQuotePanel = (
       onChange: (value) => {
         model.update({ hrWeight: value as RuleWeight });
         rebuild();
+      },
+    },
+    slider(
+      t.hrThickness(),
+      values.hrThickness,
+      HR_THICKNESS_RANGE,
+      (value) => (value === 0 ? t.hrThicknessAuto() : `${value}px`),
+      (hrThickness) => model.update({ hrThickness }),
+    ),
+    {
+      kind: "choice",
+      sectionLabel: t.hrStyle(),
+      value: values.hrStyle,
+      options: getRuleLineStyleOptions(t),
+      onChange: (value) => {
+        model.update({ hrStyle: value as RuleLineStyle });
+        rebuild();
+      },
+    },
+    {
+      kind: "color",
+      sectionLabel: t.hrColor(),
+      value: values.hrColor,
+      swatches: APPEARANCE_COLOR_SWATCHES,
+      includeDefaultSwatch: true,
+      onChange: (hrColor) => {
+        model.update({ hrColor });
       },
     },
   ]);

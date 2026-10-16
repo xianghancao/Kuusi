@@ -26,6 +26,41 @@
   vertical-align: top;
 }
 
+/* Column width. JupyterLab styles rendered tables with table-layout: fixed
+   (equal columns); Kuusi's default is content-fitted columns, and "equal"
+   brings the fixed layout back on purpose. */
+:is(
+    .jp-KuusiArticle-paper,
+    .jp-KuusiBook-paper,
+    .jp-KuusiMarkdownSlides,
+    .jp-KuusiMindMapNotebook-scene
+  ):not([data-kuusi-table-columns="equal"])
+  table {
+  table-layout: auto;
+}
+
+:is(
+    .jp-KuusiArticle-paper,
+    .jp-KuusiBook-paper,
+    .jp-KuusiMarkdownSlides,
+    .jp-KuusiMindMapNotebook-scene
+  )[data-kuusi-table-columns="equal"]
+  table {
+  table-layout: fixed;
+}
+
+/* Content-fitted columns size by their longest word; a long path or URL still
+   wraps inside its cell instead of crushing every other column. */
+:is(
+    .jp-KuusiArticle-paper,
+    .jp-KuusiBook-paper,
+    .jp-KuusiMarkdownSlides,
+    .jp-KuusiMindMapNotebook-scene
+  ):not([data-kuusi-table-columns="equal"])
+  :is(th, td) {
+  overflow-wrap: break-word;
+}
+
 /* Fixed-width columns: a long path or URL (no spaces) must wrap inside its cell,
    not run over the next column and row. */
 .jp-KuusiArticle-paper :is(th, td),

@@ -7,7 +7,11 @@ import { Widget } from "@lumino/widgets";
  * after release, so the content keeps the old width with blank bands beside it.
  * Clear them and re-fit once the drag has ended and JupyterLab has unfrozen.
  */
-export const refitAfterDockResize = (widget: Widget, content: Widget): void => {
+export const refitAfterDockResize = (
+  widget: Widget,
+  content: Widget,
+  options: { pinWidth?: boolean } = {},
+): void => {
   const timers = new Set<number>();
 
   const refit = (): void => {
@@ -21,6 +25,19 @@ export const refitAfterDockResize = (widget: Widget, content: Widget): void => {
       style.removeProperty("max-height");
       MessageLoop.sendMessage(widget, Widget.Msg.FitRequest);
       MessageLoop.sendMessage(widget, Widget.ResizeMessage.UnknownSize);
+      if (options.pinWidth) {
+        // The content is absolutely positioned (Lumino BoxLayout) with no CSS
+        // width to fall back on, and Lumino will not rewrite a width it
+        // already cached — so pin the width the pane really has now.
+        const box = getComputedStyle(widget.node);
+        const inner =
+          widget.node.clientWidth -
+          (parseFloat(box.paddingLeft) || 0) -
+          (parseFloat(box.paddingRight) || 0);
+        if (inner > 0) {
+          style.width = `${inner}px`;
+        }
+      }
     }
   };
 

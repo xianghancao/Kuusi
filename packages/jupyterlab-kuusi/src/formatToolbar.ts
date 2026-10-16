@@ -110,6 +110,10 @@ const closeAllMenus = (root: HTMLElement): void => {
   root
     .closest(".jp-KuusiEditorFormatCluster")
     ?.classList.remove("is-pinned");
+  // View capsules sit inside the panel and fold away unless pinned open.
+  root
+    .querySelectorAll(".jp-KuusiToolbarCluster--page.is-pinned")
+    .forEach((cluster) => cluster.classList.remove("is-pinned"));
 };
 
 export const closeKuusiDropdownMenus = closeAllMenus;
@@ -441,7 +445,7 @@ export const openKuusiDropdownMenu = (
   // Keep the collapsible editor format pill expanded while a menu is open
   // (menus portal to body, so :hover on the pill alone would collapse it).
   const editorCluster = (home ?? menu).closest(
-    ".jp-KuusiEditorFormatCluster",
+    ".jp-KuusiEditorFormatCluster, .jp-KuusiToolbarCluster--page",
   );
   if (editorCluster instanceof HTMLElement) {
     editorCluster.classList.add("is-pinned");

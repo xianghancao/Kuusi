@@ -53,9 +53,13 @@ export const mindMapSettingsToTypography = (
   tableHeaderColumnBold: settings.tableHeaderColumnBold,
   tableHeaderRowAlign: settings.tableHeaderRowAlign,
   tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
+  tableColumnWidth: settings.tableColumnWidth,
   listStyle: settings.listStyle,
   blockquoteWeight: settings.blockquoteWeight,
   hrWeight: settings.hrWeight,
+  hrThickness: settings.hrThickness,
+  hrColor: settings.hrColor,
+  hrStyle: settings.hrStyle,
   codeBackground: settings.codeBackground,
   blockquoteBackground: settings.blockquoteBackground,
   blockquoteColor: settings.blockquoteColor,
@@ -67,6 +71,7 @@ export const mindMapSettingsToTypography = (
   imageBorderWidth: settings.imageBorderWidth,
   imageBorderColor: settings.imageBorderColor,
   imageRadius: settings.imageRadius,
+  imageScale: settings.imageScale,
 });
 
 export const typographyPatch = (

@@ -15,6 +15,11 @@ import type { TypographyModel } from "../typographyMenus";
 import {
   DEFAULT_SLIDES_SETTINGS,
   SLIDES_LINE_HEIGHT_RANGE,
+  SLIDES_HEADER_HEIGHT_RANGE,
+  SLIDES_CHROME_FONT_SIZE_RANGE,
+  SLIDES_FOOTER_RULE_RANGE,
+  SLIDES_CHROME_OPACITY_RANGE,
+  SLIDES_PROGRESS_HEIGHT_RANGE,
   slidesThemeChrome,
   type SlidesSettings,
   type SlidesContentAlign,
@@ -27,7 +32,8 @@ import {
   type PageNumberStart,
 } from "./slidesSettings";
 import type { MarkdownSlideSplitMode } from "./splitMarkdownSlides";
-import { getTextAlignOptions } from "../typographyMenus";
+import type { MindMapFont } from "../fontToolbar";
+import { buildFontWidgets, getTextAlignOptions } from "../typographyMenus";
 import type { TextAlign } from "../typographySettings";
 
 type PageSection =
@@ -35,10 +41,17 @@ type PageSection =
   | "split"
   | "align"
   | "padding"
-  | "header"
-  | "footer"
   | "chrome"
   | "status";
+
+type FurnitureSection =
+  | "header"
+  | "headerStyle"
+  | "footer"
+  | "footerStyle"
+  | "progress";
+
+let lastFurnitureSection: FurnitureSection = "header";
 
 let lastPageSection: PageSection = "ratio";
 
@@ -284,6 +297,93 @@ const SLIDES_PAGE_KEYS = [
   "stageShadow",
 ] as const satisfies ReadonlyArray<keyof SlidesSettings>;
 
+const SLIDES_FURNITURE_KEYS = [
+  "showHeader",
+  "headerSource",
+  "headerCustomText",
+  "headerHeight",
+  "headerFont",
+  "headerFontSize",
+  "headerColor",
+  "headerTextColor",
+  "headerOpacity",
+  "showFooter",
+  "footerText",
+  "showPageNumber",
+  "pageNumberStyle",
+  "pageNumberAlign",
+  "pageNumberStart",
+  "footerRuleWidth",
+  "footerColor",
+  "footerBackground",
+  "footerOpacity",
+  "footerFont",
+  "footerFontSize",
+  "showProgress",
+  "progressHeight",
+  "progressColor",
+  "progressOpacity",
+  "progressShadow",
+] as const satisfies ReadonlyArray<keyof SlidesSettings>;
+
+/** Header, footer and progress bar: their own menu, beside Page. */
+export const createSlidesHeaderFooterToolbar = (
+  root: HTMLElement,
+  manager: SlidesSettingsManager,
+  t: KuusiTranslator,
+): HTMLElement => {
+  const reset = createKeyedReset<SlidesSettings>({
+    keys: SLIDES_FURNITURE_KEYS,
+    getSettings: () => manager.settings,
+    baseline: (settings) => ({
+      ...DEFAULT_SLIDES_SETTINGS,
+      ...slidesThemeChrome(settings.theme),
+    }),
+    update: (partial) => manager.update(partial),
+  });
+
+  return createCapsuleDropdown(root, {
+    isCustomized: reset.isCustomized,
+    connectSync: (listener) => manager.changed.connect(listener),
+    footer: (menu, rebuild) => {
+      appendMenuFooterAction(menu, {
+        label: t.resetPageSettings(),
+        title: t.resetPageSettingsTitle(),
+        disabled: !reset.isCustomized(),
+        onClick: () => {
+          reset.reset();
+          rebuild();
+        },
+      });
+    },
+    toolbarClass: "jp-KuusiSlides-furniture-toolbar",
+    dropdownClass: "jp-KuusiSlidesFurnitureDropdown",
+    triggerClass: "jp-KuusiSlidesFurnitureDropdown-trigger",
+    ariaLabel: t.headerFooter(),
+    triggerLabel: t.headerFooter(),
+    menuClassName: CAPSULE_MENU_SECONDARY,
+    fillMenu: (menu, rebuild) => {
+      mountSecondaryMenu<FurnitureSection>(menu, {
+        ariaLabel: t.headerFooter(),
+        sections: [
+          { id: "header", label: t.pageHeader() },
+          { id: "headerStyle", label: t.slidesHeaderStyle() },
+          { id: "footer", label: t.pageFooter() },
+          { id: "footerStyle", label: t.slidesFooterStyle() },
+          { id: "progress", label: t.slidesProgress() },
+        ],
+        getActive: () => lastFurnitureSection,
+        setActive: (id) => {
+          lastFurnitureSection = id;
+        },
+        fillSection: (id, panel) => {
+          fillSlideChromeSection(id, panel, manager, t, rebuild);
+        },
+      });
+    },
+  });
+};
+
 export const createSlidesPageToolbar = (
   root: HTMLElement,
   manager: SlidesSettingsManager,
@@ -328,9 +428,7 @@ export const createSlidesPageToolbar = (
           { id: "split", label: t.slidesSplit(), group: t.layout() },
           { id: "align", label: t.slidesAlign(), group: t.layout() },
           { id: "padding", label: t.padding(), group: t.surface() },
-          { id: "header", label: t.pageHeader(), group: t.headerFooter() },
-          { id: "footer", label: t.pageFooter(), group: t.headerFooter() },
-          { id: "chrome", label: t.slidesChrome(), group: t.headerFooter() },
+          { id: "chrome", label: t.slidesChrome(), group: t.surface() },
           {
             id: "status",
             label: t.backgroundStatusSection(),
@@ -342,7 +440,7 @@ export const createSlidesPageToolbar = (
           lastPageSection = id;
         },
         fillSection: (id, panel) => {
-          if (id === "header" || id === "footer" || id === "chrome") {
+          if (id === "chrome") {
             fillSlideChromeSection(id, panel, manager, t, rebuild);
             return;
           }
@@ -438,7 +536,13 @@ export const createSlidesPageToolbar = (
   });
 };
 
-type SlideChromeSection = "header" | "footer" | "chrome";
+type SlideChromeSection =
+  | "header"
+  | "headerStyle"
+  | "footer"
+  | "footerStyle"
+  | "progress"
+  | "chrome";
 
 /** Header, footer, and presentation chrome toggles as separate secondary tabs. */
 const fillSlideChromeSection = (
@@ -464,6 +568,23 @@ const fillSlideChromeSection = (
       update(next);
       rebuild();
     },
+  });
+
+  const chromeSlider = (
+    label: string,
+    value: number,
+    range: { min: number; max: number; step: number },
+    unit: string,
+    onChange: (value: number) => void,
+  ) => ({
+    kind: "slider" as const,
+    label,
+    value,
+    min: range.min,
+    max: range.max,
+    step: range.step,
+    formatValue: (v: number) => `${v}${unit}`,
+    onChange,
   });
 
   if (id === "header") {
@@ -523,6 +644,57 @@ const fillSlideChromeSection = (
     return;
   }
 
+  if (id === "headerStyle") {
+    renderPanelWidgets(panel, [
+    ...buildFontWidgets(
+      (settings.headerFont || settings.font) as MindMapFont,
+      (headerFont) => {
+        void manager.update({ headerFont });
+        rebuild();
+      },
+      t,
+    ),
+    chromeSlider(
+      t.slidesChromeFontSize(),
+      settings.headerFontSize,
+      SLIDES_CHROME_FONT_SIZE_RANGE,
+      "px",
+      (headerFontSize) => void manager.update({ headerFontSize }),
+    ),
+    chromeSlider(
+      t.slidesChromeHeight(),
+      settings.headerHeight,
+      SLIDES_HEADER_HEIGHT_RANGE,
+      "px",
+      (headerHeight) => void manager.update({ headerHeight }),
+    ),
+    {
+      kind: "color",
+      sectionLabel: t.slidesChromeColor(),
+      value: settings.headerColor,
+      swatches: APPEARANCE_COLOR_SWATCHES,
+      includeDefaultSwatch: true,
+      onChange: (headerColor) => void manager.update({ headerColor }),
+    },
+    {
+      kind: "color",
+      sectionLabel: t.slidesChromeTextColor(),
+      value: settings.headerTextColor,
+      swatches: APPEARANCE_COLOR_SWATCHES,
+      includeDefaultSwatch: true,
+      onChange: (headerTextColor) => void manager.update({ headerTextColor }),
+    },
+    chromeSlider(
+      t.slidesChromeOpacity(),
+      settings.headerOpacity,
+      SLIDES_CHROME_OPACITY_RANGE,
+      "%",
+      (headerOpacity) => void manager.update({ headerOpacity }),
+    ),
+    ]);
+    return;
+  }
+
   if (id === "footer") {
     renderPanelWidgets(panel, [
       toggle(
@@ -533,6 +705,17 @@ const fillSlideChromeSection = (
           void manager.update({ showFooter: v });
         },
       ),
+      {
+        kind: "text",
+        label: t.slidesFooterText(),
+        title: t.slidesFooterTextTitle(),
+        placeholder: "{title} · {section}",
+        maxLength: 200,
+        value: settings.footerText,
+        onChange: (footerText: string) => {
+          void manager.update({ footerText });
+        },
+      },
       toggle(
         t.slidesPageNumber(),
         t.slidesPageNumberTitle(),
@@ -608,6 +791,126 @@ const fillSlideChromeSection = (
     return;
   }
 
+  if (id === "footerStyle") {
+    renderPanelWidgets(panel, [
+      ...buildFontWidgets(
+        (settings.footerFont || settings.font) as MindMapFont,
+        (footerFont) => {
+          void manager.update({ footerFont });
+          rebuild();
+        },
+        t,
+      ),
+      {
+        kind: "slider",
+        label: t.slidesChromeFontSize(),
+        value: settings.footerFontSize,
+        min: SLIDES_CHROME_FONT_SIZE_RANGE.min,
+        max: SLIDES_CHROME_FONT_SIZE_RANGE.max,
+        step: SLIDES_CHROME_FONT_SIZE_RANGE.step,
+        formatValue: (v: number) => `${v}px`,
+        onChange: (footerFontSize: number) => {
+          void manager.update({ footerFontSize });
+        },
+      },
+      {
+        kind: "slider",
+        label: t.slidesFooterRule(),
+        value: settings.footerRuleWidth,
+        min: SLIDES_FOOTER_RULE_RANGE.min,
+        max: SLIDES_FOOTER_RULE_RANGE.max,
+        step: SLIDES_FOOTER_RULE_RANGE.step,
+        formatValue: (v: number) => `${v}px`,
+        onChange: (footerRuleWidth: number) => {
+          void manager.update({ footerRuleWidth });
+        },
+      },
+      {
+        kind: "color",
+        sectionLabel: t.slidesChromeTextColor(),
+        value: settings.footerColor,
+        swatches: APPEARANCE_COLOR_SWATCHES,
+        includeDefaultSwatch: true,
+        onChange: (footerColor) => void manager.update({ footerColor }),
+      },
+      {
+        kind: "color",
+        sectionLabel: t.slidesChromeBackground(),
+        value: settings.footerBackground,
+        swatches: APPEARANCE_COLOR_SWATCHES,
+        includeDefaultSwatch: true,
+        onChange: (footerBackground) => void manager.update({ footerBackground }),
+      },
+      {
+        kind: "slider",
+        label: t.slidesChromeOpacity(),
+        value: settings.footerOpacity,
+        min: SLIDES_CHROME_OPACITY_RANGE.min,
+        max: SLIDES_CHROME_OPACITY_RANGE.max,
+        step: SLIDES_CHROME_OPACITY_RANGE.step,
+        formatValue: (v: number) => `${v}%`,
+        onChange: (footerOpacity: number) => {
+          void manager.update({ footerOpacity });
+        },
+      },
+    ]);
+    return;
+  }
+
+  if (id === "progress") {
+    renderPanelWidgets(panel, [
+      toggle(
+        t.slidesProgress(),
+        t.slidesProgressTitle(),
+        settings.showProgress,
+        (v) => {
+          void manager.update({ showProgress: v });
+        },
+      ),
+      {
+        kind: "slider",
+        label: t.slidesChromeHeight(),
+        value: settings.progressHeight,
+        min: SLIDES_PROGRESS_HEIGHT_RANGE.min,
+        max: SLIDES_PROGRESS_HEIGHT_RANGE.max,
+        step: SLIDES_PROGRESS_HEIGHT_RANGE.step,
+        formatValue: (v: number) => `${v}px`,
+        onChange: (progressHeight: number) => {
+          void manager.update({ progressHeight });
+        },
+      },
+      {
+        kind: "color",
+        sectionLabel: t.slidesChromeColor(),
+        value: settings.progressColor,
+        swatches: APPEARANCE_COLOR_SWATCHES,
+        includeDefaultSwatch: true,
+        onChange: (progressColor) => void manager.update({ progressColor }),
+      },
+      {
+        kind: "slider",
+        label: t.slidesChromeOpacity(),
+        value: settings.progressOpacity,
+        min: SLIDES_CHROME_OPACITY_RANGE.min,
+        max: SLIDES_CHROME_OPACITY_RANGE.max,
+        step: SLIDES_CHROME_OPACITY_RANGE.step,
+        formatValue: (v: number) => `${v}%`,
+        onChange: (progressOpacity: number) => {
+          void manager.update({ progressOpacity });
+        },
+      },
+      toggle(
+        t.slidesShadow(),
+        t.slidesProgressShadowTitle(),
+        settings.progressShadow,
+        (v) => {
+          void manager.update({ progressShadow: v });
+        },
+      ),
+    ]);
+    return;
+  }
+
   appendDropdownSection(panel, t.slidesPresentationControls());
   renderPanelWidgets(panel, [
     toggle(
@@ -616,14 +919,6 @@ const fillSlideChromeSection = (
       settings.showNavButtons,
       (v) => {
         void manager.update({ showNavButtons: v });
-      },
-    ),
-    toggle(
-      t.slidesProgress(),
-      t.slidesProgressTitle(),
-      settings.showProgress,
-      (v) => {
-        void manager.update({ showProgress: v });
       },
     ),
   ]);

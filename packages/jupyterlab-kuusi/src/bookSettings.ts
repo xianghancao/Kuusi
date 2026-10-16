@@ -1,6 +1,12 @@
 import type { ISettingRegistry } from "@jupyterlab/settingregistry";
 import type { JSONValue } from "@lumino/coreutils";
 import {
+  DEFAULT_HR_STYLE,
+  DEFAULT_HR_THICKNESS,
+  HR_THICKNESS_RANGE,
+  isRuleLineStyle,
+} from "./elementChromeSettings";
+import {
   ARTICLE_PADDING_MAX,
   ARTICLE_PADDING_MIN,
   ARTICLE_PADDING_STEP,
@@ -25,6 +31,7 @@ import {
   TABLE_BORDER_RANGE,
   TABLE_TRANSPARENCY_RANGE,
   isTableAlign,
+  isTableColumnWidth,
   isTableStyle,
 } from "./tableSettings";
 import {
@@ -40,6 +47,7 @@ import {
   CODE_WIDTH_RANGE,
   IMAGE_BORDER_RANGE,
   IMAGE_RADIUS_RANGE,
+  IMAGE_SCALE_RANGE,
   LETTER_SPACING_RANGE,
   PARAGRAPH_INDENT_RANGE,
   PARAGRAPH_SPACING_RANGE,
@@ -235,9 +243,13 @@ export const DEFAULT_BOOK_SETTINGS: BookSettings = {
   tableHeaderColumnBold: ARTICLE_THEME_PRESETS.essay.tableHeaderColumnBold,
   tableHeaderRowAlign: "auto",
   tableHeaderColumnAlign: "auto",
+  tableColumnWidth: "auto",
   listStyle: ARTICLE_THEME_PRESETS.essay.listStyle,
   blockquoteWeight: ARTICLE_THEME_PRESETS.essay.blockquoteWeight,
   hrWeight: ARTICLE_THEME_PRESETS.essay.hrWeight,
+  hrThickness: DEFAULT_HR_THICKNESS,
+  hrColor: "",
+  hrStyle: DEFAULT_HR_STYLE,
   codeBackground: "",
   blockquoteBackground: "",
   blockquoteColor: "",
@@ -249,6 +261,7 @@ export const DEFAULT_BOOK_SETTINGS: BookSettings = {
   imageBorderWidth: ARTICLE_THEME_PRESETS.essay.imageBorderWidth,
   imageBorderColor: "",
   imageRadius: ARTICLE_THEME_PRESETS.essay.imageRadius,
+  imageScale: 100,
   showTextCount: false,
   showPageCount: false,
   showFileSize: false,
@@ -413,6 +426,9 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
     tableHeaderColumnAlign: isTableAlign(source.tableHeaderColumnAlign)
       ? source.tableHeaderColumnAlign
       : defaults.tableHeaderColumnAlign,
+    tableColumnWidth: isTableColumnWidth(source.tableColumnWidth)
+      ? source.tableColumnWidth
+      : defaults.tableColumnWidth,
     listStyle: isListStyle(source.listStyle)
       ? source.listStyle
       : defaults.listStyle,
@@ -422,6 +438,16 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
     hrWeight: isRuleWeight(source.hrWeight)
       ? source.hrWeight
       : defaults.hrWeight,
+    hrThickness: normalizeInRange(
+      source.hrThickness,
+      HR_THICKNESS_RANGE,
+      defaults.hrThickness,
+    ),
+    hrColor:
+      typeof source.hrColor === "string" ? source.hrColor : defaults.hrColor,
+    hrStyle: isRuleLineStyle(source.hrStyle)
+      ? source.hrStyle
+      : defaults.hrStyle,
     codeBackground:
       typeof source.codeBackground === "string" ? source.codeBackground : defaults.codeBackground,
     blockquoteBackground:
@@ -455,6 +481,11 @@ export const normalizeBookSettings = (raw: unknown): BookSettings => {
       source.imageRadius,
       IMAGE_RADIUS_RANGE,
       defaults.imageRadius,
+    ),
+    imageScale: normalizeInRange(
+      source.imageScale,
+      IMAGE_SCALE_RANGE,
+      defaults.imageScale,
     ),
     showTextCount:
       typeof source.showTextCount === "boolean"
@@ -515,9 +546,13 @@ export const bookSettingsToArticle = (
   tableHeaderColumnBold: settings.tableHeaderColumnBold,
   tableHeaderRowAlign: settings.tableHeaderRowAlign,
   tableHeaderColumnAlign: settings.tableHeaderColumnAlign,
+  tableColumnWidth: settings.tableColumnWidth,
   listStyle: settings.listStyle,
   blockquoteWeight: settings.blockquoteWeight,
   hrWeight: settings.hrWeight,
+  hrThickness: settings.hrThickness,
+  hrColor: settings.hrColor,
+  hrStyle: settings.hrStyle,
   codeBackground: settings.codeBackground,
   blockquoteBackground: settings.blockquoteBackground,
   blockquoteColor: settings.blockquoteColor,
@@ -529,6 +564,7 @@ export const bookSettingsToArticle = (
   imageBorderWidth: settings.imageBorderWidth,
   imageBorderColor: settings.imageBorderColor,
   imageRadius: settings.imageRadius,
+  imageScale: settings.imageScale,
 });
 
 export const applyBookAppearance = (

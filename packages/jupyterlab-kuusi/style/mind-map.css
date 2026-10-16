@@ -1445,6 +1445,7 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   border-radius: var(--kuusi-mindmap-image-radius, 0);
   box-sizing: border-box;
   max-width: 100%;
+  zoom: var(--kuusi-mindmap-image-scale, 1);
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-image-width="natural"]
@@ -1458,7 +1459,8 @@ body[data-jp-theme-light="false"] .jp-KuusiNotebookMindMap-status-zoom-thumb {
   img {
   display: block;
   max-width: none;
-  width: 100%;
+  width: calc(100% * var(--kuusi-mindmap-image-scale, 1));
+  zoom: 1;
 }
 
 .jp-KuusiMindMapNotebook-scene[data-kuusi-image-wrap="none"][data-kuusi-image-align="left"]

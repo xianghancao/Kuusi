@@ -1,1828 +1,2456 @@
 {
-  "domain": "jupyterlab_kuusi",
-  "locale_data": {
-    "jupyterlab_kuusi": {
-      "": {
-        "domain": "jupyterlab_kuusi",
-        "lang": "zh_CN",
-        "plural_forms": "nplurals=1; plural=0;"
-      },
-      "Insert a cell below": [
-        null,
-        "在下方插入单元格"
-      ],
-      "Cut Cell": [
-        null,
-        "剪切单元格"
-      ],
-      "Cut the selected topic and its subtree": [
-        null,
-        "剪切选中主题及其子树"
-      ],
-      "Copy Cell": [
-        null,
-        "复制单元格"
-      ],
-      "Copy the selected topic and its subtree": [
-        null,
-        "复制选中主题及其子树"
-      ],
-      "Paste Cell Below": [
-        null,
-        "在下方粘贴单元格"
-      ],
-      "Paste as child of the selected topic (subtree or plain text)": [
-        null,
-        "作为选中主题的子节点粘贴（子树或纯文本）"
-      ],
-      "Add Mind Map": [
-        null,
-        "新建思维导图"
-      ],
-      "Create a new notebook in this folder and open it as a mind map": [
-        null,
-        "在此文件夹新建笔记本并以思维导图打开"
-      ],
-      "Kuusi": [
-        null,
-        "Kuusi"
-      ],
-      "Open this notebook beside Kuusi (left: notebook, right: mind map)": [
-        null,
-        "在 Kuusi 旁打开此笔记本（左：笔记本，右：思维导图）"
-      ],
-      "Markdown editor": [
-        null,
-        "Markdown 编辑器"
-      ],
-      "Open the plain-text Markdown editor for this file": [
-        null,
-        "打开此文件的纯文本 Markdown 编辑器"
-      ],
-      "Notebook": [
-        null,
-        "笔记本"
-      ],
-      "Switch to the classic notebook view for this file": [
-        null,
-        "切换到此文件的经典笔记本视图"
-      ],
-      "Editor": [
-        null,
-        "编辑器"
-      ],
-      "Open the Markdown source editor": [
-        null,
-        "打开 Markdown 源编辑器"
-      ],
-      "Background": [
-        null,
-        "背景"
-      ],
-      "View": [
-        null,
-        "视图"
-      ],
-      "Solid color of the pane behind the paper": [
-        null,
-        "纸张背后视图的纯色"
-      ],
-      "Follow the Jupyter pane color": [
-        null,
-        "跟随 Jupyter 面板颜色"
-      ],
-      "Business Blue": [
-        null,
-        "商务蓝"
-      ],
-      "Professional cool blue tone for presentations": [
-        null,
-        "适合演示的冷色商务蓝"
-      ],
-      "Tech Blue": [
-        null,
-        "科技蓝"
-      ],
-      "Futuristic cyan-blue tech canvas": [
-        null,
-        "青蓝科技风画布"
-      ],
-      "Color": [
-        null,
-        "颜色"
-      ],
-      "Custom color": [
-        null,
-        "自定义颜色"
-      ],
-      "Default": [
-        null,
-        "默认"
-      ],
-      "Follow the Jupyter theme background": [
-        null,
-        "跟随 Jupyter 主题背景"
-      ],
-      "Dots": [
-        null,
-        "点阵"
-      ],
-      "Dot pattern for spatial reference": [
-        null,
-        "用于定位的点阵纹理"
-      ],
-      "Dots dense": [
-        null,
-        "密点"
-      ],
-      "Finer, denser dot pattern": [
-        null,
-        "更细更密的点阵"
-      ],
-      "Eye Care": [
-        null,
-        "护眼"
-      ],
-      "Soft green tint to reduce eye strain": [
-        null,
-        "浅绿底，减轻用眼疲劳"
-      ],
-      "Gradient": [
-        null,
-        "渐变"
-      ],
-      "Soft corner gradients": [
-        null,
-        "柔和的边角渐变"
-      ],
-      "Grid": [
-        null,
-        "网格"
-      ],
-      "Light grid lines for spatial reference": [
-        null,
-        "浅色网格，便于定位"
-      ],
-      "Grid dense": [
-        null,
-        "密网格"
-      ],
-      "Finer, denser grid lines": [
-        null,
-        "更细更密的网格线"
-      ],
-      "Newspaper": [
-        null,
-        "报纸"
-      ],
-      "Warm paper tone with a light newsprint texture": [
-        null,
-        "暖色纸感，带轻微新闻纸纹理"
-      ],
-      "Sea Blue": [
-        null,
-        "海蓝"
-      ],
-      "Cool ocean blue canvas": [
-        null,
-        "冷色海蓝画布"
-      ],
-      "Grass Green": [
-        null,
-        "草绿"
-      ],
-      "Fresh spring green canvas": [
-        null,
-        "清新春绿画布"
-      ],
-      "Avocado": [
-        null,
-        "牛油果"
-      ],
-      "Muted yellow-green avocado tone": [
-        null,
-        "低饱和黄绿"
-      ],
-      "Stone Gray": [
-        null,
-        "石灰"
-      ],
-      "Neutral warm stone gray canvas": [
-        null,
-        "中性暖灰画布"
-      ],
-      "Red Wall": [
-        null,
-        "红墙"
-      ],
-      "Warm terracotta red wall tone": [
-        null,
-        "暖陶土红墙色"
-      ],
-      "Ink": [
-        null,
-        "墨色"
-      ],
-      "Near-black stage for dark presentations": [
-        null,
-        "近黑舞台，适合深色演示"
-      ],
-      "Pattern": [
-        null,
-        "纹理"
-      ],
-      "None": [
-        null,
-        "无"
-      ],
-      "No pattern overlay — color theme only": [
-        null,
-        "无纹理，仅使用底色"
-      ],
-      "Plain": [
-        null,
-        "纯色"
-      ],
-      "Flat solid fill without texture overlays": [
-        null,
-        "纯色填充，无叠加纹理"
-      ],
-      "Canvas background": [
-        null,
-        "画布背景"
-      ],
-      "Status": [
-        null,
-        "状态"
-      ],
-      "Show updated time": [
-        null,
-        "显示更新时间"
-      ],
-      "Show the notebook file last-modified time in the bottom-left corner": [
-        null,
-        "在左下角显示笔记本文件的修改时间"
-      ],
-      "Show node count": [
-        null,
-        "显示节点数"
-      ],
-      "Show the number of mind map nodes in the bottom-right corner": [
-        null,
-        "在右下角显示思维导图节点数量"
-      ],
-      "Boundary distance between parent and child nodes": [
-        null,
-        "父子节点之间的间距"
-      ],
-      "XMind-style compact map with minimal topic spacing": [
-        null,
-        "XMind 式紧凑布局，主题间距最小"
-      ],
-      "Boundary distance between sibling nodes": [
-        null,
-        "兄弟节点之间的间距"
-      ],
-      "Connector line appearance": [
-        null,
-        "连线外观"
-      ],
-      "Local": [
-        null,
-        "本地"
-      ],
-      "Collapse branch": [
-        null,
-        "折叠分支"
-      ],
-      "Expand branch": [
-        null,
-        "展开分支"
-      ],
-      "Use the notebook default font": [
-        null,
-        "使用笔记本默认字体"
-      ],
-      "Enter edit mode (F2) to format markdown": [
-        null,
-        "按 F2 进入编辑模式以设置 Markdown 格式"
-      ],
-      "Enter fullscreen": [
-        null,
-        "进入全屏"
-      ],
-      "Exit fullscreen": [
-        null,
-        "退出全屏"
-      ],
-      "JupyterLab fullscreen": [
-        null,
-        "JupyterLab 全屏"
-      ],
-      "Exit JupyterLab fullscreen": [
-        null,
-        "退出 JupyterLab 全屏"
-      ],
-      "Kuusi window fullscreen": [
-        null,
-        "Kuusi 窗口全屏"
-      ],
-      "Exit Kuusi window fullscreen": [
-        null,
-        "退出 Kuusi 窗口全屏"
-      ],
-      "Play slideshow": [
-        null,
-        "开始放映"
-      ],
-      "Stop slideshow": [
-        null,
-        "停止放映"
-      ],
-      "Appearance": [
-        null,
-        "外观"
-      ],
-      "About": [
-        null,
-        "关于"
-      ],
-      "Kuusi is a Jupyter-native mind map view for notebooks—edit structure and content in one place.": [
-        null,
-        "Kuusi 是面向笔记本的 Jupyter 原生思维导图，可在同一处编辑结构与内容。"
-      ],
-      "Copy": [
-        null,
-        "复制"
-      ],
-      "Copied": [
-        null,
-        "已复制"
-      ],
-      "Copy install command": [
-        null,
-        "复制安装命令"
-      ],
-      "Install": [
-        null,
-        "安装"
-      ],
-      "New": [
-        null,
-        "新"
-      ],
-      "Open PyPI project page": [
-        null,
-        "打开 PyPI 项目页"
-      ],
-      "Open Jupyter Discourse feedback topic": [
-        null,
-        "打开 Jupyter Discourse 反馈帖"
-      ],
-      "Open Kuusi on X": [
-        null,
-        "在 X 上打开 Kuusi"
-      ],
-      "Email Kuusi": [
-        null,
-        "给 Kuusi 发邮件"
-      ],
-      "Close": [
-        null,
-        "关闭"
-      ],
-      "Community": [
-        null,
-        "社区"
-      ],
-      "Default files": [
-        null,
-        "默认打开方式"
-      ],
-      "Kuusi Settings": [
-        null,
-        "Kuusi 设置"
-      ],
-      "Join the conversation — feedback on Discourse, updates on X, or email us.": [
-        null,
-        "欢迎参与讨论：Discourse 反馈、X 上的更新，或给我们发邮件。"
-      ],
-      "Shortcut": [
-        null,
-        "快捷键"
-      ],
-      "Font": [
-        null,
-        "字体"
-      ],
-      "Sans-serif": [
-        null,
-        "无衬线"
-      ],
-      "Serif": [
-        null,
-        "衬线"
-      ],
-      "Size": [
-        null,
-        "字号"
-      ],
-      "Edit": [
-        null,
-        "编辑"
-      ],
-      "Display": [
-        null,
-        "显示"
-      ],
-      "Link": [
-        null,
-        "关联"
-      ],
-      "Keep edit and display font styles the same": [
-        null,
-        "编辑与显示使用同一套字体"
-      ],
-      "Match notebook (ipynb) font styles": [
-        null,
-        "跟随笔记本（ipynb）字体"
-      ],
-      "Inline styles only affect node content, not structure": [
-        null,
-        "行内样式只影响节点内容，不改变结构"
-      ],
-      "Formatting is available for markdown cells only": [
-        null,
-        "仅 Markdown 单元格可设置格式"
-      ],
-      "H1–H3 outline chrome or Body; nesting persists to depth 20 with Body style": [
-        null,
-        "H1–H3 为大纲外观，或使用正文；嵌套可到 20 层，更深层级用正文样式"
-      ],
-      "Formatting notes": [
-        null,
-        "格式说明"
-      ],
-      "Formatting shortcuts (edit mode)": [
-        null,
-        "格式快捷键（编辑模式）"
-      ],
-      "Guide": [
-        null,
-        "指南"
-      ],
-      "Outline heading H1–H3 or Body (nesting to depth 20; deeper levels use Body style)": [
-        null,
-        "大纲标题 H1–H3 或正文（嵌套到 20 层；更深层级用正文样式）"
-      ],
-      "Keyboard shortcuts": [
-        null,
-        "键盘快捷键"
-      ],
-      "Unavailable": [
-        null,
-        "不可用"
-      ],
-      "Latest": [
-        null,
-        "最新"
-      ],
-      "PyPI latest": [
-        null,
-        "PyPI 最新版"
-      ],
-      "Layout": [
-        null,
-        "布局"
-      ],
-      "Equal width": [
-        null,
-        "等宽"
-      ],
-      "When on, every node uses the same width": [
-        null,
-        "开启后所有节点使用相同宽度"
-      ],
-      "Fit content": [
-        null,
-        "适应内容"
-      ],
-      "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)": [
-        null,
-        "宽度随内容，上限为节点宽度；与等宽同时开启时，所有节点对齐最宽内容（仍受上限限制）"
-      ],
-      "Node width": [
-        null,
-        "节点宽度"
-      ],
-      "Max width": [
-        null,
-        "最大宽度"
-      ],
-      "Drag the right edge to resize this node": [
-        null,
-        "拖动右边缘调整此节点宽度"
-      ],
-      "Line": [
-        null,
-        "连线"
-      ],
-      "Extra open spacing between topics and branches": [
-        null,
-        "主题与分支之间更疏的间距"
-      ],
-      "Markdown formatting": [
-        null,
-        "Markdown 格式"
-      ],
-      "Mind map font and size": [
-        null,
-        "思维导图字体与字号"
-      ],
-      "Mind map shortcuts": [
-        null,
-        "思维导图快捷键"
-      ],
-      "Mind map theme": [
-        null,
-        "思维导图主题"
-      ],
-      "Page and mind map controls": [
-        null,
-        "页面与思维导图控件"
-      ],
-      "Article reading controls": [
-        null,
-        "Article 阅读控件"
-      ],
-      "Type": [
-        null,
-        "类型"
-      ],
-      "Article type": [
-        null,
-        "Article 类型"
-      ],
-      "Article page": [
-        null,
-        "Article 页面"
-      ],
-      "Article theme": [
-        null,
-        "Article 主题"
-      ],
-      "Follow Jupyter defaults — 52rem column": [
-        null,
-        "跟随 Jupyter 默认 — 52rem 栏宽"
-      ],
-      "Essay": [
-        null,
-        "随笔"
-      ],
-      "Narrow serif column on warm paper": [
-        null,
-        "暖色纸上的窄衬线栏"
-      ],
-      "Magazine": [
-        null,
-        "杂志"
-      ],
-      "Wide sans-serif column with centered titles": [
-        null,
-        "宽无衬线栏，标题居中"
-      ],
-      "Night": [
-        null,
-        "夜间"
-      ],
-      "Dark ink page with slightly larger type": [
-        null,
-        "深色墨纸，字号略大"
-      ],
-      "Academic": [
-        null,
-        "学术"
-      ],
-      "Serif column with restrained typography": [
-        null,
-        "克制的衬线栏排版"
-      ],
-      "Minimal": [
-        null,
-        "极简"
-      ],
-      "Clean sans column with generous whitespace": [
-        null,
-        "干净的无衬线栏，留白充足"
-      ],
-      "Code": [
-        null,
-        "代码"
-      ],
-      "Image": [
-        null,
-        "图片"
-      ],
-      "Elements": [
-        null,
-        "元素"
-      ],
-      "Article body font": [
-        null,
-        "Article 正文字体"
-      ],
-      "Article body": [
-        null,
-        "Article 正文"
-      ],
-      "Body": [
-        null,
-        "正文"
-      ],
-      "Article paragraph": [
-        null,
-        "Article 段落"
-      ],
-      "Paragraph": [
-        null,
-        "段落"
-      ],
-      "Spacing": [
-        null,
-        "间距"
-      ],
-      "Compact": [
-        null,
-        "紧凑"
-      ],
-      "Tighter space between paragraphs": [
-        null,
-        "段落间距更紧"
-      ],
-      "Reading": [
-        null,
-        "阅读"
-      ],
-      "Comfortable space between paragraphs": [
-        null,
-        "舒适的段落间距"
-      ],
-      "Loose": [
-        null,
-        "宽松"
-      ],
-      "Open space between paragraphs": [
-        null,
-        "更疏的段落间距"
-      ],
-      "Indent": [
-        null,
-        "缩进"
-      ],
-      "No first-line indent": [
-        null,
-        "首行不缩进"
-      ],
-      "Half": [
-        null,
-        "半字"
-      ],
-      "About one em first-line indent": [
-        null,
-        "约 1em 首行缩进"
-      ],
-      "Full": [
-        null,
-        "全字"
-      ],
-      "About two em first-line indent": [
-        null,
-        "约 2em 首行缩进"
-      ],
-      "Left-align body paragraphs": [
-        null,
-        "正文段落左对齐"
-      ],
-      "Justify body paragraphs for even edges": [
-        null,
-        "正文两端对齐"
-      ],
-      "Justify": [
-        null,
-        "两端对齐"
-      ],
-      "Article headers": [
-        null,
-        "Article 标题"
-      ],
-      "Header": [
-        null,
-        "页眉"
-      ],
-      "Alignment": [
-        null,
-        "对齐"
-      ],
-      "Left": [
-        null,
-        "左"
-      ],
-      "Left-align heading": [
-        null,
-        "标题左对齐"
-      ],
-      "Center": [
-        null,
-        "居中"
-      ],
-      "Center heading": [
-        null,
-        "标题居中"
-      ],
-      "Right": [
-        null,
-        "右"
-      ],
-      "Right-align heading": [
-        null,
-        "标题右对齐"
-      ],
-      "Padding": [
-        null,
-        "边距"
-      ],
-      "Tighter page margins": [
-        null,
-        "更紧的页边距"
-      ],
-      "Comfortable page margins": [
-        null,
-        "舒适的页边距"
-      ],
-      "Open page margins": [
-        null,
-        "更宽的页边距"
-      ],
-      "Page": [
-        null,
-        "页面"
-      ],
-      "Leading": [
-        null,
-        "行距"
-      ],
-      "Tighter line spacing for dense pages": [
-        null,
-        "更紧的行距，适合密排"
-      ],
-      "Comfortable spacing for long-form reading": [
-        null,
-        "适合长文阅读的行距"
-      ],
-      "Open spacing for a slower read": [
-        null,
-        "更疏的行距，阅读更从容"
-      ],
-      "Line height from 0.5× to 3× of the body size": [
-        null,
-        "行高为正文的 0.5× 到 3×"
-      ],
-      "Space between paragraphs from 0em to 3em": [
-        null,
-        "段落间距 0em 到 3em"
-      ],
-      "First-line indent from 0em to 3em": [
-        null,
-        "首行缩进 0em 到 3em"
-      ],
-      "Tracking": [
-        null,
-        "字距"
-      ],
-      "Letter spacing from 0em to 0.15em": [
-        null,
-        "字距 0em 到 0.15em"
-      ],
-      "Links": [
-        null,
-        "链接"
-      ],
-      "Theme default link appearance": [
-        null,
-        "使用主题默认链接样式"
-      ],
-      "Underline": [
-        null,
-        "下划线"
-      ],
-      "Always underline body links": [
-        null,
-        "正文链接始终显示下划线"
-      ],
-      "Accent": [
-        null,
-        "强调"
-      ],
-      "Use accent color for links": [
-        null,
-        "链接使用强调色"
-      ],
-      "Inline code without extra background": [
-        null,
-        "行内代码无额外背景"
-      ],
-      "Muted": [
-        null,
-        "淡底"
-      ],
-      "Soft background for inline and block code": [
-        null,
-        "行内与代码块使用浅底"
-      ],
-      "Contrast": [
-        null,
-        "对比"
-      ],
-      "Strong background for code blocks": [
-        null,
-        "代码块使用更强对比底色"
-      ],
-      "Column": [
-        null,
-        "栏"
-      ],
-      "Align the text column to the left": [
-        null,
-        "文本栏靠左"
-      ],
-      "Center the text column in the pane": [
-        null,
-        "文本栏在窗格中居中"
-      ],
-      "Scroll": [
-        null,
-        "滚动"
-      ],
-      "Continuous reading column (no paper frame)": [
-        null,
-        "连续阅读栏（无纸张边框）"
-      ],
-      "Paged": [
-        null,
-        "分页"
-      ],
-      "Print-style paper preview — use Export → PDF to save": [
-        null,
-        "印刷式纸张预览 — 用导出 → PDF 保存"
-      ],
-      "Paper": [
-        null,
-        "纸张"
-      ],
-      "A4": [
-        null,
-        "A4"
-      ],
-      "210 × 297 mm": [
-        null,
-        "210 × 297 mm"
-      ],
-      "Letter": [
-        null,
-        "Letter"
-      ],
-      "8.5 × 11 in": [
-        null,
-        "8.5 × 11 in"
-      ],
-      "Text": [
-        null,
-        "正文"
-      ],
-      "Text style": [
-        null,
-        "正文样式"
-      ],
-      "Paragraph style": [
-        null,
-        "段落样式"
-      ],
-      "Headings": [
-        null,
-        "标题"
-      ],
-      "Heading styles": [
-        null,
-        "标题样式"
-      ],
-      "Code style": [
-        null,
-        "代码样式"
-      ],
-      "Page setup": [
-        null,
-        "页面设置"
-      ],
-      "Slide header, footer & controls": [
-        null,
-        "幻灯片页眉、页脚与控件"
-      ],
-      "Page elements": [
-        null,
-        "页面元素"
-      ],
-      "Presentation controls": [
-        null,
-        "演示控件"
-      ],
-      "Look": [
-        null,
-        "外观"
-      ],
-      "Header & footer": [
-        null,
-        "页眉和页脚"
-      ],
-      "Article header, footer & page numbers": [
-        null,
-        "Article 页眉、页脚与页码"
-      ],
-      "Footer": [
-        null,
-        "页脚"
-      ],
-      "Page numbers": [
-        null,
-        "页码"
-      ],
-      "Placeholders: {title} file name, {page} page, {pages} total": [
-        null,
-        "占位符：{title} 文件名，{page} 页码，{pages} 总页数"
-      ],
-      "Shown in Paged layout (Page → Layout → Paged)": [
-        null,
-        "仅在分页布局中显示（页面 → 布局 → 分页）"
-      ],
-      "Format": [
-        null,
-        "格式"
-      ],
-      "No page numbers": [
-        null,
-        "不显示页码"
-      ],
-      "3": [
-        null,
-        "3"
-      ],
-      "Page number only": [
-        null,
-        "仅页码"
-      ],
-      "3 / 12": [
-        null,
-        "3 / 12"
-      ],
-      "Page number and page count": [
-        null,
-        "页码与总页数"
-      ],
-      "Position": [
-        null,
-        "位置"
-      ],
-      "Top margin of each page": [
-        null,
-        "每页上边距"
-      ],
-      "Bottom margin of each page": [
-        null,
-        "每页下边距"
-      ],
-      "Images": [
-        null,
-        "图片"
-      ],
-      "Natural": [
-        null,
-        "原始"
-      ],
-      "Keep images at their natural width": [
-        null,
-        "保持图片原始宽度"
-      ],
-      "Wide": [
-        null,
-        "加宽"
-      ],
-      "Expand images to the column width": [
-        null,
-        "图片扩展到栏宽"
-      ],
-      "Let images span the full pane width": [
-        null,
-        "图片铺满整个窗格宽度"
-      ],
-      "Place images on the left": [
-        null,
-        "图片靠左"
-      ],
-      "Center images in the column": [
-        null,
-        "图片在栏中居中"
-      ],
-      "Place images on the right": [
-        null,
-        "图片靠右"
-      ],
-      "Wrap": [
-        null,
-        "环绕"
-      ],
-      "Block": [
-        null,
-        "单独成行"
-      ],
-      "Images sit on their own line; text stays above and below": [
-        null,
-        "图片单独一行，文字在上下"
-      ],
-      "Left + wrap": [
-        null,
-        "左绕排"
-      ],
-      "Image on the left; following text wraps on the right": [
-        null,
-        "图片在左，后续文字在右侧环绕"
-      ],
-      "Right + wrap": [
-        null,
-        "右绕排"
-      ],
-      "Image on the right; following text wraps on the left": [
-        null,
-        "图片在右，后续文字在左侧环绕"
-      ],
-      "Border": [
-        null,
-        "边框"
-      ],
-      "No frame around images": [
-        null,
-        "图片无边框"
-      ],
-      "Solid": [
-        null,
-        "实线"
-      ],
-      "Continuous line": [
-        null,
-        "连续实线"
-      ],
-      "Dashed": [
-        null,
-        "虚线"
-      ],
-      "Dashed line": [
-        null,
-        "虚线"
-      ],
-      "Dotted": [
-        null,
-        "点线"
-      ],
-      "Dotted line": [
-        null,
-        "点线"
-      ],
-      "Double": [
-        null,
-        "双线"
-      ],
-      "Two parallel lines": [
-        null,
-        "两条平行线"
-      ],
-      "Measure": [
-        null,
-        "栏宽"
-      ],
-      "Narrow": [
-        null,
-        "窄"
-      ],
-      "About 42rem — essay column": [
-        null,
-        "约 42rem — 随笔栏"
-      ],
-      "About 52rem — default article column": [
-        null,
-        "约 52rem — 默认文章栏"
-      ],
-      "About 68rem — magazine column": [
-        null,
-        "约 68rem — 杂志栏"
-      ],
-      "Use the full pane width": [
-        null,
-        "使用整个窗格宽度"
-      ],
-      "Surface": [
-        null,
-        "纸面"
-      ],
-      "Theme": [
-        null,
-        "主题"
-      ],
-      "Follow the Jupyter theme": [
-        null,
-        "跟随 Jupyter 主题"
-      ],
-      "Warm off-white page for long reading": [
-        null,
-        "暖白纸面，适合长读"
-      ],
-      "Cream newsprint tone": [
-        null,
-        "奶油色新闻纸"
-      ],
-      "Dark page for night reading": [
-        null,
-        "深色纸面，适合夜间阅读"
-      ],
-      "Sepia": [
-        null,
-        "棕褐"
-      ],
-      "Warm sepia tone for long reading sessions": [
-        null,
-        "暖棕褐，适合长时间阅读"
-      ],
-      "Mist": [
-        null,
-        "薄雾"
-      ],
-      "Cool light gray page with a soft haze": [
-        null,
-        "浅冷灰，带一层薄雾"
-      ],
-      "Lines": [
-        null,
-        "横线"
-      ],
-      "Horizontal ruled lines like notebook paper": [
-        null,
-        "类似笔记本的横线"
-      ],
-      "Margin and ruled lines like a notebook page": [
-        null,
-        "类似笔记本页的边线和横线"
-      ],
-      "A newer version is available": [
-        null,
-        "有新版本可用"
-      ],
-      "Node": [
-        null,
-        "节点"
-      ],
-      "Redo": [
-        null,
-        "重做"
-      ],
-      "Could not save the dropped image next to this document.": [
-        null,
-        "无法将拖入的图片保存到文档旁边。"
-      ],
-      "Undo": [
-        null,
-        "撤销"
-      ],
-      "Node width, fill, border, and selection glow": [
-        null,
-        "节点宽度、填充、边框与选中光晕"
-      ],
-      "Map fill": [
-        null,
-        "图填充"
-      ],
-      "Selected fill": [
-        null,
-        "选中填充"
-      ],
-      "Select a node to set a custom fill": [
-        null,
-        "选中节点以设置自定义填充"
-      ],
-      "Border style": [
-        null,
-        "边框样式"
-      ],
-      "Border width": [
-        null,
-        "边框宽度"
-      ],
-      "Border color": [
-        null,
-        "边框颜色"
-      ],
-      "Selection glow color": [
-        null,
-        "选中光晕颜色"
-      ],
-      "Selection glow width": [
-        null,
-        "选中光晕宽度"
-      ],
-      "Hover": [
-        null,
-        "悬停"
-      ],
-      "Hover glow color": [
-        null,
-        "悬停光晕颜色"
-      ],
-      "Hover glow width": [
-        null,
-        "悬停光晕宽度"
-      ],
-      "Default uses the map node border color when set; otherwise blue.": [
-        null,
-        "默认使用已设置的节点边框色；否则为蓝色。"
-      ],
-      "Node layout spacing": [
-        null,
-        "节点布局间距"
-      ],
-      "Balanced default spacing like XMind auto layout": [
-        null,
-        "类似 XMind 自动布局的均衡默认间距"
-      ],
-      "Open GitHub repository": [
-        null,
-        "打开 GitHub 仓库"
-      ],
-      "Repository": [
-        null,
-        "仓库"
-      ],
-      "Style": [
-        null,
-        "样式"
-      ],
-      "Route": [
-        null,
-        "路径"
-      ],
-      "Restore theme defaults": [
-        null,
-        "恢复主题默认值"
-      ],
-      "Reset page, background, and appearance for this theme": [
-        null,
-        "把当前主题的页面、背景与外观恢复为默认"
-      ],
-      "Soft": [
-        null,
-        "柔和"
-      ],
-      "Outline": [
-        null,
-        "大纲"
-      ],
-      "Board": [
-        null,
-        "看板"
-      ],
-      "Black": [
-        null,
-        "墨黑"
-      ],
-      "Density": [
-        null,
-        "疏密"
-      ],
-      "Width": [
-        null,
-        "宽度"
-      ],
-      "Arrow": [
-        null,
-        "箭头"
-      ],
-      "Arrow style": [
-        null,
-        "箭头样式"
-      ],
-      "Fill": [
-        null,
-        "填充"
-      ],
-      "Corner": [
-        null,
-        "圆角"
-      ],
-      "Selection": [
-        null,
-        "选中"
-      ],
-      "Tree": [
-        null,
-        "树"
-      ],
-      "Bottom to top": [
-        null,
-        "自下而上"
-      ],
-      "Left to right": [
-        null,
-        "从左到右"
-      ],
-      "Right to left": [
-        null,
-        "从右到左"
-      ],
-      "Top to bottom": [
-        null,
-        "自上而下"
-      ],
-      "You are on the latest version": [
-        null,
-        "已是最新版本"
-      ],
-      "Version": [
-        null,
-        "版本"
-      ],
-      "Zoom": [
-        null,
-        "缩放"
-      ],
-      "Zoom in": [
-        null,
-        "放大"
-      ],
-      "Zoom out": [
-        null,
-        "缩小"
-      ],
-      "Adjust zoom (20%–200%)": [
-        null,
-        "调整缩放（20%–200%）"
-      ],
-      "Kuusi View": [
-        null,
-        "Kuusi 视图"
-      ],
-      "Open the Kuusi view beside this editor": [
-        null,
-        "在此编辑器旁打开 Kuusi 视图"
-      ],
-      "Export": [
-        null,
-        "导出"
-      ],
-      "Export this render view": [
-        null,
-        "导出此渲染视图"
-      ],
-      "PDF": [
-        null,
-        "PDF"
-      ],
-      "Download this view as a PDF file (one page per page or slide)": [
-        null,
-        "将此视图下载为 PDF（每页或每张幻灯片一页）"
-      ],
-      "Download the PDF file": [
-        null,
-        "下载 PDF 文件"
-      ],
-      "Print / Vector PDF…": [
-        null,
-        "打印 / 矢量 PDF…"
-      ],
-      "Open the system print dialog; choose “Save as PDF” for selectable text": [
-        null,
-        "打开系统打印对话框；选择“存储为 PDF”可得到可选中文本"
-      ],
-      "%1 image": [
-        null,
-        "%1 图片"
-      ],
-      "Download %1 as a %2 image": [
-        null,
-        "将%1下载为 %2 图片"
-      ],
-      "the current slide": [
-        null,
-        "当前幻灯片"
-      ],
-      "the whole mind map": [
-        null,
-        "整张思维导图"
-      ],
-      "the whole view": [
-        null,
-        "整个视图"
-      ],
-      "Exporting %1…": [
-        null,
-        "正在导出 %1…"
-      ],
-      "Exporting %1… page %2 of %3": [
-        null,
-        "正在导出 %1… 第 %2 / %3 页"
-      ],
-      "Downloaded %1.": [
-        null,
-        "已下载 %1。"
-      ],
-      "Export failed: %1": [
-        null,
-        "导出失败：%1"
-      ],
-      "This view has nothing to export yet.": [
-        null,
-        "此视图还没有可导出的内容。"
-      ],
-      "This browser cannot encode WebP; saved as PNG instead.": [
-        null,
-        "此浏览器无法编码 WebP，已改为保存 PNG。"
-      ],
-      "HTML": [
-        null,
-        "HTML"
-      ],
-      "Download the rendered HTML": [
-        null,
-        "下载渲染后的 HTML"
-      ],
-      "Download": [
-        null,
-        "下载"
-      ],
-      "Download the source file": [
-        null,
-        "下载源文件"
-      ],
-      "Slides controls": [
-        null,
-        "幻灯片控件"
-      ],
-      "Slides theme": [
-        null,
-        "幻灯片主题"
-      ],
-      "Classic": [
-        null,
-        "经典"
-      ],
-      "White stage with dark text": [
-        null,
-        "白底深色文字"
-      ],
-      "Dark stage for projector rooms": [
-        null,
-        "适合投影的深色舞台"
-      ],
-      "Forest": [
-        null,
-        "森林"
-      ],
-      "Deep green stage with light text": [
-        null,
-        "深绿舞台，浅色文字"
-      ],
-      "Ocean": [
-        null,
-        "海洋"
-      ],
-      "Blue stage with light text": [
-        null,
-        "蓝色舞台，浅色文字"
-      ],
-      "Slate": [
-        null,
-        "岩灰"
-      ],
-      "Cool gray modern stage": [
-        null,
-        "冷灰现代舞台"
-      ],
-      "Warm paper stage with dark text": [
-        null,
-        "暖色纸舞台，深色文字"
-      ],
-      "Metropolis": [
-        null,
-        "Metropolis"
-      ],
-      "Beamer-inspired flat modern theme with accent bar": [
-        null,
-        "Beamer 风格的扁平现代主题，带强调条"
-      ],
-      "Madrid": [
-        null,
-        "Madrid"
-      ],
-      "Beamer-inspired header bar and structured footer": [
-        null,
-        "Beamer 风格的顶栏与结构化页脚"
-      ],
-      "Berlin": [
-        null,
-        "Berlin"
-      ],
-      "Beamer-inspired accent rail and cool slate stage": [
-        null,
-        "Beamer 风格的强调边条与冷灰舞台"
-      ],
-      "Copenhagen": [
-        null,
-        "Copenhagen"
-      ],
-      "Beamer-inspired light theme with subtle structure": [
-        null,
-        "Beamer 风格的浅色主题，结构克制"
-      ],
-      "Singapore": [
-        null,
-        "Singapore"
-      ],
-      "Beamer-inspired bold accent and clean stage": [
-        null,
-        "Beamer 风格的大胆强调色与干净舞台"
-      ],
-      "Slides layout": [
-        null,
-        "幻灯片布局"
-      ],
-      "Ratio": [
-        null,
-        "比例"
-      ],
-      "16:9": [
-        null,
-        "16:9"
-      ],
-      "Widescreen stage (16:9)": [
-        null,
-        "宽屏舞台（16:9）"
-      ],
-      "4:3": [
-        null,
-        "4:3"
-      ],
-      "Classic projector stage (4:3)": [
-        null,
-        "经典投影比例（4:3）"
-      ],
-      "1:1": [
-        null,
-        "1:1"
-      ],
-      "Square stage (1:1)": [
-        null,
-        "方形舞台（1:1）"
-      ],
-      "Lists": [
-        null,
-        "列表"
-      ],
-      "Tighter spacing between list items": [
-        null,
-        "列表项间距更紧"
-      ],
-      "Normal": [
-        null,
-        "常规"
-      ],
-      "Default list item spacing": [
-        null,
-        "默认列表项间距"
-      ],
-      "Roomier spacing between list items": [
-        null,
-        "列表项间距更疏"
-      ],
-      "Small": [
-        null,
-        "小"
-      ],
-      "Smaller slide headings": [
-        null,
-        "更小的幻灯片标题"
-      ],
-      "Medium": [
-        null,
-        "中"
-      ],
-      "Default slide heading size": [
-        null,
-        "默认幻灯片标题大小"
-      ],
-      "Large": [
-        null,
-        "大"
-      ],
-      "Larger slide headings": [
-        null,
-        "更大的幻灯片标题"
-      ],
-      "Text color": [
-        null,
-        "文字颜色"
-      ],
-      "Accent color": [
-        null,
-        "强调色"
-      ],
-      "Split": [
-        null,
-        "拆分"
-      ],
-      "New slide at each # / ## / ###; --- optional; long slides auto-split": [
-        null,
-        "每个 # / ## / ### 新开一页；--- 可选；过长幻灯片自动拆分"
-      ],
-      "--- rules": [
-        null,
-        "--- 分隔"
-      ],
-      "Split only on lines that are exactly ---": [
-        null,
-        "仅在恰好为 --- 的行处拆分"
-      ],
-      "Headings only": [
-        null,
-        "仅标题"
-      ],
-      "New slide at each # / ## / ### (ignore ---)": [
-        null,
-        "每个 # / ## / ### 新开一页（忽略 ---）"
-      ],
-      "Slide stage": [
-        null,
-        "幻灯片舞台"
-      ],
-      "Previous slide": [
-        null,
-        "上一张"
-      ],
-      "Next slide": [
-        null,
-        "下一张"
-      ],
-      "Slide type": [
-        null,
-        "幻灯片类型"
-      ],
-      "Frame": [
-        null,
-        "边框"
-      ],
-      "Draw a border around fenced code blocks": [
-        null,
-        "为围栏代码块加上边框"
-      ],
-      "Frame color": [
-        null,
-        "边框颜色"
-      ],
-      "Chrome": [
-        null,
-        "界面框"
-      ],
-      "Show the slide header bar with the section title": [
-        null,
-        "显示带章节标题的幻灯片顶栏"
-      ],
-      "Align": [
-        null,
-        "对齐"
-      ],
-      "Top": [
-        null,
-        "顶部"
-      ],
-      "Align slide content to the top": [
-        null,
-        "幻灯片内容靠上"
-      ],
-      "Vertically center slide content": [
-        null,
-        "幻灯片内容垂直居中"
-      ],
-      "Bottom": [
-        null,
-        "底部"
-      ],
-      "Align slide content to the bottom": [
-        null,
-        "幻灯片内容靠下"
-      ],
-      "Tighter padding inside the slide stage": [
-        null,
-        "舞台内边距更紧"
-      ],
-      "Default padding inside the slide stage": [
-        null,
-        "舞台默认内边距"
-      ],
-      "Roomier padding inside the slide stage": [
-        null,
-        "舞台内边距更宽"
-      ],
-      "Buttons": [
-        null,
-        "按钮"
-      ],
-      "Show previous / next buttons under the stage": [
-        null,
-        "在舞台下方显示上一张 / 下一张按钮"
-      ],
-      "Page number": [
-        null,
-        "页码"
-      ],
-      "Show the current slide index in the footer and nav": [
-        null,
-        "在页脚与导航中显示当前幻灯片序号"
-      ],
-      "Show the slide footer bar": [
-        null,
-        "显示幻灯片页脚栏"
-      ],
-      "Progress": [
-        null,
-        "进度"
-      ],
-      "Show a progress bar for deck position": [
-        null,
-        "显示演示进度条"
-      ],
-      "Shadow": [
-        null,
-        "阴影"
-      ],
-      "Drop shadow around the slide stage": [
-        null,
-        "舞台周围投下阴影"
-      ],
-      "Render view": [
-        null,
-        "渲染视图"
-      ],
-      "Article": [
-        null,
-        "文章"
-      ],
-      "Rendered Markdown preview": [
-        null,
-        "渲染后的 Markdown 预览"
-      ],
-      "Rendered notebook article": [
-        null,
-        "渲染后的笔记本文章"
-      ],
-      "Mind Map": [
-        null,
-        "思维导图"
-      ],
-      "Kuusi Markdown mind map": [
-        null,
-        "Kuusi Markdown 思维导图"
-      ],
-      "Kuusi notebook mind map": [
-        null,
-        "Kuusi 笔记本思维导图"
-      ],
-      "Slides": [
-        null,
-        "幻灯片"
-      ],
-      "Live Markdown slides": [
-        null,
-        "实时 Markdown 幻灯片"
-      ],
-      "Live notebook slides": [
-        null,
-        "实时笔记本幻灯片"
-      ],
-      "Kuusi Live PDF preview (compile to refresh)": [
-        null,
-        "Kuusi 实时 PDF 预览（编译后刷新）"
-      ],
-      "Plain Markdown source editor": [
-        null,
-        "纯文本 Markdown 编辑器"
-      ],
-      "Live Markdown slides (split on --- or H1)": [
-        null,
-        "实时 Markdown 幻灯片（按 --- 或一级标题拆分）"
-      ]
-    }
-  }
+  "": {
+    "domain": "jupyterlab_kuusi",
+    "language": "zh_CN",
+    "plural_forms": "nplurals=1; plural=0;",
+    "version": "jupyterlab_kuusi"
+  },
+  "Article": [
+    "文章"
+  ],
+  "Mind Map": [
+    "思维导图"
+  ],
+  "Slides": [
+    "幻灯片"
+  ],
+  "Views and order": [
+    "视图与顺序"
+  ],
+  "Choose which views appear in the view menu and their order, left to right. The first enabled view opens by default.": [
+    "选择视图菜单中显示哪些视图及其从左到右的顺序。排在最前面且已启用的视图会默认打开。"
+  ],
+  "Show": [
+    "显示"
+  ],
+  "Beta": [
+    "测试版"
+  ],
+  "Experimental": [
+    "实验功能"
+  ],
+  "Still being tested: expect rough edges.": [
+    "仍在测试中，可能有不完善之处。"
+  ],
+  "Experimental: likely to have bugs and to change.": [
+    "实验功能：很可能有 bug，并且会改动。"
+  ],
+  "Move left": [
+    "左移"
+  ],
+  "Move right": [
+    "右移"
+  ],
+  "Notebooks (.ipynb)": [
+    "笔记本 (.ipynb)"
+  ],
+  "Kuusi View: Article / Book / Mind Map / Slides": [
+    "Kuusi 视图：Article / Book / Mind Map / Slides"
+  ],
+  "Markdown (.md)": [
+    "Markdown (.md)"
+  ],
+  "Kuusi View: Article / Book / Slides / Mind Map": [
+    "Kuusi 视图：Article / Book / Slides / Mind Map"
+  ],
+  "Insert a cell below": [
+    "在下方插入单元格"
+  ],
+  "Cut Cell": [
+    "剪切单元格"
+  ],
+  "Cut the selected topic and its subtree": [
+    "剪切选中主题及其子树"
+  ],
+  "Copy Cell": [
+    "复制单元格"
+  ],
+  "Copy the selected topic and its subtree": [
+    "复制选中主题及其子树"
+  ],
+  "Paste Cell Below": [
+    "在下方粘贴单元格"
+  ],
+  "Paste as child of the selected topic (subtree or plain text)": [
+    "作为选中主题的子节点粘贴（子树或纯文本）"
+  ],
+  "Add Mind Map": [
+    "新建思维导图"
+  ],
+  "Create a new notebook in this folder and open it as a mind map": [
+    "在此文件夹新建笔记本并以思维导图打开"
+  ],
+  "Markdown editor": [
+    "Markdown 编辑器"
+  ],
+  "Open the plain-text Markdown editor for this file": [
+    "打开此文件的纯文本 Markdown 编辑器"
+  ],
+  "Notebook": [
+    "笔记本"
+  ],
+  "Switch to the classic notebook view for this file": [
+    "切换到此文件的经典笔记本视图"
+  ],
+  "Editor": [
+    "编辑器"
+  ],
+  "Open the Markdown source editor": [
+    "打开 Markdown 源编辑器"
+  ],
+  "Background": [
+    "背景"
+  ],
+  "View": [
+    "视图"
+  ],
+  "Solid color of the pane behind the paper": [
+    "纸张背后视图的纯色"
+  ],
+  "Follow the Jupyter pane color": [
+    "跟随 Jupyter 面板颜色"
+  ],
+  "Business Blue": [
+    "商务蓝"
+  ],
+  "Professional cool blue tone for presentations": [
+    "适合演示的冷色商务蓝"
+  ],
+  "Tech Blue": [
+    "科技蓝"
+  ],
+  "Futuristic cyan-blue tech canvas": [
+    "青蓝科技风画布"
+  ],
+  "Color": [
+    "颜色"
+  ],
+  "Custom color": [
+    "自定义颜色"
+  ],
+  "Default": [
+    "默认"
+  ],
+  "Follow the Jupyter theme background": [
+    "跟随 Jupyter 主题背景"
+  ],
+  "Dots": [
+    "点阵"
+  ],
+  "Dot pattern for spatial reference": [
+    "用于定位的点阵纹理"
+  ],
+  "Dots dense": [
+    "密点"
+  ],
+  "Finer, denser dot pattern": [
+    "更细更密的点阵"
+  ],
+  "Eye Care": [
+    "护眼"
+  ],
+  "Soft green tint to reduce eye strain": [
+    "浅绿底，减轻用眼疲劳"
+  ],
+  "Gradient": [
+    "渐变"
+  ],
+  "Soft corner gradients": [
+    "柔和的边角渐变"
+  ],
+  "Grid": [
+    "网格"
+  ],
+  "Light grid lines for spatial reference": [
+    "浅色网格，便于定位"
+  ],
+  "Grid dense": [
+    "密网格"
+  ],
+  "Finer, denser grid lines": [
+    "更细更密的网格线"
+  ],
+  "Newspaper": [
+    "报纸"
+  ],
+  "Warm paper tone with a light newsprint texture": [
+    "暖色纸感，带轻微新闻纸纹理"
+  ],
+  "Sea Blue": [
+    "海蓝"
+  ],
+  "Cool ocean blue canvas": [
+    "冷色海蓝画布"
+  ],
+  "Grass Green": [
+    "草绿"
+  ],
+  "Fresh spring green canvas": [
+    "清新春绿画布"
+  ],
+  "Avocado": [
+    "牛油果"
+  ],
+  "Muted yellow-green avocado tone": [
+    "低饱和黄绿"
+  ],
+  "Stone Gray": [
+    "石灰"
+  ],
+  "Neutral warm stone gray canvas": [
+    "中性暖灰画布"
+  ],
+  "Red Wall": [
+    "红墙"
+  ],
+  "Warm terracotta red wall tone": [
+    "暖陶土红墙色"
+  ],
+  "Ink": [
+    "墨色"
+  ],
+  "Near-black stage for dark presentations": [
+    "近黑舞台，适合深色演示"
+  ],
+  "Pattern": [
+    "纹理"
+  ],
+  "None": [
+    "无"
+  ],
+  "No pattern overlay — color theme only": [
+    "无纹理，仅使用底色"
+  ],
+  "Plain": [
+    "纯色"
+  ],
+  "Flat solid fill without texture overlays": [
+    "纯色填充，无叠加纹理"
+  ],
+  "Canvas background": [
+    "画布背景"
+  ],
+  "Status": [
+    "状态"
+  ],
+  "Show updated time": [
+    "显示更新时间"
+  ],
+  "Show the notebook file last-modified time in the bottom-left corner": [
+    "在左下角显示笔记本文件的修改时间"
+  ],
+  "Show node count": [
+    "显示节点数"
+  ],
+  "Show the number of mind map nodes beside zoom": [
+    "在缩放旁显示思维导图节点数"
+  ],
+  "Show character / word count": [
+    "显示字数 / 单词数"
+  ],
+  "Show character and word counts beside zoom": [
+    "在缩放旁显示字数和单词数"
+  ],
+  "Show page count": [
+    "显示页数"
+  ],
+  "Show the page or slide count beside zoom": [
+    "在缩放旁显示页数或幻灯片数"
+  ],
+  "Show file size": [
+    "显示文件大小"
+  ],
+  "Show the document file size beside zoom": [
+    "在缩放旁显示文档文件大小"
+  ],
+  "Nodes": [
+    "节点"
+  ],
+  "chars": [
+    "字"
+  ],
+  "words": [
+    "词"
+  ],
+  "Pages": [
+    "页数"
+  ],
+  "B": [
+    "B"
+  ],
+  "KB": [
+    "KB"
+  ],
+  "MB": [
+    "MB"
+  ],
+  "Boundary distance between parent and child nodes": [
+    "父子节点之间的间距"
+  ],
+  "XMind-style compact map with minimal topic spacing": [
+    "XMind 式紧凑布局，主题间距最小"
+  ],
+  "Boundary distance between sibling nodes": [
+    "兄弟节点之间的间距"
+  ],
+  "More": [
+    "更多"
+  ],
+  "Update with": [
+    "升级命令"
+  ],
+  "Upgrade": [
+    "升级"
+  ],
+  "How to upgrade": [
+    "如何升级"
+  ],
+  "Kuusi updated to": [
+    "Kuusi 已更新到"
+  ],
+  "Kuusi is a Python package. Upgrade it in the same environment that runs JupyterLab.": [
+    "Kuusi 是一个 Python 包，请在运行 JupyterLab 的同一个环境里升级。"
+  ],
+  "Install the latest version": [
+    "安装最新版本"
+  ],
+  "Run this in a terminal:": [
+    "在终端里运行："
+  ],
+  "conda, uv and other environments": [
+    "conda、uv 等其他环境"
+  ],
+  "In a conda environment, activate it first, then use pip:": [
+    "在 conda 环境里，先激活环境，再用 pip："
+  ],
+  "With uv:": [
+    "使用 uv："
+  ],
+  "Restart JupyterLab": [
+    "重启 JupyterLab"
+  ],
+  "Stop it (Ctrl+C in its terminal) and start it again, then reload the browser tab with a hard refresh. A cached copy would otherwise keep showing the old version.": [
+    "在它的终端里按 Ctrl+C 停止后重新启动，然后强制刷新浏览器标签页。否则浏览器缓存会一直显示旧版本。"
+  ],
+  "Hard refresh: Cmd+Shift+R": [
+    "强制刷新：Cmd+Shift+R"
+  ],
+  "Hard refresh: Ctrl+Shift+R": [
+    "强制刷新：Ctrl+Shift+R"
+  ],
+  "Check that it worked": [
+    "确认升级成功"
+  ],
+  "jupyterlab-kuusi should be listed as enabled with the new version number. Settings → Version shows the same number.": [
+    "jupyterlab-kuusi 应显示为 enabled，并带有新的版本号。设置 → Version 页显示的是同一个数字。"
+  ],
+  "Still the old version?": [
+    "还是旧版本？"
+  ],
+  "Make sure you restarted the JupyterLab that uses this environment. This prints the version pip installed:": [
+    "请确认重启的是使用这个环境的 JupyterLab。下面的命令会打印 pip 实际装的版本："
+  ],
+  "Installed from source?": [
+    "是从源码安装的？"
+  ],
+  "If you installed with pip install -e, update the repository and rebuild:": [
+    "如果你是用 pip install -e 安装的，请更新仓库并重新构建："
+  ],
+  "Copy": [
+    "复制"
+  ],
+  "Copied": [
+    "已复制"
+  ],
+  "Previous page": [
+    "上一页"
+  ],
+  "Next page": [
+    "下一页"
+  ],
+  "Page": [
+    "页面"
+  ],
+  "Show outline and pages": [
+    "显示目录和缩略图"
+  ],
+  "Hide outline and pages": [
+    "隐藏目录和缩略图"
+  ],
+  "Outline": [
+    "大纲"
+  ],
+  "Thumbnails": [
+    "缩略图"
+  ],
+  "No headings": [
+    "没有标题"
+  ],
+  "Connector line appearance": [
+    "连线外观"
+  ],
+  "Local": [
+    "本地"
+  ],
+  "Collapse branch": [
+    "折叠分支"
+  ],
+  "Expand branch": [
+    "展开分支"
+  ],
+  "Use the notebook default font": [
+    "使用笔记本默认字体"
+  ],
+  "Enter edit mode (F2) to format markdown": [
+    "按 F2 进入编辑模式以设置 Markdown 格式"
+  ],
+  "Enter fullscreen": [
+    "进入全屏"
+  ],
+  "Exit fullscreen": [
+    "退出全屏"
+  ],
+  "JupyterLab fullscreen": [
+    "JupyterLab 全屏"
+  ],
+  "Exit JupyterLab fullscreen": [
+    "退出 JupyterLab 全屏"
+  ],
+  "Kuusi window fullscreen": [
+    "Kuusi 窗口全屏"
+  ],
+  "Exit Kuusi window fullscreen": [
+    "退出 Kuusi 窗口全屏"
+  ],
+  "Play slideshow": [
+    "开始放映"
+  ],
+  "Stop slideshow": [
+    "停止放映"
+  ],
+  "Horizontal swipe": [
+    "横向滑动"
+  ],
+  "Swipe pages left and right (fullscreen)": [
+    "全屏时左右滑动翻页"
+  ],
+  "Vertical swipe": [
+    "纵向滑动"
+  ],
+  "Scroll pages up and down (fullscreen)": [
+    "全屏时上下滚动翻页"
+  ],
+  "Appearance": [
+    "外观"
+  ],
+  "About": [
+    "关于"
+  ],
+  "Kuusi is a Jupyter-native mind map view for notebooks—edit structure and content in one place.": [
+    "Kuusi 是面向笔记本的 Jupyter 原生思维导图，可在同一处编辑结构与内容。"
+  ],
+  "Copy install command": [
+    "复制安装命令"
+  ],
+  "Install": [
+    "安装"
+  ],
+  "New": [
+    "新"
+  ],
+  "Open PyPI project page": [
+    "打开 PyPI 项目页"
+  ],
+  "Open Jupyter Discourse feedback topic": [
+    "打开 Jupyter Discourse 反馈帖"
+  ],
+  "Open Kuusi on X": [
+    "在 X 上打开 Kuusi"
+  ],
+  "Email Kuusi": [
+    "给 Kuusi 发邮件"
+  ],
+  "Close": [
+    "关闭"
+  ],
+  "Community": [
+    "社区"
+  ],
+  "Auto reload": [
+    "自动重载"
+  ],
+  "Auto collapse capsule": [
+    "自动收缩胶囊菜单"
+  ],
+  "Fold the capsule into a round mark until the pointer reaches it": [
+    "平时收缩成圆形图标，鼠标移到上面时再展开"
+  ],
+  "Cursor line number": [
+    "光标所在行的行号"
+  ],
+  "Highlight": [
+    "高亮"
+  ],
+  "Bold": [
+    "加粗"
+  ],
+  "Bar": [
+    "竖条"
+  ],
+  "Off": [
+    "关闭"
+  ],
+  "Re-read the file when it changes on disk (skipped while there are unsaved edits)": [
+    "文件在磁盘上被改动时重新读取（有未保存的修改时跳过）"
+  ],
+  "More options": [
+    "更多选项"
+  ],
+  "Sync": [
+    "同步"
+  ],
+  "Keep this view in step with the editor": [
+    "让此视图与编辑器保持同步"
+  ],
+  "Live preview": [
+    "实时预览"
+  ],
+  "Update this view while you type in the Markdown editor": [
+    "在 Markdown 编辑器里输入时实时更新此视图"
+  ],
+  "Feedback": [
+    "反馈"
+  ],
+  "Tell us what is broken or what you would like. It opens an email in your own mail program; nothing is uploaded.": [
+    "告诉我们哪里有问题，或你希望增加什么。点击后会用你自己的邮件程序打开一封邮件，不会上传任何内容。"
+  ],
+  "Your message…": [
+    "你的留言…"
+  ],
+  "Add the Kuusi version and browser info": [
+    "附上 Kuusi 版本和浏览器信息"
+  ],
+  "Send by email": [
+    "用邮件发送"
+  ],
+  "Copy message": [
+    "复制留言"
+  ],
+  "Write a message first.": [
+    "请先写点内容。"
+  ],
+  "Your mail program should open. If nothing happens, use Copy message and send it to %1.": [
+    "邮件程序应该会打开。如果没有反应，请点“复制留言”，再发送到 %1。"
+  ],
+  "Copied. Paste it into an email to %1.": [
+    "已复制。请粘贴到发给 %1 的邮件里。"
+  ],
+  "Could not copy; select the text and copy it yourself.": [
+    "复制失败，请自己选中文字复制。"
+  ],
+  "Default files": [
+    "默认打开方式"
+  ],
+  "Surface": [
+    "纸面"
+  ],
+  "Header & footer": [
+    "页眉和页脚"
+  ],
+  "Structure": [
+    "结构"
+  ],
+  "Contents": [
+    "目录"
+  ],
+  "Chapters": [
+    "章节"
+  ],
+  "Contents page": [
+    "目录页"
+  ],
+  "Insert a table of contents with page numbers at the start": [
+    "在文档开头插入带页码的目录"
+  ],
+  "Heading levels": [
+    "标题层级"
+  ],
+  "Header row alignment": [
+    "表头行对齐"
+  ],
+  "Header column alignment": [
+    "表头列对齐"
+  ],
+  "Column width": [
+    "列宽"
+  ],
+  "Auto fit": [
+    "自适应"
+  ],
+  "Each column is as wide as its content needs": [
+    "每列宽度随内容自适应"
+  ],
+  "Equal": [
+    "等宽"
+  ],
+  "Every column gets the same width": [
+    "所有列宽度相同"
+  ],
+  "Auto": [
+    "自动"
+  ],
+  "Keep the table style's own alignment": [
+    "沿用表格样式自带的对齐"
+  ],
+  "Code background": [
+    "代码背景色"
+  ],
+  "Quote background": [
+    "引用背景色"
+  ],
+  "Quote text color": [
+    "引用文字颜色"
+  ],
+  "Quote bar color": [
+    "引用竖线颜色"
+  ],
+  "Show Heading 1": [
+    "显示一级标题"
+  ],
+  "List Heading 1 (usually the document title) in the contents": [
+    "在目录中列出一级标题（通常是文档总标题）"
+  ],
+  "Show title": [
+    "显示标题"
+  ],
+  "Show a heading above the contents list": [
+    "在目录列表上方显示标题"
+  ],
+  "Title": [
+    "标题"
+  ],
+  "Heading numbers": [
+    "标题编号"
+  ],
+  "Headings keep their written text": [
+    "标题保持原文"
+  ],
+  "1, 1.1": [
+    "1、1.1"
+  ],
+  "Number headings 1, 1.1, 1.1.1": [
+    "标题编号为 1、1.1、1.1.1"
+  ],
+  "I, 1.1": [
+    "I、1.1"
+  ],
+  "Chapters as I, II, III, sections as 1.1": [
+    "章用罗马数字 I、II、III，节用 1.1"
+  ],
+  "New page before": [
+    "另起一页"
+  ],
+  "Start numbering at": [
+    "编号起始层级"
+  ],
+  "Heading 1": [
+    "一级标题"
+  ],
+  "Heading 1 is the first numbered level": [
+    "从一级标题开始编号"
+  ],
+  "Heading 2": [
+    "二级标题"
+  ],
+  "Leave Heading 1 (the document title) unnumbered and start at Heading 2": [
+    "一级标题（文档总标题）不编号，从二级标题开始"
+  ],
+  "Numbered levels": [
+    "编号层级"
+  ],
+  "Number only Heading 1": [
+    "只给一级标题编号"
+  ],
+  "Heading 1–2": [
+    "一、二级标题"
+  ],
+  "Number Heading 1 and Heading 2": [
+    "给一级和二级标题编号"
+  ],
+  "All levels": [
+    "所有层级"
+  ],
+  "Number every heading level": [
+    "每一级标题都编号"
+  ],
+  "Headings flow on without a page break": [
+    "标题连续排版，不分页"
+  ],
+  "Every Heading 1 starts a new page": [
+    "每个一级标题另起一页"
+  ],
+  "Every Heading 1 and Heading 2 starts a new page": [
+    "每个一、二级标题另起一页"
+  ],
+  "Page breaks and page numbers show in Paged layout": [
+    "分页与页码在分页版式下生效"
+  ],
+  "Display": [
+    "显示"
+  ],
+  "Reset page settings": [
+    "恢复页面默认"
+  ],
+  "Restore this menu's settings to the current theme's defaults": [
+    "把此菜单的设置恢复为当前主题的默认值"
+  ],
+  "Apply text style to all views": [
+    "文字样式应用到所有视图"
+  ],
+  "Copy font, color, spacing and heading styles to Article, Book, Slides and Mind Map": [
+    "把字体、颜色、间距和标题样式复制到 Article、Book、Slides 和 Mind Map"
+  ],
+  "Kuusi Settings": [
+    "Kuusi 设置"
+  ],
+  "Join the conversation — feedback on Discourse, updates on X, or email us.": [
+    "欢迎参与讨论：Discourse 反馈、X 上的更新，或给我们发邮件。"
+  ],
+  "Shortcut": [
+    "快捷键"
+  ],
+  "Font": [
+    "字体"
+  ],
+  "Sans-serif": [
+    "无衬线"
+  ],
+  "Serif": [
+    "衬线"
+  ],
+  "Chinese": [
+    "中文"
+  ],
+  "Size": [
+    "字号"
+  ],
+  "Custom": [
+    "自定义"
+  ],
+  "Edit": [
+    "编辑"
+  ],
+  "Link": [
+    "关联"
+  ],
+  "Keep edit and display font styles the same": [
+    "编辑与显示使用同一套字体"
+  ],
+  "Match notebook (ipynb) font styles": [
+    "跟随笔记本（ipynb）字体"
+  ],
+  "Inline styles only affect node content, not structure": [
+    "行内样式只影响节点内容，不改变结构"
+  ],
+  "Formatting is available for markdown cells only": [
+    "仅 Markdown 单元格可设置格式"
+  ],
+  "H1–H3 outline chrome or Body; nesting persists to depth 20 with Body style": [
+    "H1–H3 为大纲外观，或使用正文；嵌套可到 20 层，更深层级用正文样式"
+  ],
+  "Formatting notes": [
+    "格式说明"
+  ],
+  "Formatting shortcuts (edit mode)": [
+    "格式快捷键（编辑模式）"
+  ],
+  "Guide": [
+    "指南"
+  ],
+  "Outline heading H1–H3 or Body (nesting to depth 20; deeper levels use Body style)": [
+    "大纲标题 H1–H3 或正文（嵌套到 20 层；更深层级用正文样式）"
+  ],
+  "Keyboard shortcuts": [
+    "键盘快捷键"
+  ],
+  "Unavailable": [
+    "不可用"
+  ],
+  "Latest": [
+    "最新"
+  ],
+  "PyPI latest": [
+    "PyPI 最新版"
+  ],
+  "Layout": [
+    "布局"
+  ],
+  "Equal width": [
+    "等宽"
+  ],
+  "When on, every node uses the same width": [
+    "开启后所有节点使用相同宽度"
+  ],
+  "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)": [
+    "宽度随内容，上限为节点宽度；与等宽同时开启时，所有节点对齐最宽内容（仍受上限限制）"
+  ],
+  "Node width": [
+    "节点宽度"
+  ],
+  "Line width applies to the scrolling layout; paged sheets use the paper width.": [
+    "行宽只在滚动版式下生效；分页版式使用纸张宽度。"
+  ],
+  "Paper options use the paged layout and switch to it.": [
+    "纸张选项属于分页版式，调整后会切换到分页。"
+  ],
+  "Left and right margin. The top margin is 1.125× and the bottom 2× this value.": [
+    "左右页边距；上边距为此值的 1.125 倍，下边距为 2 倍。"
+  ],
+  "Placeholders: {title} document name, {chapter} current chapter, {date} today, {page} page number, {pages} page count.": [
+    "占位符：{title} 文档名，{chapter} 当前章，{date} 今天日期，{page} 页码，{pages} 总页数。"
+  ],
+  "Repeat table headers": [
+    "表头跨页重复"
+  ],
+  "Repeat the header row on every page a long table spans": [
+    "长表格跨页时在每页重复表头行"
+  ],
+  "Margins": [
+    "页边距"
+  ],
+  "Typesetting": [
+    "排版"
+  ],
+  "Blocks": [
+    "块元素"
+  ],
+  "Watermark": [
+    "水印"
+  ],
+  "PDF export": [
+    "PDF 导出"
+  ],
+  "Top": [
+    "顶部"
+  ],
+  "Bottom": [
+    "底部"
+  ],
+  "Left": [
+    "左"
+  ],
+  "Right": [
+    "右"
+  ],
+  "Gutter": [
+    "装订线"
+  ],
+  "Margins in mm; type a value to one decimal, or 0 to follow the theme again (Page → Padding in continuous layout). The gutter widens the left margin for binding.": [
+    "单位毫米，可直接输入一位小数；输入 0 恢复跟随主题（连续版式下沿用 页面 → 内边距）。装订线加宽左边距用于装订。"
+  ],
+  "Line spacing": [
+    "行距"
+  ],
+  "Orphan / widow lines": [
+    "孤行 / 寡行行数"
+  ],
+  "Hyphenation": [
+    "断字"
+  ],
+  "Break long words at syllables (needs a language-aware browser)": [
+    "在音节处断开长单词"
+  ],
+  "First-line indent": [
+    "首行缩进"
+  ],
+  "Code line numbers": [
+    "代码行号"
+  ],
+  "Code tab width": [
+    "代码制表符宽度"
+  ],
+  "Image captions": [
+    "图片题注"
+  ],
+  "Show the alt text under each image as “Figure N. …”": [
+    "在每张图片下以「图 N. …」显示替代文字"
+  ],
+  "Link footnotes": [
+    "链接脚注"
+  ],
+  "Number links in the text and list their addresses at the end": [
+    "给链接编号，并在文末列出地址"
+  ],
+  "Scale": [
+    "缩放比例"
+  ],
+  "Table text size": [
+    "表格文字大小"
+  ],
+  "Table band color": [
+    "表格条纹颜色"
+  ],
+  "Draw a line between the two columns": [
+    "在两栏之间画一条线"
+  ],
+  "Rule thickness": [
+    "线条粗细"
+  ],
+  "Rule color": [
+    "线条颜色"
+  ],
+  "Rule style": [
+    "线条样式"
+  ],
+  "Solid": [
+    "实线"
+  ],
+  "Dashed": [
+    "虚线"
+  ],
+  "Dotted": [
+    "点线"
+  ],
+  "Double": [
+    "双线"
+  ],
+  "Text": [
+    "正文"
+  ],
+  "Bookmarks": [
+    "书签"
+  ],
+  "One bookmark per heading in exported PDFs": [
+    "导出的 PDF 中每个标题一条书签"
+  ],
+  "Image quality": [
+    "图像质量"
+  ],
+  "Standard": [
+    "标准"
+  ],
+  "High": [
+    "高"
+  ],
+  "Cover page": [
+    "封面页"
+  ],
+  "Cover title": [
+    "封面标题"
+  ],
+  "Document name": [
+    "文档名"
+  ],
+  "Author": [
+    "作者"
+  ],
+  "Date": [
+    "日期"
+  ],
+  "Today": [
+    "今天"
+  ],
+  "A title page (document name and date) before the contents": [
+    "在目录前加标题页（文档名与日期）"
+  ],
+  "Mirror on even pages": [
+    "偶数页镜像"
+  ],
+  "Swap left and right alignment on even pages, as in a bound book": [
+    "偶数页左右对齐互换，适合装订成册"
+  ],
+  "Figure": [
+    "图"
+  ],
+  "Links": [
+    "链接"
+  ],
+  "Rule line": [
+    "分隔线"
+  ],
+  "Draw a thin line between this band and the text": [
+    "在此区域与正文之间画一条细线"
+  ],
+  "Different first page": [
+    "首页不同"
+  ],
+  "Leave header and footer text empty on the first page": [
+    "首页的页眉页脚文字留空"
+  ],
+  "Font used while a node's source is open for editing.": [
+    "编辑节点源码时使用的字体。"
+  ],
+  "Zoom range": [
+    "缩放范围"
+  ],
+  "Minimum zoom": [
+    "最小缩放"
+  ],
+  "Maximum zoom": [
+    "最大缩放"
+  ],
+  "Mouse wheel": [
+    "鼠标滚轮"
+  ],
+  "Wheel pans": [
+    "滚轮平移"
+  ],
+  "Scroll pans the map; Ctrl/⌘ + scroll or pinch zooms": [
+    "滚动平移画布；Ctrl/⌘ + 滚动或双指捏合缩放"
+  ],
+  "Wheel zooms": [
+    "滚轮缩放"
+  ],
+  "Scroll zooms the map; Shift + scroll pans": [
+    "滚动缩放画布；Shift + 滚动平移"
+  ],
+  "Zoom speed": [
+    "缩放速度"
+  ],
+  "On open": [
+    "打开时"
+  ],
+  "Center selected node": [
+    "居中选中节点"
+  ],
+  "Center root": [
+    "居中根节点"
+  ],
+  "Fit whole map": [
+    "适应整张导图"
+  ],
+  "Restore last view": [
+    "恢复上次视角"
+  ],
+  "Levels": [
+    "层级"
+  ],
+  "Level": [
+    "层级"
+  ],
+  "Root": [
+    "根节点"
+  ],
+  "Level 1": [
+    "第 1 层"
+  ],
+  "Level 2": [
+    "第 2 层"
+  ],
+  "Level 3+": [
+    "第 3 层及更深"
+  ],
+  "Follow map": [
+    "跟随全局"
+  ],
+  "Overrides the map-wide node style for this level. A node's own fill still wins.": [
+    "覆盖此层级的全局节点样式；单个节点自己的填充色优先。"
+  ],
+  "Taper": [
+    "渐细"
+  ],
+  "Thinner toward the leaves": [
+    "越靠近叶子越细"
+  ],
+  "Connector lines get thinner with each level away from the root": [
+    "连线离根节点每深一层就更细一些"
+  ],
+  "Minimum width": [
+    "最小线宽"
+  ],
+  "Branch colors": [
+    "分支着色"
+  ],
+  "Overrides the line color; arrows follow the branch color.": [
+    "会覆盖连线颜色；箭头跟随分支颜色。"
+  ],
+  "Rainbow": [
+    "彩虹"
+  ],
+  "Pastel": [
+    "粉彩"
+  ],
+  "Mono": [
+    "单色"
+  ],
+  "Horizontal padding": [
+    "水平内边距"
+  ],
+  "Vertical padding": [
+    "垂直内边距"
+  ],
+  "Fit to window": [
+    "适应窗口"
+  ],
+  "Fit the whole map in the window (Shift+1)": [
+    "让整张导图适应窗口（Shift+1）"
+  ],
+  "Max width": [
+    "最大宽度"
+  ],
+  "Drag the right edge to resize this node": [
+    "拖动右边缘调整此节点宽度"
+  ],
+  "Line": [
+    "连线"
+  ],
+  "Extra open spacing between topics and branches": [
+    "主题与分支之间更疏的间距"
+  ],
+  "Markdown formatting": [
+    "Markdown 格式"
+  ],
+  "Mind map font and size": [
+    "思维导图字体与字号"
+  ],
+  "Mind map shortcuts": [
+    "思维导图快捷键"
+  ],
+  "Mind map theme": [
+    "思维导图主题"
+  ],
+  "Page and mind map controls": [
+    "页面与思维导图控件"
+  ],
+  "Article reading controls": [
+    "Article 阅读控件"
+  ],
+  "Book reading controls": [
+    "Book 阅读控件"
+  ],
+  "Book page": [
+    "Book 页面"
+  ],
+  "Spread": [
+    "对开"
+  ],
+  "One page at a time": [
+    "每次一页"
+  ],
+  "Facing pages like an open book": [
+    "左右对开，像翻开的书"
+  ],
+  "Previous pages": [
+    "上一页"
+  ],
+  "Next pages": [
+    "下一页"
+  ],
+  "Spine": [
+    "书脊间距"
+  ],
+  "Spine rule": [
+    "书脊线"
+  ],
+  "Draw a thin rule in the spine": [
+    "在书脊处画细线"
+  ],
+  "No spine rule": [
+    "无书脊线"
+  ],
+  "Columns": [
+    "栏数"
+  ],
+  "Single reading column": [
+    "单栏阅读"
+  ],
+  "Two reading columns": [
+    "双栏阅读"
+  ],
+  "Three reading columns": [
+    "三栏阅读"
+  ],
+  "Column gap": [
+    "栏距"
+  ],
+  "Column fill": [
+    "栏填充"
+  ],
+  "Balance text height across columns": [
+    "平衡各栏高度"
+  ],
+  "Fill columns in order (newspaper style)": [
+    "按阅读顺序填栏（报纸式）"
+  ],
+  "Column rule": [
+    "栏线"
+  ],
+  "Draw a thin rule between columns": [
+    "在栏之间画细线"
+  ],
+  "No rule between columns": [
+    "无栏线"
+  ],
+  "Type": [
+    "类型"
+  ],
+  "Article type": [
+    "Article 类型"
+  ],
+  "Article page": [
+    "Article 页面"
+  ],
+  "Article theme": [
+    "Article 主题"
+  ],
+  "Jupyter reading column on ruled notebook paper": [
+    "Jupyter 阅读栏，笔记本横线纸"
+  ],
+  "Essay": [
+    "随笔"
+  ],
+  "Narrow serif essay on warm sepia paper": [
+    "暖色褐色纸上的窄衬线随笔"
+  ],
+  "Magazine": [
+    "杂志"
+  ],
+  "Two-column newsprint with centered display titles": [
+    "双栏新闻纸，标题居中"
+  ],
+  "Night": [
+    "夜间"
+  ],
+  "Dark ink page with larger type for low light": [
+    "深色墨纸，低光下更大字号"
+  ],
+  "Academic": [
+    "学术"
+  ],
+  "Paged Times paper — justified body, restrained titles": [
+    "分页 Times 纸面 — 两端对齐正文、克制标题"
+  ],
+  "Minimal": [
+    "极简"
+  ],
+  "Narrow sans column with generous whitespace": [
+    "窄无衬线栏，留白充足"
+  ],
+  "Code": [
+    "代码"
+  ],
+  "Image": [
+    "图片"
+  ],
+  "Elements": [
+    "元素"
+  ],
+  "Article body font": [
+    "Article 正文字体"
+  ],
+  "Article body": [
+    "Article 正文"
+  ],
+  "Body": [
+    "正文"
+  ],
+  "Article paragraph": [
+    "Article 段落"
+  ],
+  "Paragraph": [
+    "段落"
+  ],
+  "Spacing": [
+    "间距"
+  ],
+  "Compact": [
+    "紧凑"
+  ],
+  "Tighter space between paragraphs": [
+    "段落间距更紧"
+  ],
+  "Reading": [
+    "阅读"
+  ],
+  "Comfortable space between paragraphs": [
+    "舒适的段落间距"
+  ],
+  "Loose": [
+    "宽松"
+  ],
+  "Open space between paragraphs": [
+    "更疏的段落间距"
+  ],
+  "Indent": [
+    "缩进"
+  ],
+  "No first-line indent": [
+    "首行不缩进"
+  ],
+  "Half": [
+    "半字"
+  ],
+  "About one em first-line indent": [
+    "约 1em 首行缩进"
+  ],
+  "Full": [
+    "全字"
+  ],
+  "About two em first-line indent": [
+    "约 2em 首行缩进"
+  ],
+  "Left-align body paragraphs": [
+    "正文段落左对齐"
+  ],
+  "Justify body paragraphs for even edges": [
+    "正文两端对齐"
+  ],
+  "Justify": [
+    "两端对齐"
+  ],
+  "Article headers": [
+    "Article 标题"
+  ],
+  "Header": [
+    "页眉"
+  ],
+  "Alignment": [
+    "对齐"
+  ],
+  "Left-align heading": [
+    "标题左对齐"
+  ],
+  "Center": [
+    "居中"
+  ],
+  "Center heading": [
+    "标题居中"
+  ],
+  "Right-align heading": [
+    "标题右对齐"
+  ],
+  "Padding": [
+    "边距"
+  ],
+  "Tighter page margins": [
+    "更紧的页边距"
+  ],
+  "Comfortable page margins": [
+    "舒适的页边距"
+  ],
+  "Open page margins": [
+    "更宽的页边距"
+  ],
+  "Leading": [
+    "行距"
+  ],
+  "Tighter line spacing for dense pages": [
+    "更紧的行距，适合密排"
+  ],
+  "Comfortable spacing for long-form reading": [
+    "适合长文阅读的行距"
+  ],
+  "Open spacing for a slower read": [
+    "更疏的行距，阅读更从容"
+  ],
+  "Line height from 0.5× to 3× of the body size": [
+    "行高为正文的 0.5× 到 3×"
+  ],
+  "Space between paragraphs from 0em to 3em": [
+    "段落间距 0em 到 3em"
+  ],
+  "First-line indent from 0em to 3em": [
+    "首行缩进 0em 到 3em"
+  ],
+  "Tracking": [
+    "字距"
+  ],
+  "Letter spacing from 0em to 0.15em": [
+    "字距 0em 到 0.15em"
+  ],
+  "Theme default link appearance": [
+    "使用主题默认链接样式"
+  ],
+  "Underline": [
+    "下划线"
+  ],
+  "Always underline body links": [
+    "正文链接始终显示下划线"
+  ],
+  "Accent": [
+    "强调"
+  ],
+  "Use accent color for links": [
+    "链接使用强调色"
+  ],
+  "Inline code without extra background": [
+    "行内代码无额外背景"
+  ],
+  "Muted": [
+    "淡底"
+  ],
+  "Soft background for inline and block code": [
+    "行内与代码块使用浅底"
+  ],
+  "Contrast": [
+    "对比"
+  ],
+  "Strong background for code blocks": [
+    "代码块使用更强对比底色"
+  ],
+  "Table": [
+    "表格"
+  ],
+  "Style": [
+    "样式"
+  ],
+  "No borders — Word Plain Table": [
+    "无边框 — Word 纯净表格"
+  ],
+  "Full grid — Word Table Grid": [
+    "全网格 — Word 网格表格"
+  ],
+  "Lines": [
+    "横线"
+  ],
+  "Horizontal rules only": [
+    "仅水平线"
+  ],
+  "Banded": [
+    "斑马纹"
+  ],
+  "Alternating row fill with header bar": [
+    "隔行底色 + 表头条"
+  ],
+  "Booktabs": [
+    "三线表"
+  ],
+  "LaTeX booktabs — thick outer rules, no verticals": [
+    "LaTeX booktabs — 粗外框线、无竖线"
+  ],
+  "Ruled": [
+    "线框"
+  ],
+  "Academic three-line table": [
+    "学术三线表"
+  ],
+  "Border": [
+    "边框"
+  ],
+  "Table background transparency": [
+    "表格背景透明度"
+  ],
+  "Bold header row": [
+    "表头行加粗"
+  ],
+  "Make the first row (column headers) bold": [
+    "首行（列标题）加粗"
+  ],
+  "Bold first column": [
+    "首列加粗"
+  ],
+  "Make the first column (row headers) bold": [
+    "首列（行标题）加粗"
+  ],
+  "List": [
+    "列表"
+  ],
+  "Tighter space between list items": [
+    "列表项间距更紧"
+  ],
+  "Normal": [
+    "常规"
+  ],
+  "Comfortable list item spacing": [
+    "舒适的列表项间距"
+  ],
+  "Open space between list items": [
+    "更疏的列表项间距"
+  ],
+  "Quote": [
+    "引用"
+  ],
+  "Blockquote": [
+    "引用块"
+  ],
+  "Divider": [
+    "分割线"
+  ],
+  "Divider thickness": [
+    "分割线粗细"
+  ],
+  "Preset": [
+    "预设"
+  ],
+  "Divider line": [
+    "分割线样式"
+  ],
+  "Divider color": [
+    "分割线颜色"
+  ],
+  "Light": [
+    "轻"
+  ],
+  "Thin, quiet rule": [
+    "细而克制的线"
+  ],
+  "Standard emphasis": [
+    "标准强调"
+  ],
+  "Strong": [
+    "重"
+  ],
+  "Heavier rule with more presence": [
+    "更粗、更醒目的线"
+  ],
+  "JupyterLab default syntax colors": [
+    "JupyterLab 默认语法配色"
+  ],
+  "Blue keywords and deep string tones": [
+    "蓝色关键字与深色字符串"
+  ],
+  "Column": [
+    "栏"
+  ],
+  "Align the text column to the left": [
+    "文本栏靠左"
+  ],
+  "Center the text column in the pane": [
+    "文本栏在窗格中居中"
+  ],
+  "Scroll": [
+    "滚动"
+  ],
+  "Continuous reading column (no paper frame)": [
+    "连续阅读栏（无纸张边框）"
+  ],
+  "Paged": [
+    "分页"
+  ],
+  "Print-style paper preview — use Export → PDF to save": [
+    "印刷式纸张预览 — 用导出 → PDF 保存"
+  ],
+  "Paper": [
+    "纸张"
+  ],
+  "A4": [
+    "A4"
+  ],
+  "210 × 297 mm": [
+    "210 × 297 mm"
+  ],
+  "Letter": [
+    "Letter"
+  ],
+  "8.5 × 11 in": [
+    "8.5 × 11 in"
+  ],
+  "Portrait": [
+    "纵向"
+  ],
+  "Tall page (switches to Paged)": [
+    "竖向页面（切换到分页）"
+  ],
+  "Landscape": [
+    "横向"
+  ],
+  "Wide page (switches to Paged)": [
+    "横向页面（切换到分页）"
+  ],
+  "Edge color": [
+    "边缘颜色"
+  ],
+  "Edge width": [
+    "边缘粗细"
+  ],
+  "Shadow": [
+    "阴影"
+  ],
+  "Drop shadow around the paper sheet": [
+    "纸张周围投下阴影"
+  ],
+  "Shadow width": [
+    "阴影宽度"
+  ],
+  "Text style": [
+    "正文样式"
+  ],
+  "Paragraph style": [
+    "段落样式"
+  ],
+  "Headings": [
+    "标题"
+  ],
+  "Heading styles": [
+    "标题样式"
+  ],
+  "Code style": [
+    "代码样式"
+  ],
+  "Page setup": [
+    "页面设置"
+  ],
+  "Slide header, footer & controls": [
+    "幻灯片页眉、页脚与控件"
+  ],
+  "Page elements": [
+    "页面元素"
+  ],
+  "Presentation controls": [
+    "演示控件"
+  ],
+  "Look": [
+    "外观"
+  ],
+  "Article header, footer & page numbers": [
+    "Article 页眉、页脚与页码"
+  ],
+  "Footer": [
+    "页脚"
+  ],
+  "Page numbers": [
+    "页码"
+  ],
+  "Placeholders: {title} file name, {page} page, {pages} total": [
+    "占位符：{title} 文件名，{page} 页码，{pages} 总页数"
+  ],
+  "Shown in Paged layout (Page → Layout → Paged)": [
+    "仅在分页布局中显示（页面 → 布局 → 分页）"
+  ],
+  "Format": [
+    "格式"
+  ],
+  "No page numbers": [
+    "不显示页码"
+  ],
+  "3": [
+    "3"
+  ],
+  "Page number only": [
+    "仅页码"
+  ],
+  "3 / 12": [
+    "3 / 12"
+  ],
+  "Page number and page count": [
+    "页码与总页数"
+  ],
+  "– 3 –": [
+    "– 3 –"
+  ],
+  "Page number between dashes": [
+    "页码两侧加短横线"
+  ],
+  "[3]": [
+    "[3]"
+  ],
+  "Page number in square brackets": [
+    "页码加方括号"
+  ],
+  "Page 3": [
+    "Page 3"
+  ],
+  "The word Page and the page number": [
+    "英文 Page 加页码"
+  ],
+  "Page 3 of 12": [
+    "Page 3 of 12"
+  ],
+  "The word Page, the page number and the page count": [
+    "英文 Page、页码和总页数"
+  ],
+  "iii": [
+    "iii"
+  ],
+  "Lower-case Roman numerals (i, ii, iii…)": [
+    "小写罗马数字（i、ii、iii…）"
+  ],
+  "III": [
+    "III"
+  ],
+  "Upper-case Roman numerals (I, II, III…)": [
+    "大写罗马数字（I、II、III…）"
+  ],
+  "Position": [
+    "位置"
+  ],
+  "Top margin of each page": [
+    "每页上边距"
+  ],
+  "Bottom margin of each page": [
+    "每页下边距"
+  ],
+  "Starts on": [
+    "起始于"
+  ],
+  "First page": [
+    "首页"
+  ],
+  "Number from the first page (1, 2, 3…)": [
+    "从首页开始编号（1、2、3…）"
+  ],
+  "Second page": [
+    "第 2 页"
+  ],
+  "Skip the first page; numbering begins on page 2 as 1": [
+    "首页不编号，从第 2 页起计为 1"
+  ],
+  "Images": [
+    "图片"
+  ],
+  "Natural": [
+    "原始"
+  ],
+  "Keep images at their natural width": [
+    "保持图片原始宽度"
+  ],
+  "Wide": [
+    "加宽"
+  ],
+  "Expand images to the column width": [
+    "图片扩展到栏宽"
+  ],
+  "Let images span the full pane width": [
+    "图片铺满整个窗格宽度"
+  ],
+  "Place images on the left": [
+    "图片靠左"
+  ],
+  "Center images in the column": [
+    "图片在栏中居中"
+  ],
+  "Place images on the right": [
+    "图片靠右"
+  ],
+  "Wrap": [
+    "环绕"
+  ],
+  "Block": [
+    "单独成行"
+  ],
+  "Images sit on their own line; text stays above and below": [
+    "图片单独一行，文字在上下"
+  ],
+  "Left + wrap": [
+    "左绕排"
+  ],
+  "Image on the left; following text wraps on the right": [
+    "图片在左，后续文字在右侧环绕"
+  ],
+  "Right + wrap": [
+    "右绕排"
+  ],
+  "Image on the right; following text wraps on the left": [
+    "图片在右，后续文字在左侧环绕"
+  ],
+  "No frame around images": [
+    "图片无边框"
+  ],
+  "Continuous line": [
+    "连续实线"
+  ],
+  "Dashed line": [
+    "虚线"
+  ],
+  "Dotted line": [
+    "点线"
+  ],
+  "Two parallel lines": [
+    "两条平行线"
+  ],
+  "Measure": [
+    "栏宽"
+  ],
+  "Narrow": [
+    "窄"
+  ],
+  "About 42rem — essay column": [
+    "约 42rem — 随笔栏"
+  ],
+  "About 52rem — default article column": [
+    "约 52rem — 默认文章栏"
+  ],
+  "About 68rem — magazine column": [
+    "约 68rem — 杂志栏"
+  ],
+  "Use the full pane width": [
+    "使用整个窗格宽度"
+  ],
+  "Theme": [
+    "主题"
+  ],
+  "Follow the Jupyter theme": [
+    "跟随 Jupyter 主题"
+  ],
+  "Warm off-white page for long reading": [
+    "暖白纸面，适合长读"
+  ],
+  "Cream newsprint tone": [
+    "奶油色新闻纸"
+  ],
+  "Dark page for night reading": [
+    "深色纸面，适合夜间阅读"
+  ],
+  "Sepia": [
+    "棕褐"
+  ],
+  "Warm sepia tone for long reading sessions": [
+    "暖棕褐，适合长时间阅读"
+  ],
+  "Mist": [
+    "薄雾"
+  ],
+  "Cool light gray page with a soft haze": [
+    "浅冷灰，带一层薄雾"
+  ],
+  "Horizontal ruled lines like notebook paper": [
+    "类似笔记本的横线"
+  ],
+  "Margin and ruled lines like a notebook page": [
+    "类似笔记本页的边线和横线"
+  ],
+  "A newer version is available": [
+    "有新版本可用"
+  ],
+  "Node": [
+    "节点"
+  ],
+  "Redo": [
+    "重做"
+  ],
+  "Could not save the dropped image next to this document.": [
+    "无法将拖入的图片保存到文档旁边。"
+  ],
+  "Undo": [
+    "撤销"
+  ],
+  "Node width, fill, border, and selection glow": [
+    "节点宽度、填充、边框与选中光晕"
+  ],
+  "Map fill": [
+    "图填充"
+  ],
+  "Fill transparency": [
+    "填充透明度"
+  ],
+  "Selected fill": [
+    "选中填充"
+  ],
+  "Select a node to set a custom fill": [
+    "选中节点以设置自定义填充"
+  ],
+  "Border style": [
+    "边框样式"
+  ],
+  "Border width": [
+    "边框宽度"
+  ],
+  "Border color": [
+    "边框颜色"
+  ],
+  "Selection glow color": [
+    "选中光晕颜色"
+  ],
+  "Selection glow width": [
+    "选中光晕宽度"
+  ],
+  "Hover": [
+    "悬停"
+  ],
+  "Hover glow color": [
+    "悬停光晕颜色"
+  ],
+  "Hover glow width": [
+    "悬停光晕宽度"
+  ],
+  "Default uses the map node border color when set; otherwise blue.": [
+    "默认使用已设置的节点边框色；否则为蓝色。"
+  ],
+  "Node layout spacing": [
+    "节点布局间距"
+  ],
+  "Balanced default spacing like XMind auto layout": [
+    "类似 XMind 自动布局的均衡默认间距"
+  ],
+  "Open GitHub repository": [
+    "打开 GitHub 仓库"
+  ],
+  "Repository": [
+    "仓库"
+  ],
+  "Route": [
+    "路径"
+  ],
+  "Restore theme defaults": [
+    "恢复主题默认值"
+  ],
+  "Reset page, background, and appearance for this theme": [
+    "把当前主题的页面、背景与外观恢复为默认"
+  ],
+  "Soft": [
+    "柔和"
+  ],
+  "Board": [
+    "看板"
+  ],
+  "Black": [
+    "墨黑"
+  ],
+  "Density": [
+    "疏密"
+  ],
+  "Width": [
+    "宽度"
+  ],
+  "Color for bold body text; empty inherits the body color": [
+    "加粗正文的颜色；空则跟随正文颜色"
+  ],
+  "Arrow": [
+    "箭头"
+  ],
+  "Arrow style": [
+    "箭头样式"
+  ],
+  "Fill": [
+    "填充"
+  ],
+  "Corner": [
+    "圆角"
+  ],
+  "Selection": [
+    "选中"
+  ],
+  "Tree": [
+    "树"
+  ],
+  "Bottom to top": [
+    "自下而上"
+  ],
+  "Left to right": [
+    "从左到右"
+  ],
+  "Right to left": [
+    "从右到左"
+  ],
+  "Top to bottom": [
+    "自上而下"
+  ],
+  "You are on the latest version": [
+    "已是最新版本"
+  ],
+  "Version": [
+    "版本"
+  ],
+  "Zoom": [
+    "缩放"
+  ],
+  "Zoom in": [
+    "放大"
+  ],
+  "Zoom out": [
+    "缩小"
+  ],
+  "Adjust zoom (20%–200%)": [
+    "调整缩放（20%–200%）"
+  ],
+  "Kuusi View": [
+    "Kuusi 视图"
+  ],
+  "Open the Kuusi view beside this editor": [
+    "在此编辑器旁打开 Kuusi 视图"
+  ],
+  "Export": [
+    "导出"
+  ],
+  "Export this render view": [
+    "导出此渲染视图"
+  ],
+  "PDF": [
+    "PDF"
+  ],
+  "Download this view as a PDF file (one page per page or slide)": [
+    "将此视图下载为 PDF（每页或每张幻灯片一页）"
+  ],
+  "Download the PDF file": [
+    "下载 PDF 文件"
+  ],
+  "PDF…": [
+    "PDF…"
+  ],
+  "Open the print dialog and choose “Save as PDF”: sharp text that stays selectable": [
+    "打开打印对话框，选择“存储为 PDF”：文字清晰且可选中"
+  ],
+  "Add bookmarks and links…": [
+    "添加书签和目录链接…"
+  ],
+  "Pick the PDF you saved: headings become bookmarks (the reader's contents sidebar) and the contents page links jump to their page": [
+    "选择刚保存的 PDF：标题会成为书签（阅读器侧边栏里的目录），目录页的链接可跳转到对应页"
+  ],
+  "Saved a PDF? Add bookmarks and working contents links for PDF readers such as Preview.": [
+    "保存了 PDF？添加书签和目录链接后，Preview 等阅读器里才有目录导航和可点击的目录。"
+  ],
+  "Could not add bookmarks: pick the PDF saved from this view's PDF… export.": [
+    "无法添加书签：请选择从本视图“PDF…”导出保存的 PDF。"
+  ],
+  "Saved %1 with bookmarks.": [
+    "已保存带书签的 %1。"
+  ],
+  "%1 image": [
+    "%1 图片"
+  ],
+  "Download %1 as a %2 image": [
+    "将%1下载为 %2 图片"
+  ],
+  "the current slide": [
+    "当前幻灯片"
+  ],
+  "the whole mind map": [
+    "整张思维导图"
+  ],
+  "the current page": [
+    "当前页"
+  ],
+  "Exporting %1…": [
+    "正在导出 %1…"
+  ],
+  "Exporting %1… page %2 of %3": [
+    "正在导出 %1… 第 %2 / %3 页"
+  ],
+  "Downloaded %1.": [
+    "已下载 %1。"
+  ],
+  "Export failed: %1": [
+    "导出失败：%1"
+  ],
+  "This view has nothing to export yet.": [
+    "此视图还没有可导出的内容。"
+  ],
+  "This browser cannot encode WebP; saved as PNG instead.": [
+    "此浏览器无法编码 WebP，已改为保存 PNG。"
+  ],
+  "HTML": [
+    "HTML"
+  ],
+  "Download the rendered HTML": [
+    "下载渲染后的 HTML"
+  ],
+  "Download": [
+    "下载"
+  ],
+  "Download the source file": [
+    "下载源文件"
+  ],
+  "Slides controls": [
+    "幻灯片控件"
+  ],
+  "Slides theme": [
+    "幻灯片主题"
+  ],
+  "Classic": [
+    "经典"
+  ],
+  "White stage — notebook type, balanced chrome": [
+    "白底舞台 — notebook 字体，均衡控件"
+  ],
+  "Dark projector stage — larger type, centered content": [
+    "深色投影舞台 — 更大字号，内容居中"
+  ],
+  "Forest": [
+    "森林"
+  ],
+  "Deep green stage with warm serif type": [
+    "深绿舞台，暖色衬线字体"
+  ],
+  "Ocean": [
+    "海洋"
+  ],
+  "Blue stage — centered sans titles and progress": [
+    "蓝色舞台 — 居中无衬线标题与进度条"
+  ],
+  "Slate": [
+    "岩灰"
+  ],
+  "Cool gray modern stage — compact, flat chrome": [
+    "冷灰现代舞台 — 紧凑扁平控件"
+  ],
+  "Warm paper stage with reading-friendly serif": [
+    "暖色纸舞台，易读衬线字体"
+  ],
+  "Metropolis": [
+    "Metropolis"
+  ],
+  "Flat modern Beamer look — compact, progress bar": [
+    "扁平现代 Beamer 风 — 紧凑，带进度条"
+  ],
+  "Madrid": [
+    "Madrid"
+  ],
+  "Structured Beamer look — header bar and footer": [
+    "结构化 Beamer 风 — 顶栏与页脚"
+  ],
+  "Berlin": [
+    "Berlin"
+  ],
+  "Cool slate Beamer look — accent rail, compact": [
+    "冷灰 Beamer 风 — 强调边条，紧凑"
+  ],
+  "Copenhagen": [
+    "Copenhagen"
+  ],
+  "Light Beamer look — airy padding, quiet chrome": [
+    "浅色 Beamer 风 — 疏朗边距，控件克制"
+  ],
+  "Singapore": [
+    "Singapore"
+  ],
+  "Bold Beamer look — centered titles, strong accent": [
+    "大胆 Beamer 风 — 居中标题，强调色鲜明"
+  ],
+  "Slides layout": [
+    "幻灯片布局"
+  ],
+  "Ratio": [
+    "比例"
+  ],
+  "16:9": [
+    "16:9"
+  ],
+  "Widescreen stage (16:9)": [
+    "宽屏舞台（16:9）"
+  ],
+  "4:3": [
+    "4:3"
+  ],
+  "Classic projector stage (4:3)": [
+    "经典投影比例（4:3）"
+  ],
+  "1:1": [
+    "1:1"
+  ],
+  "Square stage (1:1)": [
+    "方形舞台（1:1）"
+  ],
+  "Lists": [
+    "列表"
+  ],
+  "Tighter spacing between list items": [
+    "列表项间距更紧"
+  ],
+  "Default list item spacing": [
+    "默认列表项间距"
+  ],
+  "Roomier spacing between list items": [
+    "列表项间距更疏"
+  ],
+  "Small": [
+    "小"
+  ],
+  "Smaller slide headings": [
+    "更小的幻灯片标题"
+  ],
+  "Medium": [
+    "中"
+  ],
+  "Default slide heading size": [
+    "默认幻灯片标题大小"
+  ],
+  "Large": [
+    "大"
+  ],
+  "Larger slide headings": [
+    "更大的幻灯片标题"
+  ],
+  "Text color": [
+    "文字颜色"
+  ],
+  "Accent color": [
+    "强调色"
+  ],
+  "Split": [
+    "拆分"
+  ],
+  "New slide at each # / ## / ###; --- optional; long slides auto-split": [
+    "每个 # / ## / ### 新开一页；--- 可选；过长幻灯片自动拆分"
+  ],
+  "--- rules": [
+    "--- 分隔"
+  ],
+  "Split only on lines that are exactly ---": [
+    "仅在恰好为 --- 的行处拆分"
+  ],
+  "Headings only": [
+    "仅标题"
+  ],
+  "New slide at each # / ## / ### (ignore ---)": [
+    "每个 # / ## / ### 新开一页（忽略 ---）"
+  ],
+  "Slide stage": [
+    "幻灯片舞台"
+  ],
+  "Previous slide": [
+    "上一张"
+  ],
+  "Next slide": [
+    "下一张"
+  ],
+  "Slide type": [
+    "幻灯片类型"
+  ],
+  "Draw a border around fenced code blocks": [
+    "为围栏代码块加上边框"
+  ],
+  "Chrome": [
+    "界面框"
+  ],
+  "Show the slide header bar": [
+    "显示幻灯片顶栏"
+  ],
+  "Header text": [
+    "页眉文字"
+  ],
+  "Use the nearest H1 at or before this slide": [
+    "使用本页及之前最近的一级标题"
+  ],
+  "Use the nearest H2 at or before this slide": [
+    "使用本页及之前最近的二级标题"
+  ],
+  "Heading 3": [
+    "三级标题"
+  ],
+  "Use the nearest H3 at or before this slide": [
+    "使用本页及之前最近的三级标题"
+  ],
+  "Use a fixed custom header string": [
+    "使用固定的自定义页眉文字"
+  ],
+  "Custom text": [
+    "自定义文字"
+  ],
+  "Text shown in the slide header bar": [
+    "显示在幻灯片顶栏的文字"
+  ],
+  "Header text…": [
+    "页眉文字…"
+  ],
+  "Align": [
+    "对齐"
+  ],
+  "Align slide content to the top": [
+    "幻灯片内容靠上"
+  ],
+  "Vertically center slide content": [
+    "幻灯片内容垂直居中"
+  ],
+  "Align slide content to the bottom": [
+    "幻灯片内容靠下"
+  ],
+  "Tighter padding inside the slide stage": [
+    "舞台内边距更紧"
+  ],
+  "Default padding inside the slide stage": [
+    "舞台默认内边距"
+  ],
+  "Roomier padding inside the slide stage": [
+    "舞台内边距更宽"
+  ],
+  "Buttons": [
+    "按钮"
+  ],
+  "Show previous / next buttons under the stage": [
+    "在舞台下方显示上一张 / 下一张按钮"
+  ],
+  "Page number": [
+    "页码"
+  ],
+  "Show the page number on the slide footer": [
+    "在幻灯片页脚显示页码"
+  ],
+  "3 – 12": [
+    "3 – 12"
+  ],
+  "Page number and count separated by an en dash": [
+    "页码与总页数用短破折号分隔"
+  ],
+  "Soft glow under the progress bar": [
+    "进度条下方的柔和光晕"
+  ],
+  "Command-mode cell bar": [
+    "命令模式单元格左侧条"
+  ],
+  "Auto reload by default": [
+    "默认自动重载"
+  ],
+  "Reload notebooks and Markdown views when the file changes on disk. Each file can still be switched in its … menu.": [
+    "文件在磁盘上变化时自动重载笔记本和 Markdown 视图。每个文件仍可在其「…」菜单中单独开关。"
+  ],
+  "Selected cell border": [
+    "选中单元格边框"
+  ],
+  "The bar beside the selected cell (command mode) and the border round it are set separately. Empty keeps JupyterLab's colors.": [
+    "命令模式下选中单元格左侧的条，和单元格四周的边框，颜色分别设置。留空则保持 JupyterLab 默认颜色。"
+  ],
+  "Color of the bar beside the selected cell while the notebook is in command mode.": [
+    "笔记本处于命令模式时，选中单元格左侧条的颜色。"
+  ],
+  "Text size": [
+    "文字大小"
+  ],
+  "Page overview": [
+    "页面总览"
+  ],
+  "Overview of all pages (G)": [
+    "所有页面总览（G）"
+  ],
+  "Header style": [
+    "页眉样式"
+  ],
+  "Footer style": [
+    "页脚样式"
+  ],
+  "Footer text": [
+    "页脚文字"
+  ],
+  "Tokens: {title} {chapter} {section} {subsection} {page} {total} {date}. Empty shows the deck title.": [
+    "可用变量：{title} {chapter} {section} {subsection} {page} {total} {date}。留空则显示文档标题。"
+  ],
+  "Slide overview": [
+    "幻灯片总览"
+  ],
+  "Bar height": [
+    "条的高度"
+  ],
+  "Bar color": [
+    "条的颜色"
+  ],
+  "Opacity": [
+    "透明度"
+  ],
+  "Show the slide footer bar": [
+    "显示幻灯片页脚栏"
+  ],
+  "Progress": [
+    "进度"
+  ],
+  "Show a progress bar for deck position": [
+    "显示演示进度条"
+  ],
+  "Drop shadow around the slide stage": [
+    "舞台周围投下阴影"
+  ],
+  "Render view": [
+    "渲染视图"
+  ],
+  "Rendered Markdown preview": [
+    "渲染后的 Markdown 预览"
+  ],
+  "Rendered notebook article": [
+    "渲染后的笔记本文章"
+  ],
+  "Kuusi Markdown mind map": [
+    "Kuusi Markdown 思维导图"
+  ],
+  "Kuusi notebook mind map": [
+    "Kuusi 笔记本思维导图"
+  ],
+  "Live Markdown slides": [
+    "实时 Markdown 幻灯片"
+  ],
+  "Live notebook slides": [
+    "实时笔记本幻灯片"
+  ],
+  "Show the number of mind map nodes in the bottom-right corner": [
+    "在右下角显示思维导图节点数量"
+  ],
+  "Fit content": [
+    "适应内容"
+  ],
+  "Live Markdown slides (split on --- or H1)": [
+    "实时 Markdown 幻灯片（按 --- 或一级标题拆分）"
+  ],
+  "Kuusi Live PDF preview (compile to refresh)": [
+    "Kuusi 实时 PDF 预览（编译后刷新）"
+  ],
+  "Follow Jupyter defaults — 52rem column": [
+    "跟随 Jupyter 默认 — 52rem 栏宽"
+  ],
+  "Narrow serif column on warm paper": [
+    "暖色纸上的窄衬线栏"
+  ],
+  "Wide sans-serif column with centered titles": [
+    "宽无衬线栏，标题居中"
+  ],
+  "Dark ink page with slightly larger type": [
+    "深色墨纸，字号略大"
+  ],
+  "Serif column with restrained typography": [
+    "克制的衬线栏排版"
+  ],
+  "Clean sans column with generous whitespace": [
+    "干净的无衬线栏，留白充足"
+  ],
+  "Print / Vector PDF…": [
+    "打印 / 矢量 PDF…"
+  ],
+  "Open the system print dialog; choose “Save as PDF” for selectable text": [
+    "打开系统打印对话框；选择“存储为 PDF”可得到可选中文本"
+  ],
+  "the whole view": [
+    "整个视图"
+  ],
+  "White stage with dark text": [
+    "白底深色文字"
+  ],
+  "Dark stage for projector rooms": [
+    "适合投影的深色舞台"
+  ],
+  "Deep green stage with light text": [
+    "深绿舞台，浅色文字"
+  ],
+  "Blue stage with light text": [
+    "蓝色舞台，浅色文字"
+  ],
+  "Cool gray modern stage": [
+    "冷灰现代舞台"
+  ],
+  "Warm paper stage with dark text": [
+    "暖色纸舞台，深色文字"
+  ],
+  "Beamer-inspired flat modern theme with accent bar": [
+    "Beamer 风格的扁平现代主题，带强调条"
+  ],
+  "Beamer-inspired header bar and structured footer": [
+    "Beamer 风格的顶栏与结构化页脚"
+  ],
+  "Beamer-inspired accent rail and cool slate stage": [
+    "Beamer 风格的强调边条与冷灰舞台"
+  ],
+  "Beamer-inspired light theme with subtle structure": [
+    "Beamer 风格的浅色主题，结构克制"
+  ],
+  "Beamer-inspired bold accent and clean stage": [
+    "Beamer 风格的大胆强调色与干净舞台"
+  ],
+  "Frame": [
+    "边框"
+  ],
+  "Frame color": [
+    "边框颜色"
+  ],
+  "Show the slide header bar with the section title": [
+    "显示带章节标题的幻灯片顶栏"
+  ],
+  "Show the current slide index in the footer and nav": [
+    "在页脚与导航中显示当前幻灯片序号"
+  ],
+  "Plain Markdown source editor": [
+    "纯文本 Markdown 编辑器"
+  ],
+  "Kuusi": [
+    "Kuusi"
+  ],
+  "Open this notebook beside Kuusi (left: notebook, right: mind map)": [
+    "在 Kuusi 旁打开此笔记本（左：笔记本，右：思维导图）"
+  ],
+  "File types": [
+    "文件类型"
+  ],
+  "Placeholders: {title} document name, {page} page number, {pages} page count.": [
+    "占位符：{title} 文档名，{page} 页码，{pages} 总页数。"
+  ],
+  "Choose which file types should use Kuusi when opened from the file browser.": [
+    "选择从文件浏览器打开时，哪些文件类型使用 Kuusi。"
+  ],
+  "Paste as child of selection (subtree or plain text)": [
+    "粘贴为所选主题的子节点（子树或纯文本）"
+  ]
 }

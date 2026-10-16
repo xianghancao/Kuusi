@@ -45,7 +45,21 @@ export const configureKuusiTranslator = (translator: ITranslator): void => {
   const languageCode =
     translator.languageCode ||
     (typeof document !== "undefined" ? document.documentElement.lang : "");
-  kuusiBundle = wrapKuusiBundle(translator.load(KUUSI_I18N_DOMAIN), languageCode);
+  let upstream: TranslationBundle;
+
+  try {
+    upstream = translator.load(KUUSI_I18N_DOMAIN);
+  } catch (error) {
+    // A broken catalog must never stop the plugin from activating (that took
+    // every Kuusi entry out of the menus): fall back to the built-in map.
+    console.warn(
+      "jupyterlab-kuusi: translation catalog could not be loaded, using built-in strings",
+      error,
+    );
+    upstream = nullTranslator.load(KUUSI_I18N_DOMAIN);
+  }
+
+  kuusiBundle = wrapKuusiBundle(upstream, languageCode);
 };
 
 export const getKuusiBundle = (): TranslationBundle => kuusiBundle;
@@ -226,6 +240,9 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   close: () => t.__("Close"),
   community: () => t.__("Community"),
   autoReload: () => t.__("Auto reload"),
+  capsuleAutoCollapse: () => t.__("Auto collapse capsule"),
+  capsuleAutoCollapseTitle: () =>
+    t.__("Fold the capsule into a round mark until the pointer reaches it"),
   lineNumberHighlight: () => t.__("Cursor line number"),
   lineNumberColor: () => t.__("Color"),
   lineStyleDefault: () => t.__("Default"),
@@ -265,6 +282,12 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   contentsDepth: () => t.__("Heading levels"),
   tableHeaderRowAlign: () => t.__("Header row alignment"),
   tableHeaderColumnAlign: () => t.__("Header column alignment"),
+  tableColumnWidth: () => t.__("Column width"),
+  tableColumnsAuto: () => t.__("Auto fit"),
+  tableColumnsAutoTitle: () =>
+    t.__("Each column is as wide as its content needs"),
+  tableColumnsEqual: () => t.__("Equal"),
+  tableColumnsEqualTitle: () => t.__("Every column gets the same width"),
   tableAlignAuto: () => t.__("Auto"),
   tableAlignAutoTitle: () => t.__("Keep the table style's own alignment"),
   codeBackground: () => t.__("Code background"),
@@ -365,7 +388,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   equalNodeWidth: () => t.__("Equal width"),
   equalNodeWidthTitle: () =>
     t.__("When on, every node uses the same width"),
-  adaptiveNodeWidth: () => t.__("Fit content"),
+  adaptiveNodeWidth: () => t.__("Auto fit"),
   adaptiveNodeWidthTitle: () =>
     t.__(
       "Fit width to content, capped by Node width; with Equal width, all nodes match the widest content (still capped)",
@@ -406,6 +429,7 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   imageCaptionsTitle: () => t.__("Show the alt text under each image as “Figure N. …”"),
   linkFootnotes: () => t.__("Link footnotes"),
   linkFootnotesTitle: () => t.__("Number links in the text and list their addresses at the end"),
+  imageScale: () => t.__("Scale"),
   tableFontSize: () => t.__("Table text size"),
   tableBandColor: () => t.__("Table band color"),
   columnRuleTitle: () => t.__("Draw a line between the two columns"),
@@ -672,6 +696,14 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   articleQuote: () => t.__("Quote"),
   blockquoteWeight: () => t.__("Blockquote"),
   hrWeight: () => t.__("Divider"),
+  hrThickness: () => t.__("Divider thickness"),
+  hrThicknessAuto: () => t.__("Preset"),
+  hrStyle: () => t.__("Divider line"),
+  hrStyleSolid: () => t.__("Solid"),
+  hrStyleDashed: () => t.__("Dashed"),
+  hrStyleDotted: () => t.__("Dotted"),
+  hrStyleDouble: () => t.__("Double"),
+  hrColor: () => t.__("Divider color"),
   ruleWeightLight: () => t.__("Light"),
   ruleWeightLightTitle: () => t.__("Thin, quiet rule"),
   ruleWeightNormal: () => t.__("Normal"),
@@ -1102,6 +1134,33 @@ export const createKuusiTranslator = (trans?: TranslationBundle) => {
   slidesPageNumberDashTitle: () =>
     t.__("Page number and count separated by an en dash"),
   slidesFooter: () => t.__("Footer"),
+  slidesProgressShadowTitle: () => t.__("Soft glow under the progress bar"),
+  notebookSettings: () => t.__("Notebook"),
+  cellBarColor: () => t.__("Command-mode cell bar"),
+  autoReloadDefault: () => t.__("Auto reload by default"),
+  autoReloadDefaultTitle: () =>
+    t.__("Reload notebooks and Markdown views when the file changes on disk. Each file can still be switched in its … menu."),
+  cellBorderColor: () => t.__("Selected cell border"),
+  cellColorsHint: () =>
+    t.__("The bar beside the selected cell (command mode) and the border round it are set separately. Empty keeps JupyterLab's colors."),
+  cellBarColorHint: () =>
+    t.__("Color of the bar beside the selected cell while the notebook is in command mode."),
+  slidesChromeFontSize: () => t.__("Text size"),
+  articleOverview: () => t.__("Page overview"),
+  articleOverviewTitle: () => t.__("Overview of all pages (G)"),
+  slidesHeaderStyle: () => t.__("Header style"),
+  slidesFooterStyle: () => t.__("Footer style"),
+  slidesFooterText: () => t.__("Footer text"),
+  slidesFooterTextTitle: () =>
+    t.__("Tokens: {title} {chapter} {section} {subsection} {page} {total} {date}. Empty shows the deck title."),
+  slidesOverview: () => t.__("Slide overview"),
+  slidesOverviewTitle: () => t.__("Overview of all pages (G)"),
+  slidesChromeHeight: () => t.__("Bar height"),
+  slidesChromeColor: () => t.__("Bar color"),
+  slidesChromeTextColor: () => t.__("Text color"),
+  slidesChromeBackground: () => t.__("Background"),
+  slidesChromeOpacity: () => t.__("Opacity"),
+  slidesFooterRule: () => t.__("Divider thickness"),
   slidesFooterTitle: () =>
     t.__("Show the slide footer bar"),
   slidesProgress: () => t.__("Progress"),
