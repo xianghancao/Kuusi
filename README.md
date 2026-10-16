@@ -25,9 +25,9 @@
 
 | Component | Version |
 |-----------|---------|
-| **Kuusi** | `0.2.7` |
-| `kuusi-kernel` | `0.2.7` |
-| `jupyterlab-kuusi` | `0.2.7` |
+| **Kuusi** | `0.2.8` |
+| `kuusi-kernel` | `0.2.8` |
+| `jupyterlab-kuusi` | `0.2.8` |
 
 See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 

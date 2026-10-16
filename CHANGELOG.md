@@ -6,14 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-10-17
+
 ### Added
 
+- **Image scale** slider (Elements → Image → Size) in Article, Book, Slides and Mind Map. It scales percentage widths too (MyST `:width:`, HTML `width="40%"`).
+- **Page overview** (Article and Slides): press **G** or use the ▦ button for a grid of page thumbnails; click one to jump to it. Article needs the Paged layout.
+- **Header & footer** is its own menu in Article and Slides (it used to sit inside Page). Both get font, size and colour; Slides also gets bar height, opacity, divider thickness, footer background, a footer text template (`{title}`, `{chapter}`, `{section}`, `{subsection}`, `{page}`, `{total}`, `{date}`), and a **Progress** section (thickness, colour, opacity, glow).
+- Article: the typesetting options (line spacing presets, orphan lines, hyphenation, first-line indent) moved from Page into **Paragraph**.
+- Article fullscreen: the swipe direction is two buttons (↔ / ↕), shown only in fullscreen.
+- Slides render MyST `:::{figure}` / `:::{image}` directives (width, alignment, caption) and never split them across pages.
+- Kuusi Settings → **Notebook**: colour of the command-mode cell bar, colour of the selected cell border, and a default for **auto reload**.
 - **Table column width** (Elements → Table): **Auto fit** sizes each column to its content (new default; JupyterLab's own tables were fixed equal columns), **Equal** gives every column the same width.
 - **Divider** (Elements → Quote): thickness slider (0 follows the weight preset), line style (solid, dashed, dotted, double) and color.
 - **Auto collapse capsule**: the Article, Book, Slides and Mind Map capsules fold into a round Kuusi mark and unfold when the pointer (or keyboard focus, or an open menu) reaches them. Turn it off from the capsule's logo menu (saved in settings, on by default).
 
 ### Fixed
 
+- **Kuusi vanished under a Chinese language pack** (`jupyterlab-language-pack-zh-CN`): the zh_CN catalog had the wrong layout, so the plugin failed to activate and both the menu entry and "Open With" disappeared. The catalog now uses JupyterLab's layout, and a catalog that cannot be loaded no longer stops the plugin.
+- Notebook auto reload no longer reverts a file whose content did not change (sync clients and indexers touch files after a save), and a real reload keeps the active cell, caret and scroll position instead of jumping to line 1.
+- Article fullscreen: zoom looked dead because the page strip was stretched to the whole document and slid off screen.
+- Article: no blank scroll area below the last page when zoomed out; the gap above the first page and below the last match.
+- Two-column Article exported as one column when the print viewport was narrower than the paper.
+- PDF export: a grey strip down the left side and the page shifted right.
+- Slides: body text no longer runs under the footer; the footer and page number show even without a deck title; pictures keep their proportions under the height cap.
+- The selected notebook cell's bar was green in command mode (same as edit mode); it is Jupyter's blue again unless you set a colour.
+- Article's Minimal theme now uses the Mist view colour.
 - Notebook editor kept its old width after the split divider was dragged; it now follows the pane.
 - Saving a Markdown file no longer sends the editor's caret to line 1 while an Article / Book / Slides / Mind Map view is open.
 - Book: in a narrow pane the two-page spread was shifted right and its right page cut off; it is now centered in the pane at any width.
