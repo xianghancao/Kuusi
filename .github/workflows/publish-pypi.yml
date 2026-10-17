@@ -4,7 +4,7 @@
 #   1. Log in → Publishing → Add a new pending publisher (or project → Collaborators)
 #   2. PyPI project name: jupyterlab-kuusi
 #   3. Owner: xianghancao
-#   4. Repository name: Kuusi   (must match GitHub exactly)
+#   4. Repository name: kuusi   (must match GitHub exactly)
 #   5. Workflow name: publish-pypi.yml
 #   6. Environment name: pypi
 #
@@ -12,7 +12,11 @@
 # Optional: add a protection rule requiring approval before publish.
 #
 # Release flow:
-#   bump versions → commit → git tag vX.Y.Z → git push origin vX.Y.Z
+#   bump versions → write the CHANGELOG entry (## [X.Y.Z] - date) → commit →
+#   git tag vX.Y.Z → git push origin vX.Y.Z
+#
+# After PyPI accepts the files, the `release` job creates the GitHub Release for
+# the tag, with the notes taken from that CHANGELOG entry.
 
 name: Publish PyPI
 
@@ -85,3 +89,45 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  release:
+    name: GitHub Release
+    # Only for version tags (a manual run has no tag to release).
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Release notes from CHANGELOG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          {
+            echo "## ${VERSION}"
+            awk -v v="$VERSION" '
+              $0 ~ "^## \\[" v "\\]" { found = 1; next }
+              /^## \[/ { if (found) exit }
+              found
+            ' CHANGELOG.md
+          } > release-notes.md
+          # A tag without a CHANGELOG entry still gets a Release, pointing at the file.
+          if [ "$(wc -l < release-notes.md)" -le 1 ]; then
+            echo "" >> release-notes.md
+            echo "See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md)." >> release-notes.md
+          fi
+          cat release-notes.md
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists; leaving it as is."
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "Kuusi ${GITHUB_REF_NAME#v}" \
+              --notes-file release-notes.md \
+              --verify-tag
+          fi
