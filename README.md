@@ -139,7 +139,7 @@ Questions, bugs, and feature ideas: [Jupyter Discourse topic](https://discourse.
 For local development or contributing, you need **Node.js ≥ 20**, **npm ≥ 10**, and **Git**. Clone the repo, activate the Python environment where JupyterLab is installed, then run:
 
 ```bash
-git clone https://github.com/xianghancao/Kuusi.git
+git clone https://github.com/xianghancao/kuusi.git
 cd Kuusi
 npm run jlab:install
 jupyter lab
@@ -158,7 +158,7 @@ KUUSI_PYTHON=/path/to/python KUUSI_JUPYTER=/path/to/jupyter npm run jlab:install
 Manual steps:
 
 ```bash
-git clone https://github.com/xianghancao/Kuusi.git
+git clone https://github.com/xianghancao/kuusi.git
 cd Kuusi
 npm install
 npm run build:extension
@@ -413,7 +413,7 @@ CONTRIBUTING.md
 
 ## Contributing
 
-Bug reports and feature ideas are welcome via [Issues](https://github.com/xianghancao/Kuusi/issues). **External pull requests are not accepted** before 1.0 — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+Bug reports and feature ideas are welcome via [Issues](https://github.com/xianghancao/kuusi/issues). **External pull requests are not accepted** before 1.0 — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 

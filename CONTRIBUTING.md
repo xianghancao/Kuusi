@@ -6,7 +6,7 @@ Kuusi welcomes **bug reports, feature ideas, and feedback**.
 
 Until **1.0.0**, development is **maintainer-only**:
 
-- Please open a [GitHub Issue](https://github.com/xianghancao/Kuusi/issues) for bugs or ideas
+- Please open a [GitHub Issue](https://github.com/xianghancao/kuusi/issues) for bugs or ideas
 - **External pull requests and code contributions are not accepted**
 - A workflow closes external PRs automatically and points here
 
@@ -51,7 +51,7 @@ npm run reinstall    # clean:deps + npm install
 ### Clone and install
 
 ```bash
-git clone https://github.com/xianghancao/Kuusi.git
+git clone https://github.com/xianghancao/kuusi.git
 cd Kuusi
 npm run jlab:install
 jupyter lab

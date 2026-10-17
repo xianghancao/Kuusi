@@ -24,9 +24,9 @@ jobs:
               "Until **1.0.0**, this repository does **not accept external pull requests** or code contributions. Development is maintainer-only.",
               "",
               "Please open a **GitHub Issue** for bugs or feature ideas instead:",
-              "https://github.com/xianghancao/Kuusi/issues",
+              "https://github.com/xianghancao/kuusi/issues",
               "",
-              "Details: https://github.com/xianghancao/Kuusi/blob/main/CONTRIBUTING.md",
+              "Details: https://github.com/xianghancao/kuusi/blob/main/CONTRIBUTING.md",
             ].join("\n");
 
             await github.rest.issues.createComment({
